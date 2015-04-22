@@ -61,8 +61,12 @@ public class OcelotDataService {
 		messageToClient.setId(message.getId());
 		try {
 			Object ds = getResolver(resolverId).resolveDataService(message.getDataService());
-			Object result = invoke(ds, message);
-			messageToClient.setResult(result);
+			if(ds.getClass().isAnnotationPresent(DataService.class)) {
+				Object result = invoke(ds, message);
+				messageToClient.setResult(result);
+			} else {
+				throw new DataServiceUnknownException(message.getDataService());
+			}
 		} catch (Exception ex) {
 			Throwable cause = ex;
 			if (InvocationTargetException.class.isInstance(ex)) {
