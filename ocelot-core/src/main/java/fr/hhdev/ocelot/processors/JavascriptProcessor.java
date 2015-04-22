@@ -6,7 +6,6 @@
 package fr.hhdev.ocelot.processors;
 
 import fr.hhdev.ocelot.DataService;
-import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Set;
@@ -22,7 +21,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
-import javax.tools.JavaFileManager.Location;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 public class JavascriptProcessor extends AbstractProcessor {
 
 	/**
-	 * Utilitaire pour accÃ©der au systÃ¨me de fichiers
+	 * Utilitaire pour accéder au système de fichiers
 	 */
 	private Filer filer;
 
