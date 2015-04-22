@@ -31,7 +31,6 @@ import javax.el.MethodNotFoundException;
 import javax.enterprise.event.Event;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.UnsatisfiedResolutionException;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,6 +55,7 @@ public class OcelotDataService {
 	}
 
 	@Asynchronous
+	@SuppressWarnings("UseSpecificCatch")
 	public Future<Void> excecute(String resolverId, MessageFromClient message) {
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(message.getId());
