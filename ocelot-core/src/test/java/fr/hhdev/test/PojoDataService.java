@@ -3,10 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package fr.hhdev.ocelot;
+package fr.hhdev.test;
 
-import fr.hhdev.ocelot.DataService;
 import fr.hhdev.ocelot.Constants;
+import fr.hhdev.ocelot.annotations.DataService;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -126,8 +126,16 @@ public class PojoDataService {
 		return "methodWithResult_" + i.getInteger();
 	}
 
+	public String methodWithArrayInteger(Integer[] i) {
+		return "methodWithArrayInteger_" + i.length;
+	}
+
 	public String methodWithCollectionInteger(Collection<Integer> i) {
 		return "methodWithCollectionInteger_" + i.size();
+	}
+
+	public String methodWithArrayResult(Result[] i) {
+		return "methodWithArrayResult_" + i.length;
 	}
 
 	public String methodWithCollectionResult(Collection<Result> i) {
@@ -148,5 +156,13 @@ public class PojoDataService {
 
 	public void methodThatThrowException() throws MethodException {
 		throw new MethodException("message of exception");
+	}
+
+	public String methodWithAlmostSameSignature(Integer i) {
+		return "Integer";
+	}
+
+	public String methodWithAlmostSameSignature(String i) {
+		return "String";
 	}
 }

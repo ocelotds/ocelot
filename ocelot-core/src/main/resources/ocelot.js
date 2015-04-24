@@ -1,6 +1,10 @@
 function OcelotController() {
-	var ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/ocelot/endpoint");
-	
+	var ws;
+	if(document.location.href.toString().indexOf(document.location.protocol+"//"+document.location.hostname + ":" + document.location.port+"%CTXPATH%")===0) {
+		ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "%CTXPATH%/endpoint");
+	} else {
+		ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/endpoint");
+	}
 	ws.topicHandlers = {};
 	ws.resultHandlers = {};
 	ws.faultHandlers = {};
@@ -34,6 +38,7 @@ function OcelotController() {
 		}
 	};
 	ws.onopen = function (evt) {
+		alert(evt.toString());
 	};
 	ws.onerror = function (evt) {
 		alert(evt.toString());

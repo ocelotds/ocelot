@@ -42,12 +42,6 @@
 			<artifactId>logback-classic</artifactId>
 			<version>[1.1,)</version>
 		</dependency>
-		<!-- LOMBOK FRAMEWORK DE GENERATION BYTECODE -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.16.2</version>
-		</dependency>
 		<!-- JUNIT -->
 		<dependency>
 			<groupId>junit</groupId>

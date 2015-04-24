@@ -12,15 +12,17 @@ import javax.naming.Binding;
 import javax.naming.InitialContext;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author hhfrancois
  */
-@Slf4j
 @DataServiceResolverId(Constants.Resolver.EJB)
 public class EJBResolver implements DataServiceResolver {
+
+	private static final Logger logger = LoggerFactory.getLogger(EJBResolver.class);
 
 	private static final Map<String, String> jndiMap = new HashMap<>();
 	private String jndiPath = "";

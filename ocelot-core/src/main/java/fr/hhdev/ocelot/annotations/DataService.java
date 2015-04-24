@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package fr.hhdev.ocelot;
+package fr.hhdev.ocelot.annotations;
 
+import fr.hhdev.ocelot.Constants;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

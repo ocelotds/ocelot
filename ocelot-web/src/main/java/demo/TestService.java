@@ -5,7 +5,7 @@
  */
 package demo;
 
-import fr.hhdev.ocelot.DataService;
+import fr.hhdev.ocelot.annotations.DataService;
 import javax.ejb.Stateless;
 
 /**

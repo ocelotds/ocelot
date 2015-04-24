@@ -8,6 +8,13 @@
 	</parent>
 	<artifactId>ocelot-core</artifactId>
 	<packaging>jar</packaging>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>ocelot-ejb</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
     <properties>
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>

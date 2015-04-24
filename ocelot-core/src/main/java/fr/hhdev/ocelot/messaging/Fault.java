@@ -5,11 +5,8 @@
  */
 package fr.hhdev.ocelot.messaging;
 
-import fr.hhdev.ocelot.Constants;
-import java.io.StringReader;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 
 /**
  *
@@ -17,9 +14,22 @@ import javax.json.JsonReader;
  */
 public class Fault {
 
+	public Fault() {
+	}
+
+	public Fault(Throwable t) {
+		this.message = t.getMessage();
+		this.classname = t.getClass().getName();
+		String[] stackTraceElements = new String[Math.min(t.getStackTrace().length, 50)];
+		for (int i = 0; i < stackTraceElements.length; i++) {
+			stackTraceElements[i] = t.getStackTrace()[i].toString();
+		}
+		this.stacktrace = stackTraceElements;
+	}
+
 	private String message;
 	private String classname;
-	private String stacktrace;
+	private String[] stacktrace;
 
 	public String getMessage() {
 		return message;
@@ -37,29 +47,22 @@ public class Fault {
 		this.classname = classname;
 	}
 
-	public String getStacktrace() {
+	public String[] getStacktrace() {
 		return stacktrace;
 	}
 
-	public void setStacktrace(String stacktrace) {
+	public void setStacktrace(String[] stacktrace) {
 		this.stacktrace = stacktrace;
 	}
-	
-	public static Fault createFromJson(String json) {
-		try (JsonReader reader = Json.createReader(new StringReader(json))) {
-			JsonObject faultJs = reader.readObject();
-			Fault f = new Fault();
-			f.setMessage(faultJs.getString(Constants.Fault.MSG));
-			f.setClassname(faultJs.getString(Constants.Fault.CLASSNAME));
-			f.setStacktrace(faultJs.getString(Constants.Fault.STACKTRACE));
-			return f;
-		}
+
+	public static Fault createFromJson(String json) throws IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.readValue(json, Fault.class);
 	}
-	
-	public String toJson() {
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\"}",
-				  Constants.Fault.MSG, message, Constants.Fault.CLASSNAME, classname, Constants.Fault.STACKTRACE, stacktrace);
-		return json;
+
+	public String toJson() throws IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.writeValueAsString(this);
 	}
-	
+
 }

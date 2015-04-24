@@ -10,20 +10,17 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * Message venant du client pour appeler un services quelconque.
  * C'est le topic de Command qui identifie quel resolver sera utilisé pour acquérir l'instance du service.
  * @author hhfrancois
  */
-@Getter @Setter @EqualsAndHashCode(of = {"id"})
 public class MessageFromClient {
 
 	protected String id;
@@ -66,6 +63,28 @@ public class MessageFromClient {
 		this.parameters = parameters;
 	}
 
+	@Override
+	public int hashCode() {
+		int hash = 5;
+		hash = 79 * hash + Objects.hashCode(this.id);
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final MessageFromClient other = (MessageFromClient) obj;
+		if (!Objects.equals(this.id, other.id)) {
+			return false;
+		}
+		return true;
+	}
+	
 	public static MessageFromClient createFromJson(String json) {
 		try (JsonReader reader = Json.createReader(new StringReader(json))) {
 			JsonObject root = reader.readObject();

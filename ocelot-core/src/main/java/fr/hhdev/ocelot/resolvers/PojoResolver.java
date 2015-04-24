@@ -18,7 +18,7 @@ public class PojoResolver implements DataServiceResolver {
 	public Object resolveDataService(String dataService) throws DataServiceException {
 		try {
 			return Class.forName(dataService).newInstance();
-		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+		} catch (ClassNotFoundException |InstantiationException | IllegalAccessException ex) {
 			throw new DataServiceException(dataService, ex);
 		}
 	}

@@ -26,17 +26,19 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author hhfrancois
  */
-@Slf4j
 //@Named(value = "OcelotEndpoint")
 @Stateless
 @ServerEndpoint(value = "/endpoint", encoders = {MessageToClientEncoder.class})
 public class OcelotEndpoint {
+
+	private static final Logger logger = LoggerFactory.getLogger(OcelotEndpoint.class);
 
 	private final Map<String, Set<Session>> sessionsByTopic = new HashMap<>();
 	private final Map<String, Session> sessionsByMsgId = new HashMap<>();
@@ -58,7 +60,7 @@ public class OcelotEndpoint {
 				if (session.isOpen()) {
 					session.getBasicRemote().sendObject(msg);
 				}
-			} else {
+			} else if (sessionsByTopic.containsKey(msg.getId())) {
 				Set<Session> sessions = sessionsByTopic.get(msg.getId());
 				if (sessions != null && !sessions.isEmpty()) {
 					logger.debug("SEND MESSAGE TO '{}' TOPIC {} CLIENT(s) : {}", new Object[] {msg.getId(), sessions.size(), msg.toJson()});
@@ -70,6 +72,8 @@ public class OcelotEndpoint {
 				} else {
 					logger.debug("NO CLIENT FOR TOPIC {}", msg.getId());
 				}
+			} else {
+				logger.debug("NO CLIENT FOR MSGID {}", msg.getId());
 			}
 		} catch (IOException | EncodeException ex) {
 			logger.error(ex.getMessage(), ex);
@@ -133,8 +137,10 @@ public class OcelotEndpoint {
 	 * @param session
 	 */
 	private void subscribeToTopic(String topic, Session session) {
-		Set<Session> sessions = sessionsByTopic.get(topic);
-		if (sessions == null) {
+		Set<Session> sessions;
+		if (sessionsByTopic.containsKey(topic)) {
+			sessions = sessionsByTopic.get(topic);
+		} else {
 			sessions = new HashSet<>();
 			sessionsByTopic.put(topic, sessions);
 		}

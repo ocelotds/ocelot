@@ -5,7 +5,7 @@
  */
 package fr.hhdev.ocelot.processors;
 
-import fr.hhdev.ocelot.DataService;
+import fr.hhdev.ocelot.annotations.DataService;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Set;
@@ -23,13 +23,11 @@ import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  *
  * @author francois
  */
-@Slf4j
 @SupportedAnnotationTypes(value = {"fr.hhdev.ocelot.DataService"})
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class JavascriptProcessor extends AbstractProcessor {
@@ -59,7 +57,7 @@ public class JavascriptProcessor extends AbstractProcessor {
 		// RÃ©cupÃ©ration des packages annotÃ©s       
 		Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(DataService.class);
 		for (Element annotatedPackage : annotatedElements) {
-			try {
+//			try {
 //				for (StandardLocation location : StandardLocation.values()) {
 //					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, "" + location);
 //					if (location.isOutputLocation()) {
@@ -70,18 +68,18 @@ public class JavascriptProcessor extends AbstractProcessor {
 //						}
 //					}
 //				}
-				JavaFileObject createSourceFile = filer.createSourceFile("anno.Generated");
-				messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, "" + createSourceFile.toUri().getPath());
-				try (Writer writer = createSourceFile.openWriter()) {
-					FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", "test.js");
-					writer.write("package anno;\npublic class Generated {\n// " + resource.toUri().getPath() + "\n}");
-					try (Writer w = resource.openWriter()) {
-						w.write("alert('youpi')");
-					}
-				}
-			} catch (IOException e) {
-				messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
-			}
+//				JavaFileObject createSourceFile = filer.createSourceFile("anno.Generated");
+//				messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, "" + createSourceFile.toUri().getPath());
+//				try (Writer writer = createSourceFile.openWriter()) {
+//					FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", "test.js");
+//					writer.write("package anno;\npublic class Generated {\n// " + resource.toUri().getPath() + "\n}");
+//					try (Writer w = resource.openWriter()) {
+//						w.write("alert('youpi')");
+//					}
+//				}
+//			} catch (IOException e) {
+//				messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+//			}
 		}
 		return true;
 	}

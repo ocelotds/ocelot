@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package fr.hhdev.ocelot;
+package fr.hhdev.test;
 
 import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.MessageToClient;
@@ -12,17 +12,18 @@ import java.util.Map;
 import javax.websocket.ClientEndpoint;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author hhfrancois
  */
-@Slf4j
 @ClientEndpoint
 public class OcelotClientEnpoint {
 	private static final Map<String, String> results = new HashMap<>();
 	private static final Map<String, Fault> faults = new HashMap<>();
+	private static final Logger logger = LoggerFactory.getLogger(OcelotClientEnpoint.class);
 	
 	@OnMessage
 	public void onMessage(String message, Session session) {
@@ -38,12 +39,14 @@ public class OcelotClientEnpoint {
 	}
 	
 	public static String getResult(String messageid) {
+		logger.debug("LECTURE DU RESULT SAVED POUR L'ID {}", new Object[] {messageid});
 		String get = results.get(messageid);
 		results.remove(messageid);
 		return get;
 	}
 
 	public static Fault getFault(String messageid) {
+		logger.debug("LECTURE DU FAULT SAVED POUR L'ID {}", new Object[] {messageid});
 		Fault get = faults.get(messageid);
 		faults.remove(messageid);
 		return get;

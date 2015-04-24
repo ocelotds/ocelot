@@ -6,7 +6,7 @@
 		</encoder>
 	</appender>
 
-	<logger name="fr.hhdev.ocelot" level="debug"/>
+	<logger name="fr.hhdev" level="debug"/>
 
 	<root level="debug">
 		<appender-ref ref="STDOUT" />

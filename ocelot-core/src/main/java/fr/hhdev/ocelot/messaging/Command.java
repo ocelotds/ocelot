@@ -11,18 +11,42 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
-import lombok.Data;
 
 /**
  *
  * @author hhfrancois
  */
-@Data 
 public class Command {
 
 	String topic;
 	String command;
 	String message;
+
+	public String getTopic() {
+		return topic;
+	}
+
+	public void setTopic(String topic) {
+		this.topic = topic;
+	}
+
+	public String getCommand() {
+		return command;
+	}
+
+	public void setCommand(String command) {
+		this.command = command;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+	
+	
 
 	public static Command createFromJson(String json) {
 		try (JsonReader reader = Json.createReader(new StringReader(json))) {
