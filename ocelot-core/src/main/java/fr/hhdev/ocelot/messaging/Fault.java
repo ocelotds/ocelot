@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fr.hhdev.ocelot.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,5 +59,17 @@ public class Fault {
 		ObjectMapper mapper = new ObjectMapper();
 		return mapper.writeValueAsString(this);
 	}
+
+	@Override
+	public String toString() {
+		try {
+			return toJson();
+		} catch (IOException ex) {
+		}
+		return "Fault{" + "message=" + message + ", classname=" + classname + ", stacktrace=" + stacktrace + '}';
+	}
+
+	
+	
 
 }
