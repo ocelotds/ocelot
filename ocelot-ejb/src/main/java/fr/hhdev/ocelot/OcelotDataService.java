@@ -47,12 +47,17 @@ public class OcelotDataService extends AbstractOcelotDataService {
 	@Asynchronous
 	@SuppressWarnings("UseSpecificCatch")
 	public Future<Void> excecute(String resolverId, MessageFromClient message) {
+		logger.debug("Excecution de la methode pour le message {}", message);
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(message.getId());
 		try {
-			Object ds = getResolver(resolverId).resolveDataService(message.getDataService());
+			DataServiceResolver resolver = getResolver(resolverId);
+			logger.debug("Resolver : {}", resolver);
+			Object ds = resolver.resolveDataService(message.getDataService());
+			logger.debug("Dataservice : {}", ds);
 			Class cls = Class.forName(message.getDataService());
 			if(cls.isAnnotationPresent(DataService.class)) {
+				logger.debug("Invocation de  : {}", message.getOperation());
 				Object result = invoke(ds, message);
 				messageToClient.setResult(result);
 			} else {
