@@ -23,7 +23,6 @@
 
 	<modules>
 		<module>ocelot-web</module>
-		<module>ocelot-ejb</module>
 		<module>ocelot-core</module>
 	</modules>
 	<dependencies>		
