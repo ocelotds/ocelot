@@ -119,4 +119,9 @@ public class MessageFromClient {
 			Constants.Message.ARGUMENTS, args);
 		return json;
 	}
+
+	@Override
+	public String toString() {
+		return toJson();
+	}
 }
