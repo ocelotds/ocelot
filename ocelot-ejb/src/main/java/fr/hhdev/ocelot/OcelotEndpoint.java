@@ -124,6 +124,7 @@ public class OcelotEndpoint {
 				case Constants.Command.Value.CALL:
 					MessageFromClient message = MessageFromClient.createFromJson(command.getMessage());
 					sessionsByMsgId.put(message.getId(), client); // on enregistre le message pour re-router le résultat vers le bon client
+					logger.debug("OcelotDataService est injecté : {}", ods!=null);
 					ods.excecute(command.getTopic(), message);
 					break;
 			}
