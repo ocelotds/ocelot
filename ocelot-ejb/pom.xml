@@ -13,7 +13,6 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>ocelot-core</artifactId>
             <version>${project.version}</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
     <properties>
