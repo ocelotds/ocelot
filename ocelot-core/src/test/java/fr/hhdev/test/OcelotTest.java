@@ -30,8 +30,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.el.MethodNotFoundException;
 import javax.enterprise.event.Event;
 import javax.enterprise.inject.Any;
@@ -69,7 +67,7 @@ import org.junit.runner.RunWith;
 public class OcelotTest {
 
 	private final long WAITING = 100;
-	private final long TIMEOUT = 100;
+	private final long TIMEOUT = 1000;
 
 	@Inject
 	@MessageEvent
@@ -96,14 +94,14 @@ public class OcelotTest {
 	 */
 	@Deployment
 	public static WebArchive createWarArchive() {
-		File[] libs = Maven.resolver().loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
+//		File[] libs = Maven.resolver().loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
 		File[] ejbs = Maven.resolver().loadPomFromFile("pom_test.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
 		File logback = new File("src/test/resources/logback.xml");
 		File glassfish = new File("src/test/resources/glassfish-web.xml");
 		return ShrinkWrap.create(WebArchive.class, "ocelot-test.war")
-				  .addAsLibraries(libs)
+//				  .addAsLibraries(libs)
 				  .addAsLibraries(ejbs)
-				  .addAsLibraries(createLibArchive())
+//				  .addAsLibraries(createLibArchive())
 				  .addPackages(true, OcelotTest.class.getPackage())
 				  .addAsWebInfResource(new FileAsset(logback), "logback.xml")
 				  .addAsWebInfResource(new FileAsset(glassfish), "glassfish-web.xml")
