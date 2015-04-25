@@ -7,7 +7,6 @@ package fr.hhdev.ocelot.processors;
 
 import fr.hhdev.ocelot.annotations.DataService;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
@@ -21,7 +20,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
-import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 
 /**
@@ -57,7 +55,7 @@ public class JavascriptProcessor extends AbstractProcessor {
 		// RÃ©cupÃ©ration des packages annotÃ©s       
 		Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(DataService.class);
 		for (Element annotatedPackage : annotatedElements) {
-//			try {
+			try {
 //				for (StandardLocation location : StandardLocation.values()) {
 //					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, "" + location);
 //					if (location.isOutputLocation()) {
@@ -71,15 +69,15 @@ public class JavascriptProcessor extends AbstractProcessor {
 //				JavaFileObject createSourceFile = filer.createSourceFile("anno.Generated");
 //				messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, "" + createSourceFile.toUri().getPath());
 //				try (Writer writer = createSourceFile.openWriter()) {
-//					FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", "test.js");
+					FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", "test.js");
 //					writer.write("package anno;\npublic class Generated {\n// " + resource.toUri().getPath() + "\n}");
 //					try (Writer w = resource.openWriter()) {
 //						w.write("alert('youpi')");
 //					}
 //				}
-//			} catch (IOException e) {
-//				messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
-//			}
+			} catch (IOException e) {
+				messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+			}
 		}
 		return true;
 	}
