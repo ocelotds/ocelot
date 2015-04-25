@@ -33,12 +33,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author hhfrancois
  */
-//@Named(value = "OcelotEndpoint")
-@Stateless
-@ServerEndpoint(value = "/endpoint", encoders = {MessageToClientEncoder.class})
-public class OcelotEndpoint {
+//@Named(value = "OcelotEndpoint1")
+//@Stateless
+//@ServerEndpoint(value = "/endpoint", encoders = {MessageToClientEncoder.class})
+public class OcelotEndpoint1 {
 
-	private static final Logger logger = LoggerFactory.getLogger(OcelotEndpoint.class);
+	private static final Logger logger = LoggerFactory.getLogger(OcelotEndpoint1.class);
 
 	private final Map<String, Set<Session>> sessionsByTopic = new HashMap<>();
 	private final Map<String, Session> sessionsByMsgId = new HashMap<>();

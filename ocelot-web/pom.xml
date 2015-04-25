@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>ocelot-ejb</artifactId>
+            <artifactId>ocelot-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

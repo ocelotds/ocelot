@@ -48,7 +48,7 @@ public class PojoDataService {
 	}
 
 	public Date getDate() {
-		return Date.from(Instant.now());
+		return new Date();
 	}
 
 	public Result getResult() {
