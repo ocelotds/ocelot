@@ -42,6 +42,7 @@ public class OcelotClientEnpoint {
 		logger.debug("LECTURE DU RESULT SAVED POUR L'ID {}", new Object[] {messageid});
 		String get = results.get(messageid);
 		results.remove(messageid);
+		logger.debug("LECTURE DU RESULT SAVED POUR L'ID {} : {}", new Object[] {messageid, get});
 		return get;
 	}
 
@@ -49,6 +50,7 @@ public class OcelotClientEnpoint {
 		logger.debug("LECTURE DU FAULT SAVED POUR L'ID {}", new Object[] {messageid});
 		Fault get = faults.get(messageid);
 		faults.remove(messageid);
+		logger.debug("LECTURE DU FAULT SAVED POUR L'ID {} : {}", new Object[] {messageid, get});
 		return get;
 	}
 }
