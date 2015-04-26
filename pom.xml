@@ -9,6 +9,25 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
+	<developers>
+		<developer>
+			<name>François Achache</name>
+			<email>francois.achache@gmail.com</email>
+		</developer>
+	</developers>
+	<licenses>
+		<license>
+			<name>Mozilla Public License 2.0</name>
+			<url>http://mozilla.org/MPL/2.0/</url>
+		</license>
+	</licenses>
+	
+	<scm>
+		<connection>scm:git:git@github.com:hhdevelopment/ocelot.git</connection>
+		<developerConnection>scm:git:git@github.com:hhdevelopment/ocelot.git</developerConnection>
+		<url>git@github.com:hhdevelopment/ocelot.git</url>
+	</scm>	
+	
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
