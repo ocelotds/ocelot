@@ -14,7 +14,7 @@ import javax.inject.Inject;
 
 /**
  *
- * @author francois
+ * @author hhfrancois
  */
 @Singleton
 public class TopicPublisher {
