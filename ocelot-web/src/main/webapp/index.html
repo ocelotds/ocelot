@@ -23,6 +23,7 @@ and open the template in the editor.
 					status.style.backgroundColor = '#f00';
 				}
 			};
+			mdb1.subscribe();
 			var mdb = new Mdb("mytopic");
 			mdb.onMessage = function (msg) {
 				addMessage(msg);
@@ -71,7 +72,6 @@ and open the template in the editor.
 		<button onclick="getMessage2(ejbService)">GET EJB MESSAGE(str)</button>
 		<button onclick="getMessage(pojoService)">GET POJO MESSAGE(int)</button>
 		<button onclick="getMessage2(pojoService)">GET POJO MESSAGE(str)</button>
-		<button onclick="mdb1.subscribe();">STATUS</button>
 		<div id="output"></div>
 	</body>
 </html>
