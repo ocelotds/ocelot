@@ -49,13 +49,18 @@ token.onFault = function (fault) {
 };
 ```
 Message Driven bean features, can be use for implement a chat for example or notify something to the client.
+
+In javascript, do an instance of Mdb
+
 ```javascript
-var mdb = new Mdb("mytopic");
+var mdb = new Mdb("mytopic"); // This Mdb listen topic "mytopic"
 mdb.onMessage = function (msg) {
-	addMessage(msg);
+   doSomethingWithMsg(msg); // string message
 };
 mdb.subscribe();
 ```
+
+In java, publish message to all subcriber clients
 ```java
 	@Inject
 	@MessageEvent
