@@ -24,6 +24,7 @@
 	<modules>
 		<module>ocelot-web</module>
 		<module>ocelot-core</module>
+		<module>ocelot-spi</module>
 	</modules>
 	<dependencies>		
 		<dependency>
