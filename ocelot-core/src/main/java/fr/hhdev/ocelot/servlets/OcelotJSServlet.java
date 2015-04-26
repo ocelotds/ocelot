@@ -18,9 +18,9 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  *
- * @author francois
+ * @author hhfrancois
  */
-@WebServlet(name = "OcelotJSServlet", urlPatterns = {"/ocelot.js"})
+@WebServlet(name = "OcelotJSServlet", urlPatterns = {"/ocelot-core.js"})
 public class OcelotJSServlet extends HttpServlet {
 
 	/**
@@ -36,7 +36,7 @@ public class OcelotJSServlet extends HttpServlet {
 		response.setContentType("text/javascript;charset=UTF-8");
 		try (Writer out = response.getWriter()) {
 			String ctxPath = request.getContextPath();
-			URL js = this.getClass().getResource("/ocelot.js");
+			URL js = this.getClass().getResource("/ocelot-core.js");
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream()))) {
 				String inputLine;
 				while ((inputLine = in.readLine()) != null) {

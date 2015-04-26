@@ -7,7 +7,7 @@ package fr.hhdev.test;
 
 /**
  *
- * @author francois
+ * @author hhfrancois
  */
 class MethodException extends Exception {
 

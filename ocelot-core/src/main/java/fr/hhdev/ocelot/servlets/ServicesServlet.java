@@ -5,6 +5,8 @@
  */
 package fr.hhdev.ocelot.servlets;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
@@ -15,9 +17,9 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  *
- * @author francois
+ * @author hhfrancois
  */
-@WebServlet(name = "ServicesServlet", urlPatterns = {"/services.js"})
+@WebServlet(name = "ServicesServlet", urlPatterns = {"/ocelot-services.js"})
 public class ServicesServlet extends HttpServlet {
 
 	/**
@@ -31,8 +33,15 @@ public class ServicesServlet extends HttpServlet {
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
 			  throws ServletException, IOException {
 		response.setContentType("text/javascript;charset=UTF-8");
+		String path = getServletContext().getRealPath("/WEB-INF/classes/ocelot-services.js");
 		try (PrintWriter out = response.getWriter()) {
-			out.println("alert('ok');\n//"+this.getClass().getClassLoader().getResource("").getPath()+"\n"+this.getClass().getResource("").getPath());
+			try (BufferedReader in = new BufferedReader(new FileReader(path))) {
+				String inputLine;
+				while ((inputLine = in.readLine()) != null) {
+					out.write(inputLine);
+					out.write("\n");
+				}
+			}
 		}
 	}
 

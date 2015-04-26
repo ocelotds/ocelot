@@ -20,6 +20,7 @@ import fr.hhdev.ocelot.resolvers.PojoResolver;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
@@ -36,6 +37,11 @@ import javax.enterprise.event.Event;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonReader;
+import javax.json.JsonValue;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.MessageHandler;
@@ -72,7 +78,7 @@ public class OcelotTest {
 
 	final static Logger logger = LoggerFactory.getLogger(OcelotTest.class);
 
-	private final long TIMEOUT = 100;
+	private final long TIMEOUT = 500;
 
 	@Inject
 	@MessageEvent
@@ -554,6 +560,7 @@ public class OcelotTest {
 		System.out.println("getDate");
 		try {
 			final Date before = new Date();
+			Thread.sleep(1000);
 			System.out.println("BEFORE = "+before.getTime());
 			MessageFromClient messageFromClient = getMessageFromClient("getDate");
 			command.setMessage(messageFromClient.toJson());
@@ -568,6 +575,7 @@ public class OcelotTest {
 			Date res = Date.from(Instant.ofEpochMilli(Long.parseLong(result.toString())));
 			System.out.println("RES = "+res.getTime());
 			assertTrue(before.before(res));
+			Thread.sleep(1000);
 			Date after = new Date();
 			System.out.println("AFTER = "+after.getTime());
 			assertTrue(after.after(res));
@@ -1103,24 +1111,22 @@ public class OcelotTest {
 			System.out.println("Enregistrement au Topic '" + topic + "'");
 			command.setTopic(topic);
 			command.setCommand(Constants.Command.Value.SUBSCRIBE);
+			wssession.getBasicRemote().sendText(command.toJson());
+			Thread.sleep(TIMEOUT);
 			int nbMsg = 10;
 			CountDownLatch lock = new CountDownLatch(nbMsg);
 			messageHandler = new CountDownMessageHandler(topic, lock);
 			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
 
 			MessageToClient toTopic = new MessageToClient();
 			toTopic.setId(topic);
-			toTopic.setResult(new Result());
 			for (int i = 0; i < nbMsg; i++) {
+				System.out.println("Envois d'un message au Topic '" + topic + "'");
+				toTopic.setResult(new Result(i));
 				wsEvent.fire(toTopic);
 			}
 			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			assertEquals("Timeout", 0, lock.getCount());
-			assertEquals(0, lock.getCount());
 		} catch (InterruptedException | IOException ex) {
 			fail(ex.getMessage());
 		}

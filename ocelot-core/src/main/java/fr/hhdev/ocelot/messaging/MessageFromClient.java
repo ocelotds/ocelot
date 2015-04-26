@@ -15,6 +15,9 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.json.JsonValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Message venant du client pour appeler un services quelconque.
@@ -23,6 +26,7 @@ import javax.json.JsonReader;
  */
 public class MessageFromClient {
 
+	private static Logger logger = LoggerFactory.getLogger(MessageFromClient.class);
 	protected String id;
 	protected String dataService;
 	protected String operation;
@@ -79,10 +83,7 @@ public class MessageFromClient {
 			return false;
 		}
 		final MessageFromClient other = (MessageFromClient) obj;
-		if (!Objects.equals(this.id, other.id)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this.id, other.id);
 	}
 	
 	public static MessageFromClient createFromJson(String json) {
@@ -97,7 +98,9 @@ public class MessageFromClient {
 			message.setParameters(params);
 			int idx = 0;
 			while(idx<argArray.size()) {
-				params.add(""+argArray.get(idx++));
+				JsonValue arg = argArray.get(idx++);
+				logger.debug("Récupération des arguments dans le message {} : '{}'", arg.getValueType().name(), arg.toString());
+				params.add(arg.toString());
 			} 
 			return message;
 		}

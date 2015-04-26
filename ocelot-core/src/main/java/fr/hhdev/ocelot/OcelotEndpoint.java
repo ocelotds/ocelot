@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.ejb.Stateless;
 import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Any;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
  * @author hhfrancois
  */
 @ServerEndpoint(value = "/endpoint", encoders = {MessageToClientEncoder.class})
+@Stateless
 public class OcelotEndpoint extends AbstractOcelotDataService {
 
 	private final static Logger logger = LoggerFactory.getLogger(OcelotEndpoint.class);
