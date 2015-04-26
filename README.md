@@ -75,6 +75,39 @@ In java, publish message to all subcriber clients
 	}
 ```
 
+## SPI
+How to extends Ocelot.
+
+In case or defaults resolver doen't access to your service.
+
+Create librairie include implementations of DataServiceResolver
+
+ - Dependency : 
+```xml
+  <dependency>
+      <groupId>fr.hhdev</groupId>
+      <artifactId>ocelot-core</artifactId>
+      <version>1.0.0</version>
+  </dependency>
+```
+ - Class
+```java
+@DataServiceResolverId("MyRID")
+public class MyResolver implements DataServiceResolver {
+
+	@Override
+	public Object resolveDataService(String dataService) throws DataServiceException {
+	// how to get dataService implementation
+	}
+```
+And on the services 
+```java
+@DataService(resolverid = "MyRID")
+public class MyService {
+```
+
+
+
 
 
 
