@@ -11,8 +11,8 @@ Ocelot use one bidirection connection websocket.
 
 The better way, is doing EJB annotated, but you can call a simple pojo, or soon spring bean.
 
-# How to use : 
-## Dependencies
+## How to use : 
+### Dependencies
 Add dependency in your maven web project
 
 ```xml
@@ -22,7 +22,7 @@ Add dependency in your maven web project
       <version>1.0.0</version>
   </dependency>
 ```
-## Annotate services
+### Annotate services
 Set service is accesible from javasccript front end
 ```java
 @Stateless
@@ -31,7 +31,7 @@ public class TestEJBService {
 ```
 Compilation generate javascript stub by introspection of annotated classes
 
-## Add Framework to html
+### Add Framework to html
 Add core and generated services in html page (these scripts are gived by servlets)
 
 ```html
@@ -40,7 +40,7 @@ Add core and generated services in html page (these scripts are gived by servlet
 		<script src="ocelot-core.js" type="text/javascript"></script>
 ```
 
-## Use it
+### Use it
 Use services directement in your code
 
 ```javascript
@@ -54,10 +54,10 @@ token.onFault = function (fault) {
 };
 ```
 
-## Notifications 
+### Notifications 
 Message Driven bean features, can be use for implement a chat for example or notify something to the client.
 
-### create MDB
+#### create MDB
 In javascript, do an instance of Mdb
 
 ```javascript
@@ -68,7 +68,7 @@ mdb.onMessage = function (msg) {
 mdb.subscribe();
 ```
 
-### publish message
+#### publish message
 In java, publish message to all subcriber clients
 ```java
 	@Inject
