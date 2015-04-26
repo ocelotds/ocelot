@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import javax.el.MethodNotFoundException;
-import javax.json.JsonValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +82,10 @@ public abstract class AbstractOcelotDataService {
 				logger.debug("Conversion de {} vers {} : OK", arg, param.getType());
 			} else {
 				logger.debug("Tentative de conversion de {} vers {}", arg, param.getType());
-				if (param.getType().equals(String.class) && (!arg.startsWith("\"") || !arg.endsWith("\""))) {
+				if (param.getType().equals(String.class) && (!arg.startsWith("\"") || !arg.endsWith("\""))) { // on cherche une string
+					throw new IOException();
+				}
+				if (!param.getType().equals(String.class) && arg.startsWith("\"") && arg.endsWith("\"")) { // on a une string
 					throw new IOException();
 				}
 				result = mapper.readValue(arg, param.getType());
