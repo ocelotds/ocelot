@@ -11,16 +11,26 @@ and open the template in the editor.
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	</head>
 	<body>
-		<script src="ocelot.js" type="text/javascript"></script>
-		<script src="demo.js" type="text/javascript"></script>
+		<script src="ocelot-services.js" type="text/javascript"></script>
+		<script src="ocelot-core.js" type="text/javascript"></script>
 		<script>
+			var mdb1 = new Mdb("ocelot-status");
+			mdb1.onMessage = function (msg) {
+				var status = document.getElementById("status");
+				if(msg==="OPEN") {
+					status.style.backgroundColor = '#0f0';
+				} else {
+					status.style.backgroundColor = '#f00';
+				}
+			};
 			var mdb = new Mdb("mytopic");
 			mdb.onMessage = function (msg) {
 				addMessage(msg);
 			};
-			var testService = new TestService();
-			function getMessage() {
-				var token = testService.getMessage(Math.floor(Math.random()*10));
+			var pojoService = new TestPojoService();
+			var ejbService = new TestEJBService();
+			function getMessage(srv) {
+				var token = srv.getMessage(Math.floor(Math.random()*10));
 				token.onResult = function (msg) {
 					addMessage(msg);
 				};
@@ -28,8 +38,8 @@ and open the template in the editor.
 					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
 				};
 			};
-			function getFault() {
-				var token = testService.getFault(5);
+			function getMessage2(srv) {
+				var token = srv.getMessage(""+Math.floor(Math.random()*10));
 				token.onResult = function (msg) {
 					addMessage(msg);
 				};
@@ -48,16 +58,20 @@ and open the template in the editor.
 			
 			function showObject() {
 				var obj = eval(document.getElementById("testobject").value);
-				document.getElementById("objectarea").textContent = JSON.stringify(obj).replace(/,/g, "\n");
+				document.getElementById("objectarea").textContent = JSON.stringify(obj).replace(/,/g, ",\n");
 			}
 		</script>
+		<div id="status" style="width:10px;height:10px;background-color:#f00">X</div>
 		<input id="testobject" type="text" value="document.location"/>
 		<button onclick="showObject()">SHOW OBJECT</button><br>
 		<textarea style="height:200px;width:100%" id="objectarea"></textarea><br>
 		<button onclick="mdb.subscribe();">SUBSCRIBE</button>
 		<button onclick="mdb.unsubscribe();">UNSUBSCRIBE</button>
-		<button onclick="getMessage()">GET MESSAGE</button>
-		<button onclick="getFault()">GET FAULT</button>
+		<button onclick="getMessage(ejbService)">GET EJB MESSAGE(int)</button>
+		<button onclick="getMessage2(ejbService)">GET EJB MESSAGE(str)</button>
+		<button onclick="getMessage(pojoService)">GET POJO MESSAGE(int)</button>
+		<button onclick="getMessage2(pojoService)">GET POJO MESSAGE(str)</button>
+		<button onclick="mdb1.subscribe();">STATUS</button>
 		<div id="output"></div>
 	</body>
 </html>
