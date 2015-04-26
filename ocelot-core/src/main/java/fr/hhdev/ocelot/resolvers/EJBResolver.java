@@ -5,6 +5,9 @@
  */
 package fr.hhdev.ocelot.resolvers;
 
+import fr.hhdev.ocelot.spi.DataServiceException;
+import fr.hhdev.ocelot.spi.DataServiceResolverId;
+import fr.hhdev.ocelot.spi.DataServiceResolver;
 import fr.hhdev.ocelot.Constants;
 import java.util.HashMap;
 import java.util.Map;
