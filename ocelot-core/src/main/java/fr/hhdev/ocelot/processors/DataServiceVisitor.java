@@ -40,39 +40,12 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 		this.environment = environment;
 	}
 
-//function TestService() {
-//	this.fid = "ejb";
-//	this.ds = "demo.TestService";
-//	this.getMessage = function (i) {
-//		return getOcelotEvent.call(this, "getMessage", [i]);
-//	};
-//	this.getFault = function (i) {
-//		return getOcelotEvent.call(this, "getFault", []);
-//	};
-//}
-	@Override
-	public String visit(Element e, Writer p) {
-		System.out.println("visit(Element e, Writer p)");
-		return null;
-	}
-
-	@Override
-	public String visit(Element e) {
-		System.out.println("visit(Element e)");
-		return null;
-	}
-
-	@Override
-	public String visitPackage(PackageElement e, Writer p) {
-		System.out.println("visitPackage(PackageElement e, Writer p)");
-		return null;
-	}
-
 	@Override
 	public String visitType(TypeElement typeElement, Writer writer) {
 		System.out.println("visitType(TypeElement e, Writer p)");
 		DataService annotation = typeElement.getAnnotation(DataService.class);
 		try {
+			createClassComment(typeElement, writer);
 			writer.append("function ").append(typeElement.getSimpleName()).append("() {\n");
 			writer.append("\tthis.fid = \"").append(annotation.resolverid()).append("\";\n");
 			writer.append("\tthis.ds = \"").append(typeElement.getQualifiedName().toString()).append("\";\n");
@@ -105,34 +78,33 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 					writer.append("\t};\n");
 				}
 			}
-			writer.append("}");
+			writer.append("}\n");
 		} catch (IOException ex) {
 		}
 		return null;
 	}
 
-	@Override
-	public String visitVariable(VariableElement e, Writer p) {
-		System.out.println("visitVariable(VariableElement e, Writer p)");
-		return null;
-	}
-
-	@Override
-	public String visitExecutable(ExecutableElement e, Writer p) {
-		System.out.println("visitExecutable(ExecutableElement e, Writer p)");
-		return null;
-	}
-
-	@Override
-	public String visitTypeParameter(TypeParameterElement e, Writer p) {
-		System.out.println("visitTypeParameter(TypeParameterElement e, Writer p)");
-		return null;
-	}
-
-	@Override
-	public String visitUnknown(Element e, Writer p) {
-		System.out.println("visitUnknown(Element e, Writer p)");
-		return null;
+	/**
+	 * Crée un commentaire pour la classe
+	 * @param typeElement
+	 * @param writer 
+	 */
+	protected void createClassComment(TypeElement typeElement, Writer writer) {
+		try {
+			String comment = environment.getElementUtils().getDocComment(typeElement);
+			if (comment == null) {
+				List<? extends TypeMirror> interfaces = typeElement.getInterfaces();
+				for (TypeMirror typeMirror : interfaces) {
+					TypeElement element = (TypeElement) environment.getTypeUtils().asElement(typeMirror);
+					comment = environment.getElementUtils().getDocComment(element);
+					if(comment!=null) {
+						writer.append("/**\n *").append(comment.replaceAll("\n", "\n *")).append("/\n");
+					}
+				}
+			} else {
+				writer.append("/**\n *").append(comment.replaceAll("\n", "\n *")).append("/\n");
+			}
+		} catch(IOException ioe) {}
 	}
 
 	/**
@@ -244,5 +216,47 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 			writer.append("]);\n");
 		} catch (IOException ex) {
 		}
+	}
+
+	@Override
+	public String visit(Element e, Writer p) {
+		System.out.println("visit(Element e, Writer p)");
+		return null;
+	}
+
+	@Override
+	public String visit(Element e) {
+		System.out.println("visit(Element e)");
+		return null;
+	}
+
+	@Override
+	public String visitPackage(PackageElement e, Writer p) {
+		System.out.println("visitPackage(PackageElement e, Writer p)");
+		return null;
+	}
+
+	@Override
+	public String visitVariable(VariableElement e, Writer p) {
+		System.out.println("visitVariable(VariableElement e, Writer p)");
+		return null;
+	}
+
+	@Override
+	public String visitExecutable(ExecutableElement e, Writer p) {
+		System.out.println("visitExecutable(ExecutableElement e, Writer p)");
+		return null;
+	}
+
+	@Override
+	public String visitTypeParameter(TypeParameterElement e, Writer p) {
+		System.out.println("visitTypeParameter(TypeParameterElement e, Writer p)");
+		return null;
+	}
+
+	@Override
+	public String visitUnknown(Element e, Writer p) {
+		System.out.println("visitUnknown(Element e, Writer p)");
+		return null;
 	}
 }
