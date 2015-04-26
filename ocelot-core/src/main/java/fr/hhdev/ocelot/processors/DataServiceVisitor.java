@@ -23,7 +23,9 @@ import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
 
 /**
- *
+ * Visitor of class annoted fr.hhdev.ocelot.annotations.DataService
+ * Generate javascript classes
+ * 
  * @author hhfrancois
  */
 public class DataServiceVisitor implements ElementVisitor<String, Writer> {

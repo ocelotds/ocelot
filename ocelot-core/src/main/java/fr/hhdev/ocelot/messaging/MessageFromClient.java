@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fr.hhdev.ocelot.messaging;
 
 import fr.hhdev.ocelot.Constants;
@@ -20,8 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Message venant du client pour appeler un services quelconque.
- * C'est le topic de Command qui identifie quel resolver sera utilisé pour acquérir l'instance du service.
+ * Message from client for call any service.
+ * the topic of command identify the resolver for get instance of service
+ * 
  * @author hhfrancois
  */
 public class MessageFromClient {

@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Singleton sessions manager
  * @author hhfrancois
  */
 @Singleton

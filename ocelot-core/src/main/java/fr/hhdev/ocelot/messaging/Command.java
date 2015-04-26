@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fr.hhdev.ocelot.messaging;
 
 import fr.hhdev.ocelot.Constants;
@@ -13,7 +8,8 @@ import javax.json.JsonReader;
 import javax.json.JsonValue;
 
 /**
- *
+ * Object command for communication between Client to Server
+ * Command types : SUBSCRIBE, UNSUBSCRIBE, CALL
  * @author hhfrancois
  */
 public class Command {

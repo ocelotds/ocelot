@@ -1,6 +1,7 @@
 package fr.hhdev.ocelot;
 
 /**
+ * Constants Class
  *
  * @author hhfrancois
  */
@@ -16,23 +17,13 @@ public interface Constants {
 		String FAULT = "fault";
 	}
 
-	interface Fault {
-		String MSG = "msg";
-		String CLASSNAME = "cls";
-		String STACKTRACE = "stacktrace";
-	}
-
-	interface TopicMessage {
-		String TOPIC = "topic";
-		String OBJECT = "object";
-	}
-
 	interface Resolver {
+
 		String SPRING = "spring";
 		String POJO = "pojo";
 		String EJB = "ejb";
 	}
-	
+
 	interface Command {
 
 		String TOPIC = "topic";

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fr.hhdev.ocelot.messaging;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,7 +12,8 @@ import javax.json.JsonReader;
 import javax.json.JsonValue;
 
 /**
- * Message en réponse à une solicitation cliente Le client émét une MessageFromClient, le serveur lui répond de facon asynchrone par un MessageToClient
+ * Message to Client, for response after message from client.
+ * Server send this response asynchronous
  *
  * @author hhfrancois
  */

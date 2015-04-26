@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fr.hhdev.ocelot;
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -25,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Abstract class of OcelotDataService
  * @author hhfrancois
  */
 public abstract class AbstractOcelotDataService {
@@ -44,7 +39,7 @@ public abstract class AbstractOcelotDataService {
 		List<String> parameters = message.getParameters();
 		for (Method method : dataService.getClass().getMethods()) {
 			if (method.getName().equals(message.getOperation()) && method.getParameterCount() == parameters.size()) {
-				logger.debug("Traitement de la methode " + method.getName());
+				logger.debug("Traitement de la methode {}", method.getName());
 				try {
 					Parameter[] params = method.getParameters();
 					logger.debug("On a trouvé une methode avec le bon nombre d'arguments, on essaye de les unmarshaller.");

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fr.hhdev.ocelot.encoders;
 
 import fr.hhdev.ocelot.messaging.MessageToClient;
@@ -11,7 +6,7 @@ import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
 
 /**
- *
+ * Decoder for class MessageClient for webSocket endpoint
  * @author hhfrancois
  */
 public class MessageToClientEncoder implements Encoder.Text<MessageToClient> {

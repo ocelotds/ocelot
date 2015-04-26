@@ -5,7 +5,6 @@ import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import fr.hhdev.ocelot.messaging.MessageToClient;
 import fr.hhdev.ocelot.spi.DataServiceException;
-import fr.hhdev.ocelot.spi.DataServiceResolver;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -15,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Class excecute service target
  * @author hhfrancois
  */
 public class OcelotDataService extends AbstractOcelotDataService implements Runnable {
