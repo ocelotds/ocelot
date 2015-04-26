@@ -5,6 +5,7 @@
  */
 package fr.hhdev.ocelot.resolvers;
 
+import fr.hhdev.ocelot.spi.DataServiceResolverId;
 import javax.enterprise.util.AnnotationLiteral;
 
 /**
