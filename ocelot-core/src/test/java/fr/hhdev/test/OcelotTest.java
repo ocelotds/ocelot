@@ -12,8 +12,8 @@ import fr.hhdev.ocelot.messaging.Command;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import fr.hhdev.ocelot.messaging.MessageToClient;
 import fr.hhdev.ocelot.messaging.MessageEvent;
-import fr.hhdev.ocelot.resolvers.DataServiceException;
-import fr.hhdev.ocelot.resolvers.DataServiceResolver;
+import fr.hhdev.ocelot.spi.DataServiceException;
+import fr.hhdev.ocelot.spi.DataServiceResolver;
 import fr.hhdev.ocelot.resolvers.DataServiceResolverIdLitteral;
 import fr.hhdev.ocelot.resolvers.EJBResolver;
 import fr.hhdev.ocelot.resolvers.PojoResolver;
@@ -268,7 +268,7 @@ public class OcelotTest {
 	/**
 	 * Vérifie qu'un service n'existant pas remonte bien une exception
 	 *
-	 * @throws fr.hhdev.ocelot.resolvers.DataServiceException
+	 * @throws fr.hhdev.ocelot.spi.DataServiceException
 	 */
 	@Test(expected = DataServiceException.class)
 	public void testDataServiceExceptionOnResolveDataService() throws DataServiceException {
