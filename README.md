@@ -11,7 +11,7 @@ Ocelot use one bidirection connection websocket.
 
 The better way, is doing EJB annotated, but you can call a simple pojo, or soon spring bean.
 
-### How to use : 
+# How to use : 
 ## Dependencies
 Add dependency in your maven web project
 
