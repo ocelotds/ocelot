@@ -41,16 +41,16 @@ function OcelotController() {
 	this.subscribe = function (token) {
 		if(ws.status === "OPEN") {
 			ws.topicHandlers[token.topic] = token.onMessage;
-			if(token.topic === "ocelot-status") {
-				token.onMessage(ws.status);
-			} else if(token.topic === "ocelot-msg") {
+			if(token.topic === "ocelot-msg") {
 			} else {
 				var command = "{\"topic\":\"" + token.topic + "\",\"cmd\":\"subscribe\"}";
 				ws.send(command);
 			}
 		} else this.showError();
+		if(ws.topicHandlers["ocelot-status"]) ws.topicHandlers["ocelot-status"](ws.status);
 	};
 	this.unsubscribe = function (token) {
+		if(ws.topicHandlers["ocelot-status"]) ws.topicHandlers["ocelot-status"](ws.status);
 		if(ws.status === "OPEN") {
 			ws.topicHandlers[token.topic] = null;
 			if(token.topic !== "ocelot-status" && token.topic !== "ocelot-msg") {
@@ -60,6 +60,7 @@ function OcelotController() {
 		} else this.showError();
 	};
 	this.call = function (token) {
+		if(ws.topicHandlers["ocelot-status"]) ws.topicHandlers["ocelot-status"](ws.status);
 		if(ws.status === "OPEN") {
 			var uuid = new UUID().random();
 			ws.resultHandlers[uuid] = token.onResult;
@@ -81,7 +82,7 @@ function UUID() {
 		});
 	};
 }
-var ocelotController;
+var ocelotController = new OcelotController();
 document.addEventListener("subscribe", function (event) {
 	ocelotController.subscribe(event);
 });
@@ -92,7 +93,7 @@ document.addEventListener("call", function (event) {
 	ocelotController.call(event);
 });
 window.addEventListener("load", function (event) {
-	ocelotController = new OcelotController();
+//	ocelotController = new OcelotController();
 });
 function Mdb(topic) {
 	var topic = topic;
