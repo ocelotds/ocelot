@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fr.hhdev.ocelot.processors;
 
 import fr.hhdev.ocelot.annotations.DataService;
@@ -23,7 +18,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ExecutableType;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
@@ -42,7 +36,6 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 
 	@Override
 	public String visitType(TypeElement typeElement, Writer writer) {
-		System.out.println("visitType(TypeElement e, Writer p)");
 		DataService annotation = typeElement.getAnnotation(DataService.class);
 		try {
 			createClassComment(typeElement, writer);
@@ -220,43 +213,36 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 
 	@Override
 	public String visit(Element e, Writer p) {
-		System.out.println("visit(Element e, Writer p)");
 		return null;
 	}
 
 	@Override
 	public String visit(Element e) {
-		System.out.println("visit(Element e)");
 		return null;
 	}
 
 	@Override
 	public String visitPackage(PackageElement e, Writer p) {
-		System.out.println("visitPackage(PackageElement e, Writer p)");
 		return null;
 	}
 
 	@Override
 	public String visitVariable(VariableElement e, Writer p) {
-		System.out.println("visitVariable(VariableElement e, Writer p)");
 		return null;
 	}
 
 	@Override
 	public String visitExecutable(ExecutableElement e, Writer p) {
-		System.out.println("visitExecutable(ExecutableElement e, Writer p)");
 		return null;
 	}
 
 	@Override
 	public String visitTypeParameter(TypeParameterElement e, Writer p) {
-		System.out.println("visitTypeParameter(TypeParameterElement e, Writer p)");
 		return null;
 	}
 
 	@Override
 	public String visitUnknown(Element e, Writer p) {
-		System.out.println("visitUnknown(Element e, Writer p)");
 		return null;
 	}
 }
