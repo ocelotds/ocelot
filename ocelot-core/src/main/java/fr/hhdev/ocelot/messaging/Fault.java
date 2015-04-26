@@ -5,7 +5,7 @@ import java.io.IOException;
 
 /**
  *
- * @author francois
+ * @author hhfrancois
  */
 public class Fault {
 
