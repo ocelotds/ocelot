@@ -7,15 +7,18 @@ package fr.hhdev.ocelot;
 
 import fr.hhdev.ocelot.encoders.MessageToClientEncoder;
 import fr.hhdev.ocelot.messaging.Command;
+import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import fr.hhdev.ocelot.messaging.MessageToClient;
 import fr.hhdev.ocelot.messaging.MessageEvent;
+import fr.hhdev.ocelot.resolvers.DataServiceException;
 import fr.hhdev.ocelot.resolvers.DataServiceResolver;
 import fr.hhdev.ocelot.resolvers.DataServiceResolverIdLitteral;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import javax.ejb.Stateless;
 import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
@@ -45,7 +48,7 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 
 	@Inject
 	private SessionManager sessionManager;
-	
+
 	@Inject
 	@MessageEvent
 	private Event<MessageToClient> wsEvent;
@@ -132,12 +135,21 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 					break;
 				case Constants.Command.Value.CALL:
 					MessageFromClient message = MessageFromClient.createFromJson(command.getMessage());
-					logger.debug("ASSOCIATE ID '{}' WITH SESSION", message.getId());
-					sessionManager.registerMsgSession(message.getId(), client); // on enregistre le message pour re-router le résultat vers le bon client
-					ExecutorService executorService = Executors.newSingleThreadExecutor();
-					executorService.execute(new OcelotDataService(getResolver(command.getTopic()), wsEvent, message));
-					executorService.shutdown();
-					break;
+					try {
+						logger.debug("ASSOCIATE ID '{}' WITH SESSION", message.getId());
+						sessionManager.registerMsgSession(message.getId(), client); // on enregistre le message pour re-router le résultat vers le bon client
+						ExecutorService executorService = Executors.newSingleThreadExecutor();
+						DataServiceResolver resolver = getResolver(command.getTopic());
+						Object dataService = resolver.resolveDataService(message.getDataService());
+						executorService.execute(new OcelotDataService(dataService, wsEvent, message));
+						executorService.shutdown();
+						break;
+					} catch (DataServiceException ex) {
+						MessageToClient messageToClient = new MessageToClient();
+						messageToClient.setId(message.getId());
+						messageToClient.setFault(new Fault(ex));
+						this.wsEvent.fire(messageToClient);
+					}
 			}
 		}
 	}

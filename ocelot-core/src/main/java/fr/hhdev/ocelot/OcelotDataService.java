@@ -22,12 +22,12 @@ public class OcelotDataService extends AbstractOcelotDataService implements Runn
 
 	private static final Logger logger = LoggerFactory.getLogger(OcelotDataService.class);
 
-	private final DataServiceResolver resolver;
+	private final Object service;
 	private final Event<MessageToClient> wsEvent;
 	private final MessageFromClient message;
 
-	public OcelotDataService(DataServiceResolver resolver, Event<MessageToClient> wsEvent, MessageFromClient message) {
-		this.resolver = resolver;
+	public OcelotDataService(Object dataservice, Event<MessageToClient> wsEvent, MessageFromClient message) {
+		this.service = dataservice;
 		this.wsEvent = wsEvent;
 		this.message = message;
 	}
@@ -38,16 +38,14 @@ public class OcelotDataService extends AbstractOcelotDataService implements Runn
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(message.getId());
 		try {
-			logger.debug("Resolver : {}", resolver);
-			Object ds = resolver.resolveDataService(message.getDataService());
-			logger.debug("Dataservice : {}", ds);
-			Class cls = Class.forName(message.getDataService());
+			logger.debug("Dataservice : {}", this.service);
+			Class cls = Class.forName(this.message.getDataService());
 			if(cls.isAnnotationPresent(DataService.class)) {
-				logger.debug("Invocation de  : {}", message.getOperation());
-				Object result = invoke(ds, message);
+				logger.debug("Invocation de  : {}", this.message.getOperation());
+				Object result = invoke(this.service, this.message);
 				messageToClient.setResult(result);
 			} else {
-				throw new DataServiceException(message.getDataService());
+				throw new DataServiceException(this.message.getDataService());
 			}
 		} catch (Exception ex) {
 			Throwable cause = ex;
@@ -56,7 +54,7 @@ public class OcelotDataService extends AbstractOcelotDataService implements Runn
 			}
 			messageToClient.setFault(new Fault(cause));
 		}
-		wsEvent.fire(messageToClient);
+		this.wsEvent.fire(messageToClient);
 	}
 
 	private Object invoke(Object dataService, MessageFromClient message) throws MethodNotFoundException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, DataServiceException, IOException {
