@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 import javax.inject.Qualifier;
 
 /**
- *
+ * Define a resolver
  * @author hhfrancois
  */
 @Qualifier

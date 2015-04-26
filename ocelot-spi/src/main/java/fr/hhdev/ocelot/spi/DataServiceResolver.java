@@ -6,11 +6,17 @@
 package fr.hhdev.ocelot.spi;
 
 /**
- *
+ * Implemente this class to do a resolver
  * @author hhfrancois
  */
 public interface DataServiceResolver {
 
+	/**
+	 * Return a class for string in argument
+	 * @param dataService
+	 * @return
+	 * @throws DataServiceException 
+	 */
 	Object resolveDataService(String dataService) throws DataServiceException;
 
 }
