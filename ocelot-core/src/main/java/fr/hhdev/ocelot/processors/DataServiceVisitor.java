@@ -44,7 +44,6 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	public String visitType(TypeElement typeElement, Writer writer) {
 		DataService annotation = typeElement.getAnnotation(DataService.class);
 		try {
-			createLicenceComment(writer);
 			createClassComment(typeElement, writer);
 			writer.append("function ").append(typeElement.getSimpleName()).append("() {\n");
 			writer.append("\tthis.fid = \"").append(annotation.resolverid()).append("\";\n");
@@ -82,23 +81,6 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 		} catch (IOException ex) {
 		}
 		return null;
-	}
-
-	/* This Source Code Form is subject to the terms of the Mozilla Public
-	 * License, v. 2.0. If a copy of the MPL was not distributed with this
-	 * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
-	 */
-	/**
-	 * RAjoute la licence MPL 2.0
-	 * @param writer 
-	 */
-	protected void createLicenceComment(Writer writer) {
-		try {
-			writer.append("/* This Source Code Form is subject to the terms of the Mozilla Public\n");
-			writer.append(" * License, v. 2.0. If a copy of the MPL was not distributed with this\n");
-			writer.append(" * file, You can obtain one at http://mozilla.org/MPL/2.0/.\n");
-			writer.append(" */\n");
-		} catch(IOException ioe) {}
 	}
 
 	/**
