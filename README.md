@@ -83,7 +83,7 @@ In java, publish message to all subcriber clients
 	}
 ```
 
-## SPI, extedns Ocelot
+## SPI, extends Ocelot
 How to extends Ocelot.
 
 In case or defaults resolver doen't access to your service.
@@ -94,7 +94,7 @@ Create librairie include implementations of DataServiceResolver
 ```xml
   <dependency>
       <groupId>fr.hhdev</groupId>
-      <artifactId>ocelot-core</artifactId>
+      <artifactId>ocelot-spi</artifactId>
       <version>1.0.0</version>
   </dependency>
 ```
@@ -114,9 +114,4 @@ And on the services
 public class MyService {
 ```
 
-
-
-
-
-
-
+## Spring 
