@@ -114,4 +114,11 @@ And on the services
 public class MyService {
 ```
 
-## Spring 
+## Spring
+
+## Demo
+deploy demo-web.war in glassfish server and launch :
+ - index.html
+ - demo-angular.html
+ - demo-knockout.html
+
