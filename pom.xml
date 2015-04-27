@@ -5,7 +5,7 @@
 	<artifactId>ocelot</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>Ocelot</name>
+	<name>ocelot</name>
 	<description>Framework to communicate java and javascript, easily</description>	
 	
 	<properties>
@@ -14,8 +14,10 @@
 
 	<developers>
 		<developer>
-			<name>FranÃ§ois Achache</name>
-			<email>francois.achache@gmail.com</email>
+			<name>François Achache</name>
+		</developer>
+		<developer>
+			<name>Arnaud Laye</name>
 		</developer>
 	</developers>
 	<licenses>
@@ -47,6 +49,8 @@
 		<module>ocelot-web</module>
 		<module>ocelot-core</module>
 		<module>ocelot-spi</module>
+		<module>ocelot-spring</module>
+		<module>demo-spring</module>
 	</modules>
 	<dependencies>		
 		<dependency>
