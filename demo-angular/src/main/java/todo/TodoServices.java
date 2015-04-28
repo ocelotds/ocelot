@@ -5,36 +5,17 @@ import fr.hhdev.ocelot.annotations.DataService;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
-import javax.enterprise.inject.Default;
-import javax.inject.Named;
 import javax.inject.Singleton;
 
 /**
  *
  * @author hhfrancois
  */
-@DataService(resolverid = Constants.Resolver.CDI)
-@Default
 @Singleton
+@DataService(resolverid = Constants.Resolver.CDI)
 public class TodoServices {
-	private static TodoServices instance = null;
 	
 	private List<Todo> todos;
-	
-	public synchronized static TodoServices getInstance() {
-		if(instance==null) {
-			instance = new TodoServices();
-			instance.init();
-		}
-		return instance;
-	}
-	public TodoServices() {
-	}
-//	private TodoServices() {
-//		todos = new ArrayList<>();
-//		todos.add(new Todo("learn angular", true));
-//		todos.add(new Todo("build an angular app", false));
-//	}
 	
 	@PostConstruct
 	protected void init() {

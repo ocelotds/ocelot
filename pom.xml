@@ -44,11 +44,13 @@
 	</dependencyManagement>
 
 	<modules>
-		<module>demo-web</module>
+		<module>demo-angular</module>
+		<module>demo-knockout</module>
+		<module>demo-ejb</module>
 		<module>demo-spring</module>
 		<module>ocelot-core</module>
 		<module>ocelot-spi</module>
-	 <module>ocelot-extra-spring</module>
+		<module>ocelot-extra-spring</module>
 	</modules>
 	<dependencies>		
 		<dependency>
