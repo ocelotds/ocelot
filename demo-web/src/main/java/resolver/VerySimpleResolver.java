@@ -2,19 +2,20 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
  */
-package fr.hhdev.ocelot.resolvers;
+package resolver;
 
 import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.DataServiceResolverId;
 import fr.hhdev.ocelot.spi.DataServiceResolver;
-import fr.hhdev.ocelot.Constants;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Resolver of POJO
  * @author hhfrancois
  */
-@DataServiceResolverId(Constants.Resolver.POJO)
-public class PojoResolver implements DataServiceResolver {
+@DataServiceResolverId("SINGLETON")
+public class VerySimpleResolver implements DataServiceResolver {
 
 	@Override
 	public Object resolveDataService(String dataService) throws DataServiceException {
@@ -28,8 +29,9 @@ public class PojoResolver implements DataServiceResolver {
 	@Override
 	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
 		try {
-			return clazz.newInstance();
-		} catch (InstantiationException | IllegalAccessException ex) {
+			Method method = clazz.getDeclaredMethod("getInstance");
+			return clazz.cast(method.invoke(null));
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
 			throw new DataServiceException(clazz.getName(), ex);
 		}
 	}

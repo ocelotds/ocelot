@@ -8,13 +8,22 @@ import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.DataServiceResolverId;
 import fr.hhdev.ocelot.spi.DataServiceResolver;
 import fr.hhdev.ocelot.Constants;
+import java.util.Set;
+import javax.enterprise.context.spi.CreationalContext;
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.inject.Inject;
 
 /**
  * Resolver of POJO
+ *
  * @author hhfrancois
  */
-@DataServiceResolverId(Constants.Resolver.POJO)
-public class PojoResolver implements DataServiceResolver {
+@DataServiceResolverId(Constants.Resolver.CDI)
+public class CdiResolver implements DataServiceResolver {
+
+	@Inject
+	BeanManager beanManager;
 
 	@Override
 	public Object resolveDataService(String dataService) throws DataServiceException {
@@ -27,10 +36,11 @@ public class PojoResolver implements DataServiceResolver {
 
 	@Override
 	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
-		try {
-			return clazz.newInstance();
-		} catch (InstantiationException | IllegalAccessException ex) {
-			throw new DataServiceException(clazz.getName(), ex);
+		Set<Bean<?>> beans = beanManager.getBeans(clazz);
+		for (Bean<?> b : beans) {
+			final CreationalContext creationalContext = beanManager.createCreationalContext(b);
+			return clazz.cast(beanManager.getReference(b, b.getBeanClass(), creationalContext));
 		}
+		throw new DataServiceException(clazz.getName());
 	}
 }

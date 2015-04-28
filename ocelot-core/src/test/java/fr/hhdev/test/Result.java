@@ -28,7 +28,7 @@ public class Result {
 		this.integer = integer;
 	}
 	
-	static Result getMock() {
+	public static Result getMock() {
 		Result result = new Result(5);
 		return result;
 	}
