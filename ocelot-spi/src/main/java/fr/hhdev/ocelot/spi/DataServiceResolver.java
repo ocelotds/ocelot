@@ -19,4 +19,11 @@ public interface DataServiceResolver {
 	 */
 	Object resolveDataService(String dataService) throws DataServiceException;
 
+	/**
+	 * Return a class for string in argument
+	 * @param clazz
+	 * @return
+	 * @throws DataServiceException 
+	 */
+	<T> T resolveDataService(Class<T> clazz) throws DataServiceException;
 }

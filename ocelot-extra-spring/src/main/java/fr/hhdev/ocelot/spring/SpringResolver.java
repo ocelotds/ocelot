@@ -23,4 +23,9 @@ public class SpringResolver implements DataServiceResolver {
 			throw new DataServiceException(dataService, ex);
 		}
 	}
+
+	@Override
+	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
 }
