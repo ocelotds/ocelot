@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -106,22 +105,36 @@ public class OcelotTest {
 	 *
 	 * @return
 	 */
-	@Deployment
+	@Deployment(name = "glassfish")
+	public static WebArchive createWarGlassfishArchive() {
+		return createWarArchive();
+	}
+
+	/**
+	 * Pour tester l'api dans le contener JEE on crée un war
+	 *
+	 * @return
+	 */
+//	@Deployment(name = "tomcat")
+//	public static WebArchive createWarTomcatArchive() {
+//		File web = new File("src/test/resources/tomcat/web.xml");
+//		File context = new File("src/test/resources/tomcat/context.xml");
+//		return createWarArchive()
+//				  .addAsManifestResource(new FileAsset(context), "context.xml")
+//				  .addAsWebInfResource(new FileAsset(web), "web.xml");
+//	}
+
 	public static WebArchive createWarArchive() {
 		File[] libs = Maven.resolver().loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
-//		File[] ejbs = Maven.resolver().loadPomFromFile("pom_test.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
 		File logback = new File("src/test/resources/logback.xml");
-		File glassfish = new File("src/test/resources/glassfish-web.xml");
 		return ShrinkWrap.create(WebArchive.class, "ocelot-test.war")
 				  .addAsLibraries(libs)
-//				  .addAsLibraries(ejbs)
 				  .addAsLibraries(createLibArchive())
 				  .addPackages(true, OcelotTest.class.getPackage())
 				  .addAsWebInfResource(new FileAsset(logback), "logback.xml")
-				  .addAsWebInfResource(new FileAsset(glassfish), "glassfish-web.xml")
 				  .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
 	}
-
+	
 	public static JavaArchive createLibArchive() {
 		return ShrinkWrap.create(JavaArchive.class, "ocelot-core.jar")
 				  .addPackages(true, Constants.class.getPackage())
@@ -134,7 +147,7 @@ public class OcelotTest {
 		WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 		try {
 			System.out.println("TRY TO CONNECT");
-			URI uri = new URI("ws://localhost:8282/ocelot/endpoint");
+			URI uri = new URI("ws://localhost:8282/ocelot-test/endpoint");
 			wssession = container.connectToServer(OcelotClientEnpoint.class, uri);
 			System.out.println("CONNECTED");
 		} catch (URISyntaxException | DeploymentException | IOException ex) {
@@ -707,7 +720,7 @@ public class OcelotTest {
 			assertEquals("Timeout", 0, lock.getCount());
 			Object result = messageHandler.getResult();
 			assertNotNull(result);
-			Date res = Date.from(Instant.ofEpochMilli(Long.parseLong(result.toString())));
+			Date res = new Date(Long.parseLong(result.toString()));
 			System.out.println("RES = "+res.getTime());
 			assertTrue(before.before(res));
 			Thread.sleep(1000);
@@ -944,7 +957,7 @@ public class OcelotTest {
 	public void testMethodWithDate() {
 		System.out.println("methodWithDate");
 		try {
-			Date now = Date.from(Instant.now());
+			Date now = new Date();
 			MessageFromClient messageFromClient = getMessageFromClient("methodWithDate", getJson(now));
 			command.setMessage(messageFromClient.toJson());
 			CountDownLatch lock = new CountDownLatch(1);

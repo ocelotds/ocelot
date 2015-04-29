@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.type.SimpleType;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -46,13 +45,13 @@ public abstract class AbstractOcelotDataService {
 			if (method.getName().equals(message.getOperation()) && method.getParameterCount() == parameters.size()) {
 				logger.debug("Traitement de la methode {}", method.getName());
 				try {
-					Parameter[] params = method.getParameters();
+					Type[] params = method.getGenericParameterTypes();
 					logger.debug("On a trouvé une methode avec le bon nombre d'arguments, on essaye de les unmarshaller.");
 					int idx = 0;
-					for (Parameter param : params) {
+					for (Type param : params) {
 						String arg = cleanArg(parameters.get(idx));
 
-						logger.debug("Récupération de l'argument ({}) {} : {}.", new Object[]{idx, param.getName(), arg});
+						logger.debug("Récupération de l'argument ({}) {} : {}.", new Object[]{idx, param.getTypeName(), arg});
 						arguments[idx++] = convertArgument(arg, param);
 					}
 					logger.debug("Méthode {}.{} avec tous les arguments du même type trouvé.", dataService.getClass(), message.getOperation());
@@ -65,36 +64,31 @@ public abstract class AbstractOcelotDataService {
 		throw new MethodNotFoundException(dataService.getClass() + "." + message.getOperation());
 	}
 
-	private Object convertArgument(String arg, Parameter param) throws IllegalArgumentException {
+	private Object convertArgument(String arg, Type param) throws IllegalArgumentException {
 		Object result = null;
-		logger.debug("Tentative de conversion de {}", arg);
+		logger.debug("Tentative de conversion de {} : param = {} : {}", new Object[]{arg, param, param.getClass()});
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			if (Collection.class.isAssignableFrom(param.getType()) || Map.class.isAssignableFrom(param.getType())) {
-				ParameterizedType pt = (ParameterizedType) param.getParameterizedType();
-				JavaType javaType = getJavaType(pt);
-				logger.debug("Tentative de conversion de {} vers JavaType : {}", arg, javaType);
+			if(ParameterizedType.class.isInstance(param)) {
+				JavaType javaType = getJavaType(param);
+				logger.debug("Tentative de conversion de {} vers JavaType : {}", arg, param);
 				result = mapper.readValue(arg, javaType);
-				logger.debug("Conversion de {} vers {} : OK", arg, param.getType());
-			} else if (param.getType().isArray()) {
-				JavaType javaType = getJavaType(param.getType());
-				logger.debug("Tentative de conversion de {} vers {}", arg, param.getType());
-				result = mapper.readValue(arg, javaType);
-				logger.debug("Conversion de {} vers {} : OK", arg, param.getType());
-			} else {
-				logger.debug("Tentative de conversion de {} vers {}", arg, param.getType());
-				if (param.getType().equals(String.class) && (!arg.startsWith("\"") || !arg.endsWith("\""))) { // on cherche une string
+				logger.debug("Conversion de {} vers {} : OK", arg, param);
+			} else if(Class.class.isInstance(param)) {
+				Class cls = (Class) param;
+				logger.debug("Tentative de conversion de {} vers {}", arg, param);
+				if (cls.equals(String.class) && (!arg.startsWith("\"") || !arg.endsWith("\""))) { // on cherche une string
 					throw new IOException();
 				}
-				if (!param.getType().equals(String.class) && arg.startsWith("\"") && arg.endsWith("\"")) { // on a une string
+				if (!cls.equals(String.class) && arg.startsWith("\"") && arg.endsWith("\"")) { // on a une string
 					throw new IOException();
 				}
-				result = mapper.readValue(arg, param.getType());
-				logger.debug("Conversion de conversion de {} vers {} : OK", arg, param.getType());
+				result = mapper.readValue(arg, cls);
+				logger.debug("Conversion de conversion de {} vers {} : OK", arg, param);
 			}
 		} catch (IOException ex) {
-			logger.debug("Echec de tentative de conversion de {} vers {}", arg, param.getType());
-			throw new IllegalArgumentException(param.getName());
+			logger.debug("Echec de tentative de conversion de {} vers {}", arg, param);
+			throw new IllegalArgumentException(param.getTypeName());
 		}
 		return result;
 	}
