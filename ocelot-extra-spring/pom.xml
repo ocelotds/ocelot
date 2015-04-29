@@ -8,6 +8,7 @@
 	</parent>
 	<artifactId>ocelot-extra-spring</artifactId>
 	<packaging>jar</packaging>
+	<name>ocelot-extra-spring</name>
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -21,9 +22,4 @@
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
-	<properties>
-		<maven.compiler.source>1.7</maven.compiler.source>
-		<maven.compiler.target>1.7</maven.compiler.target>
-	</properties>
-	<name>ocelot-extra-spring</name>
 </project>
