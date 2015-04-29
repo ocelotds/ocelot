@@ -10,6 +10,9 @@ import fr.hhdev.ocelot.spi.DataServiceResolver;
 import fr.hhdev.ocelot.Constants;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import javax.enterprise.context.spi.CreationalContext;
+import javax.enterprise.inject.spi.Bean;
 import javax.naming.Binding;
 import javax.naming.InitialContext;
 import javax.naming.NamingEnumeration;
@@ -52,6 +55,11 @@ public class EJBResolver implements DataServiceResolver {
 			throw new DataServiceException(name);
 		}
 		return obj;
+	}
+
+	@Override
+	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
+		return clazz.cast(resolveDataService(clazz.getName()));
 	}
 
 	private Object findEJB(String jndi, String name) {

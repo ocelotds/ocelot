@@ -5,6 +5,10 @@
  */
 package fr.hhdev.test;
 
+import fr.hhdev.test.dataservices.EJBDataService;
+import fr.hhdev.test.dataservices.CDIDataService;
+import fr.hhdev.test.dataservices.SingletonCDIDataService;
+import fr.hhdev.test.dataservices.PojoDataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.messaging.Fault;
@@ -12,15 +16,16 @@ import fr.hhdev.ocelot.messaging.Command;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import fr.hhdev.ocelot.messaging.MessageToClient;
 import fr.hhdev.ocelot.messaging.MessageEvent;
+import fr.hhdev.ocelot.resolvers.CdiResolver;
 import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.DataServiceResolver;
 import fr.hhdev.ocelot.resolvers.DataServiceResolverIdLitteral;
 import fr.hhdev.ocelot.resolvers.EJBResolver;
 import fr.hhdev.ocelot.resolvers.PojoResolver;
+import fr.hhdev.test.dataservices.SingletonEJBDataService;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
@@ -37,11 +42,6 @@ import javax.enterprise.event.Event;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonReader;
-import javax.json.JsonValue;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.MessageHandler;
@@ -59,6 +59,7 @@ import org.jboss.weld.exceptions.UnsatisfiedResolutionException;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -78,7 +79,7 @@ public class OcelotTest {
 
 	final static Logger logger = LoggerFactory.getLogger(OcelotTest.class);
 
-	private final long TIMEOUT = 500;
+	private final long TIMEOUT = 1000;
 
 	@Inject
 	@MessageEvent
@@ -244,6 +245,43 @@ public class OcelotTest {
 	}
 
 	/**
+	 * Teste de la récupération d'un EJB
+	 */
+	@Test
+	public void testGetEjb() {
+		System.out.println("getEjb");
+		DataServiceResolver resolver = getResolver(Constants.Resolver.EJB);
+		try {
+			EJBDataService ejb = resolver.resolveDataService(EJBDataService.class);
+			assertNotNull(ejb);
+			assertTrue(EJBDataService.class.isInstance(ejb));
+//			EJBDataService ejb2 = resolver.resolveDataService(EJBDataService.class);
+//			assertNotNull(ejb2);
+//			assertFalse("two instances of ejb should be differents", ejb.equals(ejb2));
+		} catch (DataServiceException ex) {
+			fail("EJB not reached");
+		}
+	}
+
+	/**
+	 * Teste de la récupération d'un EJB Singleton
+	 */
+	@Test
+	public void testGetEjbSingleton() {
+		System.out.println("getEjbSingleton");
+		DataServiceResolver resolver = getResolver(Constants.Resolver.EJB);
+		try {
+			SingletonEJBDataService sejb = resolver.resolveDataService(SingletonEJBDataService.class);
+			assertNotNull(sejb);
+			SingletonEJBDataService sejb2 = resolver.resolveDataService(SingletonEJBDataService.class);
+			assertNotNull(sejb2);
+			assertEquals(sejb, sejb2);
+		} catch (DataServiceException ex) {
+			fail("EJB not reached");
+		}
+	}
+
+	/**
 	 * Teste de récupération du resolver de POJO
 	 */
 	@Test
@@ -255,14 +293,111 @@ public class OcelotTest {
 	}
 
 	/**
+	 * Teste de la récupération d'un Pojo
+	 */
+	@Test
+	public void testGetPojo() {
+		System.out.println("getPojo");
+		DataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
+		try {
+			PojoDataService resolveDataService = resolver.resolveDataService(PojoDataService.class);
+			assertNotNull(resolveDataService);
+			assertEquals(PojoDataService.class, resolveDataService.getClass());
+		} catch (DataServiceException ex) {
+			fail("Pojo not reached");
+		}
+	}
+
+	/**
+	 * Teste de récupération du resolver de CDI
+	 */
+	@Test
+	public void testGetResolverCdi() {
+		System.out.println("getResolverCdi");
+		DataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
+		assertNotNull(resolver);
+		assertEquals(CdiResolver.class, resolver.getClass());
+	}
+	
+	/**
+	 * Teste de la récupération d'un cdi bean
+	 */
+	@Test
+	public void testGetCdiBean() {
+		System.out.println("getCdiBean");
+		DataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
+		try {
+			CDIDataService cdids = resolver.resolveDataService(CDIDataService.class);
+			assertNotNull(cdids);
+			assertEquals(CDIDataService.class, cdids.getClass());
+			CDIDataService cdids2 = resolver.resolveDataService(CDIDataService.class);
+			assertNotNull(cdids2);
+			assertFalse("two instances of cdi bean should be differents", cdids.equals(cdids2));
+		} catch (DataServiceException ex) {
+			fail("Cdi bean not reached");
+		}
+	}
+
+	/**
+	 * Teste de la récupération d'un cdi bean et verify que la classe est bien managé en controllant la presence d'un injection à l'interieur
+	 */
+	@Test
+	public void testGetCdiBeanIsManaged() {
+		System.out.println("getCdiBeanIsManaged");
+		DataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
+		try {
+			CDIDataService cdids = resolver.resolveDataService(CDIDataService.class);
+			assertNotNull(cdids);
+			assertEquals(CDIDataService.class, cdids.getClass());
+			assertNotNull(cdids.getBeanManager());
+		} catch (DataServiceException ex) {
+			fail("Cdi bean not reached");
+		}
+	}
+
+	/**
+	 * Teste de la récupération d'un cdi bean singleton, on le récupere deux fois et on check que c'est la meme classe
+	 */
+	@Test
+	public void testGetCdiBeanSingleton() {
+		System.out.println("getCdiBeanSingleton");
+		DataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
+		try {
+			SingletonCDIDataService scdids = resolver.resolveDataService(SingletonCDIDataService.class);
+			assertNotNull(scdids);
+			SingletonCDIDataService scdids2 = resolver.resolveDataService(SingletonCDIDataService.class);
+			assertNotNull(scdids2);
+			assertEquals(scdids, scdids2);
+		} catch (DataServiceException ex) {
+			fail("Cdi bean not reached");
+		}
+	}
+
+	/**
 	 * Teste de récupération du resolver de SPRING
 	 */
-	@Test(expected = UnsatisfiedResolutionException.class)
+	@Test
 	public void testGetResolverSpring() {
 		System.out.println("getResolverSpring");
-		DataServiceResolver resolver = getResolver(Constants.Resolver.SPRING);
-		assertNotNull(resolver);
-//		assertEquals(SpringResolver.class, resolver.getClass());
+		// DataServiceResolver resolver = getResolver(Constants.Resolver.SPRING);
+		// TODO tester lappresence du resolver
+	}
+
+	/**
+	 * Teste de la récupération d'un Pojo
+	 */
+	@Test
+	public void testGetSpringBean() {
+		System.out.println("getSpringBean");
+		//DataServiceResolver resolver = getResolver(Constants.Resolver.SPRING);
+		// TODO 
+//		try {
+//			Object resolveDataService = resolver.resolveDataService(SpringDataService.class);
+//			assertNotNull(resolveDataService);
+//			assertEquals(SpringDataService.class, resolveDataService.getClass());
+//		} catch (DataServiceException ex) {
+//			fail("Spring bean not reached");
+//		}
 	}
 
 	/**

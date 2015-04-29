@@ -9,7 +9,7 @@ package fr.hhdev.test;
  *
  * @author hhfrancois
  */
-class MethodException extends Exception {
+public class MethodException extends Exception {
 
 	public MethodException(String message) {
 		super(message);

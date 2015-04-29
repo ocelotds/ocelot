@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Abstract class of OcelotDataService
+ *
  * @author hhfrancois
  */
 public abstract class AbstractOcelotDataService {
@@ -49,7 +50,8 @@ public abstract class AbstractOcelotDataService {
 					logger.debug("On a trouvé une methode avec le bon nombre d'arguments, on essaye de les unmarshaller.");
 					int idx = 0;
 					for (Parameter param : params) {
-						String arg = parameters.get(idx);
+						String arg = cleanArg(parameters.get(idx));
+
 						logger.debug("Récupération de l'argument ({}) {} : {}.", new Object[]{idx, param.getName(), arg});
 						arguments[idx++] = convertArgument(arg, param);
 					}
@@ -127,6 +129,19 @@ public abstract class AbstractOcelotDataService {
 			javaType = SimpleType.construct(clazz);
 		}
 		return javaType;
+	}
+
+	/**
+	 * Methode permettant de nettoyer les arguments des attributs ajoutés par les framework web, 
+	 * par exemple angularjs rajoute des variables commencant par $$
+	 * à remplacer : ,"$$hashKey":"object:\d"
+	 *
+	 * @param arg
+	 * @return
+	 */
+	private String cleanArg(String arg) {
+		String angularvar = "(,\"\\$\\$\\w+\":\".*\")";
+		return arg.replaceAll(angularvar, "");
 	}
 
 }

@@ -25,6 +25,7 @@ public interface Constants {
 
 		String SPRING = "spring";
 		String POJO = "pojo";
+		String CDI = "cdi";
 		String EJB = "ejb";
 	}
 

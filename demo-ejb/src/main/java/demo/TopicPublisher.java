@@ -24,7 +24,7 @@ public class TopicPublisher {
 	@MessageEvent
 	Event<MessageToClient> wsEvent;
 
-//	@Schedule(dayOfWeek = "*", month = "*", hour = "*", dayOfMonth = "*", year = "*", minute = "*", second = "*", persistent = false)
+	@Schedule(dayOfWeek = "*", month = "*", hour = "*", dayOfMonth = "*", year = "*", minute = "*", second = "*", persistent = false)
 	public void publish() {
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId("mytopic");

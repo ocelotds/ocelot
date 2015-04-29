@@ -5,25 +5,25 @@ import fr.hhdev.ocelot.annotations.DataService;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
+import javax.inject.Singleton;
 
 /**
  *
  * @author hhfrancois
  */
 @Singleton
-@DataService(resolverid = Constants.Resolver.EJB)
+@DataService(resolverid = Constants.Resolver.CDI)
 public class TodoServices {
 	
 	private List<Todo> todos;
 	
 	@PostConstruct
-	private void init() {
+	protected void init() {
 		todos = new ArrayList<>();
 		todos.add(new Todo("learn angular", true));
 		todos.add(new Todo("build an angular app", false));
 	}
-	
+
 	public List<Todo> getTodos() {
 		return todos;
 	}
@@ -53,5 +53,10 @@ public class TodoServices {
 			}
 		}
 		return todos;
+	}
+
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		throw new CloneNotSupportedException();
 	}
 }

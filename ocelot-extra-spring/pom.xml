@@ -14,10 +14,16 @@
 			<artifactId>ocelot-spi</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>4.0.0.RELEASE</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 	<properties>
 		<maven.compiler.source>1.7</maven.compiler.source>
 		<maven.compiler.target>1.7</maven.compiler.target>
 	</properties>
-    <name>ocelot-extra-spring</name>
+	<name>ocelot-extra-spring</name>
 </project>
