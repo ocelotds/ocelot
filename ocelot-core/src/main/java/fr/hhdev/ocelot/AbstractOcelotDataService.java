@@ -134,12 +134,13 @@ public abstract class AbstractOcelotDataService {
 	/**
 	 * Methode permettant de nettoyer les arguments des attributs ajoutés par les framework web, 
 	 * par exemple angularjs rajoute des variables commencant par $$
+	 * à remplacer : ,"$$hashKey":"object:\d"
 	 *
 	 * @param arg
 	 * @return
 	 */
 	private String cleanArg(String arg) {
-		String angularvar = ",\\s?\"\\$\\$.*\":\".*\"";
+		String angularvar = "(,\"\\$\\$\\w+\":\".*\")";
 		return arg.replaceAll(angularvar, "");
 	}
 
