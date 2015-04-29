@@ -31,7 +31,6 @@ angular.module('todoApp', []).controller('TodoListController',
 		token.onFault = onFault;
 	};
 	todoList.update = function (todo) {
-		delete todo["$$hashKey"];
 		var token = todoServices.updateTodo(todo);
 		token.onResult = function (todo) {
 		};
