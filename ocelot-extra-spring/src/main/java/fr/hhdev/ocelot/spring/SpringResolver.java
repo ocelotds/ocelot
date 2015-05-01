@@ -8,6 +8,7 @@ import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.DataServiceResolver;
 import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.spi.Scope;
+import java.lang.annotation.Annotation;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,19 @@ public class SpringResolver implements IDataServiceResolver {
 
 	@Override
 	public Scope getScope(Class clazz) {
+		for (Annotation anno : clazz.getAnnotations()) {
+			if (!anno.annotationType().getName().equals("fr.hhdev.ocelot.annotations.DataService")) {
+				if (anno.annotationType().equals(org.springframework.context.annotation.Scope.class)) {
+					org.springframework.context.annotation.Scope springScopeAnno = (org.springframework.context.annotation.Scope) anno;
+					if (springScopeAnno.value().contains("session")) {
+						return Scope.SESSION;
+					}
+				}
+			}
+		}
+		if(!this.applicationContext.isPrototype(clazz.getName()) && !this.applicationContext.isSingleton(clazz.getName())) {
+			return Scope.SESSION;
+		}
 		return Scope.MANAGED;
 	}
 }
