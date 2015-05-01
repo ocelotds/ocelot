@@ -19,4 +19,11 @@ public interface IDataServiceResolver {
 	 * @throws DataServiceException 
 	 */
 	<T> T resolveDataService(Class<T> clazz) throws DataServiceException;
+	
+	/**
+	 * Return scope for bean in resolver context
+	 * @param clazz
+	 * @return 
+	 */
+	Scope getScope(Class clazz);
 }

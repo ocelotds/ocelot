@@ -5,7 +5,7 @@
 package fr.hhdev.ocelot;
 
 import fr.hhdev.ocelot.annotations.DataService;
-import fr.hhdev.ocelot.annotations.Scope;
+import fr.hhdev.ocelot.spi.Scope;
 import fr.hhdev.ocelot.encoders.MessageToClientEncoder;
 import fr.hhdev.ocelot.messaging.Command;
 import fr.hhdev.ocelot.messaging.Fault;
@@ -16,6 +16,7 @@ import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.resolvers.DataServiceResolverIdLitteral;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -164,18 +165,8 @@ public class OcelotEndpoint {
 
 
 	/**
-	 * Get scope of DataService
-	 * @param cls
-	 * @return 
-	 */
-	protected Scope getScope(Class cls) {
-		DataService annotation = (DataService) cls.getAnnotation(DataService.class);
-		return annotation.scope();
-	}
-	
-	/**
-	 * Get Dataservice, maybe in session
-	 * J'aimerais bien faire cela avec un interceptor/decorator, mais comment passerla session à celui ci ?
+	 * Get Dataservice, maybe in session if session scope and stored
+	 * J'aimerais bien faire cela avec un interceptor/decorator, mais comment passer la session à celui ci ?
 	 * @param client
 	 * @param dataServiceClassName
 	 * @param resolverId
@@ -186,16 +177,16 @@ public class OcelotEndpoint {
 	protected Object getDataService(Session client, String resolverId, String dataServiceClassName) throws ClassNotFoundException, DataServiceException {
 		Class cls = Class.forName(dataServiceClassName);
 		IDataServiceResolver resolver = getResolver(resolverId);
-		Scope scope = getScope(cls);
+		Scope scope = resolver.getScope(cls);
 		Object dataService = null;
 		if(scope.equals(Scope.SESSION)) {
 			dataService = client.getUserProperties().get(dataServiceClassName);
 		}
 		if(dataService==null) {
 			dataService = resolver.resolveDataService(cls);
-		}
-		if(scope.equals(Scope.SESSION)) {
-			client.getUserProperties().put(dataServiceClassName, dataService);
+			if(scope.equals(Scope.SESSION)) {
+				client.getUserProperties().put(dataServiceClassName, dataService);
+			}
 		}
 		return dataService;
 	}

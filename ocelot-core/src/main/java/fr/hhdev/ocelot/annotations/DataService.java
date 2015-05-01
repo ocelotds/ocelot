@@ -4,6 +4,7 @@
  */
 package fr.hhdev.ocelot.annotations;
 
+import fr.hhdev.ocelot.spi.Scope;
 import fr.hhdev.ocelot.Constants;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

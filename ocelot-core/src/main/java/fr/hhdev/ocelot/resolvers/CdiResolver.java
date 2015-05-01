@@ -8,6 +8,9 @@ import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.DataServiceResolver;
 import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.Constants;
+import fr.hhdev.ocelot.annotations.DataService;
+import fr.hhdev.ocelot.spi.Scope;
+import java.lang.annotation.Annotation;
 import java.util.Set;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.Bean;
@@ -33,5 +36,22 @@ public class CdiResolver implements IDataServiceResolver {
 			return clazz.cast(beanManager.getReference(b, b.getBeanClass(), creationalContext));
 		}
 		throw new DataServiceException(clazz.getName());
+	}
+
+	@Override
+	public Scope getScope(Class clazz) {
+		for (Annotation anno : clazz.getAnnotations()) {
+			if(!anno.annotationType().equals(DataService.class)) {
+				String annoName =anno.annotationType().getName();
+				switch (annoName) {
+					case "javax.enterprise.context.SessionScoped":
+						return Scope.SESSION;
+					case "javax.enterprise.context.ConversationScoped":
+						return Scope.SESSION;
+					default:
+				}
+			}
+		}
+		return Scope.MANAGED;
 	}
 }

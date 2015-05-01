@@ -8,6 +8,9 @@ import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.DataServiceResolver;
 import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.Constants;
+import fr.hhdev.ocelot.annotations.DataService;
+import fr.hhdev.ocelot.spi.Scope;
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 import javax.naming.Binding;
@@ -90,6 +93,21 @@ public class EJBResolver implements IDataServiceResolver {
 			logger.debug("{} Context {} invalide : {}", new Object[]{e.getClass().getSimpleName(), name, e.getMessage()});
 		}
 		return null;
+	}
+
+	@Override
+	public Scope getScope(Class clazz) {
+		for (Annotation anno : clazz.getAnnotations()) {
+			if(!anno.annotationType().equals(DataService.class)) {
+				String annoName =anno.annotationType().getName();
+				switch (annoName) {
+					case "javax.ejb.Stateful":
+						return Scope.SESSION;
+					default:
+				}
+			}
+		}
+		return Scope.MANAGED;
 	}
 
 	private interface JndiConstant {

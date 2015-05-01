@@ -7,6 +7,7 @@ package fr.hhdev.ocelot.spring;
 import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.DataServiceResolver;
 import fr.hhdev.ocelot.spi.IDataServiceResolver;
+import fr.hhdev.ocelot.spi.Scope;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,5 +40,10 @@ public class SpringResolver implements IDataServiceResolver {
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
+	}
+
+	@Override
+	public Scope getScope(Class clazz) {
+		return Scope.MANAGED;
 	}
 }

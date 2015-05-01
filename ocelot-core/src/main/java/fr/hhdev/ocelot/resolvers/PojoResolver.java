@@ -8,6 +8,7 @@ import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.DataServiceResolver;
 import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.Constants;
+import fr.hhdev.ocelot.spi.Scope;
 
 /**
  * Resolver of POJO
@@ -23,5 +24,10 @@ public class PojoResolver implements IDataServiceResolver {
 		} catch (InstantiationException | IllegalAccessException ex) {
 			throw new DataServiceException(clazz.getName(), ex);
 		}
+	}
+
+	@Override
+	public Scope getScope(Class clazz) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 }
