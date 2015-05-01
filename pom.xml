@@ -64,6 +64,7 @@
 		<module>ocelot-core</module>
 		<module>ocelot-spi</module>
 		<module>ocelot-extra-spring</module>
+	 <module>ocelot-processor</module>
 	</modules>
 	<dependencies>		
 		<dependency>

@@ -11,7 +11,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>ocelot-spi</artifactId>
+			<artifactId>ocelot-processor</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>

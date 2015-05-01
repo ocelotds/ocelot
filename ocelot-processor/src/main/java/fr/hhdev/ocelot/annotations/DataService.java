@@ -5,7 +5,6 @@
 package fr.hhdev.ocelot.annotations;
 
 import fr.hhdev.ocelot.spi.Scope;
-import fr.hhdev.ocelot.Constants;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -19,7 +18,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface DataService {
 
-	String resolver() default Constants.Resolver.EJB;
+	String resolver();
 	
 	Scope scope() default Scope.MANAGED;
 }

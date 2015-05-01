@@ -4,7 +4,6 @@
  */
 package fr.hhdev.ocelot.processors;
 
-import fr.hhdev.ocelot.annotations.DataService;
 import fr.hhdev.ocelot.annotations.TransientDataService;
 import java.io.IOException;
 import java.io.Writer;
@@ -42,7 +41,6 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 
 	@Override
 	public String visitType(TypeElement typeElement, Writer writer) {
-		DataService annotation = typeElement.getAnnotation(DataService.class);
 		try {
 			createClassComment(typeElement, writer);
 			writer.append("function ").append(typeElement.getSimpleName()).append("() {\n");
