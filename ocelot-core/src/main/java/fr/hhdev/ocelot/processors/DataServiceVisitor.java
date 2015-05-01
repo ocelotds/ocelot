@@ -46,7 +46,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 		try {
 			createClassComment(typeElement, writer);
 			writer.append("function ").append(typeElement.getSimpleName()).append("() {\n");
-			writer.append("\tthis.fid = \"").append(annotation.resolverid()).append("\";\n");
+			writer.append("\tthis.fid = \"").append(annotation.resolver()).append("\";\n");
 			writer.append("\tthis.ds = \"").append(typeElement.getQualifiedName().toString()).append("\";\n");
 			List<ExecutableElement> methodElements = ElementFilter.methodsIn(typeElement.getEnclosedElements());
 			for (ExecutableElement methodElement : methodElements) {

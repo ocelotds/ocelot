@@ -13,7 +13,7 @@ import javax.ejb.Stateless;
  *
  * @author hhfrancois
  */
-@DataService(resolverid = Constants.Resolver.EJB)
+@DataService(resolver = Constants.Resolver.EJB)
 @Stateless
 public class EJBDataService {
 }

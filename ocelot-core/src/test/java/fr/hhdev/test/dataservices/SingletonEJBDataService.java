@@ -15,7 +15,7 @@ import javax.ejb.Singleton;
  *
  * @author hhfrancois
  */
-@DataService(resolverid = Constants.Resolver.EJB)
+@DataService(resolver = Constants.Resolver.EJB)
 @Singleton
 public class SingletonEJBDataService {
 	private double d;

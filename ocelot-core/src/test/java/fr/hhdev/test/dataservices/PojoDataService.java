@@ -22,7 +22,7 @@ import java.util.Map;
  *
  * @author hhfrancois
  */
-@DataService(resolverid=Constants.Resolver.POJO)
+@DataService(resolver=Constants.Resolver.POJO)
 public class PojoDataService {
 
 	public void getVoid() {

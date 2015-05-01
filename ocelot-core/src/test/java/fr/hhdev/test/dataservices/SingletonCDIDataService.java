@@ -14,7 +14,7 @@ import javax.inject.Singleton;
  *
  * @author hhfrancois
  */
-@DataService(resolverid = Constants.Resolver.CDI)
+@DataService(resolver = Constants.Resolver.CDI)
 @Singleton
 public class SingletonCDIDataService {
 	

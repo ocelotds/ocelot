@@ -9,7 +9,7 @@ import javax.ejb.Stateless;
  * @author hhfrancois
  */
 @Stateless
-@DataService(resolverid = Constants.Resolver.EJB)
+@DataService(resolver = Constants.Resolver.EJB)
 public class TestEJBService {
 
 	public String getMessage(int i) {

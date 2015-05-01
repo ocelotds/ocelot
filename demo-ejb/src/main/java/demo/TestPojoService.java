@@ -7,7 +7,7 @@ import fr.hhdev.ocelot.annotations.DataService;
  * Classe de test sur le pojoResolver
  * @author hhfrancois
  */
-@DataService(resolverid = Constants.Resolver.POJO)
+@DataService(resolver = Constants.Resolver.POJO)
 public class TestPojoService {
 
 	public String getMessage(int i) {

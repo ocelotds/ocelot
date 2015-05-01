@@ -12,7 +12,7 @@ import javax.inject.Singleton;
  * @author hhfrancois
  */
 @Singleton
-@DataService(resolverid = Constants.Resolver.CDI)
+@DataService(resolver = Constants.Resolver.CDI)
 public class TicketServices {
 
 	private List<Ticket> tickets;
