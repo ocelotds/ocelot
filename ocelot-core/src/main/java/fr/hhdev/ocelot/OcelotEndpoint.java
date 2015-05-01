@@ -6,6 +6,7 @@ package fr.hhdev.ocelot;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.annotations.DataService;
+import fr.hhdev.ocelot.encoders.CommandDecoder;
 import fr.hhdev.ocelot.spi.Scope;
 import fr.hhdev.ocelot.encoders.MessageToClientEncoder;
 import fr.hhdev.ocelot.messaging.Command;
@@ -41,7 +42,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author hhfrancois
  */
-@ServerEndpoint(value = "/endpoint", encoders = {MessageToClientEncoder.class})
+@ServerEndpoint(value = "/endpoint", encoders = {MessageToClientEncoder.class}, decoders = {CommandDecoder.class})
 public class OcelotEndpoint {
 
 	private final static Logger logger = LoggerFactory.getLogger(OcelotEndpoint.class);
@@ -116,13 +117,11 @@ public class OcelotEndpoint {
 	 * Recevoir un message correspond à la demande d'execution d'un service
 	 *
 	 * @param client
-	 * @param commandMessage
+	 * @param command
 	 */
 	@OnMessage
-	public void receiveCommandMessage(Session client, String commandMessage) {
-		logger.debug("RECEIVE MESSAGE FROM CLIENT '{}'", commandMessage);
-		Command command = Command.createFromJson(commandMessage);
-		logger.debug("RECEIVE COMMAND FROM CLIENT '{}'", command.getCommand());
+	public void receiveCommandMessage(Session client, Command command) {
+		logger.debug("RECEIVE MESSAGE FROM CLIENT '{}'", command);
 		if (null != command.getCommand()) {
 			try {
 				ObjectMapper mapper = new ObjectMapper();
