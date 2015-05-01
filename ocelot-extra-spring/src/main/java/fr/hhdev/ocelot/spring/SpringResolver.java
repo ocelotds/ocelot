@@ -26,7 +26,7 @@ public class SpringResolver implements IDataServiceResolver {
 
 	private static final Logger logger = LoggerFactory.getLogger(SpringResolver.class);
 
-	@Inject @SpringContext
+	@Inject
 	private ApplicationContext applicationContext;
 
 	@Override
