@@ -8,16 +8,15 @@ package fr.hhdev.test.dataservices;
 import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.annotations.DataService;
 import javax.annotation.PostConstruct;
-import javax.inject.Singleton;
+import javax.enterprise.context.Dependent;
 
 /**
  *
  * @author hhfrancois
  */
+@Dependent
 @DataService(resolver = Constants.Resolver.CDI)
-@Singleton
-public class SingletonCDIDataService implements GetValue {
-	
+public class SessionCDIDataService implements GetValue {
 	private double d;
 	
 	@PostConstruct
@@ -34,6 +33,4 @@ public class SingletonCDIDataService implements GetValue {
 	public void setValue(double d) {
 		this.d = d;
 	}
-	
-	
 }

@@ -8,6 +8,7 @@ package fr.hhdev.test.dataservices;
 import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.annotations.DataService;
 import javax.annotation.PostConstruct;
+import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
 
 
@@ -17,7 +18,8 @@ import javax.ejb.Singleton;
  */
 @DataService(resolver = Constants.Resolver.EJB)
 @Singleton
-public class SingletonEJBDataService {
+@LocalBean
+public class SingletonEJBDataService implements GetValue {
 	private double d;
 	
 	@PostConstruct
@@ -25,7 +27,13 @@ public class SingletonEJBDataService {
 		d = Math.random();
 	}
 
+	@Override
 	public double getValue() {
 		return d;
+	}
+
+	@Override
+	public void setValue(double d) {
+		this.d = d;
 	}
 }

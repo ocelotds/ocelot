@@ -8,16 +8,18 @@ package fr.hhdev.test.dataservices;
 import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.annotations.DataService;
 import javax.annotation.PostConstruct;
-import javax.inject.Singleton;
+import javax.ejb.LocalBean;
+import javax.ejb.Stateful;
+
 
 /**
  *
  * @author hhfrancois
  */
-@DataService(resolver = Constants.Resolver.CDI)
-@Singleton
-public class SingletonCDIDataService implements GetValue {
-	
+@DataService(resolver = Constants.Resolver.EJB)
+@LocalBean
+@Stateful
+public class SessionEJBDataService implements GetValue {
 	private double d;
 	
 	@PostConstruct
@@ -34,6 +36,4 @@ public class SingletonCDIDataService implements GetValue {
 	public void setValue(double d) {
 		this.d = d;
 	}
-	
-	
 }

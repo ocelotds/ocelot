@@ -11,7 +11,6 @@ import fr.hhdev.test.dataservices.SingletonCDIDataService;
 import fr.hhdev.test.dataservices.PojoDataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
-import fr.hhdev.ocelot.exceptions.DataServiceNotFoundException;
 import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.Command;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
@@ -23,8 +22,10 @@ import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.resolvers.DataServiceResolverIdLitteral;
 import fr.hhdev.ocelot.resolvers.EJBResolver;
 import fr.hhdev.ocelot.resolvers.PojoResolver;
+import fr.hhdev.test.dataservices.GetValue;
+import fr.hhdev.test.dataservices.SessionCDIDataService;
+import fr.hhdev.test.dataservices.SessionEJBDataService;
 import fr.hhdev.test.dataservices.SingletonEJBDataService;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -37,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import javax.enterprise.event.Event;
 import javax.enterprise.inject.Any;
@@ -58,6 +61,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.weld.exceptions.UnsatisfiedResolutionException;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -80,6 +84,8 @@ public class OcelotTest {
 	final static Logger logger = LoggerFactory.getLogger(OcelotTest.class);
 
 	private final long TIMEOUT = 1000;
+	
+	private final static String ctxpath = "ocelot-test";
 
 	@Inject
 	@MessageEvent
@@ -128,7 +134,7 @@ public class OcelotTest {
 	public static WebArchive createWarArchive() {
 		File[] libs = Maven.resolver().loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
 		File logback = new File("src/test/resources/logback.xml");
-		return ShrinkWrap.create(WebArchive.class, "ocelot-test.war")
+		return ShrinkWrap.create(WebArchive.class, ctxpath+".war")
 				  .addAsLibraries(libs)
 				  .addAsLibraries(createLibArchive())
 				  .addPackages(true, OcelotTest.class.getPackage())
@@ -149,7 +155,7 @@ public class OcelotTest {
 		WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 		try {
 			System.out.println("TRY TO CONNECT");
-			URI uri = new URI("ws://localhost:8282/ocelot-test/endpoint");
+			URI uri = new URI("ws://localhost:8282/"+ctxpath+"/endpoint");
 			wssession = container.connectToServer(OcelotClientEnpoint.class, uri);
 			System.out.println("CONNECTED");
 		} catch (URISyntaxException | DeploymentException | IOException ex) {
@@ -173,7 +179,7 @@ public class OcelotTest {
 		System.out.println("---------------------------------------------------------------------------------------------------------------");
 		command = new Command();
 		command.setCommand(Constants.Command.Value.CALL);
-		command.setTopic("pojo");
+		command.setTopic(Constants.Resolver.POJO);
 	}
 
 	@After
@@ -200,7 +206,6 @@ public class OcelotTest {
 			if (String.class.isInstance(obj)) {
 				return "\"" + obj + "\"";
 			}
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			ObjectMapper mapper = new ObjectMapper();
 			return mapper.writeValueAsString(obj);
 		} catch (IOException ex) {
@@ -240,6 +245,246 @@ public class OcelotTest {
 	}
 
 	/**
+	 * Teste de la récupération de 2 instances du mm bean, il doivent être differents
+	 * on met l'un dans un thread, on lui set value à 500
+	 * en dehors du thread on recup un autre bean, et on compare value, elles doivent etre different
+	 */
+	private void testDifferentInstancesInDifferentThreads(final Class<? extends GetValue> clazz, String resolverId) {
+		final IDataServiceResolver resolver = getResolver(resolverId);
+		try {
+			// hors session, deux beans session scope doivent être differents
+			ExecutorService executorService = Executors.newSingleThreadExecutor();
+			executorService.execute(new Runnable() {
+
+				@Override
+				public void run() {
+					try {
+						GetValue bean1 = resolver.resolveDataService(clazz);
+						bean1.setValue(500);
+						Thread.sleep(1000);
+						assertNotNull(bean1);
+						assertTrue(clazz.isInstance(bean1));
+					} catch (DataServiceException | InterruptedException ex) {
+					}
+				}
+			});
+			executorService.shutdown();
+			GetValue bean2 = resolver.resolveDataService(clazz);
+			assertNotNull(bean2);
+			Assert.assertNotEquals("two instances of session bean should be differents", bean2.getValue(), 500);
+		} catch (DataServiceException ex) {
+			fail(resolverId+" bean not reached");
+		}
+	}
+
+	/**
+	 * Teste de la récupération de 2 beans request, il doivent être differents
+	 */
+	private void testInstanceRequestScope(Class clazz, String resolverId) {
+		IDataServiceResolver resolver = getResolver(resolverId);
+		try {
+			// deux beans doivent être differents
+			Object bean1 = resolver.resolveDataService(clazz);
+			assertNotNull(bean1);
+			assertTrue(clazz.isInstance(bean1));
+			Object bean2 = resolver.resolveDataService(clazz);
+			assertNotNull(bean2);
+			assertFalse("two instances of request bean should be differents", bean1.equals(bean2));
+		} catch (DataServiceException ex) {
+			fail(resolverId+" bean not reached");
+		}
+	}
+
+	/**
+	 * Teste de la récupération d'un bean avec scope request
+	 * @param clazz
+	 * @param resolverId
+	 */
+	public void testResultRequestScope(Class clazz, String resolverId) {
+		try {
+			// création d'une autre session
+			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+			URI uri = new URI("ws://localhost:8282/"+ctxpath+"/endpoint");
+			Session wssession2 = container.connectToServer(OcelotClientEnpoint.class, uri);
+
+			command.setTopic(resolverId);
+			command.setCommand(Constants.Command.Value.CALL);
+
+			// premiere requete 
+			MessageFromClient messageFromClient = getMessageFromClient("getValue");
+			messageFromClient.setDataService(clazz.getName());
+			command.setMessage(messageFromClient.toJson());
+			CountDownLatch lock = new CountDownLatch(1);
+			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
+			wssession.addMessageHandler(messageHandler);
+			wssession.getBasicRemote().sendText(command.toJson());
+			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			assertEquals("Timeout", 0, lock.getCount());
+			Object firstResult = messageHandler.getResult();
+			wssession.removeMessageHandler(messageHandler);
+
+			// deuxieme requete 
+			messageFromClient = getMessageFromClient("getValue");
+			messageFromClient.setDataService(clazz.getName());
+			command.setMessage(messageFromClient.toJson());
+			lock = new CountDownLatch(1);
+			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
+			wssession2.addMessageHandler(messageHandler);
+			wssession2.getBasicRemote().sendText(command.toJson());
+			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			assertEquals("Timeout", 0, lock.getCount());
+			Object secondResult = messageHandler.getResult();
+			wssession2.removeMessageHandler(messageHandler);
+			Assert.assertNotEquals("two instances of request bean should be differents", firstResult, secondResult); // doit etre different
+		} catch (URISyntaxException | DeploymentException | InterruptedException | IOException ex) {
+			fail(resolverId+" bean not reached");
+		}
+	}
+
+	/**
+	 * Teste de la récupération de 2 beans singleton, il doivent être identiques
+	 */
+	private void testInstanceSingletonScope(Class clazz, String resolverId) {
+		IDataServiceResolver resolver = getResolver(resolverId);
+		try {
+			// deux singletons doivent être identiques
+			Object singleton1 = resolver.resolveDataService(clazz);
+			assertNotNull(singleton1);
+			Object singleton2 = resolver.resolveDataService(clazz);
+			assertNotNull(singleton2);
+			assertEquals(singleton1, singleton2);
+		} catch (DataServiceException ex) {
+			fail(resolverId+" bean not reached");
+		}
+	}
+
+	/**
+	 * Teste de la récupération d'un Singleton
+	 * On excecute une methode via 2 session distincte sur le même bean.
+	 * le resultat stockéà l'interieur du bean doit etre identique
+	 * @param clazz
+	 * @param resolverId
+	 */
+	public void testResultSingletonScope(Class clazz, String resolverId) {
+		try {
+			// création d'une autre session
+			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+			URI uri = new URI("ws://localhost:8282/"+ctxpath+"/endpoint");
+			Session wssession2 = container.connectToServer(OcelotClientEnpoint.class, uri);
+
+			command.setTopic(resolverId);
+			command.setCommand(Constants.Command.Value.CALL);
+
+			// premiere requete 
+			MessageFromClient messageFromClient = getMessageFromClient("getValue");
+			messageFromClient.setDataService(clazz.getName());
+			command.setMessage(messageFromClient.toJson());
+			CountDownLatch lock = new CountDownLatch(1);
+			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
+			wssession.addMessageHandler(messageHandler);
+			wssession.getBasicRemote().sendText(command.toJson());
+			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			assertEquals("Timeout", 0, lock.getCount());
+			Object firstResult = messageHandler.getResult();
+			wssession.removeMessageHandler(messageHandler);
+
+			// deuxieme requete 
+			messageFromClient = getMessageFromClient("getValue");
+			messageFromClient.setDataService(clazz.getName());
+			command.setMessage(messageFromClient.toJson());
+			lock = new CountDownLatch(1);
+			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
+			wssession2.addMessageHandler(messageHandler);
+			wssession2.getBasicRemote().sendText(command.toJson());
+			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			assertEquals("Timeout", 0, lock.getCount());
+			Object secondResult = messageHandler.getResult();
+			wssession2.removeMessageHandler(messageHandler);
+			assertEquals(firstResult, secondResult); // doit etre identique
+		} catch (URISyntaxException | DeploymentException | InterruptedException | IOException ex) {
+			fail(resolverId+" bean not reached");
+		}
+	}
+
+	/**
+	 * Teste de la récupération de 2 beans session hors sessions, il doivent être differents
+	 */
+	private void testInstanceSessionScope(Class clazz, String resolverId) {
+		IDataServiceResolver resolver = getResolver(resolverId);
+		try {
+			// hors session, deux beans session scope doivent être differents
+			Object bean1 = resolver.resolveDataService(clazz);
+			assertNotNull(bean1);
+			assertTrue(clazz.isInstance(bean1));
+			Object bean2 = resolver.resolveDataService(clazz);
+			assertNotNull(bean2);
+			assertFalse("two instances of session bean should be differents", bean1.equals(bean2));
+		} catch (DataServiceException ex) {
+			fail(resolverId+" bean not reached");
+		}
+	}
+
+	/**
+	 * Teste de la récupération d'un bean session, on le récupere deux fois et on check que le resultat soit identique pour une meme session,
+	 * puis on crée une new session cela doit donner un resultat different
+	 */
+	private void testResultSessionScope(Class clazz, String resolverId) {
+		try {
+			// création d'une autre session
+			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+			URI uri = new URI("ws://localhost:8282/"+ctxpath+"/endpoint");
+			Session wssession2 = container.connectToServer(OcelotClientEnpoint.class, uri);
+
+			command.setTopic(resolverId);
+			command.setCommand(Constants.Command.Value.CALL);
+
+			// premiere requete 
+			MessageFromClient messageFromClient = getMessageFromClient("getValue");
+			messageFromClient.setDataService(clazz.getName());
+			command.setMessage(messageFromClient.toJson());
+			CountDownLatch lock = new CountDownLatch(1);
+			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
+			wssession.addMessageHandler(messageHandler);
+			wssession.getBasicRemote().sendText(command.toJson());
+			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			assertEquals("Timeout", 0, lock.getCount());
+			Object firstResult = messageHandler.getResult();
+			wssession.removeMessageHandler(messageHandler);
+
+			// deuxieme requete 
+			messageFromClient = getMessageFromClient("getValue");
+			messageFromClient.setDataService(clazz.getName());
+			command.setMessage(messageFromClient.toJson());
+			lock = new CountDownLatch(1);
+			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
+			wssession.addMessageHandler(messageHandler);
+			wssession.getBasicRemote().sendText(command.toJson());
+			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			assertEquals("Timeout", 0, lock.getCount());
+			Object secondResult = messageHandler.getResult();
+			wssession.removeMessageHandler(messageHandler);
+
+			assertEquals(secondResult, firstResult); // sur la meme session cela doit se comporter comme un singleton, donc meme resultat
+
+			// troisiement appel sur une session differente
+			messageFromClient = getMessageFromClient("getValue");
+			messageFromClient.setDataService(clazz.getName());
+			command.setMessage(messageFromClient.toJson());
+			lock = new CountDownLatch(1);
+			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
+			wssession2.addMessageHandler(messageHandler);
+			wssession2.getBasicRemote().sendText(command.toJson());
+			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			assertEquals("Timeout", 0, lock.getCount());
+			Object thirdResult = messageHandler.getResult();
+			wssession2.removeMessageHandler(messageHandler);
+			Assert.assertNotEquals(secondResult, thirdResult); // sur != session cela doit etre different
+		} catch (URISyntaxException | DeploymentException | InterruptedException | IOException ex) {
+			fail(resolverId+" bean not reached");
+		}
+	}
+
+	/**
 	 * Vérification qu'un resolver inconnu remonte bien une exception
 	 */
 	@Test(expected = UnsatisfiedResolutionException.class)
@@ -260,40 +505,59 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'un EJB
+	 * Teste de la récupération d'EJBs
+	 * par default les EJB on un scope REQUEST
 	 */
 	@Test
-	public void testGetEjb() {
-		System.out.println("getEjb");
-		IDataServiceResolver resolver = getResolver(Constants.Resolver.EJB);
-		try {
-			EJBDataService ejb = resolver.resolveDataService(EJBDataService.class);
-			assertNotNull(ejb);
-			assertTrue(EJBDataService.class.isInstance(ejb));
-//			EJBDataService ejb2 = resolver.resolveDataService(EJBDataService.class);
-//			assertNotNull(ejb2);
-//			assertFalse("two instances of ejb should be differents", ejb.equals(ejb2));
-		} catch (DataServiceException ex) {
-			fail("EJB not reached");
-		}
+	public void testGetEjbs() {
+		System.out.println("getEjbs");
+		String resolverId = Constants.Resolver.EJB;
+		testDifferentInstancesInDifferentThreads(EJBDataService.class, resolverId);
 	}
 
 	/**
-	 * Teste de la récupération d'un EJB Singleton
+	 * Teste de la récupération d'EJBs statefull
+	 * les EJBs statefull on un scope REQUEST hors session
+	 * il doivent etre donc distinct
 	 */
 	@Test
-	public void testGetEjbSingleton() {
-		System.out.println("getEjbSingleton");
-		IDataServiceResolver resolver = getResolver(Constants.Resolver.EJB);
-		try {
-			SingletonEJBDataService sejb = resolver.resolveDataService(SingletonEJBDataService.class);
-			assertNotNull(sejb);
-			SingletonEJBDataService sejb2 = resolver.resolveDataService(SingletonEJBDataService.class);
-			assertNotNull(sejb2);
-			assertEquals(sejb, sejb2);
-		} catch (DataServiceException ex) {
-			fail("EJB not reached");
-		}
+	public void testGetEJBStatefull() {
+		System.out.println("getEJBSession");
+		String resolverId = Constants.Resolver.EJB;
+//		testDifferentInstancesInDifferentThreads(SessionEJBDataService.class, resolverId);
+		testInstanceSessionScope(SessionEJBDataService.class, Constants.Resolver.EJB);
+	}
+
+	/**
+	 * Teste de la récupération d'un ejb session (stateful), on le récupere deux fois et on check que le resultat soit identique pour une meme session,
+	 * puis on crée une new session cela doit donner un resultat different
+	 * les EJBs stateful on un scope SESSION
+	 */
+	@Test
+	public void testGetResultEJBSession() {
+		System.out.println("getResultEJBSession");
+		testResultSessionScope(SessionEJBDataService.class, Constants.Resolver.EJB);
+	}
+
+	/**
+	 * Teste de la récupération d'EJBs singleton
+	 * les EJBs singleton on un scope APPLICATION
+	 */
+	@Test
+	public void testGetEJBSingleton() {
+		System.out.println("getEJBSingleton");
+		testInstanceSingletonScope(SingletonEJBDataService.class, Constants.Resolver.EJB);
+	}
+
+
+	/**
+	 * Teste de la récupération d'un EJB Singleton
+	 * les EJBs Singleton on un scope APPLICATION
+	 */
+	@Test
+	public void testGetResultEjbSingleton() {
+		System.out.println("getResultEjbSingleton");
+		testResultSingletonScope(SingletonEJBDataService.class, Constants.Resolver.EJB);
 	}
 
 	/**
@@ -335,22 +599,23 @@ public class OcelotTest {
 	}
 	
 	/**
-	 * Teste de la récupération d'un cdi bean
+	 * Teste de la récupération de cdi beans
+	 * par default les EJB on un scope REQUEST
 	 */
 	@Test
-	public void testGetCdiBean() {
-		System.out.println("getCdiBean");
-		IDataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
-		try {
-			CDIDataService cdids = resolver.resolveDataService(CDIDataService.class);
-			assertNotNull(cdids);
-			assertEquals(CDIDataService.class, cdids.getClass());
-			CDIDataService cdids2 = resolver.resolveDataService(CDIDataService.class);
-			assertNotNull(cdids2);
-			assertFalse("two instances of cdi bean should be differents", cdids.equals(cdids2));
-		} catch (DataServiceException ex) {
-			fail("Cdi bean not reached");
-		}
+	public void testGetCdiBeans() {
+		System.out.println("getCdiBeans");
+		testInstanceRequestScope(CDIDataService.class, Constants.Resolver.CDI);
+	}
+
+	/**
+	 * Teste de la récupération de cdi beans et test les resultats
+	 * par default les EJB on un scope REQUEST
+	 */
+	@Test
+	public void testGetResultCdiBeans() {
+		System.out.println("getResultCdiBeans");
+		testResultRequestScope(CDIDataService.class, Constants.Resolver.CDI);
 	}
 
 	/**
@@ -371,48 +636,42 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'un cdi bean singleton, on le récupere deux fois et on check que c'est la meme classe
+	 * Teste de la récupération de cdi beans annoté Dependent
+	 * effectivement il depend du scope de l'objet le gérant donc hors session c'est comme un scope REQUEST
+	 */
+	@Test
+	public void testGetCdiBeanSession() {
+		System.out.println("getCdiBeanSession");
+		testInstanceSessionScope(SessionCDIDataService.class, Constants.Resolver.CDI);
+	}
+
+	/**
+	 * Teste de la récupération d'un cdi bean session, on le récupere deux fois et on check que le resultat soit identique pour une meme session,
+	 * puis on crée une new session cela doit donner un resultat different
+	 */
+	@Test
+	public void testGetResultCdiBeanSession() {
+		System.out.println("getResultCdiBeanSession");
+		testResultSessionScope(SessionCDIDataService.class, Constants.Resolver.CDI);
+	}
+
+	/**
+	 * Teste de la récupération d'un bean CDI singleton
+	 * les singleton on un scope APPLICATION
 	 */
 	@Test
 	public void testGetCdiBeanSingleton() {
 		System.out.println("getCdiBeanSingleton");
-		IDataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
-		try {
-			SingletonCDIDataService scdids = resolver.resolveDataService(SingletonCDIDataService.class);
-			assertNotNull(scdids);
-			SingletonCDIDataService scdids2 = resolver.resolveDataService(SingletonCDIDataService.class);
-			assertNotNull(scdids2);
-			assertEquals(scdids, scdids2);
-		} catch (DataServiceException ex) {
-			fail("Cdi bean not reached");
-		}
+		testInstanceSingletonScope(SingletonCDIDataService.class, Constants.Resolver.CDI);
 	}
 
 	/**
-	 * Teste de récupération du resolver de SPRING
+	 * Teste de la récupération d'un cdi bean singleton, on le récupere deux fois et on check que c'est la meme classe
 	 */
 	@Test
-	public void testGetResolverSpring() {
-		System.out.println("getResolverSpring");
-		// IDataServiceResolver resolver = getResolver(Constants.Resolver.SPRING);
-		// TODO tester lappresence du resolver
-	}
-
-	/**
-	 * Teste de la récupération d'un Pojo
-	 */
-	@Test
-	public void testGetSpringBean() {
-		System.out.println("getSpringBean");
-		//DataServiceResolver resolver = getResolver(Constants.Resolver.SPRING);
-		// TODO 
-//		try {
-//			Object resolveDataService = resolver.resolveDataService(SpringDataService.class);
-//			assertNotNull(resolveDataService);
-//			assertEquals(SpringDataService.class, resolveDataService.getClass());
-//		} catch (DataServiceException ex) {
-//			fail("Spring bean not reached");
-//		}
+	public void testGetResultCdiBeanSingleton() {
+		System.out.println("getResultCdiBeanSingleton");
+		testResultSingletonScope(SingletonCDIDataService.class, Constants.Resolver.CDI);
 	}
 
 	/**

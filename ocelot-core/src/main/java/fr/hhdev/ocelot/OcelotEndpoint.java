@@ -4,7 +4,6 @@
  */
 package fr.hhdev.ocelot;
 
-import fr.hhdev.ocelot.annotations.DataService;
 import fr.hhdev.ocelot.spi.Scope;
 import fr.hhdev.ocelot.encoders.MessageToClientEncoder;
 import fr.hhdev.ocelot.messaging.Command;
@@ -16,7 +15,6 @@ import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.resolvers.DataServiceResolverIdLitteral;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

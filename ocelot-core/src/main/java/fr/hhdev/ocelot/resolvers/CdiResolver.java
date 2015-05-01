@@ -44,9 +44,7 @@ public class CdiResolver implements IDataServiceResolver {
 			if(!anno.annotationType().equals(DataService.class)) {
 				String annoName =anno.annotationType().getName();
 				switch (annoName) {
-					case "javax.enterprise.context.SessionScoped":
-						return Scope.SESSION;
-					case "javax.enterprise.context.ConversationScoped":
+					case "javax.enterprise.context.Dependent":
 						return Scope.SESSION;
 					default:
 				}

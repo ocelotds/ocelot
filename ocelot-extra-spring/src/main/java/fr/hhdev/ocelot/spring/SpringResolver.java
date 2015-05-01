@@ -10,6 +10,7 @@ import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.spi.Scope;
 import java.lang.annotation.Annotation;
 import java.util.Map;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -25,6 +26,7 @@ public class SpringResolver implements IDataServiceResolver {
 
 	private static final Logger logger = LoggerFactory.getLogger(SpringResolver.class);
 
+	@Inject @SpringContext
 	private ApplicationContext applicationContext;
 
 	@Override
