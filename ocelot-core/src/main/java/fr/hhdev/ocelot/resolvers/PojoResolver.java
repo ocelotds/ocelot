@@ -8,6 +8,7 @@ import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.DataServiceResolver;
 import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.Constants;
+import fr.hhdev.ocelot.annotations.DataService;
 import fr.hhdev.ocelot.spi.Scope;
 
 /**
@@ -28,6 +29,7 @@ public class PojoResolver implements IDataServiceResolver {
 
 	@Override
 	public Scope getScope(Class clazz) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		DataService ds = (DataService) clazz.getAnnotation(DataService.class);
+		return ds.scope();
 	}
 }
