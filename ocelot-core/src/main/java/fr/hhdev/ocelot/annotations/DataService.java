@@ -19,4 +19,6 @@ import java.lang.annotation.Target;
 public @interface DataService {
 
 	String resolverid() default Constants.Resolver.EJB;
+	
+	Scope scope() default Scope.MANAGED;
 }

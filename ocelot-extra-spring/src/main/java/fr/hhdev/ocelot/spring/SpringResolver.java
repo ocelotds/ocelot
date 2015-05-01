@@ -5,8 +5,8 @@
 package fr.hhdev.ocelot.spring;
 
 import fr.hhdev.ocelot.spi.DataServiceException;
-import fr.hhdev.ocelot.spi.DataServiceResolverId;
 import fr.hhdev.ocelot.spi.DataServiceResolver;
+import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,22 +18,12 @@ import org.springframework.context.ApplicationContext;
  *
  * @author hhfrancois
  */
-@DataServiceResolverId("SPRING")
-public class SpringResolver implements DataServiceResolver {
+@DataServiceResolver("SPRING")
+public class SpringResolver implements IDataServiceResolver {
 
 	private static final Logger logger = LoggerFactory.getLogger(SpringResolver.class);
 
 	private ApplicationContext applicationContext;
-
-	@Override
-	public Object resolveDataService(String dataService) throws DataServiceException {
-		try {
-			Class<?> aClass = Class.forName(dataService);
-			return resolveDataService(aClass);
-		} catch (ClassNotFoundException ex) {
-			throw new DataServiceException(dataService, ex);
-		}
-	}
 
 	@Override
 	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {

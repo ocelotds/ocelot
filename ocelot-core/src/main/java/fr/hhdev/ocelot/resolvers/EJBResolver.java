@@ -5,14 +5,11 @@
 package fr.hhdev.ocelot.resolvers;
 
 import fr.hhdev.ocelot.spi.DataServiceException;
-import fr.hhdev.ocelot.spi.DataServiceResolverId;
 import fr.hhdev.ocelot.spi.DataServiceResolver;
+import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.Constants;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.inject.spi.Bean;
 import javax.naming.Binding;
 import javax.naming.InitialContext;
 import javax.naming.NamingEnumeration;
@@ -24,8 +21,8 @@ import org.slf4j.LoggerFactory;
  * Resolver of EJB
  * @author hhfrancois
  */
-@DataServiceResolverId(Constants.Resolver.EJB)
-public class EJBResolver implements DataServiceResolver {
+@DataServiceResolver(Constants.Resolver.EJB)
+public class EJBResolver implements IDataServiceResolver {
 
 	private static final Logger logger = LoggerFactory.getLogger(EJBResolver.class);
 
@@ -33,12 +30,16 @@ public class EJBResolver implements DataServiceResolver {
 	private String jndiPath = "";
 	private InitialContext initialContext = null;
 
-
 	public void EJBResolver() {
 		getInitialContext();		
 	}
+
 	@Override
-	public Object resolveDataService(String name) throws DataServiceException {
+	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
+		return clazz.cast(resolveDataService(clazz.getName()));
+	}
+
+	private Object resolveDataService(String name) throws DataServiceException {
 		Object obj;
 		InitialContext ic = getInitialContext();
 		if(jndiMap.containsKey(name)) {
@@ -55,11 +56,6 @@ public class EJBResolver implements DataServiceResolver {
 			throw new DataServiceException(name);
 		}
 		return obj;
-	}
-
-	@Override
-	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
-		return clazz.cast(resolveDataService(clazz.getName()));
 	}
 
 	private Object findEJB(String jndi, String name) {

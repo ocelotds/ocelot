@@ -5,25 +5,21 @@
  */
 package fr.hhdev.ocelot.spi;
 
+import static java.lang.annotation.ElementType.TYPE;
+import java.lang.annotation.Inherited;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import javax.inject.Qualifier;
+import javax.interceptor.InterceptorBinding;
+
 /**
- * Implemente this class to do a resolver
+ * Define a resolver
  * @author hhfrancois
  */
-public interface DataServiceResolver {
-
-	/**
-	 * Return a class for string in argument
-	 * @param dataService
-	 * @return
-	 * @throws DataServiceException 
-	 */
-	Object resolveDataService(String dataService) throws DataServiceException;
-
-	/**
-	 * Return a class for string in argument
-	 * @param clazz
-	 * @return
-	 * @throws DataServiceException 
-	 */
-	<T> T resolveDataService(Class<T> clazz) throws DataServiceException;
+@Qualifier
+@Retention(RUNTIME)
+@Target(TYPE)
+public @interface DataServiceResolver {
+	String value();
 }

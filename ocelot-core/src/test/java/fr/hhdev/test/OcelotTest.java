@@ -11,6 +11,7 @@ import fr.hhdev.test.dataservices.SingletonCDIDataService;
 import fr.hhdev.test.dataservices.PojoDataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
+import fr.hhdev.ocelot.exceptions.DataServiceNotFoundException;
 import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.Command;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
@@ -18,7 +19,7 @@ import fr.hhdev.ocelot.messaging.MessageToClient;
 import fr.hhdev.ocelot.messaging.MessageEvent;
 import fr.hhdev.ocelot.resolvers.CdiResolver;
 import fr.hhdev.ocelot.spi.DataServiceException;
-import fr.hhdev.ocelot.spi.DataServiceResolver;
+import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.resolvers.DataServiceResolverIdLitteral;
 import fr.hhdev.ocelot.resolvers.EJBResolver;
 import fr.hhdev.ocelot.resolvers.PojoResolver;
@@ -86,9 +87,9 @@ public class OcelotTest {
 
 	@Inject
 	@Any
-	private Instance<DataServiceResolver> resolvers;
+	private Instance<IDataServiceResolver> resolvers;
 
-	private DataServiceResolver getResolver(String type) {
+	private IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
 	}
 
@@ -136,9 +137,10 @@ public class OcelotTest {
 	}
 	
 	public static JavaArchive createLibArchive() {
+		File bean = new File("src/main/resources/META-INF/beans.xml");
 		return ShrinkWrap.create(JavaArchive.class, "ocelot-core.jar")
 				  .addPackages(true, Constants.class.getPackage())
-				  .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
+				  .addAsManifestResource(new FileAsset(bean), "beans.xml");
 	}
 
 	@BeforeClass
@@ -243,7 +245,7 @@ public class OcelotTest {
 	@Test(expected = UnsatisfiedResolutionException.class)
 	public void testDataServiceExceptionOnUnknownResolver() {
 		System.out.println("failResolveDataService");
-		DataServiceResolver resolver = getResolver("foo");
+		IDataServiceResolver resolver = getResolver("foo");
 	}
 
 	/**
@@ -252,9 +254,9 @@ public class OcelotTest {
 	@Test
 	public void testGetResolverEjb() {
 		System.out.println("getResolverEjb");
-		DataServiceResolver resolver = getResolver(Constants.Resolver.EJB);
+		IDataServiceResolver resolver = getResolver(Constants.Resolver.EJB);
 		assertNotNull(resolver);
-		assertEquals(EJBResolver.class, resolver.getClass());
+		assertTrue(EJBResolver.class.isInstance(resolver));
 	}
 
 	/**
@@ -263,7 +265,7 @@ public class OcelotTest {
 	@Test
 	public void testGetEjb() {
 		System.out.println("getEjb");
-		DataServiceResolver resolver = getResolver(Constants.Resolver.EJB);
+		IDataServiceResolver resolver = getResolver(Constants.Resolver.EJB);
 		try {
 			EJBDataService ejb = resolver.resolveDataService(EJBDataService.class);
 			assertNotNull(ejb);
@@ -282,7 +284,7 @@ public class OcelotTest {
 	@Test
 	public void testGetEjbSingleton() {
 		System.out.println("getEjbSingleton");
-		DataServiceResolver resolver = getResolver(Constants.Resolver.EJB);
+		IDataServiceResolver resolver = getResolver(Constants.Resolver.EJB);
 		try {
 			SingletonEJBDataService sejb = resolver.resolveDataService(SingletonEJBDataService.class);
 			assertNotNull(sejb);
@@ -300,9 +302,9 @@ public class OcelotTest {
 	@Test
 	public void testGetResolverPojo() {
 		System.out.println("getResolverPojo");
-		DataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
+		IDataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
 		assertNotNull(resolver);
-		assertEquals(PojoResolver.class, resolver.getClass());
+		assertTrue(PojoResolver.class.isInstance(resolver));
 	}
 
 	/**
@@ -311,7 +313,7 @@ public class OcelotTest {
 	@Test
 	public void testGetPojo() {
 		System.out.println("getPojo");
-		DataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
+		IDataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
 		try {
 			PojoDataService resolveDataService = resolver.resolveDataService(PojoDataService.class);
 			assertNotNull(resolveDataService);
@@ -327,9 +329,9 @@ public class OcelotTest {
 	@Test
 	public void testGetResolverCdi() {
 		System.out.println("getResolverCdi");
-		DataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
+		IDataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
 		assertNotNull(resolver);
-		assertEquals(CdiResolver.class, resolver.getClass());
+		assertTrue(CdiResolver.class.isInstance(resolver));
 	}
 	
 	/**
@@ -338,7 +340,7 @@ public class OcelotTest {
 	@Test
 	public void testGetCdiBean() {
 		System.out.println("getCdiBean");
-		DataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
+		IDataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
 		try {
 			CDIDataService cdids = resolver.resolveDataService(CDIDataService.class);
 			assertNotNull(cdids);
@@ -357,7 +359,7 @@ public class OcelotTest {
 	@Test
 	public void testGetCdiBeanIsManaged() {
 		System.out.println("getCdiBeanIsManaged");
-		DataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
+		IDataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
 		try {
 			CDIDataService cdids = resolver.resolveDataService(CDIDataService.class);
 			assertNotNull(cdids);
@@ -374,7 +376,7 @@ public class OcelotTest {
 	@Test
 	public void testGetCdiBeanSingleton() {
 		System.out.println("getCdiBeanSingleton");
-		DataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
+		IDataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
 		try {
 			SingletonCDIDataService scdids = resolver.resolveDataService(SingletonCDIDataService.class);
 			assertNotNull(scdids);
@@ -392,7 +394,7 @@ public class OcelotTest {
 	@Test
 	public void testGetResolverSpring() {
 		System.out.println("getResolverSpring");
-		// DataServiceResolver resolver = getResolver(Constants.Resolver.SPRING);
+		// IDataServiceResolver resolver = getResolver(Constants.Resolver.SPRING);
 		// TODO tester lappresence du resolver
 	}
 
@@ -421,8 +423,8 @@ public class OcelotTest {
 	@Test(expected = DataServiceException.class)
 	public void testDataServiceExceptionOnResolveDataService() throws DataServiceException {
 		System.out.println("failResolveDataService");
-		DataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
-		resolver.resolveDataService("foo");
+		IDataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
+		resolver.resolveDataService(String.class);
 	}
 
 	/**
@@ -432,8 +434,8 @@ public class OcelotTest {
 	public void testResolvePojoDataService() {
 		System.out.println("resolveDataService");
 		try {
-			DataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
-			Object dest = resolver.resolveDataService(PojoDataService.class.getName());
+			IDataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
+			Object dest = resolver.resolveDataService(PojoDataService.class);
 			assertNotNull(dest);
 			assertEquals(PojoDataService.class, dest.getClass());
 		} catch (DataServiceException ex) {

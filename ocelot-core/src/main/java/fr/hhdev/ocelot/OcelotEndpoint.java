@@ -4,6 +4,8 @@
  */
 package fr.hhdev.ocelot;
 
+import fr.hhdev.ocelot.annotations.DataService;
+import fr.hhdev.ocelot.annotations.Scope;
 import fr.hhdev.ocelot.encoders.MessageToClientEncoder;
 import fr.hhdev.ocelot.messaging.Command;
 import fr.hhdev.ocelot.messaging.Fault;
@@ -11,13 +13,12 @@ import fr.hhdev.ocelot.messaging.MessageFromClient;
 import fr.hhdev.ocelot.messaging.MessageToClient;
 import fr.hhdev.ocelot.messaging.MessageEvent;
 import fr.hhdev.ocelot.spi.DataServiceException;
-import fr.hhdev.ocelot.spi.DataServiceResolver;
+import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.resolvers.DataServiceResolverIdLitteral;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import javax.ejb.Stateless;
 import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Any;
@@ -36,11 +37,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * WebSocket endpoint
+ *
  * @author hhfrancois
  */
 @ServerEndpoint(value = "/endpoint", encoders = {MessageToClientEncoder.class})
-@Stateless
-public class OcelotEndpoint extends AbstractOcelotDataService {
+public class OcelotEndpoint {
 
 	private final static Logger logger = LoggerFactory.getLogger(OcelotEndpoint.class);
 
@@ -53,9 +54,9 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 
 	@Inject
 	@Any
-	private Instance<DataServiceResolver> resolvers;
+	private Instance<IDataServiceResolver> resolvers;
 
-	private DataServiceResolver getResolver(String type) {
+	protected IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
 	}
 
@@ -137,12 +138,11 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 						logger.debug("ASSOCIATE ID '{}' WITH SESSION", message.getId());
 						sessionManager.registerMsgSession(message.getId(), client); // on enregistre le message pour re-router le résultat vers le bon client
 						ExecutorService executorService = Executors.newSingleThreadExecutor();
-						DataServiceResolver resolver = getResolver(command.getTopic());
-						Object dataService = resolver.resolveDataService(message.getDataService());
+						Object dataService = getDataService(client, command.getTopic(), message.getDataService());
 						executorService.execute(new OcelotDataService(dataService, wsEvent, message));
 						executorService.shutdown();
 						break;
-					} catch (DataServiceException ex) {
+					} catch (ClassNotFoundException | DataServiceException ex) {
 						MessageToClient messageToClient = new MessageToClient();
 						messageToClient.setId(message.getId());
 						messageToClient.setFault(new Fault(ex));
@@ -161,4 +161,43 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 		System.out.println("ERROR");
 		t.printStackTrace();
 	}
+
+
+	/**
+	 * Get scope of DataService
+	 * @param cls
+	 * @return 
+	 */
+	protected Scope getScope(Class cls) {
+		DataService annotation = (DataService) cls.getAnnotation(DataService.class);
+		return annotation.scope();
+	}
+	
+	/**
+	 * Get Dataservice, maybe in session
+	 * J'aimerais bien faire cela avec un interceptor/decorator, mais comment passerla session à celui ci ?
+	 * @param client
+	 * @param dataServiceClassName
+	 * @param resolverId
+	 * @return
+	 * @throws ClassNotFoundException
+	 * @throws DataServiceException 
+	 */
+	protected Object getDataService(Session client, String resolverId, String dataServiceClassName) throws ClassNotFoundException, DataServiceException {
+		Class cls = Class.forName(dataServiceClassName);
+		IDataServiceResolver resolver = getResolver(resolverId);
+		Scope scope = getScope(cls);
+		Object dataService = null;
+		if(scope.equals(Scope.SESSION)) {
+			dataService = client.getUserProperties().get(dataServiceClassName);
+		}
+		if(dataService==null) {
+			dataService = resolver.resolveDataService(cls);
+		}
+		if(scope.equals(Scope.SESSION)) {
+			client.getUserProperties().put(dataServiceClassName, dataService);
+		}
+		return dataService;
+	}
+	
 }

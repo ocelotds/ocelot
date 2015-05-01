@@ -4,7 +4,7 @@
  */
 package fr.hhdev.ocelot.resolvers;
 
-import fr.hhdev.ocelot.spi.DataServiceResolverId;
+import fr.hhdev.ocelot.spi.DataServiceResolver;
 import javax.enterprise.util.AnnotationLiteral;
 
 /**
@@ -12,7 +12,7 @@ import javax.enterprise.util.AnnotationLiteral;
  * @author hhfrancois
  */
 @SuppressWarnings("AnnotationAsSuperInterface")
-public class DataServiceResolverIdLitteral extends AnnotationLiteral<DataServiceResolverId> implements DataServiceResolverId {
+public class DataServiceResolverIdLitteral extends AnnotationLiteral<DataServiceResolver> implements DataServiceResolver {
 
 	private final String val;
 	public DataServiceResolverIdLitteral(String val) {

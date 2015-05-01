@@ -5,8 +5,8 @@
 package fr.hhdev.ocelot.resolvers;
 
 import fr.hhdev.ocelot.spi.DataServiceException;
-import fr.hhdev.ocelot.spi.DataServiceResolverId;
 import fr.hhdev.ocelot.spi.DataServiceResolver;
+import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.Constants;
 import java.util.Set;
 import javax.enterprise.context.spi.CreationalContext;
@@ -19,20 +19,11 @@ import javax.inject.Inject;
  *
  * @author hhfrancois
  */
-@DataServiceResolverId(Constants.Resolver.CDI)
-public class CdiResolver implements DataServiceResolver {
+@DataServiceResolver(Constants.Resolver.CDI)
+public class CdiResolver implements IDataServiceResolver {
 
 	@Inject
 	BeanManager beanManager;
-
-	@Override
-	public Object resolveDataService(String dataService) throws DataServiceException {
-		try {
-			return resolveDataService(Class.forName(dataService));
-		} catch (ClassNotFoundException ex) {
-			throw new DataServiceException(dataService, ex);
-		}
-	}
 
 	@Override
 	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
