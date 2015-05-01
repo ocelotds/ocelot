@@ -10,7 +10,9 @@ Add dependency in your maven web project on https://oss.sonatype.org
       <artifactId>ocelot-core</artifactId>
       <version>1.0.0-SNAPSHOT</version>
   </dependency>
-```Ocelot is the new name of zeldads framework, we change the name for refactor and remove right problems.
+```
+
+Ocelot is the new name of zeldads framework, we change the name for refactor and remove right problems.
 
 Ocelot framework allow to call differents services directly from simple classes methods call, like you can do in the backend.
 
