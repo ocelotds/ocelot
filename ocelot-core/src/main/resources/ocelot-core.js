@@ -44,10 +44,10 @@ function OcelotController() {
 	this.init();
 	this.subscribe = function (token) {
 		if(ws.status === "OPEN") {
-			ws.topicHandlers[token.topic] = token.onMessage;
-			if(token.topic === "ocelot-msg") {
+			ws.topicHandlers[token.message] = token.onMessage;
+			if(token.message === "ocelot-msg") {
 			} else {
-				var command = "{\"topic\":\"" + token.topic + "\",\"cmd\":\"subscribe\"}";
+				var command = "{\"cmd\":\"subscribe\",\"msg\":\"" + token.message + "\"}";
 				ws.send(command);
 			}
 		} else this.showError();
@@ -56,9 +56,9 @@ function OcelotController() {
 	this.unsubscribe = function (token) {
 		if(ws.topicHandlers["ocelot-status"]) ws.topicHandlers["ocelot-status"](ws.status);
 		if(ws.status === "OPEN") {
-			ws.topicHandlers[token.topic] = null;
-			if(token.topic !== "ocelot-status" && token.topic !== "ocelot-msg") {
-				var command = "{\"topic\":\"" + token.topic + "\",\"cmd\":\"unsubscribe\"}";
+			ws.topicHandlers[token.message] = null;
+			if(token.message !== "ocelot-status" && token.message !== "ocelot-msg") {
+				var command = "{\"cmd\":\"unsubscribe\",\"msg\":\"" + token.message + "\"}";
 				ws.send(command);
 			}
 		} else this.showError();
@@ -70,7 +70,7 @@ function OcelotController() {
 			ws.resultHandlers[uuid] = token.onResult;
 			ws.faultHandlers[uuid] = token.onFault;
 			var msg = "{\"id\":\"" + uuid + "\",\"ds\":\"" + token.dataservice + "\",\"op\":\"" + token.operation + "\", \"args\":"+JSON.stringify(token.args)+"}";
-			var command = "{\"topic\":\"" + token.factory + "\",\"cmd\":\"call\",\"msg\":" + msg + "}";
+			var command = "{\"cmd\":\"call\",\"msg\":" + msg + "}";
 			ws.send(command);
 		} else this.showError();
 	};
@@ -104,14 +104,14 @@ function Mdb(topic) {
 	this.subscribe = function() {
 		var subEvent = document.createEvent("Event");
 		subEvent.initEvent("subscribe", true, false);
-		subEvent.topic = topic;
+		subEvent.message = topic;
 		subEvent.onMessage = this.onMessage;
 		document.dispatchEvent(subEvent);
 	};
 	this.unsubscribe = function() {
 		var unsubEvent = document.createEvent("Event");
 		unsubEvent.initEvent("unsubscribe", true, false);
-		unsubEvent.topic = topic;
+		unsubEvent.message = topic;
 		document.dispatchEvent(unsubEvent);
 	};
 	this.onMessage = function(msg) {};
@@ -119,7 +119,6 @@ function Mdb(topic) {
 var getOcelotEvent = function getOcelotEvent(op, args) {
 	var evt = document.createEvent("Event");
 	evt.initEvent("call", true, false);
-	evt.factory = this.fid;
 	evt.dataservice = this.ds;
 	evt.operation = op;
 	evt.args = args;

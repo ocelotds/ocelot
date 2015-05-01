@@ -4,6 +4,8 @@
  */
 package fr.hhdev.ocelot;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.hhdev.ocelot.annotations.DataService;
 import fr.hhdev.ocelot.spi.Scope;
 import fr.hhdev.ocelot.encoders.MessageToClientEncoder;
 import fr.hhdev.ocelot.messaging.Command;
@@ -122,31 +124,39 @@ public class OcelotEndpoint {
 		Command command = Command.createFromJson(commandMessage);
 		logger.debug("RECEIVE COMMAND FROM CLIENT '{}'", command.getCommand());
 		if (null != command.getCommand()) {
-			switch (command.getCommand()) {
-				case Constants.Command.Value.SUBSCRIBE:
-					logger.debug("SUBSCRIBE TOPIC '{}' FOR SESSION", command.getTopic());
-					sessionManager.registerTopicSession(command.getTopic(), client);
-					break;
-				case Constants.Command.Value.UNSUBSCRIBE:
-					logger.debug("UNSUBSCRIBE TOPIC '{}' FOR SESSION", command.getTopic());
-					sessionManager.unregisterTopicSession(command.getTopic(), client);
-					break;
-				case Constants.Command.Value.CALL:
-					MessageFromClient message = MessageFromClient.createFromJson(command.getMessage());
-					try {
-						logger.debug("ASSOCIATE ID '{}' WITH SESSION", message.getId());
-						sessionManager.registerMsgSession(message.getId(), client); // on enregistre le message pour re-router le résultat vers le bon client
-						ExecutorService executorService = Executors.newSingleThreadExecutor();
-						Object dataService = getDataService(client, command.getTopic(), message.getDataService());
-						executorService.execute(new OcelotDataService(dataService, wsEvent, message));
-						executorService.shutdown();
+			try {
+				ObjectMapper mapper = new ObjectMapper();
+				String topic;
+				switch (command.getCommand()) {
+					case Constants.Command.Value.SUBSCRIBE:
+						topic = mapper.readValue(command.getMessage(), String.class);
+						logger.debug("SUBSCRIBE TOPIC '{}' FOR SESSION", topic);
+						sessionManager.registerTopicSession(topic, client);
 						break;
-					} catch (ClassNotFoundException | DataServiceException ex) {
-						MessageToClient messageToClient = new MessageToClient();
-						messageToClient.setId(message.getId());
-						messageToClient.setFault(new Fault(ex));
-						this.wsEvent.fire(messageToClient);
-					}
+					case Constants.Command.Value.UNSUBSCRIBE:
+						topic = mapper.readValue(command.getMessage(), String.class);
+						logger.debug("UNSUBSCRIBE TOPIC '{}' FOR SESSION", topic);
+						sessionManager.unregisterTopicSession(topic, client);
+						break;
+					case Constants.Command.Value.CALL:
+						MessageFromClient message = MessageFromClient.createFromJson(command.getMessage());
+						try {
+							logger.debug("ASSOCIATE ID '{}' WITH SESSION", message.getId());
+							sessionManager.registerMsgSession(message.getId(), client); // on enregistre le message pour re-router le résultat vers le bon client
+							ExecutorService executorService = Executors.newSingleThreadExecutor();
+							Object dataService = getDataService(client, message.getDataService());
+							executorService.execute(new OcelotDataService(dataService, wsEvent, message));
+							executorService.shutdown();
+							break;
+						} catch (ClassNotFoundException | DataServiceException ex) {
+							MessageToClient messageToClient = new MessageToClient();
+							messageToClient.setId(message.getId());
+							messageToClient.setFault(new Fault(ex));
+							this.wsEvent.fire(messageToClient);
+						}
+				}
+			} catch (IOException ex) {
+
 			}
 		}
 	}
@@ -161,32 +171,32 @@ public class OcelotEndpoint {
 		t.printStackTrace();
 	}
 
-
 	/**
-	 * Get Dataservice, maybe in session if session scope and stored
-	 * J'aimerais bien faire cela avec un interceptor/decorator, mais comment passer la session à celui ci ?
+	 * Get Dataservice, maybe in session if session scope and stored J'aimerais bien faire cela avec un interceptor/decorator, mais comment passer la session à
+	 * celui ci ?
+	 *
 	 * @param client
 	 * @param dataServiceClassName
-	 * @param resolverId
 	 * @return
 	 * @throws ClassNotFoundException
-	 * @throws DataServiceException 
+	 * @throws DataServiceException
 	 */
-	protected Object getDataService(Session client, String resolverId, String dataServiceClassName) throws ClassNotFoundException, DataServiceException {
+	protected Object getDataService(Session client, String dataServiceClassName) throws ClassNotFoundException, DataServiceException {
 		Class cls = Class.forName(dataServiceClassName);
-		IDataServiceResolver resolver = getResolver(resolverId);
+		DataService dataServiceAnno = (DataService) cls.getAnnotation(DataService.class);
+		IDataServiceResolver resolver = getResolver(dataServiceAnno.resolver());
 		Scope scope = resolver.getScope(cls);
 		Object dataService = null;
-		if(scope.equals(Scope.SESSION)) {
+		if (scope.equals(Scope.SESSION)) {
 			dataService = client.getUserProperties().get(dataServiceClassName);
 		}
-		if(dataService==null) {
+		if (dataService == null) {
 			dataService = resolver.resolveDataService(cls);
-			if(scope.equals(Scope.SESSION)) {
+			if (scope.equals(Scope.SESSION)) {
 				client.getUserProperties().put(dataServiceClassName, dataService);
 			}
 		}
 		return dataService;
 	}
-	
+
 }

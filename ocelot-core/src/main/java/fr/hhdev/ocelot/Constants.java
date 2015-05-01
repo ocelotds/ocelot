@@ -23,7 +23,6 @@ public interface Constants {
 
 	interface Resolver {
 
-		String SPRING = "spring";
 		String POJO = "pojo";
 		String CDI = "cdi";
 		String EJB = "ejb";
@@ -31,7 +30,7 @@ public interface Constants {
 
 	interface Command {
 
-		String TOPIC = "topic";
+		// Attention si on modifie ces deux varaibles, elles sont aussi dans ocelot-core.js en dur
 		String COMMAND = "cmd";
 		String MESSAGE = "msg";
 

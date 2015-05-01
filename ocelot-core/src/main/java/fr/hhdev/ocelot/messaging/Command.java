@@ -18,17 +18,8 @@ import javax.json.JsonValue;
  */
 public class Command {
 
-	String topic;
 	String command;
 	String message;
-
-	public String getTopic() {
-		return topic;
-	}
-
-	public void setTopic(String topic) {
-		this.topic = topic;
-	}
 
 	public String getCommand() {
 		return command;
@@ -52,7 +43,6 @@ public class Command {
 		try (JsonReader reader = Json.createReader(new StringReader(json))) {
 			JsonObject root = reader.readObject();
 			Command command = new Command();
-			command.setTopic(root.getString(Constants.Command.TOPIC));
 			command.setCommand(root.getString(Constants.Command.COMMAND));
 			if(root.containsKey(Constants.Command.MESSAGE)) {
 				JsonValue msg = root.get(Constants.Command.MESSAGE);
@@ -68,8 +58,7 @@ public class Command {
 			String msgFormat = ",\"%s\":%s";
 			msg = String.format(msgFormat, Constants.Command.MESSAGE, this.getMessage());
 		}
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\"%s}",
-				  Constants.Command.TOPIC, this.getTopic(),
+		String json = String.format("{\"%s\":\"%s\"%s}",
 				  Constants.Command.COMMAND, this.getCommand(),
 				  msg);
 		return json;

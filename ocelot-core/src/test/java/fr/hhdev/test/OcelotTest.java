@@ -179,7 +179,6 @@ public class OcelotTest {
 		System.out.println("---------------------------------------------------------------------------------------------------------------");
 		command = new Command();
 		command.setCommand(Constants.Command.Value.CALL);
-		command.setTopic(Constants.Resolver.POJO);
 	}
 
 	@After
@@ -298,16 +297,14 @@ public class OcelotTest {
 	/**
 	 * Teste de la récupération d'un bean avec scope request
 	 * @param clazz
-	 * @param resolverId
 	 */
-	public void testResultRequestScope(Class clazz, String resolverId) {
+	public void testResultRequestScope(Class clazz) {
 		try {
 			// création d'une autre session
 			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 			URI uri = new URI("ws://localhost:8282/"+ctxpath+"/endpoint");
 			Session wssession2 = container.connectToServer(OcelotClientEnpoint.class, uri);
 
-			command.setTopic(resolverId);
 			command.setCommand(Constants.Command.Value.CALL);
 
 			// premiere requete 
@@ -337,7 +334,7 @@ public class OcelotTest {
 			wssession2.removeMessageHandler(messageHandler);
 			Assert.assertNotEquals("two instances of request bean should be differents", firstResult, secondResult); // doit etre different
 		} catch (URISyntaxException | DeploymentException | InterruptedException | IOException ex) {
-			fail(resolverId+" bean not reached");
+			fail("Bean not reached");
 		}
 	}
 
@@ -363,16 +360,14 @@ public class OcelotTest {
 	 * On excecute une methode via 2 session distincte sur le même bean.
 	 * le resultat stockéà l'interieur du bean doit etre identique
 	 * @param clazz
-	 * @param resolverId
 	 */
-	public void testResultSingletonScope(Class clazz, String resolverId) {
+	public void testResultSingletonScope(Class clazz) {
 		try {
 			// création d'une autre session
 			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 			URI uri = new URI("ws://localhost:8282/"+ctxpath+"/endpoint");
 			Session wssession2 = container.connectToServer(OcelotClientEnpoint.class, uri);
 
-			command.setTopic(resolverId);
 			command.setCommand(Constants.Command.Value.CALL);
 
 			// premiere requete 
@@ -402,7 +397,7 @@ public class OcelotTest {
 			wssession2.removeMessageHandler(messageHandler);
 			assertEquals(firstResult, secondResult); // doit etre identique
 		} catch (URISyntaxException | DeploymentException | InterruptedException | IOException ex) {
-			fail(resolverId+" bean not reached");
+			fail("Bean not reached");
 		}
 	}
 
@@ -428,14 +423,13 @@ public class OcelotTest {
 	 * Teste de la récupération d'un bean session, on le récupere deux fois et on check que le resultat soit identique pour une meme session,
 	 * puis on crée une new session cela doit donner un resultat different
 	 */
-	private void testResultSessionScope(Class clazz, String resolverId) {
+	private void testResultSessionScope(Class clazz) {
 		try {
 			// création d'une autre session
 			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 			URI uri = new URI("ws://localhost:8282/"+ctxpath+"/endpoint");
 			Session wssession2 = container.connectToServer(OcelotClientEnpoint.class, uri);
 
-			command.setTopic(resolverId);
 			command.setCommand(Constants.Command.Value.CALL);
 
 			// premiere requete 
@@ -480,7 +474,7 @@ public class OcelotTest {
 			wssession2.removeMessageHandler(messageHandler);
 			Assert.assertNotEquals(secondResult, thirdResult); // sur != session cela doit etre different
 		} catch (URISyntaxException | DeploymentException | InterruptedException | IOException ex) {
-			fail(resolverId+" bean not reached");
+			fail("Bean not reached");
 		}
 	}
 
@@ -536,7 +530,7 @@ public class OcelotTest {
 	@Test
 	public void testGetResultEJBSession() {
 		System.out.println("getResultEJBSession");
-		testResultSessionScope(SessionEJBDataService.class, Constants.Resolver.EJB);
+		testResultSessionScope(SessionEJBDataService.class);
 	}
 
 	/**
@@ -557,7 +551,7 @@ public class OcelotTest {
 	@Test
 	public void testGetResultEjbSingleton() {
 		System.out.println("getResultEjbSingleton");
-		testResultSingletonScope(SingletonEJBDataService.class, Constants.Resolver.EJB);
+		testResultSingletonScope(SingletonEJBDataService.class);
 	}
 
 	/**
@@ -615,7 +609,7 @@ public class OcelotTest {
 	@Test
 	public void testGetResultCdiBeans() {
 		System.out.println("getResultCdiBeans");
-		testResultRequestScope(CDIDataService.class, Constants.Resolver.CDI);
+		testResultRequestScope(CDIDataService.class);
 	}
 
 	/**
@@ -652,7 +646,7 @@ public class OcelotTest {
 	@Test
 	public void testGetResultCdiBeanSession() {
 		System.out.println("getResultCdiBeanSession");
-		testResultSessionScope(SessionCDIDataService.class, Constants.Resolver.CDI);
+		testResultSessionScope(SessionCDIDataService.class);
 	}
 
 	/**
@@ -671,7 +665,7 @@ public class OcelotTest {
 	@Test
 	public void testGetResultCdiBeanSingleton() {
 		System.out.println("getResultCdiBeanSingleton");
-		testResultSingletonScope(SingletonCDIDataService.class, Constants.Resolver.CDI);
+		testResultSingletonScope(SingletonCDIDataService.class);
 	}
 
 	/**
@@ -1518,8 +1512,8 @@ public class OcelotTest {
 		try {
 			final String topic = "mytopic";
 			System.out.println("Enregistrement au Topic '" + topic + "'");
-			command.setTopic(topic);
 			command.setCommand(Constants.Command.Value.SUBSCRIBE);
+			command.setMessage("\""+topic+"\"");
 			wssession.getBasicRemote().sendText(command.toJson());
 			Thread.sleep(TIMEOUT);
 			int nbMsg = 10;
