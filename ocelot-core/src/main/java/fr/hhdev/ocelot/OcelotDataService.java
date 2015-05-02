@@ -41,7 +41,7 @@ public class OcelotDataService extends AbstractOcelotDataService implements Runn
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(message.getId());
 		try {
-			logger.debug("Dataservice : {}", this.service);
+			logger.debug("Dataservice : {}", this.service.getClass().getName());
 			Class cls = Class.forName(this.message.getDataService());
 			if(cls.isAnnotationPresent(DataService.class)) {
 				logger.debug("Invocation de  : {}", this.message.getOperation());
