@@ -143,7 +143,7 @@ public class OcelotEndpoint {
 						try {
 							logger.debug("ASSOCIATE ID '{}' WITH SESSION", message.getId());
 							sessionManager.registerMsgSession(message.getId(), client); // on enregistre le message pour re-router le résultat vers le bon client
-							ExecutorService executorService = Executors.newFixedThreadPool(1000); // TODO externaliser ce parametre dans un fichier de config
+							ExecutorService executorService = Executors.newCachedThreadPool(); // Les thread ne devrait pas être en vie longtemps, c'est pertinent
 							Object dataService = getDataService(client, message.getDataService());
 							executorService.execute(new OcelotDataService(dataService, wsEvent, message));
 							executorService.shutdown();
