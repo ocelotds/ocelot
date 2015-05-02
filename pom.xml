@@ -34,9 +34,9 @@
 	</licenses>
 	
 	<scm>
-		<connection>scm:git:git@github.com:hhdevelopment/ocelot.git</connection>
-		<developerConnection>scm:git:git@github.com:hhdevelopment/ocelot.git</developerConnection>
-		<url>git@github.com:hhdevelopment/ocelot.git</url>
+		<connection>scm:git:git@https://github.com/hhdevelopment/ocelot.git</connection>
+		<developerConnection>scm:git:https://github.com/hhdevelopment/ocelot.git</developerConnection>
+		<url>https://github.com/hhdevelopment/ocelot.git</url>
 	</scm>	
 	
 	<dependencyManagement>
