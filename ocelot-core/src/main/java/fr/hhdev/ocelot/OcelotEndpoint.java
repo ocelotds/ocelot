@@ -19,6 +19,7 @@ import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.resolvers.DataServiceResolverIdLitteral;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.enterprise.event.Event;
@@ -142,7 +143,7 @@ public class OcelotEndpoint {
 						try {
 							logger.debug("ASSOCIATE ID '{}' WITH SESSION", message.getId());
 							sessionManager.registerMsgSession(message.getId(), client); // on enregistre le message pour re-router le résultat vers le bon client
-							ExecutorService executorService = Executors.newSingleThreadExecutor();
+							ExecutorService executorService = Executors.newFixedThreadPool(1000); // TODO externaliser ce parametre dans un fichier de config
 							Object dataService = getDataService(client, message.getDataService());
 							executorService.execute(new OcelotDataService(dataService, wsEvent, message));
 							executorService.shutdown();

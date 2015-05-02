@@ -84,7 +84,7 @@ public class OcelotTest {
 	final static Logger logger = LoggerFactory.getLogger(OcelotTest.class);
 
 	private final long TIMEOUT = 1000;
-	
+
 	private final static String ctxpath = "ocelot-test";
 
 	@Inject
@@ -100,12 +100,6 @@ public class OcelotTest {
 	}
 
 	private final PojoDataService destination = new PojoDataService();
-
-	static Session wssession;
-
-	private Command command;
-
-	private CountDownMessageHandler messageHandler = null;
 
 	/**
 	 * Pour tester l'api dans le contener JEE on crée un war
@@ -130,18 +124,17 @@ public class OcelotTest {
 //				  .addAsManifestResource(new FileAsset(context), "context.xml")
 //				  .addAsWebInfResource(new FileAsset(web), "web.xml");
 //	}
-
 	public static WebArchive createWarArchive() {
 		File[] libs = Maven.resolver().loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
 		File logback = new File("src/test/resources/logback.xml");
-		return ShrinkWrap.create(WebArchive.class, ctxpath+".war")
+		return ShrinkWrap.create(WebArchive.class, ctxpath + ".war")
 				  .addAsLibraries(libs)
 				  .addAsLibraries(createLibArchive())
 				  .addPackages(true, OcelotTest.class.getPackage())
 				  .addAsWebInfResource(new FileAsset(logback), "logback.xml")
 				  .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
 	}
-	
+
 	public static JavaArchive createLibArchive() {
 		File bean = new File("src/main/resources/META-INF/beans.xml");
 		return ShrinkWrap.create(JavaArchive.class, "ocelot-core.jar")
@@ -152,47 +145,44 @@ public class OcelotTest {
 	@BeforeClass
 	public static void setUpClass() {
 		System.out.println("===============================================================================================================");
-		WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-		try {
-			System.out.println("TRY TO CONNECT");
-			URI uri = new URI("ws://localhost:8282/"+ctxpath+"/endpoint");
-			wssession = container.connectToServer(OcelotClientEnpoint.class, uri);
-			System.out.println("CONNECTED");
-		} catch (URISyntaxException | DeploymentException | IOException ex) {
-			System.out.println("CONNEXION FAILED : " + ex.getMessage());
-			ex.printStackTrace();
-		}
 	}
 
 	@AfterClass
 	public static void tearDownClass() {
-		try {
-			wssession.close();
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
 		System.out.println("===============================================================================================================");
 	}
 
 	@Before
 	public void setUp() {
 		System.out.println("---------------------------------------------------------------------------------------------------------------");
-		command = new Command();
-		command.setCommand(Constants.Command.Value.CALL);
 	}
 
 	@After
 	public void tearDown() {
-		if (messageHandler != null) {
-			wssession.removeMessageHandler(messageHandler);
-		}
 		System.out.println("---------------------------------------------------------------------------------------------------------------");
 	}
 
-	private MessageFromClient getMessageFromClient(String operation, String... params) {
+	/**
+	 * Créer une session localement au test
+	 *
+	 * @return
+	 */
+	public static Session createAndGetSession() {
+		WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+		try {
+			System.out.println("TRY TO CONNECT");
+			URI uri = new URI("ws://localhost:8282/" + ctxpath + "/endpoint");
+			return container.connectToServer(OcelotClientEnpoint.class, uri);
+		} catch (URISyntaxException | DeploymentException | IOException ex) {
+			fail("CONNEXION FAILED " + ex.getMessage());
+		}
+		return null;
+	}
+
+	private MessageFromClient getMessageFromClient(Class clazz, String operation, String... params) {
 		MessageFromClient messageFromClient = new MessageFromClient();
 		messageFromClient.setId(UUID.randomUUID().toString());
-		messageFromClient.setDataService(PojoDataService.class.getName());
+		messageFromClient.setDataService(clazz.getName());
 		messageFromClient.setOperation(operation);
 		if (params != null) {
 			messageFromClient.getParameters().addAll(Arrays.asList(params));
@@ -211,42 +201,106 @@ public class OcelotTest {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Handler de message de type result
 	 */
 	private class CountDownMessageHandler implements MessageHandler.Whole<String> {
+
 		private final CountDownLatch lock;
-		private Object result;
-		private Fault fault;
+		private Object result = null;
+		private MessageToClient messageToClient = null;
+		private Fault fault = null;
 		private final String id;
+
 		CountDownMessageHandler(String id, CountDownLatch lock) {
 			this.lock = lock;
 			this.id = id;
 		}
+
 		@Override
 		public void onMessage(String message) {
 			logger.debug("RECEIVE RESPONSE FROM SERVER = {}", message);
-			MessageToClient messageToClient = MessageToClient.createFromJson(message);
-			if(id.equals(messageToClient.getId())) {
+			MessageToClient messageToClientIn = MessageToClient.createFromJson(message);
+			if (id.equals(messageToClientIn.getId())) {
+				messageToClient = messageToClientIn;
+				result = messageToClientIn.getResult();
+				fault = messageToClientIn.getFault();
 				lock.countDown();
-				result = messageToClient.getResult();
-				fault  = messageToClient.getFault();
 			}
 		}
+
+		public MessageToClient getMessageToClient() {
+			return messageToClient;
+		}
+
 		public Object getResult() {
 			return result;
 		}
+
 		public Fault getFault() {
 			return fault;
 		}
-		
+
+		public CountDownLatch getLock() {
+			return lock;
+		}
+
 	}
 
 	/**
-	 * Teste de la récupération de 2 instances du mm bean, il doivent être differents
-	 * on met l'un dans un thread, on lui set value à 500
-	 * en dehors du thread on recup un autre bean, et on compare value, elles doivent etre different
+	 * Cette methode appel via la session passé en argument sur la classe l'operationet retourne le resultat
+	 *
+	 * @param wsSession
+	 * @param clazz
+	 * @param operation
+	 * @return
+	 */
+	private Object getResultAfterSendInSession(Session wsSession, Class clazz, String operation, String... params) {
+		return getMessageToClientAfterSendInSession(wsSession, clazz, operation, params).getResult();
+	}
+
+	/**
+	 * Cette methode appel via la session passé en argument sur la classe l'operationet retourne le messageToClient recu
+	 *
+	 * @param session
+	 * @param clazz
+	 * @param operation
+	 * @return
+	 */
+	private MessageToClient getMessageToClientAfterSendInSession(Session session, Class clazz, String operation, String... params) {
+		MessageToClient result = null;
+		try {
+			// contruction de l'objet command
+			Command cmd = new Command();
+			cmd.setCommand(Constants.Command.Value.CALL);
+			// construction de lac commande
+			MessageFromClient messageFromClient = getMessageFromClient(clazz, operation, params);
+			cmd.setMessage(messageFromClient.toJson());
+			// on pose un locker
+			CountDownLatch lock = new CountDownLatch(1);
+			// on crée un handler client de reception de la réponse
+			CountDownMessageHandler messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
+			session.addMessageHandler(messageHandler);
+			// send
+			session.getBasicRemote().sendText(cmd.toJson());
+			// wait le delock ou timeout
+			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			// lockCount doit être à zero sinon, on a pas eu le resultat
+			assertEquals("Timeout", 0, lock.getCount());
+			// lecture du resultat dans le handler
+			result = messageHandler.getMessageToClient();
+			assertNotNull(result);
+			session.removeMessageHandler(messageHandler);
+		} catch (InterruptedException | IOException ex) {
+			fail("Bean not reached");
+		}
+		return result;
+	}
+
+	/**
+	 * Teste de la récupération de 2 instances du mm bean, il doivent être differents on met l'un dans un thread, on lui set value à 500 en dehors du thread on
+	 * recup un autre bean, et on compare value, elles doivent etre different
 	 */
 	private void testDifferentInstancesInDifferentThreads(final Class<? extends GetValue> clazz, String resolverId) {
 		final IDataServiceResolver resolver = getResolver(resolverId);
@@ -272,7 +326,7 @@ public class OcelotTest {
 			assertNotNull(bean2);
 			Assert.assertNotEquals("two instances of session bean should be differents", bean2.getValue(), 500);
 		} catch (DataServiceException ex) {
-			fail(resolverId+" bean not reached");
+			fail(resolverId + " bean not reached");
 		}
 	}
 
@@ -290,52 +344,30 @@ public class OcelotTest {
 			assertNotNull(bean2);
 			assertFalse("two instances of request bean should be differents", bean1.equals(bean2));
 		} catch (DataServiceException ex) {
-			fail(resolverId+" bean not reached");
+			fail(resolverId + " bean not reached");
 		}
 	}
 
 	/**
 	 * Teste de la récupération d'un bean avec scope request
+	 *
 	 * @param clazz
 	 */
 	public void testResultRequestScope(Class clazz) {
-		try {
-			// création d'une autre session
-			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-			URI uri = new URI("ws://localhost:8282/"+ctxpath+"/endpoint");
-			Session wssession2 = container.connectToServer(OcelotClientEnpoint.class, uri);
-
-			command.setCommand(Constants.Command.Value.CALL);
-
-			// premiere requete 
-			MessageFromClient messageFromClient = getMessageFromClient("getValue");
-			messageFromClient.setDataService(clazz.getName());
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object firstResult = messageHandler.getResult();
-			wssession.removeMessageHandler(messageHandler);
-
-			// deuxieme requete 
-			messageFromClient = getMessageFromClient("getValue");
-			messageFromClient.setDataService(clazz.getName());
-			command.setMessage(messageFromClient.toJson());
-			lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession2.addMessageHandler(messageHandler);
-			wssession2.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object secondResult = messageHandler.getResult();
-			wssession2.removeMessageHandler(messageHandler);
-			Assert.assertNotEquals("two instances of request bean should be differents", firstResult, secondResult); // doit etre different
-		} catch (URISyntaxException | DeploymentException | InterruptedException | IOException ex) {
-			fail("Bean not reached");
+		// premiere requete 
+		Object firstResult = null;
+		try (Session wssession = createAndGetSession()) {
+			firstResult = getResultAfterSendInSession(wssession, clazz, "getValue");
+		} catch (IOException exception) {
 		}
+		// deuxieme requetesur une autre session
+		Object secondResult = null;
+		try (Session wssession = createAndGetSession()) {
+			secondResult = getResultAfterSendInSession(wssession, clazz, "getValue");
+		} catch (IOException exception) {
+		}
+		// controle
+		Assert.assertNotEquals("two instances of request bean should be differents", firstResult, secondResult); // doit etre different
 	}
 
 	/**
@@ -351,54 +383,31 @@ public class OcelotTest {
 			assertNotNull(singleton2);
 			assertEquals(singleton1, singleton2);
 		} catch (DataServiceException ex) {
-			fail(resolverId+" bean not reached");
+			fail(resolverId + " bean not reached");
 		}
 	}
 
 	/**
-	 * Teste de la récupération d'un Singleton
-	 * On excecute une methode via 2 session distincte sur le même bean.
-	 * le resultat stockéà l'interieur du bean doit etre identique
+	 * Teste de la récupération d'un Singleton On excecute une methode via 2 session distincte sur le même bean. le resultat stockéà l'interieur du bean doit
+	 * etre identique
+	 *
 	 * @param clazz
 	 */
 	public void testResultSingletonScope(Class clazz) {
-		try {
-			// création d'une autre session
-			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-			URI uri = new URI("ws://localhost:8282/"+ctxpath+"/endpoint");
-			Session wssession2 = container.connectToServer(OcelotClientEnpoint.class, uri);
-
-			command.setCommand(Constants.Command.Value.CALL);
-
-			// premiere requete 
-			MessageFromClient messageFromClient = getMessageFromClient("getValue");
-			messageFromClient.setDataService(clazz.getName());
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object firstResult = messageHandler.getResult();
-			wssession.removeMessageHandler(messageHandler);
-
-			// deuxieme requete 
-			messageFromClient = getMessageFromClient("getValue");
-			messageFromClient.setDataService(clazz.getName());
-			command.setMessage(messageFromClient.toJson());
-			lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession2.addMessageHandler(messageHandler);
-			wssession2.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object secondResult = messageHandler.getResult();
-			wssession2.removeMessageHandler(messageHandler);
-			assertEquals(firstResult, secondResult); // doit etre identique
-		} catch (URISyntaxException | DeploymentException | InterruptedException | IOException ex) {
-			fail("Bean not reached");
+		// premiere requete 
+		Object firstResult = null;
+		try (Session wssession = createAndGetSession()) {
+			firstResult = getResultAfterSendInSession(wssession, clazz, "getValue");
+		} catch (IOException exception) {
 		}
+		// deuxieme requete sur autre session
+		Object secondResult = null;
+		try (Session wssession = createAndGetSession()) {
+			secondResult = getResultAfterSendInSession(wssession, clazz, "getValue");
+		} catch (IOException exception) {
+		}
+		// controle, doit etre identique
+		assertEquals(firstResult, secondResult);
 	}
 
 	/**
@@ -415,67 +424,34 @@ public class OcelotTest {
 			assertNotNull(bean2);
 			assertFalse("two instances of session bean should be differents", bean1.equals(bean2));
 		} catch (DataServiceException ex) {
-			fail(resolverId+" bean not reached");
+			fail(resolverId + " bean not reached");
 		}
 	}
 
 	/**
-	 * Teste de la récupération d'un bean session, on le récupere deux fois et on check que le resultat soit identique pour une meme session,
-	 * puis on crée une new session cela doit donner un resultat different
+	 * Teste de la récupération d'un bean session, on le récupere deux fois et on check que le resultat soit identique pour une meme session, puis on crée une
+	 * new session cela doit donner un resultat different
 	 */
 	private void testResultSessionScope(Class clazz) {
-		try {
-			// création d'une autre session
-			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-			URI uri = new URI("ws://localhost:8282/"+ctxpath+"/endpoint");
-			Session wssession2 = container.connectToServer(OcelotClientEnpoint.class, uri);
-
-			command.setCommand(Constants.Command.Value.CALL);
-
-			// premiere requete 
-			MessageFromClient messageFromClient = getMessageFromClient("getValue");
-			messageFromClient.setDataService(clazz.getName());
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object firstResult = messageHandler.getResult();
-			wssession.removeMessageHandler(messageHandler);
-
+		// premiere requete 
+		Object firstResult = null;
+		Object secondResult = null;
+		try (Session wssession = createAndGetSession()) {
+			firstResult = getResultAfterSendInSession(wssession, clazz, "getValue");
 			// deuxieme requete 
-			messageFromClient = getMessageFromClient("getValue");
-			messageFromClient.setDataService(clazz.getName());
-			command.setMessage(messageFromClient.toJson());
-			lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object secondResult = messageHandler.getResult();
-			wssession.removeMessageHandler(messageHandler);
-
-			assertEquals(secondResult, firstResult); // sur la meme session cela doit se comporter comme un singleton, donc meme resultat
-
-			// troisiement appel sur une session differente
-			messageFromClient = getMessageFromClient("getValue");
-			messageFromClient.setDataService(clazz.getName());
-			command.setMessage(messageFromClient.toJson());
-			lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession2.addMessageHandler(messageHandler);
-			wssession2.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object thirdResult = messageHandler.getResult();
-			wssession2.removeMessageHandler(messageHandler);
-			Assert.assertNotEquals(secondResult, thirdResult); // sur != session cela doit etre different
-		} catch (URISyntaxException | DeploymentException | InterruptedException | IOException ex) {
-			fail("Bean not reached");
+			secondResult = getResultAfterSendInSession(wssession, clazz, "getValue");
+		} catch (IOException exception) {
 		}
+		// controle : sur la meme session cela doit se comporter comme un singleton, donc meme resultat
+		assertEquals(secondResult, firstResult);
+		// troisiement appel sur une session differente
+		Object thirdResult = null;
+		try (Session wssession = createAndGetSession()) {
+			thirdResult = getResultAfterSendInSession(wssession, clazz, "getValue");
+		} catch (IOException exception) {
+		}
+		// controle : sur != session cela doit etre different
+		Assert.assertNotEquals(secondResult, thirdResult);
 	}
 
 	/**
@@ -499,8 +475,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'EJBs
-	 * par default les EJB on un scope REQUEST
+	 * Teste de la récupération d'EJBs par default les EJB on un scope REQUEST
 	 */
 	@Test
 	public void testGetEjbs() {
@@ -510,9 +485,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'EJBs statefull
-	 * les EJBs statefull on un scope REQUEST hors session
-	 * il doivent etre donc distinct
+	 * Teste de la récupération d'EJBs statefull les EJBs statefull on un scope REQUEST hors session il doivent etre donc distinct
 	 */
 	@Test
 	public void testGetEJBStatefull() {
@@ -523,9 +496,8 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'un ejb session (stateful), on le récupere deux fois et on check que le resultat soit identique pour une meme session,
-	 * puis on crée une new session cela doit donner un resultat different
-	 * les EJBs stateful on un scope SESSION
+	 * Teste de la récupération d'un ejb session (stateful), on le récupere deux fois et on check que le resultat soit identique pour une meme session, puis on
+	 * crée une new session cela doit donner un resultat different les EJBs stateful on un scope SESSION
 	 */
 	@Test
 	public void testGetResultEJBSession() {
@@ -534,8 +506,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'EJBs singleton
-	 * les EJBs singleton on un scope APPLICATION
+	 * Teste de la récupération d'EJBs singleton les EJBs singleton on un scope APPLICATION
 	 */
 	@Test
 	public void testGetEJBSingleton() {
@@ -543,10 +514,8 @@ public class OcelotTest {
 		testInstanceSingletonScope(SingletonEJBDataService.class, Constants.Resolver.EJB);
 	}
 
-
 	/**
-	 * Teste de la récupération d'un EJB Singleton
-	 * les EJBs Singleton on un scope APPLICATION
+	 * Teste de la récupération d'un EJB Singleton les EJBs Singleton on un scope APPLICATION
 	 */
 	@Test
 	public void testGetResultEjbSingleton() {
@@ -591,10 +560,9 @@ public class OcelotTest {
 		assertNotNull(resolver);
 		assertTrue(CdiResolver.class.isInstance(resolver));
 	}
-	
+
 	/**
-	 * Teste de la récupération de cdi beans
-	 * par default les EJB on un scope REQUEST
+	 * Teste de la récupération de cdi beans par default les EJB on un scope REQUEST
 	 */
 	@Test
 	public void testGetCdiBeans() {
@@ -603,8 +571,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération de cdi beans et test les resultats
-	 * par default les EJB on un scope REQUEST
+	 * Teste de la récupération de cdi beans et test les resultats par default les EJB on un scope REQUEST
 	 */
 	@Test
 	public void testGetResultCdiBeans() {
@@ -630,8 +597,8 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération de cdi beans annoté Dependent
-	 * effectivement il depend du scope de l'objet le gérant donc hors session c'est comme un scope REQUEST
+	 * Teste de la récupération de cdi beans annoté Dependent effectivement il depend du scope de l'objet le gérant donc hors session c'est comme un scope
+	 * REQUEST
 	 */
 	@Test
 	public void testGetCdiBeanSession() {
@@ -640,8 +607,8 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'un cdi bean session, on le récupere deux fois et on check que le resultat soit identique pour une meme session,
-	 * puis on crée une new session cela doit donner un resultat different
+	 * Teste de la récupération d'un cdi bean session, on le récupere deux fois et on check que le resultat soit identique pour une meme session, puis on crée
+	 * une new session cela doit donner un resultat different
 	 */
 	@Test
 	public void testGetResultCdiBeanSession() {
@@ -650,8 +617,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'un bean CDI singleton
-	 * les singleton on un scope APPLICATION
+	 * Teste de la récupération d'un bean CDI singleton les singleton on un scope APPLICATION
 	 */
 	@Test
 	public void testGetCdiBeanSingleton() {
@@ -791,23 +757,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodUnknow() {
-		System.out.println("getUnknownMethod");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("getUnknownMethod");
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			//messageFromClient.getId(), MethodNotFoundException.class);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "getUnknownMethod";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			Object result = messageToClient.getResult();
 			assertEquals(null, result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertNotNull(fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -816,22 +775,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodNoResult() {
-		System.out.println("getVoid");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("getVoid");
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "getVoid";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			Object result = messageToClient.getResult();
 			assertEquals(null, result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -840,22 +793,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetString() {
-		System.out.println("getString");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("getString");
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "getString";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getString()), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -864,22 +811,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetNum() {
-		System.out.println("getNum");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("getNum");
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "getNum";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getNum()), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -888,22 +829,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetNumber() {
-		System.out.println("getNumber");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("getNumber");
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "getNumber";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getNumber()), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -912,22 +847,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetBool() {
-		System.out.println("getBool");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("getBool");
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "getBool";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getBool()), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -936,22 +865,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetBoolean() {
-		System.out.println("getBoolean");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("getBoolean");
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "getBoolean";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getBoolean()), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -961,30 +884,24 @@ public class OcelotTest {
 	@Test
 	public void testGetDate() {
 		System.out.println("getDate");
-		try {
-			final Date before = new Date();
+		final Date before = new Date();
+		System.out.println("BEFORE = " + before.getTime());
+		try (Session wssession = createAndGetSession()) {
 			Thread.sleep(1000);
-			System.out.println("BEFORE = "+before.getTime());
-			MessageFromClient messageFromClient = getMessageFromClient("getDate");
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, PojoDataService.class, "getDate");
+			Object result = messageToClient.getResult();
 			assertNotNull(result);
 			Date res = new Date(Long.parseLong(result.toString()));
-			System.out.println("RES = "+res.getTime());
+			System.out.println("RES = " + res.getTime());
 			assertTrue(before.before(res));
 			Thread.sleep(1000);
 			Date after = new Date();
-			System.out.println("AFTER = "+after.getTime());
+			System.out.println("AFTER = " + after.getTime());
 			assertTrue(after.after(res));
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
+		} catch (IOException exception) {
+		} catch (InterruptedException ex) {
 			fail(ex.getMessage());
 		}
 	}
@@ -994,22 +911,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetResult() {
-		System.out.println("getResult");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("getResult");
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "getResult";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getResult()), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1018,22 +929,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetCollectionInteger() {
-		System.out.println("getCollectionInteger");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("getCollectionInteger");
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "getCollectionInteger";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getCollectionInteger()), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1042,22 +947,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetCollectionResult() {
-		System.out.println("getCollectionResult");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("getCollectionResult");
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "getCollectionResult";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getCollectionResult()), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1066,22 +965,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetCollectionOfCollectionResult() {
-		System.out.println("getCollectionOfCollectionResult");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("getCollectionOfCollectionResult");
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "getCollectionOfCollectionResult";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getCollectionOfCollectionResult()), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1090,22 +983,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetMapResult() {
-		System.out.println("getMapResult");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("getMapResult");
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "getMapResult";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getMapResult()), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1114,22 +1001,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithNum() {
-		System.out.println("methodWithNum");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithNum", getJson(1));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithNum";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(1));
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithNum(1)), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1138,22 +1019,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithNumber() {
-		System.out.println("methodWithNumber");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithNumber", getJson(2));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithNumber";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(2));
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithNumber(2)), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1162,22 +1037,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithBool() {
-		System.out.println("methodWithBool");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithBool", getJson(true));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithBool";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(true));
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithBool(true)), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1186,22 +1055,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithBoolean() {
-		System.out.println("methodWithBoolean");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithBoolean", getJson(false));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithBoolean";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(false));
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithBoolean(false)), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1210,23 +1073,17 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithDate() {
-		System.out.println("methodWithDate");
-		try {
-			Date now = new Date();
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithDate", getJson(now));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
-			assertEquals(getJson(destination.methodWithDate(now)), result);
-			Fault fault = messageHandler.getFault();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithDate";
+		System.out.println(methodName);
+		Object arg = new Date();
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			Object result = messageToClient.getResult();
+			assertEquals(getJson(destination.methodWithDate((Date) arg)), result);
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1235,22 +1092,17 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithResult() {
-		System.out.println("methodWithResult");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithResult", getJson(new Result(6)));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
-			assertEquals(getJson(destination.methodWithResult(new Result(6))), result);
-			Fault fault = messageHandler.getFault();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithResult";
+		System.out.println(methodName);
+		Object arg = new Result(6);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			Object result = messageToClient.getResult();
+			assertEquals(getJson(destination.methodWithResult((Result) arg)), result);
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1259,23 +1111,17 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithArrayInteger() {
-		System.out.println("methodWithArrayInteger");
-		try {
-			Integer[] al = new Integer[]{1, 2};
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithArrayInteger", getJson(al));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
-			assertEquals(getJson(destination.methodWithArrayInteger(al)), result);
-			Fault fault = messageHandler.getFault();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithArrayInteger";
+		System.out.println(methodName);
+		Object arg = new Integer[]{1, 2};
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			Object result = messageToClient.getResult();
+			assertEquals(getJson(destination.methodWithArrayInteger((Integer[]) arg)), result);
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1284,23 +1130,17 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithCollectionInteger() {
-		System.out.println("methodWithCollectionInteger");
-		try {
-			Collection<Integer> cl = destination.getCollectionInteger();
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithCollectionInteger", getJson(cl));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
-			assertEquals(getJson(destination.methodWithCollectionInteger(cl)), result);
-			Fault fault = messageHandler.getFault();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithCollectionInteger";
+		System.out.println(methodName);
+		Object arg = destination.getCollectionInteger();
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			Object result = messageToClient.getResult();
+			assertEquals(getJson(destination.methodWithCollectionInteger((Collection<Integer>) arg)), result);
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1309,23 +1149,17 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithArrayResult() {
-		System.out.println("methodWithArrayResult");
-		try {
-			Result[] al = new Result[]{new Result(1), new Result(2)};
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithArrayResult", getJson(al));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
-			assertEquals(getJson(destination.methodWithArrayResult(al)), result);
-			Fault fault = messageHandler.getFault();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithArrayResult";
+		System.out.println(methodName);
+		Object arg = new Result[]{new Result(1), new Result(2)};
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			Object result = messageToClient.getResult();
+			assertEquals(getJson(destination.methodWithArrayResult((Result[]) arg)), result);
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1334,23 +1168,17 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithCollectionResult() {
-		System.out.println("methodWithCollectionResult");
-		try {
-			Collection<Result> cl = destination.getCollectionResult();
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithCollectionResult", getJson(cl));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
-			assertEquals(getJson(destination.methodWithCollectionResult(cl)), result);
-			Fault fault = messageHandler.getFault();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithCollectionResult";
+		System.out.println(methodName);
+		Object arg = destination.getCollectionResult();
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			Object result = messageToClient.getResult();
+			assertEquals(getJson(destination.methodWithCollectionResult((Collection<Result>) arg)), result);
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1359,23 +1187,17 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithMapResult() {
-		System.out.println("methodWithMapResult");
-		try {
-			Map<String, Result> cl = destination.getMapResult();
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithMapResult", getJson(cl));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
-			assertEquals(getJson(destination.methodWithMapResult(cl)), result);
-			Fault fault = messageHandler.getFault();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithMapResult";
+		System.out.println(methodName);
+		Object arg = destination.getMapResult();
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			Object result = messageToClient.getResult();
+			assertEquals(getJson(destination.methodWithMapResult((Map<String, Result>) arg)), result);
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1384,23 +1206,17 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithCollectionOfCollectionResult() {
-		System.out.println("methodWithCollectionOfCollectionResult");
-		try {
-			Collection<Collection<Result>> cl = destination.getCollectionOfCollectionResult();
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithCollectionOfCollectionResult", getJson(cl));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
-			assertEquals(getJson(destination.methodWithCollectionOfCollectionResult(cl)), result);
-			Fault fault = messageHandler.getFault();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithCollectionOfCollectionResult";
+		System.out.println(methodName);
+		Object arg = destination.getCollectionOfCollectionResult();
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			Object result = messageToClient.getResult();
+			assertEquals(getJson(destination.methodWithCollectionOfCollectionResult((Collection<Collection<Result>>) arg)), result);
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1409,25 +1225,19 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithManyParameters() {
-		System.out.println("methodWithManyParameters");
-		try {
-			Collection<String> cl = new ArrayList<>();
-			cl.add("foo");
-			cl.add("foo");
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithManyParameters", getJson("foo"), getJson(5), getJson(new Result(3)), getJson(cl));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT*2, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithManyParameters";
+		System.out.println(methodName);
+		Collection<String> cl = new ArrayList<>();
+		cl.add("foo");
+		cl.add("foo");
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson("foo"), getJson(5), getJson(new Result(3)), getJson(cl));
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithManyParameters("foo", 5, new Result(3), cl)), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1436,22 +1246,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodThatThrowException() {
-		System.out.println("methodThatThrowException");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("methodThatThrowException");
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodThatThrowException";
+		System.out.println(methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			Object result = messageToClient.getResult();
 			assertEquals(null, result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(MethodException.class.getName(), fault.getClassname());
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1460,22 +1264,16 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithAlmostSignature1() {
-		System.out.println("methodWithAlmostSameSignature1");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithAlmostSameSignature", getJson(5));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithAlmostSameSignature";
+		System.out.println(methodName + "(int)");
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(5));
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithAlmostSameSignature(5)), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
+		} catch (IOException exception) {
 		}
 	}
 
@@ -1484,21 +1282,55 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithAlmostSignature2() {
-		System.out.println("methodWithAlmostSameSignature2");
-		try {
-			MessageFromClient messageFromClient = getMessageFromClient("methodWithAlmostSameSignature", getJson("foo"));
-			command.setMessage(messageFromClient.toJson());
-			CountDownLatch lock = new CountDownLatch(1);
-			messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
-			wssession.addMessageHandler(messageHandler);
-			wssession.getBasicRemote().sendText(command.toJson());
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
-			Object result = messageHandler.getResult();
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithAlmostSameSignature";
+		System.out.println(methodName + "(string)");
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson("foo"));
+			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithAlmostSameSignature("foo")), result);
-			Fault fault = messageHandler.getFault();
+			Fault fault = messageToClient.getFault();
 			assertEquals(null, fault);
-		} catch (InterruptedException | IOException ex) {
+		} catch (IOException exception) {
+		}
+
+	}
+
+	/**
+	 * Teste l'appel simultané de methodes
+	 */
+	@Test
+	public void testCallMethodsMultiSessions() {
+		try {
+			final Class clazz = EJBDataService.class;
+			final String methodName = "getValue";
+			System.out.println("callMethodsMultiSession");
+			int nb = 1000;
+			ExecutorService executorService = Executors.newFixedThreadPool(nb);
+			long t0 = System.currentTimeMillis();
+			final CountDownLatch lock = new CountDownLatch(nb);
+			for (int i = 0; i < nb; i++) {
+				executorService.execute(new Runnable() {
+
+					@Override
+					public void run() {
+						synchronized (this) {
+							lock.countDown();
+						}
+						MessageToClient messageToClient = getMessageToClientAfterSendInSession(createAndGetSession(), clazz, methodName);
+						Object result = messageToClient.getResult();
+						assertNotNull(result);
+						Fault fault = messageToClient.getFault();
+						assertEquals(null, fault);
+					}
+				});
+			}
+			executorService.shutdown();
+			lock.await(10 * TIMEOUT, TimeUnit.MILLISECONDS);
+			assertEquals("Timeout", 0, lock.getCount());
+			long t1 = System.currentTimeMillis();
+			System.out.println("Excecution de " + nb + " appels multisession en " + (t1 - t0) + "ms");
+		} catch (InterruptedException ex) {
 			fail(ex.getMessage());
 		}
 	}
@@ -1509,16 +1341,17 @@ public class OcelotTest {
 	@Test
 	public void testSendMessageToTopic() {
 		System.out.println("sendMessageToTopic");
-		try {
-			final String topic = "mytopic";
-			System.out.println("Enregistrement au Topic '" + topic + "'");
-			command.setCommand(Constants.Command.Value.SUBSCRIBE);
-			command.setMessage("\""+topic+"\"");
+		final String topic = "mytopic";
+		System.out.println("Enregistrement au Topic '" + topic + "'");
+		Command command = new Command();
+		command.setCommand(Constants.Command.Value.SUBSCRIBE);
+		command.setMessage("\"" + topic + "\"");
+		try (Session wssession = createAndGetSession()) {
 			wssession.getBasicRemote().sendText(command.toJson());
 			Thread.sleep(TIMEOUT);
 			int nbMsg = 10;
 			CountDownLatch lock = new CountDownLatch(nbMsg);
-			messageHandler = new CountDownMessageHandler(topic, lock);
+			CountDownMessageHandler messageHandler = new CountDownMessageHandler(topic, lock);
 			wssession.addMessageHandler(messageHandler);
 
 			MessageToClient toTopic = new MessageToClient();
@@ -1530,6 +1363,7 @@ public class OcelotTest {
 			}
 			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			assertEquals("Timeout", 0, lock.getCount());
+			wssession.removeMessageHandler(messageHandler);
 		} catch (InterruptedException | IOException ex) {
 			fail(ex.getMessage());
 		}
