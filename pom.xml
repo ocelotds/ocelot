@@ -7,6 +7,7 @@
 	<packaging>pom</packaging>
 	<name>Ocelot</name>
 	<description>Framework  for communication way between java and javascript</description>	
+	<url>https://github.com/hhdevelopment</url>
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -238,12 +239,12 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
 				<version>2.5</version>
-				<!--configuration>
+				<configuration>
 					<autoVersionSubmodules>true</autoVersionSubmodules>
 					<useReleaseProfile>false</useReleaseProfile>
-					<releaseProfiles>release</releaseProfiles>
+<!--					<releaseProfiles>release</releaseProfiles>-->
 					<goals>deploy</goals>
-				</configuration-->
+				</configuration>
 			</plugin>		
 		</plugins>
 	</build>
