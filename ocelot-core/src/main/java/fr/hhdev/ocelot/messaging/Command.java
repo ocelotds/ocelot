@@ -6,6 +6,7 @@ package fr.hhdev.ocelot.messaging;
 
 import fr.hhdev.ocelot.Constants;
 import java.io.StringReader;
+import java.util.Objects;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
@@ -63,4 +64,37 @@ public class Command {
 				  msg);
 		return json;
 	}
+	
+	@Override
+	public String toString() {
+		return toJson();
+	}
+
+	@Override
+	public int hashCode() {
+		int hash = 7;
+		hash = 11 * hash + Objects.hashCode(this.command);
+		hash = 11 * hash + Objects.hashCode(this.message);
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final Command other = (Command) obj;
+		if (!Objects.equals(this.command, other.command)) {
+			return false;
+		}
+		if (!Objects.equals(this.message, other.message)) {
+			return false;
+		}
+		return true;
+	}
+	
+	
 }

@@ -138,4 +138,9 @@ public class MessageToClient {
 				  res);
 		return json;
 	}
+	
+	@Override
+	public String toString() {
+		return toJson();
+	}
 }

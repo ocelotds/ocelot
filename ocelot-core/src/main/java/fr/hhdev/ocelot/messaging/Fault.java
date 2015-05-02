@@ -6,6 +6,8 @@ package fr.hhdev.ocelot.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  *
@@ -70,8 +72,36 @@ public class Fault {
 			return toJson();
 		} catch (IOException ex) {
 		}
-		return "Fault{" + "message=" + message + ", classname=" + classname + ", stacktrace=" + stacktrace + '}';
+		return "Fault{" + "message=" + message + ", classname=" + classname + ", stacktrace=" + Arrays.deepToString(stacktrace) + '}';
 	}
+
+	@Override
+	public int hashCode() {
+		int hash = 5;
+		hash = 29 * hash + Objects.hashCode(this.message);
+		hash = 29 * hash + Objects.hashCode(this.classname);
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final Fault other = (Fault) obj;
+		if (!Objects.equals(this.message, other.message)) {
+			return false;
+		}
+		if (!Objects.equals(this.classname, other.classname)) {
+			return false;
+		}
+		return true;
+	}
+	
+	
 
 	
 	
