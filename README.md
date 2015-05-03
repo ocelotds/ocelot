@@ -5,11 +5,11 @@
 Add dependency in your maven web project on https://oss.sonatype.org
 
 ```xml
-  <dependency>
-      <groupId>fr.hhdev</groupId>
-      <artifactId>ocelot-core</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
-  </dependency>
+<dependency>
+  <groupId>fr.hhdev</groupId>
+  <artifactId>ocelot-core</artifactId>
+  <version>1.0.1</version>
+</dependency>
 ```
 
 Ocelot is the new name of zeldads framework, we change the name for refactor and remove right problems.
