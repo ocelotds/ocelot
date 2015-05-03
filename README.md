@@ -2,6 +2,9 @@
 # OCELOT
 ## The best and easiest communication way between java and javascript
 #### Forget REST, forget AJAX, forget http, forget protocol, Ocelot uses websocket and do everything for you.
+
+[HOW TO](https://github.com/hhdevelopment/ocelot/wiki/howto)
+
 ### Dependencies
 ```xml
 <dependency>
