@@ -1,6 +1,7 @@
 [TICKET JIRA](https://issues.sonatype.org/browse/OSSRH-15324)
 # OCELOT
 ## The best and easiest communication way between java and javascript
+#### Forget REST, forget AJAX, forget http, forget protocol, Ocelot uses websocket and do everything for you.
 ### Dependencies
 ```xml
 <dependency>
