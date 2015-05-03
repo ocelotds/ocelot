@@ -2,7 +2,6 @@
 # OCELOT
 ## The best and easiest communication way between java and javascript
 ### Dependencies
-Add dependency in your maven web project on https://oss.sonatype.org
 
 ```xml
 <dependency>
