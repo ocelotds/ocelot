@@ -2,7 +2,7 @@
 # OCELOT
 ## The best and easiest communication way between java and javascript
 ### Dependencies
-
+{{ site.github.project_title }}
 ```xml
 <dependency>
   <groupId>fr.hhdev</groupId>
