@@ -23,11 +23,6 @@ import org.slf4j.LoggerFactory;
 public class SessionManager {
 	private final static Logger logger = LoggerFactory.getLogger(SessionManager.class);
 	private final Map<String, Set<Session>> sessionsByTopic = new HashMap<>();
-	private final Map<String, Session> sessionsByMsgId = new HashMap<>();
-	
-	public void registerMsgSession(String id, Session session) {
-		sessionsByMsgId.put(id, session); // on enregistre le message pour re-router le résultat vers le bon client
-	}
 	
 	/**
 	 * Enregistre une session correspondant à un topic
@@ -73,36 +68,6 @@ public class SessionManager {
 				sessions.remove(session);
 			}
 		}
-		if(sessionsByMsgId.containsValue(session)) {
-			for (String key : sessionsByMsgId.keySet()) {
-				if(sessionsByMsgId.get(key).equals(session)) {
-					sessionsByMsgId.remove(key);
-				}
-			}
-		}
-	}
-
-	/**
-	 * retourne et supprime la session correspondant au msg id
-	 *
-	 * @param id
-	 * @return
-	 */
-	public Session getAndRemoveMsgSessionForId(String id) {
-		if (existsMsgSessionForId(id)) {
-			return sessionsByMsgId.remove(id);
-		}
-		return null;
-	}
-
-	/**
-	 * retourne si une session correspond au msg id
-	 *
-	 * @param id
-	 * @return
-	 */
-	public boolean existsMsgSessionForId(String id) {
-		return sessionsByMsgId.containsKey(id);
 	}
 
 	/**

@@ -684,8 +684,8 @@ public class OcelotTest {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
 		Object expectedResult = 1;
-		String json = String.format("{\"%s\":\"%s\",\"%s\":%s}",
-				  Constants.Message.ID, uuid, Constants.Message.RESULT, expectedResult);
+		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.RESULT, expectedResult);
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(uuid, result.getId());
 		assertEquals("" + expectedResult, result.getResult());
@@ -699,8 +699,8 @@ public class OcelotTest {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
 		String expectedResultJS = "\"foo\"";
-		String json = String.format("{\"%s\":\"%s\",\"%s\":%s}",
-				  Constants.Message.ID, uuid, Constants.Message.RESULT, expectedResultJS);
+		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.RESULT, expectedResultJS);
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(uuid, result.getId());
 		assertEquals(expectedResultJS, result.getResult());
@@ -714,8 +714,8 @@ public class OcelotTest {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
 		Object expectedResult = "{\"integer\":5,\"foo\":\"foo\"}";
-		String json = String.format("{\"%s\":\"%s\",\"%s\":%s}",
-				  Constants.Message.ID, uuid, Constants.Message.RESULT, expectedResult);
+		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.RESULT, expectedResult);
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(uuid, result.getId());
 		assertEquals(expectedResult, result.getResult());
@@ -734,8 +734,8 @@ public class OcelotTest {
 		f.setStacktrace(null);
 		String json;
 		try {
-			json = String.format("{\"%s\":\"%s\",\"%s\":%s}",
-					  Constants.Message.ID, uuid, Constants.Message.FAULT, f.toJson());
+			json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+					  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.FAULT, f.toJson());
 			MessageToClient result = MessageToClient.createFromJson(json);
 			assertEquals(uuid, result.getId());
 			assertEquals(f.getClassname(), result.getFault().getClassname());

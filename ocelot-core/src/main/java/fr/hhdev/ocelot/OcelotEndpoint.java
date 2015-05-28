@@ -6,6 +6,7 @@ package fr.hhdev.ocelot;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.annotations.DataService;
+import fr.hhdev.ocelot.annotations.JsCacheResult;
 import fr.hhdev.ocelot.encoders.CommandDecoder;
 import fr.hhdev.ocelot.spi.Scope;
 import fr.hhdev.ocelot.encoders.MessageToClientEncoder;
@@ -13,17 +14,14 @@ import fr.hhdev.ocelot.messaging.Command;
 import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import fr.hhdev.ocelot.messaging.MessageToClient;
-import fr.hhdev.ocelot.messaging.MessageEvent;
 import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.resolvers.DataServiceResolverIdLitteral;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import javax.enterprise.event.Event;
-import javax.enterprise.event.Observes;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Calendar;
+import javax.el.MethodNotFoundException;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -44,16 +42,12 @@ import org.slf4j.LoggerFactory;
  * @author hhfrancois
  */
 @ServerEndpoint(value = "/endpoint", encoders = {MessageToClientEncoder.class}, decoders = {CommandDecoder.class})
-public class OcelotEndpoint {
+public class OcelotEndpoint extends AbstractOcelotDataService {
 
 	private final static Logger logger = LoggerFactory.getLogger(OcelotEndpoint.class);
 
 	@Inject
 	private SessionManager sessionManager;
-
-	@Inject
-	@MessageEvent
-	private Event<MessageToClient> wsEvent;
 
 	@Inject
 	@Any
@@ -63,38 +57,14 @@ public class OcelotEndpoint {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
 	}
 
-	/**
-	 * Réponse asynchrone d'un requete initiée par le client Utilise l'encoder positionné sur le endpoint
-	 *
-	 * @param msg
-	 */
-	public void sendPushMessageToClient(@Observes @MessageEvent MessageToClient msg) {
-		logger.debug("SENDING MESSAGE/RESPONSE TO CLIENT {}", msg.toJson());
-		try {
-			if (sessionManager.existsMsgSessionForId(msg.getId())) {
-				logger.debug("SEND MESSAGE TO CLIENT {}", msg.toJson());
-				Session session = sessionManager.getAndRemoveMsgSessionForId(msg.getId());
-				if (session.isOpen()) {
-					session.getBasicRemote().sendObject(msg);
-				}
-			} else if (sessionManager.existsTopicSessionForId(msg.getId())) {
-				Collection<Session> sessions = sessionManager.getTopicSessionsForId(msg.getId());
-				if (sessions != null && !sessions.isEmpty()) {
-					logger.debug("SEND MESSAGE TO '{}' TOPIC {} CLIENT(s) : {}", new Object[]{msg.getId(), sessions.size(), msg.toJson()});
-					for (Session session : sessions) {
-						if (session.isOpen()) {
-							session.getBasicRemote().sendObject(msg);
-						}
-					}
-				} else {
-					logger.debug("NO CLIENT FOR TOPIC '{}'", msg.getId());
-				}
-			} else {
-				logger.debug("NO CLIENT FOR MSGID '{}'", msg.getId());
-			}
-		} catch (IOException | EncodeException ex) {
-			logger.error(ex.getMessage(), ex);
-		}
+	@OnOpen
+	public void handleOpenConnexion(Session session) throws IOException {
+		logger.debug("OPEN CONNEXION FOR SESSION '{}'", session.getId());
+	}
+
+	@OnError
+	public void onError(Session session, Throwable t) {
+		logger.error("UNKNOW ERROR FOR SESSION " + session.getId(), t);
 	}
 
 	/**
@@ -105,6 +75,7 @@ public class OcelotEndpoint {
 	 */
 	@OnClose
 	public void handleClosedConnection(Session session, CloseReason closeReason) {
+		logger.debug("CLOSE CONNEXION FOR SESSION '{}' : '{}'", session.getId(), closeReason.getCloseCode());
 		if (session.isOpen()) {
 			try {
 				session.close();
@@ -115,7 +86,7 @@ public class OcelotEndpoint {
 	}
 
 	/**
-	 * Recevoir un message correspond à la demande d'execution d'un service
+	 * Recevoir un message correspond à la demande d'execution d'un service ou à l'abonnement à un topic
 	 *
 	 * @param client
 	 * @param command
@@ -130,45 +101,28 @@ public class OcelotEndpoint {
 				switch (command.getCommand()) {
 					case Constants.Command.Value.SUBSCRIBE:
 						topic = mapper.readValue(command.getMessage(), String.class);
-						logger.debug("SUBSCRIBE TOPIC '{}' FOR SESSION", topic);
+						logger.debug("SUBSCRIBE TOPIC '{}' FOR SESSION '{}'", topic, client.getId());
 						sessionManager.registerTopicSession(topic, client);
 						break;
 					case Constants.Command.Value.UNSUBSCRIBE:
 						topic = mapper.readValue(command.getMessage(), String.class);
-						logger.debug("UNSUBSCRIBE TOPIC '{}' FOR SESSION", topic);
+						logger.debug("UNSUBSCRIBE TOPIC '{}' FOR SESSION '{}'", topic, client.getId());
 						sessionManager.unregisterTopicSession(topic, client);
 						break;
 					case Constants.Command.Value.CALL:
 						MessageFromClient message = MessageFromClient.createFromJson(command.getMessage());
+						logger.debug("RECEIVE CALL MESSAGE '{}' FOR SESSION '{}'", message.getId(), client.getId());
+						MessageToClient messageToClient = getMesssageToClient(client, message);
 						try {
-							logger.debug("ASSOCIATE ID '{}' WITH SESSION", message.getId());
-							sessionManager.registerMsgSession(message.getId(), client); // on enregistre le message pour re-router le résultat vers le bon client
-							ExecutorService executorService = Executors.newCachedThreadPool(); // Les thread ne devrait pas être en vie longtemps, c'est pertinent
-							Object dataService = getDataService(client, message.getDataService());
-							executorService.execute(new OcelotDataService(dataService, wsEvent, message));
-							executorService.shutdown();
+							client.getBasicRemote().sendObject(messageToClient);
 							break;
-						} catch (ClassNotFoundException | DataServiceException ex) {
-							MessageToClient messageToClient = new MessageToClient();
-							messageToClient.setId(message.getId());
-							messageToClient.setFault(new Fault(ex));
-							this.wsEvent.fire(messageToClient);
+						} catch (IOException | EncodeException ex) {
+							logger.error("FAIL TO SENT " + messageToClient.toJson(), ex);
 						}
 				}
 			} catch (IOException ex) {
-
 			}
 		}
-	}
-
-	@OnOpen
-	public void handleOpenConnection(Session session) throws IOException {
-	}
-
-	@OnError
-	public void onError(Session session, Throwable t) {
-		System.out.println("ERROR");
-		t.printStackTrace();
 	}
 
 	/**
@@ -176,27 +130,96 @@ public class OcelotEndpoint {
 	 * celui ci ?
 	 *
 	 * @param client
-	 * @param dataServiceClassName
+	 * @param cls
 	 * @return
-	 * @throws ClassNotFoundException
 	 * @throws DataServiceException
 	 */
-	protected Object getDataService(Session client, String dataServiceClassName) throws ClassNotFoundException, DataServiceException {
-		Class cls = Class.forName(dataServiceClassName);
-		DataService dataServiceAnno = (DataService) cls.getAnnotation(DataService.class);
-		IDataServiceResolver resolver = getResolver(dataServiceAnno.resolver());
-		Scope scope = resolver.getScope(cls);
-		Object dataService = null;
-		if (scope.equals(Scope.SESSION)) {
-			dataService = client.getUserProperties().get(dataServiceClassName);
-		}
-		if (dataService == null) {
-			dataService = resolver.resolveDataService(cls);
+	protected Object getDataService(Session client, Class cls) throws DataServiceException {
+		String dataServiceClassName = cls.getName();
+		logger.debug("Dataservice : {}", dataServiceClassName);
+		if (cls.isAnnotationPresent(DataService.class)) {
+			DataService dataServiceAnno = (DataService) cls.getAnnotation(DataService.class);
+			IDataServiceResolver resolver = getResolver(dataServiceAnno.resolver());
+			Scope scope = resolver.getScope(cls);
+			Object dataService = null;
 			if (scope.equals(Scope.SESSION)) {
-				client.getUserProperties().put(dataServiceClassName, dataService);
+				dataService = client.getUserProperties().get(dataServiceClassName);
 			}
+			if (dataService == null) {
+				dataService = resolver.resolveDataService(cls);
+				if (scope.equals(Scope.SESSION)) {
+					client.getUserProperties().put(dataServiceClassName, dataService);
+				}
+			}
+			return dataService;
+		} else {
+			throw new DataServiceException(dataServiceClassName);
 		}
-		return dataService;
 	}
 
+	/**
+	 * Construction du message response suite à un appel de type call
+	 *
+	 * @param client
+	 * @param message
+	 * @return
+	 */
+	private MessageToClient getMesssageToClient(Session client, MessageFromClient message) {
+		MessageToClient messageToClient = new MessageToClient();
+		messageToClient.setId(message.getId());
+		try {
+			Class cls = Class.forName(message.getDataService());
+			Object dataService = getDataService(client, cls);
+			logger.debug("Excecution de la methode pour le message {}", message);
+			try {
+				logger.debug("Invocation de  : {}", message.getOperation());
+				Object[] arguments = new Object[message.getParameters().size()];
+				logger.debug("Réceptacle de {} argument(s) typé(s).", arguments.length);
+				Method method = getMethodFromDataService(dataService, message, arguments);
+				logger.debug("Excecution de la méthode {}.", method.getName());
+				Object result = method.invoke(dataService, arguments);
+				messageToClient.setResult(result);
+				messageToClient.setDeadline(getJsCacheResultDeadline(cls, method));
+			} catch (MethodNotFoundException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+				Throwable cause = ex;
+				if (InvocationTargetException.class.isInstance(ex)) {
+					cause = ex.getCause();
+				}
+				messageToClient.setFault(new Fault(cause));
+			}
+		} catch (ClassNotFoundException | DataServiceException ex) {
+			messageToClient.setFault(new Fault(ex));
+		}
+		return messageToClient;
+	}
+
+	/**
+	 * Récupere la date d'expiration du service via l'annotation sur la methode directement sur la classe, car sinon cela peut être un proxy
+	 *
+	 * @param cls
+	 * @param method
+	 * @return
+	 */
+	private long getJsCacheResultDeadline(Class cls, Method method) {
+		try {
+			Method m = cls.getMethod(method.getName(), method.getParameterTypes());
+			boolean cached = m.isAnnotationPresent(JsCacheResult.class);
+			logger.debug("La résultat de la méthode {} sera mis en cache sur le client {}", method.getName(), cached);
+			if (cached) { // Ce service doit être mis en cache sur le client
+				JsCacheResult jcr = m.getAnnotation(JsCacheResult.class);
+				Calendar deadline = Calendar.getInstance();
+				deadline.add(Calendar.YEAR, jcr.year());
+				deadline.add(Calendar.MONTH, jcr.month());
+				deadline.add(Calendar.DATE, jcr.day());
+				deadline.add(Calendar.HOUR, jcr.hour());
+				deadline.add(Calendar.MINUTE, jcr.minute());
+				deadline.add(Calendar.SECOND, jcr.second());
+				deadline.add(Calendar.MILLISECOND, jcr.millisecond());
+				return deadline.getTime().getTime();
+			}
+		} catch (NoSuchMethodException | SecurityException ex) {
+			logger.error("Methode "+ method.getName()+" non trouvé sur "+cls.getName());
+		}
+		return 0;
+	}
 }

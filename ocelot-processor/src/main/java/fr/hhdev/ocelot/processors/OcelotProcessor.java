@@ -5,6 +5,8 @@
 package fr.hhdev.ocelot.processors;
 
 import fr.hhdev.ocelot.annotations.DataService;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Set;
@@ -59,13 +61,20 @@ public class OcelotProcessor extends AbstractProcessor {
 		}
 		// Récupération des packages annotés       
 		try {
-			FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", "ocelot-services.js");
-			try (Writer writer = resource.openWriter()) {
-				createLicenceComment(writer);
-				ElementVisitor visitor = new DataServiceVisitor(processingEnv);
-				for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
-					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " JAVASCRIPT GENERATION CLASS : " + element);
-					element.accept(visitor, writer);
+			File webapp = new File("src/main/webapp");
+			if(webapp.exists()) {
+				File file = new File(webapp, "ocelot-services.js");
+				if(file.exists()) {
+					file.delete();
+				}
+//				FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", "ocelot-services.js");
+				try (Writer writer = new FileWriter(file)) {
+					createLicenceComment(writer);
+					ElementVisitor visitor = new DataServiceVisitor(processingEnv);
+					for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
+						messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " JAVASCRIPT GENERATION CLASS : " + element);
+						element.accept(visitor, writer);
+					}
 				}
 			}
 		} catch (IOException e) {

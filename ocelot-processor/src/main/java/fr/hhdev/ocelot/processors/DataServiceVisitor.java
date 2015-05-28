@@ -200,7 +200,8 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	 */
 	protected void createMethodBody(ExecutableElement methodElement, Iterator<String> arguments, Writer writer) {
 		try {
-			writer.append("\t\treturn getOcelotEvent.call(this, \"").append(methodElement.getSimpleName().toString()).append("\", [");
+			writer.append("\t\tvar op = \"").append(methodElement.getSimpleName()).append("\";\n");
+			writer.append("\t\tvar args = [");
 			if (arguments != null) {
 				while (arguments.hasNext()) {
 					writer.append(arguments.next());
@@ -209,7 +210,9 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 					}
 				}
 			}
-			writer.append("]);\n");
+			writer.append("];\n");
+			writer.append("\t\tvar id = (this.ds + \".\" + op + \"(\" + JSON.stringify(args) + \")\").hashCode();\n");
+			writer.append("\t\treturn getOcelotEvent.call(this, id, op, args);\n");
 		} catch (IOException ex) {
 		}
 	}

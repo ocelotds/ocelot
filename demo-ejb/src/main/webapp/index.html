@@ -34,7 +34,15 @@
 					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
 				};
 			}
-			;
+			function getMessageCached(srv) {
+				var token = srv.getMessageCached();
+				token.onResult = function (msg) {
+					addMessage(msg);
+				};
+				token.onFault = function (fault) {
+					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
+				};
+			}
 			function getMessage2(srv) {
 				var token = srv.getMessage("" + Math.floor(Math.random() * 10));
 				token.onResult = function (msg) {
@@ -44,7 +52,6 @@
 					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
 				};
 			}
-			;
 			function addMessage(msg) {
 				var output = document.getElementById("output");
 				var pre = document.createElement("p");
@@ -66,8 +73,10 @@
 		<button onclick="mdb.unsubscribe();">UNSUBSCRIBE</button>
 		<button onclick="getMessage(ejbService)">GET EJB MESSAGE(int)</button>
 		<button onclick="getMessage2(ejbService)">GET EJB MESSAGE(str)</button>
+		<button onclick="getMessageCached(ejbService)">GET EJB MESSAGE CACHED 1Mn</button>
 		<button onclick="getMessage(pojoService)">GET POJO MESSAGE(int)</button>
 		<button onclick="getMessage2(pojoService)">GET POJO MESSAGE(str)</button>
+		<button onclick="ocelotController.close()">CLOSE WS</button>
 		<div id="output"></div>
 	</body>
 </html>

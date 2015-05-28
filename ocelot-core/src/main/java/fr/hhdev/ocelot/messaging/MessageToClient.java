@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Date;
 import java.util.Objects;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -37,6 +38,10 @@ public class MessageToClient {
 	 * L'erreur de la requete
 	 */
 	protected Fault fault = null;
+	/**
+	 * Limite de validité
+	 */
+	protected long deadline = 0L;
 
 	public String getId() {
 		return id;
@@ -60,6 +65,14 @@ public class MessageToClient {
 
 	public void setFault(Fault fault) {
 		this.fault = fault;
+	}
+
+	public long getDeadline() {
+		return deadline;
+	}
+
+	public void setDeadline(long deadline) {
+		this.deadline = deadline;
 	}
 
 	@Override
@@ -92,6 +105,7 @@ public class MessageToClient {
 			JsonObject root = reader.readObject();
 			MessageToClient message = new MessageToClient();
 			message.setId(root.getString(Constants.Message.ID));
+			message.setDeadline(root.getInt(Constants.Message.DEADLINE));
 			if (root.containsKey(Constants.Message.RESULT)) {
 				JsonValue result = root.get(Constants.Message.RESULT);
 				message.setResult("" + result);
@@ -133,8 +147,8 @@ public class MessageToClient {
 			} catch (IOException ex) {
 			}
 		}
-		String json = String.format("{\"%s\":\"%s\"%s}",
-				  Constants.Message.ID, this.getId(),
+		String json = String.format("{\"%s\":\"%s\",\"%s\":%s%s}",
+				  Constants.Message.ID, this.getId(), Constants.Message.DEADLINE, this.getDeadline(),
 				  res);
 		return json;
 	}

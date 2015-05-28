@@ -2,6 +2,7 @@ package demo;
 
 import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.annotations.DataService;
+import fr.hhdev.ocelot.annotations.JsCacheResult;
 import javax.ejb.Stateless;
 
 /**
@@ -18,5 +19,10 @@ public class TestEJBService {
 
 	public String getMessage(String i) {
 		return "Message from ejb service getMessage(String "+i+")";
+	}
+
+	@JsCacheResult(minute = 1)
+	public String getMessageCached() {
+		return "Message from ejb service getMessageCached():"+Math.random();
 	}
 }

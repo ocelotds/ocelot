@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
  * ocelot-services is enerated by annotation process
  * @author hhfrancois
  */
-@WebServlet(name = "ServicesServlet", urlPatterns = {"/ocelot-services.js"})
+//@WebServlet(name = "ServicesServlet", urlPatterns = {"/ocelot-services.js"})
 public class ServicesServlet extends HttpServlet {
 
 	/**
