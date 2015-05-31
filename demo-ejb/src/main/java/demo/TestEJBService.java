@@ -25,4 +25,9 @@ public class TestEJBService {
 	public String getMessageCached() {
 		return "Message from ejb service getMessageCached():"+Math.random();
 	}
+
+	@JsCacheResult(minute = 1, keys = "*, id, -, **")
+	public String getMessageCached2(int i, User u, long l, short s, boolean b) {
+		return "Message from ejb service getMessageCached():"+Math.random();
+	}
 }
