@@ -19,16 +19,29 @@ function OcelotController() {
 				if (msgToClient.result) {
 					if (this.topicHandlers[msgToClient.id]) {
 						this.topicHandlers[msgToClient.id](msgToClient.result);
-					} else if (this.tokens[msgToClient.id] && this.tokens[msgToClient.id].onResult) {
+					} else if (this.tokens[msgToClient.id]) {
+						var token = this.tokens[msgToClient.id];
 						// Si le msgToClient à une date d'expiration alors on stocke dans le cache
 						if(msgToClient.deadline) {
 							localStorage.setItem(msgToClient.id, JSON.stringify(msgToClient));
 						}
-						this.tokens[msgToClient.id].onResult(msgToClient.result);
+						if(token.onResult) {
+							var evt = this.createEventFromToken("result", token);
+							evt.result = msgToClient.result;
+							token.onResult(evt);
+						}
+						if(token.success) token.success(msgToClient.result);
 					}
 				} else if (msgToClient.fault) {
-					this.tokens[msgToClient.id].onFault(msgToClient.fault);
+					var token = this.tokens[msgToClient.id];
+					if(token.onFault) {
+						var evt = this.createEventFromToken("fault", token);
+						evt.fault = msgToClient.fault;
+						token.onFault(evt);
+					}
+					if(token.fail) token.fail(msgToClient.fault);
 				}
+				delete this.tokens[msgToClient.id];
 			};
 			ws.onopen = function (evt) {
 				this.status = "OPEN";
@@ -45,6 +58,7 @@ function OcelotController() {
 				if (this.topicHandlers["ocelot-status"])
 					this.topicHandlers["ocelot-status"](this.status);
 			};
+			ws.createEventFromToken = this.createEventFromToken;
 		}
 	};
 	this.close = function () {
@@ -84,7 +98,10 @@ function OcelotController() {
 			var now = new Date().getTime();
 			if(now < msgToClient.deadline) {
 				// si present et non périmé, on retourne le resultat sans faire call
-				token.onResult(msgToClient.result);
+				var evt = this.createEventFromToken("result", token);
+				evt.result = msgToClient.result;
+				token.onResult(evt);
+				token.success(msgToClient.result);
 				return;
 			}
 		}
@@ -95,6 +112,14 @@ function OcelotController() {
 		} else {
 			this.showErrorSocketIsClosed();
 		}
+	};
+	this.createEventFromToken = function(type, token) {
+		var evt = document.createEvent("Event");
+		evt.initEvent(type, true, false);
+		evt.dataservice = token.dataservice;
+		evt.operation = token.operation;
+		evt.args = token.args;
+		return evt;
 	};
 	this.showErrorSocketIsClosed = function () {
 		alert("WebSocket is not open");
@@ -134,7 +159,7 @@ function Mdb(topic) {
 	this.onMessage = function (msg) {
 	};
 }
-var getOcelotEvent = function getOcelotEvent(id, op, args) {
+var getOcelotToken = function(id, op, args) {
 	var evt = document.createEvent("Event");
 	evt.initEvent("call", true, false);
 	evt.dataservice = this.ds;
@@ -146,9 +171,13 @@ var getOcelotEvent = function getOcelotEvent(id, op, args) {
 	evt.getMessage = function() {
 		return "{\"id\":\"" + this.id + "\",\"ds\":\"" + this.dataservice + "\",\"op\":\"" + this.operation + "\", \"args\":" + JSON.stringify(this.args) + "}";
 	};
-	evt.onResult = function (msg) {
+	evt.onResult = function (resultEvt) {
 	};
-	evt.onFault = function (fault) {
+	evt.onFault = function (faultEvt) {
+	};
+	evt.success = function (msg) {
+	};
+	evt.fail = function (fault) {
 	};
 	setTimeout(function () {
 		setTimeout(function () {
@@ -162,7 +191,7 @@ var getOcelotEvent = function getOcelotEvent(id, op, args) {
  * Calculate a 32 bit FNV-1a hash
  * @returns {String}
  */
-String.prototype.hashCode = function () {
+String.prototype.hash32Code = function () {
 	var i, l;
 	var hval = 0x811c9dc5;
 	for (i = 0, l = this.length; i < l; i++) {
