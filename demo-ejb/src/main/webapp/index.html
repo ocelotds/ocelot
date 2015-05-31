@@ -27,28 +27,28 @@
 			var ejbService = new TestEJBService();
 			function getMessage(srv) {
 				var token = srv.getMessage(Math.floor(Math.random() * 10));
-				token.onResult = function (msg) {
+				token.success = function (msg) {
 					addMessage(msg);
 				};
-				token.onFault = function (fault) {
+				token.fail = function (fault) {
 					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
 				};
 			}
 			function getMessageCached(srv) {
 				var token = srv.getMessageCached();
-				token.onResult = function (msg) {
+				token.success = function (msg) {
 					addMessage(msg);
 				};
-				token.onFault = function (fault) {
+				token.fail = function (fault) {
 					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
 				};
 			}
 			function getMessage2(srv) {
 				var token = srv.getMessage("" + Math.floor(Math.random() * 10));
-				token.onResult = function (msg) {
+				token.success = function (msg) {
 					addMessage(msg);
 				};
-				token.onFault = function (fault) {
+				token.fail = function (fault) {
 					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
 				};
 			}

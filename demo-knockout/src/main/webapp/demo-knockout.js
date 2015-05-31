@@ -11,13 +11,13 @@ function TicketsViewModel() {
 	};
 	model.loadTickets = function () {
 		var token = ticketServices.getTickets();
-		token.onResult = function (tickets) {
+		token.success = function (tickets) {
 			model.tickets.remove(function(item) { return true;});
 			for (var key in tickets){
 				model.tickets.push(tickets[key]);
 			}
 		};
-		token.onFault = onFault;
+		token.fail = onFault;
 	};
 	model.loadTickets();
 }

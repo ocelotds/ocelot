@@ -6,13 +6,13 @@ angular.module('todoApp', []).controller('TodoListController',
 	var todoServices = new TodoServices();
 	todoList.addTodo = function () {
 		var token = todoServices.addTodo(todoList.todoText);
-		token.onResult = function (todo) {
+		token.success = function (todo) {
 			$scope.$apply(function () {
 				todoList.todos.push(todo);
 				todoList.todoText = '';
 			});
 		};
-		token.onFault = onFault;
+		token.fail = onFault;
 	};
 	todoList.remaining = function () {
 		var count = 0;
@@ -23,27 +23,27 @@ angular.module('todoApp', []).controller('TodoListController',
 	};
 	todoList.archive = function () {
 		var token = todoServices.archive();
-		token.onResult = function (todos) {
+		token.success = function (todos) {
 			$scope.$apply(function () {
 				todoList.todos = todos;
         });
 		};
-		token.onFault = onFault;
+		token.fail = onFault;
 	};
 	todoList.update = function (todo) {
 		var token = todoServices.updateTodo(todo);
-		token.onResult = function (todo) {
+		token.success = function (todo) {
 		};
-		token.onFault = onFault;
+		token.fail = onFault;
 	};
 	todoList.refresh = function () {
 		var token = todoServices.getTodos();
-		token.onResult = function (todos) {
+		token.success = function (todos) {
 			$scope.$apply(function () {
 				todoList.todos = todos;
         });
 		};
-		token.onFault = onFault;
+		token.fail = onFault;
 	};
 	var onFault = function (fault) {
 		alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));

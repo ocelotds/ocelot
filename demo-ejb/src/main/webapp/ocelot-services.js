@@ -16,9 +16,8 @@ function TestPojoService() {
 	 */
 	this.getMessage = function (i) {
 		var op = "getMessage";
-		var args = [i];
-		var id = (this.ds + "." + op + "(" + JSON.stringify(args) + ")").hashCode();
-		return getOcelotEvent.call(this, id, op, args);
+		var id = (this.ds + "." + op + "(" + JSON.stringify([i]) + ")").hash32Code();
+		return getOcelotToken.call(this, id, op, [i]);
 	};
 
 	/**
@@ -27,9 +26,8 @@ function TestPojoService() {
 	 */
 	this.getMessage = function (i) {
 		var op = "getMessage";
-		var args = [i];
-		var id = (this.ds + "." + op + "(" + JSON.stringify(args) + ")").hashCode();
-		return getOcelotEvent.call(this, id, op, args);
+		var id = (this.ds + "." + op + "(" + JSON.stringify([i]) + ")").hash32Code();
+		return getOcelotToken.call(this, id, op, [i]);
 	};
 }
 /**
@@ -45,9 +43,8 @@ function TestEJBService() {
 	 */
 	this.getMessage = function (i) {
 		var op = "getMessage";
-		var args = [i];
-		var id = (this.ds + "." + op + "(" + JSON.stringify(args) + ")").hashCode();
-		return getOcelotEvent.call(this, id, op, args);
+		var id = (this.ds + "." + op + "(" + JSON.stringify([i]) + ")").hash32Code();
+		return getOcelotToken.call(this, id, op, [i]);
 	};
 
 	/**
@@ -56,9 +53,8 @@ function TestEJBService() {
 	 */
 	this.getMessage = function (i) {
 		var op = "getMessage";
-		var args = [i];
-		var id = (this.ds + "." + op + "(" + JSON.stringify(args) + ")").hashCode();
-		return getOcelotEvent.call(this, id, op, args);
+		var id = (this.ds + "." + op + "(" + JSON.stringify([i]) + ")").hash32Code();
+		return getOcelotToken.call(this, id, op, [i]);
 	};
 
 	/**
@@ -66,8 +62,21 @@ function TestEJBService() {
 	 */
 	this.getMessageCached = function () {
 		var op = "getMessageCached";
-		var args = [];
-		var id = (this.ds + "." + op + "(" + JSON.stringify(args) + ")").hashCode();
-		return getOcelotEvent.call(this, id, op, args);
+		var id = (this.ds + "." + op + "(" + JSON.stringify([]) + ")").hash32Code();
+		return getOcelotToken.call(this, id, op, []);
+	};
+
+	/**
+	 * @param i
+	 * @param u
+	 * @param l
+	 * @param s
+	 * @param b
+	 * @return java.lang.String
+	 */
+	this.getMessageCached2 = function (i, u, l, s, b) {
+		var op = "getMessageCached2";
+		var id = (this.ds + "." + op + "(" + JSON.stringify([i, u.id, null, s, b]) + ")").hash32Code();
+		return getOcelotToken.call(this, id, op, [i, u, l, s, b]);
 	};
 }
