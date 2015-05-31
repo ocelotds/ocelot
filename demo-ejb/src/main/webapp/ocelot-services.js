@@ -76,7 +76,7 @@ function TestEJBService() {
 	 */
 	this.getMessageCached2 = function (i, u, l, s, b) {
 		var op = "getMessageCached2";
-		var id = (this.ds + "." + op + "(" + JSON.stringify([i, u.id, null, s, b]) + ")").hash32Code();
+		var id = (this.ds + "." + op + "(" + JSON.stringify([i, (u)?u.id:null, null, s, b]) + ")").hash32Code();
 		return getOcelotToken.call(this, id, op, [i, u, l, s, b]);
 	};
 }

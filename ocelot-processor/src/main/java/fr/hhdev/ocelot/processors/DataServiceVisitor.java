@@ -264,7 +264,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 				case "-":
 					return "null";
 				default:
-					return arg+"."+current;
+					return "("+arg+")?"+arg+"."+current+":null";
 			}
 		}
 	}
