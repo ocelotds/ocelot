@@ -4,6 +4,8 @@
  */
 package fr.hhdev;
 
+import fr.hhdev.ocelot.Constants;
+import fr.hhdev.ocelot.annotations.DataService;
 import javax.ejb.Stateless;
 import javax.ejb.LocalBean;
 
@@ -13,6 +15,7 @@ import javax.ejb.LocalBean;
  */
 @Stateless
 @LocalBean
+@DataService(resolver = Constants.Resolver.EJB)
 public class NewSessionBean {
 
     public void businessMethod() {
