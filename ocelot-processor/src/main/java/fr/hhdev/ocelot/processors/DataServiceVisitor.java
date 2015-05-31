@@ -4,10 +4,13 @@
  */
 package fr.hhdev.ocelot.processors;
 
+import fr.hhdev.ocelot.annotations.JsCacheResult;
 import fr.hhdev.ocelot.annotations.TransientDataService;
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -201,19 +204,68 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	protected void createMethodBody(ExecutableElement methodElement, Iterator<String> arguments, Writer writer) {
 		try {
 			writer.append("\t\tvar op = \"").append(methodElement.getSimpleName()).append("\";\n");
-			writer.append("\t\tvar args = [");
-			if (arguments != null) {
+			StringBuilder args = new StringBuilder("");
+			StringBuilder keys = new StringBuilder("[");
+			if (arguments != null && arguments.hasNext()) {
+				JsCacheResult jcr = methodElement.getAnnotation(JsCacheResult.class);
+				KeySelector ks = new KeySelector("**");
+				if(jcr!=null) {
+					ks = new KeySelector(jcr.keys());
+				}
 				while (arguments.hasNext()) {
-					writer.append(arguments.next());
+					String arg = arguments.next();
+					keys.append(ks.next(arg));
+					args.append(arg);
 					if (arguments.hasNext()) {
-						writer.append(", ");
+						args.append(", ");
+						keys.append(", ");
 					}
 				}
 			}
-			writer.append("];\n");
-			writer.append("\t\tvar id = (this.ds + \".\" + op + \"(\" + JSON.stringify(args) + \")\").hashCode();\n");
-			writer.append("\t\treturn getOcelotEvent.call(this, id, op, args);\n");
+			keys.append("]");
+			writer.append("\t\tvar id = (this.ds + \".\" + op + \"(\" + JSON.stringify(").append(keys.toString()).append(") + \")\").hash32Code();\n");
+			writer.append("\t\treturn getOcelotToken.call(this, id, op, [").append(args.toString()).append("]);\n");
 		} catch (IOException ex) {
+		}
+	}
+	
+	/**
+	 * Classe permettant de retoruner le l'argument et son selecteur 
+	 */
+	private class KeySelector {
+		private final Iterator<String> keys;
+		private String lastKey = "**";
+		public KeySelector(String keys) {
+			if(keys==null) {
+				keys = "**";
+			}
+			this.keys = Arrays.asList(keys.split(",")).iterator();
+			if(!this.keys.hasNext()) {
+				lastKey = "";
+			}
+		}
+
+		public String next(String arg) {
+			String current;
+			if(keys.hasNext()) {
+				current = keys.next().trim();
+				lastKey = current;
+			} else {
+				if(!lastKey.equals("**")) {
+					return "null";
+				} else {
+					return arg;
+				}
+			}
+			switch (current) {
+				case "**":
+				case "*":
+					return arg;
+				case "-":
+					return "null";
+				default:
+					return arg+"."+current;
+			}
 		}
 	}
 
