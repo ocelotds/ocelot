@@ -29,9 +29,9 @@ import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
 
 /**
- * Visitor of class annoted fr.hhdev.ocelot.annotations.DataService
+ * Visitor of class annoted fr.hhdev.ocelot.annotations.DataService<br>
  * Generate javascript classes
- * 
+ *
  * @author hhfrancois
  */
 public class DataServiceVisitor implements ElementVisitor<String, Writer> {
@@ -85,8 +85,9 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 
 	/**
 	 * Crée un commentaire pour la classe
+	 *
 	 * @param typeElement
-	 * @param writer 
+	 * @param writer
 	 */
 	protected void createClassComment(TypeElement typeElement, Writer writer) {
 		try {
@@ -96,14 +97,15 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 				for (TypeMirror typeMirror : interfaces) {
 					TypeElement element = (TypeElement) environment.getTypeUtils().asElement(typeMirror);
 					comment = environment.getElementUtils().getDocComment(element);
-					if(comment!=null) {
+					if (comment != null) {
 						writer.append("/**\n *").append(comment.replaceAll("\n", "\n *")).append("/\n");
 					}
 				}
 			} else {
 				writer.append("/**\n *").append(comment.replaceAll("\n", "\n *")).append("/\n");
 			}
-		} catch(IOException ioe) {}
+		} catch (IOException ioe) {
+		}
 	}
 
 	/**
@@ -209,7 +211,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 			if (arguments != null && arguments.hasNext()) {
 				JsCacheResult jcr = methodElement.getAnnotation(JsCacheResult.class);
 				KeySelector ks = new KeySelector("**");
-				if(jcr!=null) {
+				if (jcr != null) {
 					ks = new KeySelector(jcr.keys());
 				}
 				while (arguments.hasNext()) {
@@ -228,30 +230,30 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 		} catch (IOException ex) {
 		}
 	}
-	
+
 	/**
-	 * Classe permettant de retoruner le l'argument et son selecteur 
+	 * Classe permettant de retoruner le l'argument et son selecteur
 	 */
 	private class KeySelector {
 		private final Iterator<String> keys;
 		private String lastKey = "**";
 		public KeySelector(String keys) {
-			if(keys==null) {
+			if (keys == null) {
 				keys = "**";
 			}
 			this.keys = Arrays.asList(keys.split(",")).iterator();
-			if(!this.keys.hasNext()) {
+			if (!this.keys.hasNext()) {
 				lastKey = "";
 			}
 		}
 
 		public String next(String arg) {
 			String current;
-			if(keys.hasNext()) {
+			if (keys.hasNext()) {
 				current = keys.next().trim();
 				lastKey = current;
 			} else {
-				if(!lastKey.equals("**")) {
+				if (!lastKey.equals("**")) {
 					return "null";
 				} else {
 					return arg;
@@ -264,7 +266,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 				case "-":
 					return "null";
 				default:
-					return "("+arg+")?"+arg+"."+current+":null";
+					return "(" + arg + ")?" + arg + "." + current + ":null";
 			}
 		}
 	}
