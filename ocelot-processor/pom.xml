@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.hhdev</groupId>
 		<artifactId>ocelot</artifactId>
-		<version>1.2.0-SNAPSHOT</version>
+		<version>1.2.0</version>
 	</parent>
 	<artifactId>ocelot-processor</artifactId>
 	<packaging>jar</packaging>
