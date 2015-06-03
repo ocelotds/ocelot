@@ -2,17 +2,9 @@
 ## The best and easiest communication way between java and javascript
 #### Forget REST, forget AJAX, forget http, forget protocol, Ocelot uses websocket and do everything for you.
 
-#### Forget limitations about number of connections between browsers and back-end.
-  * Firefox 2:  2
-  * Firefox 3+: 6
-  * Opera 9.26: 4
-  * Opera 12:   6
-  * Safari 3:   4
-  * Safari 5:   6
-  * IE 7:       2
-  * IE 8:       6
-  * IE 10:      8
-  * Chrome:     6
+#### Forget limitations about number of connections between browsers and backend. At best 6 simultaneous connections.
+
+[Browsers limitations](http://webdebug.net/2013/12/browser-connection-limit)
 
 [HOW TO](https://github.com/hhdevelopment/ocelot/wiki/howto)
 
