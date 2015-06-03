@@ -8,7 +8,6 @@ import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.IServicesProvider;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Writer;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
