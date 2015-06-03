@@ -1,12 +1,13 @@
 package demo;
 
+import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.annotations.DataService;
 
 /**
  * Classe de test sur le pojoResolver
  * @author hhfrancois
  */
-@DataService(resolver = "pojo")
+@DataService(resolver = Constants.Resolver.POJO)
 public class TestPojoService {
 
 	public String getMessage(int i) {

@@ -4,12 +4,12 @@
 package fr.hhdev.ocelot;
 
 
-import java.io.Writer;
+import java.io.OutputStream;
 
 /**
  *
  * @author hhfrancois
  */
 public interface IServicesProvider {
-	void writeJavascriptServices(Writer writer);
+	void streamJavascriptServices(OutputStream out);
 }

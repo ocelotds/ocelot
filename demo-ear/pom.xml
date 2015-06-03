@@ -12,6 +12,4 @@
 		<module>demo-ear-ejb1</module>
 		<module>demo-ear-ejb2</module>
 	</modules>
-	<dependencies>
-	</dependencies>
 </project>

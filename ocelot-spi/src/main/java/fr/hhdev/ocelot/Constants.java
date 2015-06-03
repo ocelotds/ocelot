@@ -10,6 +10,8 @@ package fr.hhdev.ocelot;
  * @author hhfrancois
  */
 public interface Constants {
+	
+	String OCELOT_SERVICES_JS = "ocelot-services.js";
 
 	interface Message {
 
