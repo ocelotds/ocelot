@@ -33,11 +33,11 @@ import javax.tools.Diagnostic;
  *
  * @author hhfrancois
  */
-public class DataServiceVisitor implements ElementVisitor<String, Writer> {
+public class DataServiceVisitor1 implements ElementVisitor<String, Writer> {
 
 	protected ProcessingEnvironment environment;
 
-	public DataServiceVisitor(ProcessingEnvironment environment) {
+	public DataServiceVisitor1(ProcessingEnvironment environment) {
 		this.environment = environment;
 	}
 
@@ -45,8 +45,9 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	public String visitType(TypeElement typeElement, Writer writer) {
 		try {
 			createClassComment(typeElement, writer);
-			writer.append("function ").append(typeElement.getSimpleName()).append("() {\n");
-			writer.append("\tthis.ds = \"").append(typeElement.getQualifiedName().toString()).append("\";\n");
+			writer.append("		\n");
+			writer.append("		writer.append(\"function \").append(\""+typeElement.getSimpleName()+"\").append(\"() {\\n\");\n");
+			writer.append("		writer.append(\"\\tthis.ds = \\\"\").append(\""+typeElement.getQualifiedName().toString()+"\").append(\"\\\";\\n\");\n");
 			List<ExecutableElement> methodElements = ElementFilter.methodsIn(typeElement.getEnclosedElements());
 			for (ExecutableElement methodElement : methodElements) {
 				if (isConsiderateMethod(methodElement)) {
@@ -54,29 +55,30 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 					List<String> argumentsType = getArgumentsType(methodElement);
 					List<String> arguments = getArguments(methodElement);
 					TypeMirror returnType = methodElement.getReturnType();
-					writer.append("\n");
+					writer.append("		writer.append(\"\\n\");\n");
 					createMethodComment(methodElement, arguments, returnType, writer);
 
-					writer.append("\tthis.").append(methodName).append(" = function (");
+					writer.append("		writer.append(\"\\tthis.\").append(\""+methodName+"\").append(\" = function (\");\n");
 					if (arguments.size() != argumentsType.size()) {
 						environment.getMessager().printMessage(Diagnostic.Kind.ERROR, (new StringBuilder()).append("Cannot Create service : ").append(typeElement.getSimpleName()).append(" cause method ").append(methodElement.getSimpleName()).append(" arguments inconsistent - argNames : ").append(arguments.size()).append(" / args : ").append(argumentsType.size()).toString(), typeElement);
 						return null;
 					}
 					int i = 0;
 					while (i < argumentsType.size()) {
-						writer.append((String) arguments.get(i));
+						writer.append("		writer.append(\""+(String) arguments.get(i)+"\");\n");
 						if ((++i) < arguments.size()) {
-							writer.append(", ");
+							writer.append("		writer.append(\", \");\n");
 						}
 					}
-					writer.append(") {\n");
+					writer.append("		writer.append(\") {\\n\");\n");
 
 					createMethodBody(methodElement, arguments.iterator(), writer);
 
-					writer.append("\t};\n");
+					writer.append("		writer.append(\"\\t};\\n\");\n");
 				}
 			}
-			writer.append("}\n");
+			writer.append("		writer.append(\"}\\n\");\n");
+
 		} catch (IOException ex) {
 		}
 		return null;
@@ -91,18 +93,21 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	protected void createClassComment(TypeElement typeElement, Writer writer) {
 		try {
 			String comment = environment.getElementUtils().getDocComment(typeElement);
+			writer.append("		writer.write(\"\\t/**\\n\");\n");
 			if (comment == null) {
 				List<? extends TypeMirror> interfaces = typeElement.getInterfaces();
 				for (TypeMirror typeMirror : interfaces) {
 					TypeElement element = (TypeElement) environment.getTypeUtils().asElement(typeMirror);
 					comment = environment.getElementUtils().getDocComment(element);
-					if (comment != null) {
-						writer.append("/**\n *").append(comment.replaceAll("\n", "\n *")).append("/\n");
-					}
 				}
-			} else {
-				writer.append("/**\n *").append(comment.replaceAll("\n", "\n *")).append("/\n");
 			}
+			if (comment != null) {
+				String[] commentLines = comment.split("\n");
+				for (String commentLine : commentLines) {
+					writer.append("		writer.append(\"\\t *\").append(\""+commentLine+"\").append(\"\\n\");\n");
+				}
+			}
+			writer.append("		writer.append(\"\\t */\\n\");\n");
 		} catch (IOException ioe) {
 		}
 	}
@@ -171,7 +176,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	protected void createMethodComment(ExecutableElement methodElement, List<String> argumentsName, TypeMirror returnType, Writer writer) {
 		try {
 			String methodComment = environment.getElementUtils().getDocComment(methodElement);
-			writer.write("\t/**\n");
+			writer.append("		writer.write(\"\\t/**\\n\");\n");
 			// Le commentaire de la javadoc
 			if (methodComment != null) {
 				methodComment = methodComment.split("@")[0];
@@ -179,18 +184,20 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 				if (lastIndexOf >= 0) {
 					methodComment = methodComment.substring(0, lastIndexOf);
 				}
-				String comment = methodComment.replaceAll("\n", "\n\t *");
-				writer.append("\t *\n").append(comment);
+				String[] commentLines = methodComment.split("\n");
+				for (String commentLine : commentLines) {
+					writer.append("		writer.append(\"\\t *\").append("+commentLine+").append(\"\\n\");\n");
+				}
 			}
 			// La liste des arguments de la javadoc
 			for (String argumentName : argumentsName) {
-				writer.append("\t * @param ").append(argumentName).append("\n");
+				writer.append("		writer.append(\"\\t * @param \").append(\""+argumentName+"\").append(\"\\n\");\n");
 			}
 			// Si la methode retourne ou non quelque chose
 			if (!returnType.toString().equals("void")) {
-				writer.append("\t * @return ").append(returnType.toString()).append("\n");
+				writer.append("		writer.append(\"\\t * @return \").append(\""+returnType.toString()+"\").append(\"\\n\");\n");
 			}
-			writer.append("\t */\n");
+			writer.append("		writer.append(\"\\t */\\n\");\n");
 		} catch (IOException ex) {
 		}
 	}
@@ -204,7 +211,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	 */
 	protected void createMethodBody(ExecutableElement methodElement, Iterator<String> arguments, Writer writer) {
 		try {
-			writer.append("\t\tvar op = \"").append(methodElement.getSimpleName()).append("\";\n");
+			writer.append("		writer.append(\"\\t\\tvar op = \\\"\").append(\""+methodElement.getSimpleName()+"\").append(\"\\\";\\n\");\n");
 			StringBuilder args = new StringBuilder("");
 			StringBuilder keys = new StringBuilder("[");
 			if (arguments != null && arguments.hasNext()) {
@@ -224,8 +231,8 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 				}
 			}
 			keys.append("]");
-			writer.append("\t\tvar id = (this.ds + \".\" + op + \"(\" + JSON.stringify(").append(keys.toString()).append(") + \")\").hash32Code();\n");
-			writer.append("\t\treturn getOcelotToken.call(this, id, op, [").append(args.toString()).append("]);\n");
+			writer.append("		writer.append(\"\\t\\tvar id = (this.ds + \\\".\\\" + op + \\\"(\\\" + JSON.stringify(\").append(\""+keys.toString()+"\").append(\") + \\\")\\\").hash32Code();\\n\");\n");
+			writer.append("		writer.append(\"\\t\\treturn getOcelotToken.call(this, id, op, [\").append(\""+args.toString()+"\").append(\"]);\\n\");\n");
 		} catch (IOException ex) {
 		}
 	}
@@ -234,8 +241,10 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	 * Classe permettant de retoruner le l'argument et son selecteur
 	 */
 	private class KeySelector {
+
 		private final Iterator<String> keys;
 		private String lastKey = "**";
+
 		public KeySelector(String keys) {
 			if (keys == null) {
 				keys = "**";

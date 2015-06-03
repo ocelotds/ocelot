@@ -6,9 +6,11 @@ package fr.hhdev.ocelot.processors;
 
 import fr.hhdev.ocelot.annotations.DataService;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
+import java.util.Properties;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
@@ -22,6 +24,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
+import javax.tools.FileObject;
 
 /**
  * Processor of annotation fr.hhdev.ocelot.annotations.DataService
@@ -31,6 +34,7 @@ import javax.tools.Diagnostic;
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class OcelotProcessor extends AbstractProcessor {
 
+	private boolean disabled = false;
 	/**
 	 * Utilitaire pour accéder au système de fichiers
 	 */
@@ -48,6 +52,13 @@ public class OcelotProcessor extends AbstractProcessor {
 	public void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
 		messager = processingEnv.getMessager();
+		File file = new File("ocelot.properties");
+		Properties options = new Properties();
+		try(Reader reader = new FileReader(file)) {
+			options.load(reader);
+			disabled = Boolean.parseBoolean((String) options.getOrDefault("disabled", false));
+		} catch(IOException e) {
+		}
 		filer = processingEnv.getFiler();
 	}
 
@@ -57,27 +68,56 @@ public class OcelotProcessor extends AbstractProcessor {
 		if (roundEnv.processingOver()) {
 			return true; // Si c'est le cas on s'arrete la
 		}
-		// Récupération des packages annotés       
+		if(disabled) {
+			return true;
+		}
 		try {
-			File webapp = new File("src/main/webapp");
-			if(webapp.exists()) {
-				File file = new File(webapp, "ocelot-services.js");
-				if(file.exists()) {
-					file.delete();
+			String seed = ("" + Math.random()).replaceAll("\\.", "");
+			String servicesName = "ServiceProvider" + seed;
+			FileObject servicesProvider = filer.createSourceFile("services." + servicesName);
+			try (Writer writer = servicesProvider.openWriter()) {
+				writer.append("package services;\n");
+				writer.append("import java.io.Writer;\n");
+				writer.append("import java.io.IOException;\n");
+				writer.append("import fr.hhdev.ocelot.IServicesProvider;\n");
+				writer.append("import javax.inject.Named;\n");
+				writer.append("@Named\n");
+				writer.append("public class " + servicesName + " implements IServicesProvider {\n");
+				writer.append("	@Override\n");
+				writer.append("	public void writeJavascriptServices(Writer writer) {\n");
+				writer.append("		try {\n");
+				ElementVisitor visitor = new DataServiceVisitor1(processingEnv);
+				for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
+					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " JAVASCRIPT GENERATION CLASS : " + element);
+					element.accept(visitor, writer);
 				}
-//				FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", "ocelot-services.js");
-				try (Writer writer = new FileWriter(file)) {
-					createLicenceComment(writer);
-					ElementVisitor visitor = new DataServiceVisitor(processingEnv);
-					for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
-						messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " JAVASCRIPT GENERATION CLASS : " + element);
-						element.accept(visitor, writer);
-					}
-				}
+				writer.append("		} catch(IOException ioe) {}\n");
+				writer.append("	}\n");
+				writer.append("}");
 			}
+			disabled = true;
 		} catch (IOException e) {
 			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+		} catch (Exception e) {
+			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
 		}
+		// Récupération des packages annotés       
+//		try {
+//			File file = new File(webapp, "ocelot-services.js");
+//			FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", "ocelot-services.js");
+//			try (Writer writer = resource.openWriter()) {
+////				try (Writer writer = new FileWriter(file)) {
+//				createLicenceComment(writer);
+//				ElementVisitor visitor = new DataServiceVisitor(processingEnv);
+//				for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
+//					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " JAVASCRIPT GENERATION CLASS : " + element);
+//					element.accept(visitor, writer);
+//				}
+//			}
+//		} catch (IOException e) {
+//			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+//		} catch (Exception e) {
+//		}
 		return true;
 	}
 
@@ -87,7 +127,8 @@ public class OcelotProcessor extends AbstractProcessor {
 	 */
 	/**
 	 * Rajoute la licence MPL 2.0
-	 * @param writer 
+	 *
+	 * @param writer
 	 */
 	protected void createLicenceComment(Writer writer) {
 		try {
@@ -96,6 +137,7 @@ public class OcelotProcessor extends AbstractProcessor {
 			writer.append(" * file, You can obtain one at http://mozilla.org/MPL/2.0/.\n");
 			writer.append(" * Classes generated by Ocelot Framework.\n");
 			writer.append(" */\n");
-		} catch(IOException ioe) {}
+		} catch (IOException ioe) {
+		}
 	}
 }
