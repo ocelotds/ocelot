@@ -24,7 +24,7 @@ For push message/object to the client.
 
 The better way, is doing EJB annotated, but you can call a simple pojo, or soon spring bean.
 
-**Ocelot is develop on reference JEE server glassfish 4.**
+**Ocelot is develop on reference Java EE server glassfish 4.**
 **CDI features, WebSocket features, jsonp features, are provided by glassfish**  
 **Ocelot can be work in servlet container like tomcat without EJB features of course. but need add some dependencies and configure them, [cdi](http://docs.jboss.org/weld/reference/1.0.0/en-US/html/environments.html), [websocket](http://tomcat.apache.org/tomcat-7.0-doc/web-socket-howto.html), jsonp. We work actually for detail the process**
 
