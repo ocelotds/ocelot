@@ -31,6 +31,10 @@ public interface Constants {
 		String EJB = "ejb";
 	}
 
+	interface Cache {
+		String CLEANCACHE_TOPIC = "ocelot-cleancache";
+	}
+	
 	interface Command {
 
 		// Attention si on modifie ces deux varaibles, elles sont aussi dans ocelot-core.js en dur
