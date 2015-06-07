@@ -120,7 +120,7 @@ public class OcelotProcessor extends AbstractProcessor {
 				writer.append("				out.write(buffer, 0, read);\n");
 				writer.append("			}\n");
 				writer.append("		} catch(IOException ex) {\n");
-				writer.append("			logger.error(\"Generation of \"+Constants.OCELOT_SERVICES_JS+\" failed.\", ex);\n");
+				writer.append("			logger.error(\"Generation of 'srv_"+seed+".js' failed.\", ex);\n");
 				writer.append("		}\n");
 				writer.append("	}\n");
 				writer.append("}");
