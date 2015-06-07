@@ -6,12 +6,15 @@ package fr.hhdev.ocelot;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.annotations.DataService;
+import fr.hhdev.ocelot.annotations.JsCacheRemove;
+import fr.hhdev.ocelot.annotations.JsCacheRemoves;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
 import fr.hhdev.ocelot.encoders.CommandDecoder;
 import fr.hhdev.ocelot.spi.Scope;
 import fr.hhdev.ocelot.encoders.MessageToClientEncoder;
 import fr.hhdev.ocelot.messaging.Command;
 import fr.hhdev.ocelot.messaging.Fault;
+import fr.hhdev.ocelot.messaging.MessageEvent;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import fr.hhdev.ocelot.messaging.MessageToClient;
 import fr.hhdev.ocelot.spi.DataServiceException;
@@ -20,8 +23,14 @@ import fr.hhdev.ocelot.resolvers.DataServiceResolverIdLitteral;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
+import java.util.List;
+import java.util.logging.Level;
 import javax.el.MethodNotFoundException;
+import javax.enterprise.event.Event;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -45,6 +54,10 @@ import org.slf4j.LoggerFactory;
 public class OcelotEndpoint extends AbstractOcelotDataService {
 
 	private final static Logger logger = LoggerFactory.getLogger(OcelotEndpoint.class);
+
+	@Inject
+	@MessageEvent
+	Event<MessageToClient> wsEvent;
 
 	@Inject
 	private SessionManager sessionManager;
@@ -112,13 +125,8 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 					case Constants.Command.Value.CALL:
 						MessageFromClient message = MessageFromClient.createFromJson(command.getMessage());
 						logger.debug("RECEIVE CALL MESSAGE '{}' FOR SESSION '{}'", message.getId(), client.getId());
-						MessageToClient messageToClient = getMesssageToClient(client, message);
-						try {
-							client.getBasicRemote().sendObject(messageToClient);
-							break;
-						} catch (IOException | EncodeException ex) {
-							logger.error("FAIL TO SENT " + messageToClient.toJson(), ex);
-						}
+						sendMessageToClients(client, message);
+						break;
 				}
 			} catch (IOException ex) {
 			}
@@ -158,13 +166,13 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 	}
 
 	/**
-	 * Construction du message response suite à un appel de type call
+	 * Construction et envoi des messages response suite à un appel de type call
 	 *
 	 * @param client
 	 * @param message
 	 * @return
 	 */
-	private MessageToClient getMesssageToClient(Session client, MessageFromClient message) {
+	private MessageToClient sendMessageToClients(Session client, MessageFromClient message) {
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(message.getId());
 		try {
@@ -179,7 +187,13 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 				logger.debug("Excecution de la méthode {}.", method.getName());
 				Object result = method.invoke(dataService, arguments);
 				messageToClient.setResult(result);
-				messageToClient.setDeadline(getJsCacheResultDeadline(cls, method));
+				try {
+					Method nonProxiedMethod = getNonProxiedMethod(cls, method.getName(), method.getParameterTypes());
+					messageToClient.setDeadline(getJsCacheResultDeadline(nonProxiedMethod));
+					processCleanCacheAnnotations(client, nonProxiedMethod, message.getParameters());
+				} catch (NoSuchMethodException ex) {
+					logger.error("Fail to process extra annotations (JsCacheResult, JsCacheRemove) for method : " + method.getName(), ex);
+				}
 			} catch (MethodNotFoundException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
 				Throwable cause = ex;
 				if (InvocationTargetException.class.isInstance(ex)) {
@@ -190,36 +204,128 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 		} catch (ClassNotFoundException | DataServiceException ex) {
 			messageToClient.setFault(new Fault(ex));
 		}
+		try {
+			client.getBasicRemote().sendObject(messageToClient);
+		} catch (IOException | EncodeException ex) {
+			logger.error("Fail to send : " + messageToClient.toJson(), ex);
+		}
 		return messageToClient;
 	}
 
 	/**
 	 * Récupere la date d'expiration du service via l'annotation sur la methode directement sur la classe, car sinon cela peut être un proxy
+	 * Eventuellement traite les annotation spécifiant que l'execution de la méthode doit supprimer un cache
 	 *
 	 * @param cls
 	 * @param method
 	 * @return
 	 */
-	private long getJsCacheResultDeadline(Class cls, Method method) {
-		try {
-			Method m = cls.getMethod(method.getName(), method.getParameterTypes());
-			boolean cached = m.isAnnotationPresent(JsCacheResult.class);
-			logger.debug("La résultat de la méthode {} sera mis en cache sur le client {}", method.getName(), cached);
-			if (cached) { // Ce service doit être mis en cache sur le client
-				JsCacheResult jcr = m.getAnnotation(JsCacheResult.class);
-				Calendar deadline = Calendar.getInstance();
-				deadline.add(Calendar.YEAR, jcr.year());
-				deadline.add(Calendar.MONTH, jcr.month());
-				deadline.add(Calendar.DATE, jcr.day());
-				deadline.add(Calendar.HOUR, jcr.hour());
-				deadline.add(Calendar.MINUTE, jcr.minute());
-				deadline.add(Calendar.SECOND, jcr.second());
-				deadline.add(Calendar.MILLISECOND, jcr.millisecond());
-				return deadline.getTime().getTime();
-			}
-		} catch (NoSuchMethodException | SecurityException ex) {
-			logger.error("Methode "+ method.getName()+" non trouvé sur "+cls.getName());
+	private long getJsCacheResultDeadline(Method nonProxiedMethod) {
+		boolean cached = nonProxiedMethod.isAnnotationPresent(JsCacheResult.class);
+		if (cached) { // Ce service doit être mis en cache sur le client
+			logger.debug("La résultat de la méthode {} sera mis en cache sur le client", nonProxiedMethod.getName());
+			JsCacheResult jcr = nonProxiedMethod.getAnnotation(JsCacheResult.class);
+			Calendar deadline = Calendar.getInstance();
+			deadline.add(Calendar.YEAR, jcr.year());
+			deadline.add(Calendar.MONTH, jcr.month());
+			deadline.add(Calendar.DATE, jcr.day());
+			deadline.add(Calendar.HOUR, jcr.hour());
+			deadline.add(Calendar.MINUTE, jcr.minute());
+			deadline.add(Calendar.SECOND, jcr.second());
+			deadline.add(Calendar.MILLISECOND, jcr.millisecond());
+			return deadline.getTime().getTime();
 		}
 		return 0;
+	}
+	
+	/**
+	 * Traite les annotations JsCacheRemove et JsCacheRemoves
+	 * @param cls
+	 * @param method
+	 * @param jsonArgs
+	 * @param javaArgs 
+	 */
+	private void processCleanCacheAnnotations(Session client, Method nonProxiedMethod, List<String> jsonArgs) {
+		boolean simpleCleancache = nonProxiedMethod.isAnnotationPresent(JsCacheRemove.class);
+		if(simpleCleancache) {
+			JsCacheRemove jcr = nonProxiedMethod.getAnnotation(JsCacheRemove.class);
+			processJsCacheRemove(jcr, jsonArgs);
+		}
+		boolean multiCleancache = nonProxiedMethod.isAnnotationPresent(JsCacheRemoves.class);
+		if(multiCleancache) {
+			JsCacheRemoves jcrs = nonProxiedMethod.getAnnotation(JsCacheRemoves.class);
+			for (JsCacheRemove jcr : jcrs.value()) {
+				processJsCacheRemove(jcr, jsonArgs);
+			}
+		}
+		if(simpleCleancache || multiCleancache) {
+			logger.debug("L'execution de cette methode {} a donné lieux à la suppression d'un cache.", nonProxiedMethod.getName());
+		}
+	}
+
+	/**
+	 * Traite une annotation JsCacheRemove et envoi un message de suppression de cache
+	 * @param jcr
+	 * @param jsonArgs
+	 * @param javaArgs 
+	 */
+	private void processJsCacheRemove(JsCacheRemove jcr, List<String> jsonArgs) {
+		logger.debug("Traitement de l'annotation JsCacheRemove : {}", jcr);
+		StringBuilder sb = new StringBuilder(jcr.cls().getName()).append(".").append(jcr.methodName());
+		MessageToClient messageToClient = new MessageToClient();
+		String[] args = new String[jsonArgs.size()];
+		KeySelector keySelector = new KeySelector(jcr.keys());
+		int index = 0;
+		int newindex;
+		String[] orders = jcr.orderKeys().split(",");
+		for (String arg : jsonArgs) {
+			newindex = index;
+			if(orders.length>index) {
+				try {
+					newindex = Integer.parseInt(orders[index]);
+				} catch(NumberFormatException nfe) {}
+			} 
+			args[newindex] = keySelector.nextJSValue(arg);
+			index++;
+		}
+		sb.append("([");
+		for (index = 0; index<args.length; index++) {
+			sb.append(args[index]);
+			if((index+1)<args.length) {
+				sb.append(",");
+			}
+		}
+		sb.append("])");
+		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
+		String value = sb.toString();
+		System.out.println("KEY : '"+value+"'");
+		MessageDigest md;
+		try {
+			md = MessageDigest.getInstance("MD5");
+			byte[] bytes = value.getBytes();
+			md.update(bytes, 0, bytes.length);
+			String md5 = new BigInteger(1, md.digest()).toString(16);
+			System.out.println("MD5 : '"+md5+"'");
+			messageToClient.setResult(md5);
+			wsEvent.fire(messageToClient);
+		} catch (NoSuchAlgorithmException ex) {
+		}
+	}
+
+	/**TestEJBService.getMessageCached216null5true 
+	 * {"id":"bd890fb9","ds":"demo.TestEJBService","op":"getMessageCached2","args":[5,{"id":"6"},0.20022155453098966,5,true]}
+	 * Récupere la methode sur la classe d'origine enignorant les eventuel proxies
+	 * @param cls
+	 * @param methodName
+	 * @param parameterTypes
+	 * @return 
+	 */
+	private Method getNonProxiedMethod(Class cls, String methodName,  Class<?>[] parameterTypes) throws NoSuchMethodException {
+		try {
+			return cls.getMethod(methodName, parameterTypes);
+		} catch (NoSuchMethodException | SecurityException ex) {
+			logger.error("Methode "+ methodName+" non trouvé sur "+cls.getName());
+		}
+		throw new NoSuchMethodException(methodName);
 	}
 }
