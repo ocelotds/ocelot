@@ -43,6 +43,24 @@
 					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
 				};
 			}
+			function getMessageCached2(srv) {
+				var token = srv.getMessageCached2(1, {"id":"5"}, Math.random(), 5, true);
+				token.success = function (msg) {
+					addMessage(msg);
+				};
+				token.fail = function (fault) {
+					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
+				};
+			}
+			function getMessageAndCleanCache(srv) {
+				var token = srv.getMessageCachedAndCleanCache(1, {"id":"5"}, Math.random(), 5, true);
+				token.success = function (msg) {
+					addMessage(msg);
+				};
+				token.fail = function (fault) {
+					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
+				};
+			}
 			function getMessage2(srv) {
 				var token = srv.getMessage("" + Math.floor(Math.random() * 10));
 				token.success = function (msg) {
@@ -69,14 +87,13 @@
 		<input id="testobject" type="text" value="document.location"/>
 		<button onclick="showObject()">SHOW OBJECT</button><br>
 		<textarea style="height:200px;width:100%" id="objectarea"></textarea><br>
-		<button onclick="mdb.subscribe();">SUBSCRIBE</button>
-		<button onclick="mdb.unsubscribe();">UNSUBSCRIBE</button>
-		<button onclick="getMessage(ejbService)">GET EJB MESSAGE(int)</button>
-		<button onclick="getMessage2(ejbService)">GET EJB MESSAGE(str)</button>
-		<button onclick="getMessageCached(ejbService)">GET EJB MESSAGE CACHED 1Mn</button>
-		<button onclick="getMessage(pojoService)">GET POJO MESSAGE(int)</button>
-		<button onclick="getMessage2(pojoService)">GET POJO MESSAGE(str)</button>
-		<button onclick="ocelotController.close()">CLOSE WS</button>
+		<button onclick="ocelotController.close()">CLOSE WS</button><button onclick="mdb.subscribe();">SUBSCRIBE</button><button onclick="mdb.unsubscribe();">UNSUBSCRIBE</button><br>
+		<button onclick="getMessage(ejbService)">GET EJB MESSAGE(int)</button><button onclick="getMessage2(ejbService)">GET EJB MESSAGE(str)</button><br>
+		<button onclick="getMessageCached(ejbService)">GET EJB MESSAGE CACHED 1Mn</button><br>
+		<button onclick="getMessageCached2(ejbService)">GET EJB MESSAGE2 CACHED 1Mn</button><br>
+		<button onclick="getMessageAndCleanCache(ejbService)">GET EJB MESSAGE AND CLEAN CACHE2 1Mn</button><br>
+		<button onclick="getMessage(pojoService)">GET POJO MESSAGE(int)</button><br>
+		<button onclick="getMessage2(pojoService)">GET POJO MESSAGE(str)</button><br>
 		<div id="output"></div>
 	</body>
 </html>
