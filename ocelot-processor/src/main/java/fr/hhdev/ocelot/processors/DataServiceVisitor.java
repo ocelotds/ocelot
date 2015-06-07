@@ -4,12 +4,12 @@
  */
 package fr.hhdev.ocelot.processors;
 
+import fr.hhdev.ocelot.KeySelector;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
 import fr.hhdev.ocelot.annotations.TransientDataService;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -215,58 +215,18 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 				}
 				while (arguments.hasNext()) {
 					String arg = arguments.next();
-					keys.append(ks.next(arg));
+					keys.append(ks.nextJSSignature(arg));
 					args.append(arg);
 					if (arguments.hasNext()) {
-						args.append(", ");
-						keys.append(", ");
+						args.append(",");
+						keys.append(",");
 					}
 				}
 			}
 			keys.append("]");
-			writer.append("\t\tvar id = (this.ds + \".\" + op + \"(\" + JSON.stringify(").append(keys.toString()).append(") + \")\").hash32Code();\n");
-			writer.append("\t\treturn getOcelotToken.call(this, id, op, [").append(args.toString()).append("]);\n");
+			writer.append("\t\tvar id = (this.ds + \".\" + op + \"(\" + JSON.stringify(").append(keys.toString()).append(") + \")\");\n");
+			writer.append("\t\treturn getOcelotToken.call(this, id.md5(), op, [").append(args.toString()).append("]);\n");
 		} catch (IOException ex) {
-		}
-	}
-
-	/**
-	 * Classe permettant de retoruner le l'argument et son selecteur
-	 */
-	private class KeySelector {
-		private final Iterator<String> keys;
-		private String lastKey = "**";
-		public KeySelector(String keys) {
-			if (keys == null) {
-				keys = "**";
-			}
-			this.keys = Arrays.asList(keys.split(",")).iterator();
-			if (!this.keys.hasNext()) {
-				lastKey = "";
-			}
-		}
-
-		public String next(String arg) {
-			String current;
-			if (keys.hasNext()) {
-				current = keys.next().trim();
-				lastKey = current;
-			} else {
-				if (!lastKey.equals("**")) {
-					return "null";
-				} else {
-					return arg;
-				}
-			}
-			switch (current) {
-				case "**":
-				case "*":
-					return arg;
-				case "-":
-					return "null";
-				default:
-					return "(" + arg + ")?" + arg + "." + current + ":null";
-			}
 		}
 	}
 
