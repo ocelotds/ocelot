@@ -218,6 +218,8 @@ public class OcelotTest {
 
 	/**
 	 * Handler de message de type result
+	 * Si le handler compte un id, il decomptera le lock uniquement s'il arrive à récuperer un message avec le bon id
+	 * Sinon la récupération d'un message décompte le lock
 	 */
 	private class CountDownMessageHandler implements MessageHandler.Whole<String> {
 
@@ -225,22 +227,28 @@ public class OcelotTest {
 		private Object result = null;
 		private MessageToClient messageToClient = null;
 		private Fault fault = null;
-		private final String id;
+		private String id = null;
 
 		CountDownMessageHandler(String id, CountDownLatch lock) {
 			this.lock = lock;
 			this.id = id;
 		}
 
+		CountDownMessageHandler(CountDownLatch lock) {
+			this.lock = lock;
+		}
+
 		@Override
 		public void onMessage(String message) {
 			logger.debug("RECEIVE RESPONSE FROM SERVER = {}", message);
 			MessageToClient messageToClientIn = MessageToClient.createFromJson(message);
-			if (id.equals(messageToClientIn.getId())) {
+			if ((id != null && id.equals(messageToClientIn.getId())) || (id == null && messageToClientIn.getId() != null)) {
 				messageToClient = messageToClientIn;
 				result = messageToClientIn.getResult();
 				fault = messageToClientIn.getFault();
-				lock.countDown();
+				synchronized (lock) {
+					lock.countDown();
+				}
 			}
 		}
 
@@ -275,13 +283,29 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Cette methode appel via la session passé en argument sur la classe l'operationet retourne le messageToClient recu
+	 * Cette methode appel via la session passé en argument sur la classe l'operation et decompte le lock
 	 *
 	 * @param session
 	 * @param clazz
 	 * @param operation
 	 * @return
 	 */
+	private void checkMessageAfterSendInSession(Session session, Class clazz, String operation, String... params) {
+		// contruction de l'objet command
+		Command cmd = new Command();
+		cmd.setCommand(Constants.Command.Value.CALL);
+		// construction de lac commande
+		MessageFromClient messageFromClient = getMessageFromClient(clazz, operation, params);
+		cmd.setMessage(messageFromClient.toJson());
+		// on crée un handler client de reception de la réponse
+		try {
+			// send
+			session.getBasicRemote().sendText(cmd.toJson());
+		} catch (IOException ex) {
+			fail("Bean not reached");
+		}
+	}
+
 	private MessageToClient getMessageToClientAfterSendInSession(Session session, Class clazz, String operation, String... params) {
 		MessageToClient result = null;
 		try {
@@ -1277,7 +1301,7 @@ public class OcelotTest {
 	 * Teste l'appel de methode avec la même signature, sauf les arguments
 	 */
 	@Test
-	public void testMethodWithAlmostSignature1() {
+	public void testMethodWithAlmostSameSignature1() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithAlmostSameSignature";
 		System.out.println(methodName + "(int)");
@@ -1295,7 +1319,7 @@ public class OcelotTest {
 	 * Teste l'appel de methode avec la même signature, sauf les arguments
 	 */
 	@Test
-	public void testMethodWithAlmostSignature2() {
+	public void testMethodWithAlmostSameSignature2() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithAlmostSameSignature";
 		System.out.println(methodName + "(string)");
@@ -1310,28 +1334,69 @@ public class OcelotTest {
 
 	}
 
+	final int NB_SIMUL_METHODS = 500;
 	/**
-	 * Teste l'appel simultané de methodes
-	 * TODO Voir pourquoi cela ne marche pas des que l'on augmente le nombre d'itération
+	 * Teste l'appel simultané de methodes sur autant de session differentes<br>
+	 * TODO Voir pourquoi cela ne marche pas au dela des 900 cnx
 	 */
 	@Test
-	public void testCallMethodsMultiSessions() {
-		int nb = 10;
+	public void testCallMultiMethodsMultiSessions() {
+		int nb = NB_SIMUL_METHODS;
+		System.out.println("call"+nb+"MethodsMultiSession");
 		ExecutorService executorService = Executors.newFixedThreadPool(nb);
+		final List<Session> sessions = new ArrayList<>();
 		try {
 			final Class clazz = EJBDataService.class;
 			final String methodName = "getValue";
-			System.out.println("callMethodsMultiSession");
 			long t0 = System.currentTimeMillis();
 			final CountDownLatch lock = new CountDownLatch(nb);
 			for (int i = 0; i < nb; i++) {
-				executorService.execute(new TestThread(clazz, methodName, lock));
+				Session session = OcelotTest.createAndGetSession();
+				sessions.add(session);
+				CountDownMessageHandler messageHandler = new CountDownMessageHandler(lock);
+				session.addMessageHandler(messageHandler);
+				executorService.execute(new TestThread(clazz, methodName, session));
 			}
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			lock.await(10*nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
 			System.out.println("Excecution de " + nb + " appels multisession en " + (t1 - t0) + "ms");
 			assertEquals("Timeout", 0, lock.getCount());
 		} catch (InterruptedException ex) {
+			fail(ex.getMessage());
+		} finally {
+			for (Session session : sessions) {
+				try {
+					session.close();
+				} catch (IOException ex) {
+				}
+			}
+			executorService.shutdown();
+		}
+	}
+
+	/**
+	 * Teste l'appel simultané de methodes sur une seule session<br>
+	 */
+	@Test
+	public void testCallMultiMethodsMonoSessions() {
+		int nb = NB_SIMUL_METHODS;
+		System.out.println("call"+nb+"MethodsMonoSession");
+		ExecutorService executorService = Executors.newFixedThreadPool(nb);
+		try (Session session = OcelotTest.createAndGetSession()) {
+			final CountDownLatch lock = new CountDownLatch(nb);
+			CountDownMessageHandler messageHandler = new CountDownMessageHandler(lock);
+			session.addMessageHandler(messageHandler);
+			final Class clazz = EJBDataService.class;
+			final String methodName = "getValue";
+			long t0 = System.currentTimeMillis();
+			for (int i = 0; i < nb; i++) {
+				executorService.execute(new TestThread(clazz, methodName, session));
+			}
+			lock.await(10*nb, TimeUnit.MILLISECONDS);
+			long t1 = System.currentTimeMillis();
+			System.out.println("Excecution de " + nb + " appels monosession en " + (t1 - t0) + "ms");
+			assertEquals("Timeout", 0, lock.getCount());
+		} catch (IOException | InterruptedException ex) {
 			fail(ex.getMessage());
 		} finally {
 			executorService.shutdown();
@@ -1342,24 +1407,17 @@ public class OcelotTest {
 
 		private final Class clazz;
 		private final String methodName;
-		private final CountDownLatch lock;
+		private final Session wsSession;
 
-		public TestThread(Class clazz, String methodName, CountDownLatch lock) {
+		public TestThread(Class clazz, String methodName, Session wsSession) {
 			this.clazz = clazz;
 			this.methodName = methodName;
-			this.lock = lock;
+			this.wsSession = wsSession;
 		}
 
 		@Override
 		public void run() {
-			try (Session wssession = OcelotTest.createAndGetSession()) {
-				if (getResultAfterSendInSession(wssession, clazz, methodName) != null) {
-					synchronized(lock) {
-						lock.countDown();
-					}
-				}
-			} catch (IOException exception) {
-			}
+			checkMessageAfterSendInSession(wsSession, clazz, methodName);
 		}
 
 	}
