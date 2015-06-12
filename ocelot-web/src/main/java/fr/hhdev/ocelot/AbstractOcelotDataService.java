@@ -43,21 +43,19 @@ public abstract class AbstractOcelotDataService {
 		List<String> parameters = message.getParameters();
 		for (Method method : dataService.getClass().getMethods()) {
 			if (method.getName().equals(message.getOperation()) && method.getParameterCount() == parameters.size()) {
-				logger.debug("Traitement de la methode {}", method.getName());
+				logger.trace("Process method {}", method.getName());
 				try {
 					Type[] params = method.getGenericParameterTypes();
-					logger.debug("On a trouvé une methode avec le bon nombre d'arguments, on essaye de les unmarshaller.");
 					int idx = 0;
 					for (Type param : params) {
 						String arg = cleanArg(parameters.get(idx));
-
-						logger.debug("Récupération de l'argument ({}) {} : {}.", new Object[]{idx, param.getTypeName(), arg});
+						logger.trace("Get argument ({}) {} : {}.", new Object[]{idx, param.getTypeName(), arg});
 						arguments[idx++] = convertArgument(arg, param);
 					}
-					logger.debug("Méthode {}.{} avec tous les arguments du même type trouvé.", dataService.getClass(), message.getOperation());
+					logger.trace("Method {}.{} with good signature found.", dataService.getClass(), message.getOperation());
 					return method;
 				} catch (IllegalArgumentException iae) {
-					logger.debug("Méthode {}.{} non retenue car {} ne colle pas, mauvais type.", new Object[]{dataService.getClass(), message.getOperation(), iae.getMessage()});
+					logger.trace("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dataService.getClass(), message.getOperation(), iae.getMessage()});
 				}
 			}
 		}
@@ -66,17 +64,17 @@ public abstract class AbstractOcelotDataService {
 
 	private Object convertArgument(String arg, Type param) throws IllegalArgumentException {
 		Object result = null;
-		logger.debug("Tentative de conversion de {} : param = {} : {}", new Object[]{arg, param, param.getClass()});
+		logger.trace("Try to convert {} : param = {} : {}", new Object[]{arg, param, param.getClass()});
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			if(ParameterizedType.class.isInstance(param)) {
 				JavaType javaType = getJavaType(param);
-				logger.debug("Tentative de conversion de {} vers JavaType : {}", arg, param);
+				logger.trace("Try to convert '{}' to JavaType : '{}'", arg, param);
 				result = mapper.readValue(arg, javaType);
-				logger.debug("Conversion de {} vers {} : OK", arg, param);
+				logger.trace("Conversion of '{}' to '{}' : OK", arg, param);
 			} else if(Class.class.isInstance(param)) {
 				Class cls = (Class) param;
-				logger.debug("Tentative de conversion de {} vers {}", arg, param);
+				logger.trace("Try to convert '{}' to Class '{}'", arg, param);
 				if (cls.equals(String.class) && (!arg.startsWith("\"") || !arg.endsWith("\""))) { // on cherche une string
 					throw new IOException();
 				}
@@ -84,10 +82,10 @@ public abstract class AbstractOcelotDataService {
 					throw new IOException();
 				}
 				result = mapper.readValue(arg, cls);
-				logger.debug("Conversion de conversion de {} vers {} : OK", arg, param);
+				logger.trace("Conversion of '{}' to '{}' : OK", arg, param);
 			}
 		} catch (IOException ex) {
-			logger.debug("Echec de tentative de conversion de {} vers {}", arg, param);
+			logger.trace("Conversion of '{}' to '{}' failed", arg, param);
 			throw new IllegalArgumentException(param.getTypeName());
 		}
 		return result;
@@ -95,7 +93,7 @@ public abstract class AbstractOcelotDataService {
 
 	private JavaType getJavaType(Type type) {
 		Class clazz;
-		logger.debug("Détermination du type {} - {}", type.getClass(), type.getTypeName());
+		logger.trace("Computing type of {} - {}", type.getClass(), type.getTypeName());
 		if (type instanceof ParameterizedType) {
 			clazz = (Class) ((ParameterizedType) type).getRawType();
 		} else {
