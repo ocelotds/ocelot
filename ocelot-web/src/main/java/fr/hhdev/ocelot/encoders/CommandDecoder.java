@@ -9,7 +9,7 @@ import javax.websocket.Decoder;
 import javax.websocket.EndpointConfig;
 
 /**
- *
+ * Decoder for class Command for webSocket endpoint
  * @author hhfrancois
  */
 public class CommandDecoder implements Decoder.Text<Command>{
