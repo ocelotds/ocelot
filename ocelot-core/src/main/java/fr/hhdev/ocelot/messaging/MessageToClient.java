@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Date;
 import java.util.Objects;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -27,19 +26,19 @@ public class MessageToClient {
 	private static final long serialVersionUID = -834697863344344124L;
 
 	/**
-	 * L'identifiant du message, cela peut être ou la clé émise par le client reliant cette réponse à une requete client ou le nom d'un topic.
+	 * Id of request, compute from hash of packageName, classname, methodName, arguments
 	 */
 	protected String id;
 	/**
-	 * Le résultat de la requete
+	 * The result of request
 	 */
 	protected Object result = null;
 	/**
-	 * L'erreur de la requete
+	 * The request failed, fault
 	 */
 	protected Fault fault = null;
 	/**
-	 * Limite de validité
+	 * validity limit
 	 */
 	protected long deadline = 0L;
 
