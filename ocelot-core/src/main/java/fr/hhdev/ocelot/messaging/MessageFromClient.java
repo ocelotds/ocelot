@@ -97,9 +97,10 @@ public class MessageFromClient {
 			List<String> params = new ArrayList<>();
 			message.setParameters(params);
 			int idx = 0;
+			logger.trace("Get arguments from message '{}'", json);
 			while(idx<argArray.size()) {
 				JsonValue arg = argArray.get(idx++);
-				logger.debug("Récupération des arguments dans le message {} : '{}'", arg.getValueType().name(), arg.toString());
+				logger.trace("Get argument Type : '{}'. Value : '{}'", arg.getValueType().name(), arg.toString());
 				params.add(arg.toString());
 			} 
 			return message;
