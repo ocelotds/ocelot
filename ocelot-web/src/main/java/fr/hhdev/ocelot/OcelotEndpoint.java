@@ -7,6 +7,7 @@ package fr.hhdev.ocelot;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.annotations.DataService;
 import fr.hhdev.ocelot.annotations.JsCacheRemove;
+import fr.hhdev.ocelot.annotations.JsCacheRemoveAll;
 import fr.hhdev.ocelot.annotations.JsCacheRemoves;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
 import fr.hhdev.ocelot.encoders.CommandDecoder;
@@ -28,6 +29,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import javax.el.MethodNotFoundException;
 import javax.enterprise.event.Event;
@@ -36,6 +38,7 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.websocket.CloseReason;
 import javax.websocket.EncodeException;
+import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -50,7 +53,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author hhfrancois
  */
-@ServerEndpoint(value = "/endpoint", encoders = {MessageToClientEncoder.class}, decoders = {CommandDecoder.class})
+@ServerEndpoint(value = "/endpoint", encoders = {MessageToClientEncoder.class}, decoders = {CommandDecoder.class}, configurator = OcelotConfigurator.class)
 public class OcelotEndpoint extends AbstractOcelotDataService {
 
 	private final static Logger logger = LoggerFactory.getLogger(OcelotEndpoint.class);
@@ -71,13 +74,14 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 	}
 
 	@OnOpen
-	public void handleOpenConnexion(Session session) throws IOException {
-		logger.debug("OPEN CONNEXION FOR SESSION '{}'", session.getId());
+	public void handleOpenConnexion(Session session, EndpointConfig config) throws IOException {
+		Map<String, Object> headers = config.getUserProperties();
+		logger.trace("Open connexion for session '{}'", session.getId());
 	}
 
 	@OnError
 	public void onError(Session session, Throwable t) {
-		logger.error("UNKNOW ERROR FOR SESSION " + session.getId(), t);
+		logger.error("Unknow error for session " + session.getId(), t);
 	}
 
 	/**
@@ -88,7 +92,7 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 	 */
 	@OnClose
 	public void handleClosedConnection(Session session, CloseReason closeReason) {
-		logger.debug("CLOSE CONNEXION FOR SESSION '{}' : '{}'", session.getId(), closeReason.getCloseCode());
+		logger.trace("Close connexion for session '{}' : '{}'", session.getId(), closeReason.getCloseCode());
 		if (session.isOpen()) {
 			try {
 				session.close();
@@ -106,7 +110,6 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 	 */
 	@OnMessage
 	public void receiveCommandMessage(Session client, Command command) {
-		logger.debug("RECEIVE MESSAGE FROM CLIENT '{}'", command);
 		if (null != command.getCommand()) {
 			try {
 				ObjectMapper mapper = new ObjectMapper();
@@ -114,22 +117,24 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 				switch (command.getCommand()) {
 					case Constants.Command.Value.SUBSCRIBE:
 						topic = mapper.readValue(command.getMessage(), String.class);
-						logger.debug("SUBSCRIBE TOPIC '{}' FOR SESSION '{}'", topic, client.getId());
+						logger.debug("Subscribe client '{}' to topic '{}'", client.getId(), topic);
 						sessionManager.registerTopicSession(topic, client);
 						break;
 					case Constants.Command.Value.UNSUBSCRIBE:
 						topic = mapper.readValue(command.getMessage(), String.class);
-						logger.debug("UNSUBSCRIBE TOPIC '{}' FOR SESSION '{}'", topic, client.getId());
+						logger.debug("Unsubscribe client '{}' to topic '{}'", client.getId(), topic);
 						sessionManager.unregisterTopicSession(topic, client);
 						break;
 					case Constants.Command.Value.CALL:
 						MessageFromClient message = MessageFromClient.createFromJson(command.getMessage());
-						logger.debug("RECEIVE CALL MESSAGE '{}' FOR SESSION '{}'", message.getId(), client.getId());
+						logger.debug("Receive call message '{}' for session '{}'", message.getId(), client.getId());
 						sendMessageToClients(client, message);
 						break;
 				}
 			} catch (IOException ex) {
 			}
+		} else {
+			logger.warn("Receive unsupported message '{}' from client '{}'", command, client.getId());
 		}
 	}
 
@@ -144,7 +149,7 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 	 */
 	protected Object getDataService(Session client, Class cls) throws DataServiceException {
 		String dataServiceClassName = cls.getName();
-		logger.debug("Dataservice : {}", dataServiceClassName);
+		logger.trace("Looking for dataservice : {}", dataServiceClassName);
 		if (cls.isAnnotationPresent(DataService.class)) {
 			DataService dataServiceAnno = (DataService) cls.getAnnotation(DataService.class);
 			IDataServiceResolver resolver = getResolver(dataServiceAnno.resolver());
@@ -170,27 +175,25 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 	 *
 	 * @param client
 	 * @param message
-	 * @return
 	 */
-	private MessageToClient sendMessageToClients(Session client, MessageFromClient message) {
+	private void sendMessageToClients(Session client, MessageFromClient message) {
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(message.getId());
 		try {
 			Class cls = Class.forName(message.getDataService());
 			Object dataService = getDataService(client, cls);
-			logger.debug("Excecution de la methode pour le message {}", message);
+			logger.trace("Process message {}", message);
 			try {
-				logger.debug("Invocation de  : {}", message.getOperation());
+				logger.trace("Invocation of : {}", message.getOperation());
 				Object[] arguments = new Object[message.getParameters().size()];
-				logger.debug("Réceptacle de {} argument(s) typé(s).", arguments.length);
 				Method method = getMethodFromDataService(dataService, message, arguments);
-				logger.debug("Excecution de la méthode {}.", method.getName());
+				logger.trace("Process method {}.", method.getName());
 				Object result = method.invoke(dataService, arguments);
 				messageToClient.setResult(result);
 				try {
 					Method nonProxiedMethod = getNonProxiedMethod(cls, method.getName(), method.getParameterTypes());
 					messageToClient.setDeadline(getJsCacheResultDeadline(nonProxiedMethod));
-					processCleanCacheAnnotations(client, nonProxiedMethod, message.getParameters());
+					processCleanCacheAnnotations(nonProxiedMethod, message.getParameters());
 				} catch (NoSuchMethodException ex) {
 					logger.error("Fail to process extra annotations (JsCacheResult, JsCacheRemove) for method : " + method.getName(), ex);
 				}
@@ -209,7 +212,6 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 		} catch (IOException | EncodeException ex) {
 			logger.error("Fail to send : " + messageToClient.toJson(), ex);
 		}
-		return messageToClient;
 	}
 
 	/**
@@ -223,7 +225,7 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 	private long getJsCacheResultDeadline(Method nonProxiedMethod) {
 		boolean cached = nonProxiedMethod.isAnnotationPresent(JsCacheResult.class);
 		if (cached) { // Ce service doit être mis en cache sur le client
-			logger.debug("La résultat de la méthode {} sera mis en cache sur le client", nonProxiedMethod.getName());
+			logger.debug("The result of the method {} will be cached on client side.", nonProxiedMethod.getName());
 			JsCacheResult jcr = nonProxiedMethod.getAnnotation(JsCacheResult.class);
 			Calendar deadline = Calendar.getInstance();
 			deadline.add(Calendar.YEAR, jcr.year());
@@ -245,7 +247,12 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 	 * @param jsonArgs
 	 * @param javaArgs 
 	 */
-	private void processCleanCacheAnnotations(Session client, Method nonProxiedMethod, List<String> jsonArgs) {
+	private void processCleanCacheAnnotations(Method nonProxiedMethod, List<String> jsonArgs) {
+		boolean cleanAllCache = nonProxiedMethod.isAnnotationPresent(JsCacheRemoveAll.class);
+		if(cleanAllCache) {
+			JsCacheRemoveAll jcra = nonProxiedMethod.getAnnotation(JsCacheRemoveAll.class);
+			processJsCacheRemoveAll(jcra);
+		}
 		boolean simpleCleancache = nonProxiedMethod.isAnnotationPresent(JsCacheRemove.class);
 		if(simpleCleancache) {
 			JsCacheRemove jcr = nonProxiedMethod.getAnnotation(JsCacheRemove.class);
@@ -259,18 +266,29 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 			}
 		}
 		if(simpleCleancache || multiCleancache) {
-			logger.debug("L'execution de cette methode {} a donné lieux à la suppression d'un cache.", nonProxiedMethod.getName());
+			logger.debug("The method {} will remove caches entries on clients side.", nonProxiedMethod.getName());
 		}
 	}
 
 	/**
+	 * Traite l'annotation JsCacheRemoveAll et envoi un message de suppression de tous le cache
+	 * @param jcr
+	 */
+	private void processJsCacheRemoveAll(JsCacheRemoveAll jcra) {
+		logger.trace("Process JsCacheRemoveAll annotation : {}", jcra);
+		MessageToClient messageToClient = new MessageToClient();
+		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
+		messageToClient.setResult(Constants.Cache.ALL);
+		wsEvent.fire(messageToClient);
+	}
+	
+	/**
 	 * Traite une annotation JsCacheRemove et envoi un message de suppression de cache
 	 * @param jcr
 	 * @param jsonArgs
-	 * @param javaArgs 
 	 */
 	private void processJsCacheRemove(JsCacheRemove jcr, List<String> jsonArgs) {
-		logger.debug("Traitement de l'annotation JsCacheRemove : {}", jcr);
+		logger.trace("Process JsCacheRemove annotation : {}", jcr);
 		StringBuilder sb = new StringBuilder(jcr.cls().getName()).append(".").append(jcr.methodName());
 		MessageToClient messageToClient = new MessageToClient();
 		String[] args = new String[jsonArgs.size()];
@@ -298,33 +316,30 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 		sb.append("])");
 		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
 		String value = sb.toString();
-		System.out.println("KEY : '"+value+"'");
 		MessageDigest md;
 		try {
 			md = MessageDigest.getInstance("MD5");
 			byte[] bytes = value.getBytes();
 			md.update(bytes, 0, bytes.length);
 			String md5 = new BigInteger(1, md.digest()).toString(16);
-			System.out.println("MD5 : '"+md5+"'");
 			messageToClient.setResult(md5);
 			wsEvent.fire(messageToClient);
 		} catch (NoSuchAlgorithmException ex) {
 		}
 	}
 
-	/**TestEJBService.getMessageCached216null5true 
-	 * {"id":"bd890fb9","ds":"demo.TestEJBService","op":"getMessageCached2","args":[5,{"id":"6"},0.20022155453098966,5,true]}
-	 * Récupere la methode sur la classe d'origine enignorant les eventuel proxies
+	/**
+	 * Récupere la methode sur la classe d'origine en ignorant les eventuels proxies
 	 * @param cls
 	 * @param methodName
 	 * @param parameterTypes
+	 * @throws NoSuchMethodException
 	 * @return 
 	 */
 	private Method getNonProxiedMethod(Class cls, String methodName,  Class<?>[] parameterTypes) throws NoSuchMethodException {
 		try {
 			return cls.getMethod(methodName, parameterTypes);
-		} catch (NoSuchMethodException | SecurityException ex) {
-			logger.error("Methode "+ methodName+" non trouvé sur "+cls.getName());
+		} catch (SecurityException ex) {
 		}
 		throw new NoSuchMethodException(methodName);
 	}
