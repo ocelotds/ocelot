@@ -25,7 +25,7 @@ public class SessionManager {
 	private final Map<String, Set<Session>> sessionsByTopic = new HashMap<>();
 	
 	/**
-	 * Enregistre une session correspondant à un topic
+	 * Register session for topic
 	 *
 	 * @param topic
 	 * @param session
@@ -38,18 +38,18 @@ public class SessionManager {
 			sessions = new HashSet<>();
 			sessionsByTopic.put(topic, sessions);
 		}
-		logger.debug("SUBSCRIPTION TO '{}'", topic);
+		logger.trace("'{}' subscribe to '{}'", session.getId(), topic);
 		sessions.add(session);
 	}
 
 	/**
-	 * Dés-Enregistre une session correspondant à un topic
+	 * Unregister session for topic
 	 *
 	 * @param topic
 	 * @param session
 	 */
 	public void unregisterTopicSession(String topic, Session session) {
-		logger.debug("UNSUBSCRIPTION TO '{}'", topic);
+		logger.trace("'{}' unsubscribe to '{}'", session.getId(), topic);
 		Set<Session> sessions = sessionsByTopic.get(topic);
 		if (sessions != null && sessions.contains(session)) {
 			sessions.remove(session);
@@ -57,7 +57,7 @@ public class SessionManager {
 	}
 
 	/**
-	 * Supprime une sesion ou qu'elle soit car fermé par le endpoint
+	 * Remove session cause it's close by the endpoint
 	 *
 	 * @param session
 	 */
@@ -71,7 +71,7 @@ public class SessionManager {
 	}
 
 	/**
-	 * retourne et supprime la session correspondant au topic id
+	 * Get Sessions for topics
 	 *
 	 * @param id
 	 * @return
@@ -87,7 +87,7 @@ public class SessionManager {
 	}
 
 	/**
-	 * retourne si une session correspond au msg id
+	 * check if sessions exist for topic
 	 *
 	 * @param id
 	 * @return
