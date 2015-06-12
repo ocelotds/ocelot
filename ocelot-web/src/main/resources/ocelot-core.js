@@ -71,7 +71,11 @@ function OcelotController() {
 			subEvent.message = "ocelot-cleancache";
 			subEvent.onMessage = function (id) {
 				console.info("Clean cache "+id);
-				localStorage.removeItem(id);
+				if(id === "all") {
+					localStorage.clear();
+				} else {
+					localStorage.removeItem(id);
+				}
 			};
 			ctrl.subscribe(subEvent);
 		}, 500, this);
