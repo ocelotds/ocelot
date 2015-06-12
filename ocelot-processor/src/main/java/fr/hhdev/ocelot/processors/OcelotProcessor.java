@@ -38,17 +38,20 @@ public class OcelotProcessor extends AbstractProcessor {
 
 	private boolean disabled = false;
 	/**
-	 * Utilitaire pour accéder au système de fichiers
+	 * Tools for access filesystem
 	 */
 	private Filer filer;
 
 	/**
-	 * Utilitaire pour afficher des messages lors de la compilation
+	 * Tools for log processor
 	 */
 	private Messager messager;
 
 	/**
-	 * Initialisation de l'Annotation Processor. Permet surtout de récupérer des rÃ©fÃ©rences vers le Filer et le Messager
+	 * Init processor<br>
+	 * get filer, messager<br>
+	 * get options
+	 * 
 	 */
 	@Override
 	public void init(ProcessingEnvironment processingEnv) {
@@ -66,19 +69,19 @@ public class OcelotProcessor extends AbstractProcessor {
 
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-		// On verifie si le set d'annotation est vide (elles ont déjà été traitées au round précédent)
+		// check if process was done on previous round
 		if (roundEnv.processingOver() || disabled) {
 			return true; // Si c'est le cas on s'arrete la
 		}
-		// Creation du provider de ocelot-services.js
+		// Create provider of ocelot-services.js
 		String js = createJSServicesProvider();
-		// Creation du fichier ocelot-services.js      
+		// Create file ocelot-services.js      
 		try {
 			FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", js);
 			try (Writer writer = resource.openWriter()) {
 				ElementVisitor visitor = new DataServiceVisitor(processingEnv);
 				for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
-					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " JAVASCRIPT GENERATION CLASS : " + element);
+					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " javascript generation class : " + element);
 					element.accept(visitor, writer);
 				}
 			}
@@ -90,7 +93,7 @@ public class OcelotProcessor extends AbstractProcessor {
 	}
 	
 	/**
-	 * Crée le provider de ocelot-services.js
+	 *  Create provider of ocelot-services.js and return a part of unic name for ocelot-service.js
 	 * 
 	 * @return 
 	 */
