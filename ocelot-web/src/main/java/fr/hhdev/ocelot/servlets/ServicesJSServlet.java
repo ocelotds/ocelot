@@ -16,6 +16,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Servlet to serve ocelot-services.js
@@ -25,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(name = "ServicesServlet", urlPatterns = {"/"+Constants.OCELOT_SERVICES_JS})
 public class ServicesJSServlet extends HttpServlet {
 	
+	private final static Logger logger = LoggerFactory.getLogger(ServicesJSServlet.class);
 	
 	@Inject
 	@Any
@@ -43,18 +46,14 @@ public class ServicesJSServlet extends HttpServlet {
 		try (OutputStream out = response.getOutputStream()) {
 			createLicenceComment(out);
 			for (IServicesProvider servicesProvider : servicesProviders) {
-				System.out.println("FIND JS PROVIDER : "+servicesProvider.getClass().getName());
+				logger.trace("Find javascript services provider : '{}'", servicesProvider.getClass().getName());
 				servicesProvider.streamJavascriptServices(out);
 			}
 		}
 	}
 
-	/* This Source Code Form is subject to the terms of the Mozilla Public
-	 * License, v. 2.0. If a copy of the MPL was not distributed with this
-	 * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
-	 */
 	/**
-	 * Rajoute la licence MPL 2.0
+	 * Add MPL 2.0 License
 	 *
 	 * @param out
 	 */
