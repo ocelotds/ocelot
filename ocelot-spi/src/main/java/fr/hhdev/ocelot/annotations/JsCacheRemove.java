@@ -7,25 +7,22 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import javax.enterprise.util.Nonbinding;
-import javax.interceptor.InterceptorBinding;
 
 /**
- *
+ * Annotation for spscify that the method annotated remove entry cache
  * @author hhfrancois
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
-@InterceptorBinding
 public @interface JsCacheRemove {
-	@Nonbinding Class cls();
-	@Nonbinding String methodName();
+	Class cls();
+	String methodName();
 	/**
 	 * Define order keys, begin at 0, , separate by coma<br>
 	 * its the order of keys not the order of parameter for compute keys.
 	 * @return 
 	 */
-	@Nonbinding String orderKeys() default "";
+	String orderKeys() default "";
 	/**
 	 * Rules for parameters about key for cache, separate by coma<br>
 	 * '-' : parameter is not used<br>
@@ -37,5 +34,5 @@ public @interface JsCacheRemove {
 	 * so the cache key is compute from package1.class1.method1(o2,o3.name,o4,o5)<br>
 	 * @return 
 	 */
-	@Nonbinding String keys() default "**";
+	String keys() default "**";
 }
