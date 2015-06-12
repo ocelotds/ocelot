@@ -33,6 +33,7 @@ public interface Constants {
 
 	interface Cache {
 		String CLEANCACHE_TOPIC = "ocelot-cleancache";
+		String ALL = "all";
 	}
 	
 	interface Command {
