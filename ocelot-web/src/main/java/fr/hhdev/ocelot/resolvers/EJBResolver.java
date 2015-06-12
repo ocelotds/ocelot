@@ -78,7 +78,7 @@ public class EJBResolver implements IDataServiceResolver {
 							}
 							return result;
 						} catch (NamingException e) {
-							logger.debug("{} list.next() {} : {}", new Object[]{e.getClass().getSimpleName(), name, e.getMessage()});
+							logger.trace("{} list.next() {} : {}", new Object[]{e.getClass().getSimpleName(), name, e.getMessage()});
 						}
 					}
 					result = findEJB(jndi + JndiConstant.PATH_SEPARATOR + itemName, name);
@@ -86,11 +86,11 @@ public class EJBResolver implements IDataServiceResolver {
 						return result;
 					}
 				} catch (NamingException e) {
-					logger.debug("{} list.next() {} : {}", new Object[]{e.getClass().getSimpleName(), name, e.getMessage()});
+					logger.trace("{} list.next() {} : {}", new Object[]{e.getClass().getSimpleName(), name, e.getMessage()});
 				}
 			}
 		} catch (Throwable e) {
-			logger.debug("{} Context {} invalide : {}", new Object[]{e.getClass().getSimpleName(), name, e.getMessage()});
+			logger.trace("{} Context {} invalide : {}", new Object[]{e.getClass().getSimpleName(), name, e.getMessage()});
 		}
 		return null;
 	}
@@ -126,7 +126,7 @@ public class EJBResolver implements IDataServiceResolver {
 				}
 			}
 		} catch (NamingException ex) {
-			logger.error("Echec d'initialisation de l'initialContext", ex);
+			logger.error("InitialContext initialisation Failed ", ex);
 		}
 		return initialContext;
 	}
