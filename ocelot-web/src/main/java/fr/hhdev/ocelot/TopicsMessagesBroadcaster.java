@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Singleton envoyant les messages en mode push aux clients
+ * Singleton that send push messages
  * @author hhfrancois
  */
 @Singleton
@@ -29,30 +29,30 @@ public class TopicsMessagesBroadcaster {
 	private SessionManager sessionManager;
 
 	/**
-	 * Réponse asynchrone d'un requete initiée par le client Utilise l'encoder positionné sur le endpoint
+	 * Send message to topic
 	 *
 	 * @param msg
 	 */
 	public void sendMessageToTopic(@Observes @MessageEvent MessageToClient msg) {
-		logger.debug("SENDING MESSAGE/RESPONSE TO TOPIC {}", msg.toJson());
+		logger.trace("Sending message/response to topic {}", msg.toJson());
 		try {
 			if (sessionManager.existsTopicSessionForId(msg.getId())) {
 				Collection<Session> sessions = sessionManager.getTopicSessionsForId(msg.getId());
 				if (sessions != null && !sessions.isEmpty()) {
-					logger.debug("SEND MESSAGE TO '{}' TOPIC {} CLIENT(s) : {}", new Object[]{msg.getId(), sessions.size(), msg.toJson()});
+					logger.trace("Send message to '{}' topic {} client(s) : {}", new Object[]{msg.getId(), sessions.size(), msg.toJson()});
 					for (Session session : sessions) {
 						if (session.isOpen()) {
 							session.getBasicRemote().sendObject(msg);
 						}
 					}
 				} else {
-					logger.debug("NO CLIENT FOR TOPIC '{}'", msg.getId());
+					logger.trace("No client for topic '{}'", msg.getId());
 				}
 			} else {
-				logger.debug("NO TOPIC '{}'", msg.getId());
+				logger.trace("No topic '{}'", msg.getId());
 			}
 		} catch (IOException | EncodeException ex) {
-			logger.error(ex.getMessage(), ex);
+			logger.error("Fail to send message to topic: "+msg.getId(), ex);
 		}
 	}
 }
