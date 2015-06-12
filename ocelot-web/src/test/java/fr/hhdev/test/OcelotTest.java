@@ -240,7 +240,7 @@ public class OcelotTest {
 
 		@Override
 		public void onMessage(String message) {
-			logger.debug("RECEIVE RESPONSE FROM SERVER = {}", message);
+			logger.trace("RECEIVE RESPONSE FROM SERVER = {}", message);
 			MessageToClient messageToClientIn = MessageToClient.createFromJson(message);
 			if ((id != null && id.equals(messageToClientIn.getId())) || (id == null && messageToClientIn.getId() != null)) {
 				messageToClient = messageToClientIn;
