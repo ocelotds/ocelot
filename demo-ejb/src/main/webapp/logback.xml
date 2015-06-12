@@ -8,7 +8,7 @@
 
 	<logger name="fr.hhdev.ocelot" level="debug"/>
 
-	<root level="debug">
+	<root level="trace">
 		<appender-ref ref="STDOUT" />
 	</root>
 </configuration>
