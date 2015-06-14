@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author hhfrancois
  */
-@ServerEndpoint(value = "/endpoint", encoders = {MessageToClientEncoder.class}, decoders = {CommandDecoder.class}, configurator = OcelotConfigurator.class)
+@ServerEndpoint(value = "/endpoint", encoders = {MessageToClientEncoder.class}, decoders = {CommandDecoder.class}, configurator = OcelotRequestConfigurator.class)
 public class OcelotEndpoint extends AbstractOcelotDataService {
 
 	private final static Logger logger = LoggerFactory.getLogger(OcelotEndpoint.class);
@@ -38,7 +38,6 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 
 	@OnOpen
 	public void handleOpenConnexion(Session session, EndpointConfig config) throws IOException {
-		Map<String, Object> headers = config.getUserProperties();
 		logger.trace("Open connexion for session '{}'", session.getId());
 	}
 

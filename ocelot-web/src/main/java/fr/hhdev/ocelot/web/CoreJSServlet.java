@@ -2,8 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
  */
-package fr.hhdev.ocelot.servlets;
+package fr.hhdev.ocelot.web;
 
+import fr.hhdev.ocelot.Constants;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -19,8 +20,8 @@ import javax.servlet.http.HttpServletResponse;
  * Servlet to serve ocelot-core.js
  * @author hhfrancois
  */
-@WebServlet(name = "OcelotJSServlet", urlPatterns = {"/ocelot-core.js"})
-public class OcelotJSServlet extends HttpServlet {
+@WebServlet(name = "CoreJSServlet", urlPatterns = {"/ocelot-core.js"})
+public class CoreJSServlet extends HttpServlet {
 
 	/**
 	 * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -35,7 +36,7 @@ public class OcelotJSServlet extends HttpServlet {
 		response.setContentType("text/javascript;charset=UTF-8");
 		try (Writer out = response.getWriter()) {
 			String ctxPath = request.getContextPath();
-			URL js = this.getClass().getResource("/ocelot-core.js");
+			URL js = this.getClass().getResource("/"+Constants.OCELOT_CORE_JS);
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream()))) {
 				String inputLine;
 				while ((inputLine = in.readLine()) != null) {
