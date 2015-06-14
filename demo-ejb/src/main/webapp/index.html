@@ -53,7 +53,7 @@
 				};
 			}
 			function getMessageAndCleanCache(srv) {
-				var token = srv.getMessageCachedAndCleanCache(1, {"id":"5"}, Math.random(), 5, true);
+				var token = srv.getMessageCachedAndCleanCache({"id":"5"}, 1, Math.random(), 5, true);
 				token.success = function (msg) {
 					addMessage(msg);
 				};

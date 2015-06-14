@@ -5,9 +5,11 @@
 package fr.hhdev.ocelot.encoders;
 
 import fr.hhdev.ocelot.messaging.MessageToClient;
+import java.util.Collection;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
+import javax.ws.rs.core.HttpHeaders;
 
 /**
  * Decoder for class MessageClient for webSocket endpoint
@@ -15,13 +17,16 @@ import javax.websocket.EndpointConfig;
  */
 public class MessageToClientEncoder implements Encoder.Text<MessageToClient> {
 
+	private EndpointConfig config;
 	@Override
 	public String encode(MessageToClient object) throws EncodeException {
+		Collection<String> acceptLanguages = (Collection<String>) config.getUserProperties().get(HttpHeaders.ACCEPT_LANGUAGE);
 		return object.toJson();
 	}
 
 	@Override
 	public void init(EndpointConfig config) {
+		this.config = config;
 	}
 
 	@Override

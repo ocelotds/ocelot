@@ -24,14 +24,12 @@ public @interface JsCacheResult {
 	int millisecond() default 0;
 	/**
 	 * Rules for parameters about key for cache, separate by coma<br>
-	 * '-' : parameter is not used<br>
-	 * '*' : parameter is used fully<br>
-	 * '**' : parameters until the last is used fully<br>
-	 * 'id' : parameter.id is used<br>
-	 * <b>Example</b> : the method 'package1.class1.method1(Object o1, Object o2, Object o3, Object o4, Object o5)'<br>
-	 * is annotated with  @JsCacheResult(keys="-,*,name,**")<br>
-	 * so the cache key is compute from package1.class1.method1(o2,o3.name,o4,o5)<br>
-	 * @return 
+	 * The order is important<br>
+	 * use json notation.<br>
+	 * '*' : use all arguments in calculating cache key<br>
+	 * 'obj.id' : mean that for compute the key the value of id from argument named obj will be used.<br>
+	 * Exemple {"i", "u.id", "f.name"}
+	 * @return set of used keys ordered
 	 */
-	String keys() default "**";
+	String[] keys() default {"*"};
 }

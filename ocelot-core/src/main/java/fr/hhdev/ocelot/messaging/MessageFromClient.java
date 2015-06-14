@@ -14,6 +14,7 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.json.JsonString;
 import javax.json.JsonValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,14 +27,18 @@ import org.slf4j.LoggerFactory;
  */
 public class MessageFromClient {
 
-	private static Logger logger = LoggerFactory.getLogger(MessageFromClient.class);
+	private static final Logger logger = LoggerFactory.getLogger(MessageFromClient.class);
 	protected String id;
 	protected String dataService;
 	protected String operation;
 	/**
-	 * parametres de la requete au format json
+	 * parameters json format
 	 */
 	protected List<String> parameters = new ArrayList<>();
+	/**
+	 * parameter names 
+	 */
+	protected List<String> parameterNames = new ArrayList<>();
 
 	public String getId() {
 		return id;
@@ -65,6 +70,14 @@ public class MessageFromClient {
 
 	public void setParameters(List<String> parameters) {
 		this.parameters = parameters;
+	}
+
+	public List<String> getParameterNames() {
+		return parameterNames;
+	}
+
+	public void setParameterNames(List<String> parameterNames) {
+		this.parameterNames = parameterNames;
 	}
 
 	@Override
@@ -103,6 +116,16 @@ public class MessageFromClient {
 				logger.trace("Get argument Type : '{}'. Value : '{}'", arg.getValueType().name(), arg.toString());
 				params.add(arg.toString());
 			} 
+			argArray = root.getJsonArray(Constants.Message.ARGUMENTNAMES);
+			params = new ArrayList<>();
+			message.setParameterNames(params);
+			idx = 0;
+			logger.trace("Get arguments from message '{}'", json);
+			while(idx<argArray.size()) {
+				JsonString arg = argArray.getJsonString(idx++);
+				logger.trace("Get argumentName : '{}'.", arg.toString());
+				params.add(arg.toString());
+			} 
 			return message;
 		}
 	}
@@ -116,10 +139,19 @@ public class MessageFromClient {
 				args += ",";
 			}
 		}
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":[%s]}",
+		String argnames = "";
+		iterator = parameterNames.iterator();
+		while(iterator.hasNext()) {
+			args += iterator.next();
+			if(iterator.hasNext()) {
+				argnames += ",";
+			}
+		}
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":[%s],\"%s\":[%s]}",
 			Constants.Message.ID, this.getId(),
 			Constants.Message.DATASERVICE, this.getDataService(),
 			Constants.Message.OPERATION, this.getOperation(),
+			Constants.Message.ARGUMENTNAMES, argnames,
 			Constants.Message.ARGUMENTS, args);
 		return json;
 	}

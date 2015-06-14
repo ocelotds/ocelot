@@ -4,7 +4,6 @@
  */
 package fr.hhdev.ocelot.processors;
 
-import fr.hhdev.ocelot.KeySelector;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
 import fr.hhdev.ocelot.annotations.TransientDataService;
 import java.io.IOException;
@@ -12,6 +11,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -35,10 +36,15 @@ import javax.tools.Diagnostic;
  */
 public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 
-	protected ProcessingEnvironment environment;
+	private final ProcessingEnvironment environment;
+	/**
+	 * Tools for log processor
+	 */
+	private final Messager messager;
 
 	public DataServiceVisitor(ProcessingEnvironment environment) {
 		this.environment = environment;
+		this.messager = environment.getMessager();
 	}
 
 	@Override
@@ -55,11 +61,11 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 					List<String> arguments = getArguments(methodElement);
 					TypeMirror returnType = methodElement.getReturnType();
 					writer.append("\n");
-					createMethodComment(methodElement, arguments, returnType, writer);
+					createMethodComment(methodElement, arguments, argumentsType, returnType, writer);
 
 					writer.append("\tthis.").append(methodName).append(" = function (");
 					if (arguments.size() != argumentsType.size()) {
-						environment.getMessager().printMessage(Diagnostic.Kind.ERROR, (new StringBuilder()).append("Cannot Create service : ").append(typeElement.getSimpleName()).append(" cause method ").append(methodElement.getSimpleName()).append(" arguments inconsistent - argNames : ").append(arguments.size()).append(" / args : ").append(argumentsType.size()).toString(), typeElement);
+						messager.printMessage(Diagnostic.Kind.ERROR, (new StringBuilder()).append("Cannot Create service : ").append(typeElement.getSimpleName()).append(" cause method ").append(methodElement.getSimpleName()).append(" arguments inconsistent - argNames : ").append(arguments.size()).append(" / args : ").append(argumentsType.size()).toString(), typeElement);
 						return null;
 					}
 					int i = 0;
@@ -83,7 +89,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	}
 
 	/**
-	 * Crée un commentaire pour la classe
+	 * Create comment of the class
 	 *
 	 * @param typeElement
 	 * @param writer
@@ -108,31 +114,36 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	}
 
 	/**
-	 * Retourne true si la methode doit etre traitee
+	 * Return if the method have to considerate<br>
+	 * The method is public,<br>
+	 * Not annotated by TransientDataService<br>
+	 * Not static and not from Object herited.
 	 *
 	 * @param methodElement
 	 * @return
 	 */
 	public boolean isConsiderateMethod(ExecutableElement methodElement) {
-		// Si la méthode est annotée transient
+		// Herited from Object
+		TypeElement objectElement = environment.getElementUtils().getTypeElement(Object.class.getName());
+		if(objectElement.getEnclosedElements().contains(methodElement)) {
+			return false;
+		}
+		// Static, not public ?
+		if (!methodElement.getModifiers().contains(Modifier.PUBLIC) || methodElement.getModifiers().contains(Modifier.STATIC)) {
+			return false;
+		}
+		// TransientDataService ?
 		List<? extends AnnotationMirror> annotationMirrors = methodElement.getAnnotationMirrors();
 		for (AnnotationMirror annotationMirror : annotationMirrors) {
 			if (annotationMirror.getAnnotationType().toString().equals(TransientDataService.class.getName())) {
 				return false;
 			}
 		}
-
-		// Si la méthode est statique ou non publique
-		if (!methodElement.getModifiers().contains(Modifier.PUBLIC) || methodElement.getModifiers().contains(Modifier.STATIC)) {
-			return false;
-		}
-		// Si ce n'est pas une méthode de Object
-		TypeElement objectElement = environment.getElementUtils().getTypeElement(Object.class.getName());
-		return !objectElement.getEnclosedElements().contains(methodElement);
+		return true;
 	}
 
 	/**
-	 * Retourne la liste ordonnee du type des arguments de la methode
+	 * Get argument types list from method
 	 *
 	 * @param methodElement
 	 * @return
@@ -147,7 +158,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	}
 
 	/**
-	 * Retourne la liste ordonnee du nom des arguments de la methode
+	 * Get argument names list from method
 	 *
 	 * @param methodElement
 	 * @return
@@ -161,14 +172,15 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	}
 
 	/**
-	 * Creer la javadoc de la methode en javascript
+	 * Create javascript comment from Method comment
 	 *
 	 * @param methodElement
 	 * @param argumentsName
+	 * @param argumentsType
 	 * @param returnType
 	 * @param writer
 	 */
-	protected void createMethodComment(ExecutableElement methodElement, List<String> argumentsName, TypeMirror returnType, Writer writer) {
+	protected void createMethodComment(ExecutableElement methodElement, List<String> argumentsName, List<String> argumentsType, TypeMirror returnType, Writer writer) {
 		try {
 			String methodComment = environment.getElementUtils().getDocComment(methodElement);
 			writer.write("\t/**\n");
@@ -177,14 +189,15 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 				methodComment = methodComment.split("@")[0];
 				int lastIndexOf = methodComment.lastIndexOf("\n");
 				if (lastIndexOf >= 0) {
-					methodComment = methodComment.substring(0, lastIndexOf);
+					methodComment = methodComment.substring(0, lastIndexOf); // include the \n
 				}
-				String comment = methodComment.replaceAll("\n", "\n\t *");
-				writer.append("\t *\n").append(comment);
+				writer.append("\t *").append(methodComment).append("\t *\n");
 			}
 			// La liste des arguments de la javadoc
+			Iterator<String> typeIterator = argumentsType.iterator();
 			for (String argumentName : argumentsName) {
-				writer.append("\t * @param ").append(argumentName).append("\n");
+				String type = typeIterator.next();
+				writer.append("\t * @param ").append(argumentName).append(" : ").append(type).append("\n");
 			}
 			// Si la methode retourne ou non quelque chose
 			if (!returnType.toString().equals("void")) {
@@ -196,7 +209,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	}
 
 	/**
-	 * Cree le corps de la methode
+	 * Create javascript method body
 	 *
 	 * @param methodElement
 	 * @param arguments
@@ -206,26 +219,32 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 		try {
 			writer.append("\t\tvar op = \"").append(methodElement.getSimpleName()).append("\";\n");
 			StringBuilder args = new StringBuilder("");
-			StringBuilder keys = new StringBuilder("[");
+			StringBuilder paramNames = new StringBuilder("");
+			StringBuilder keys = new StringBuilder("");
 			if (arguments != null && arguments.hasNext()) {
 				JsCacheResult jcr = methodElement.getAnnotation(JsCacheResult.class);
-				KeySelector ks = new KeySelector("**");
-				if (jcr != null) {
-					ks = new KeySelector(jcr.keys());
+				boolean allArgs = Objects.isNull(jcr) || (jcr.keys().length > 0 && "*".equals(jcr.keys()[0]));
+				if(!allArgs) {
+					keys.append(String.join(",", jcr.keys()));
 				}
 				while (arguments.hasNext()) {
 					String arg = arguments.next();
-					keys.append(ks.nextJSSignature(arg));
+					if(allArgs) {
+						keys.append(arg);
+					}
 					args.append(arg);
+					paramNames.append("\"").append(arg).append("\"");
 					if (arguments.hasNext()) {
 						args.append(",");
-						keys.append(",");
+						paramNames.append(",");
+						if(allArgs) {
+							keys.append(",");
+						}
 					}
 				}
 			}
-			keys.append("]");
-			writer.append("\t\tvar id = (this.ds + \".\" + op + \"(\" + JSON.stringify(").append(keys.toString()).append(") + \")\");\n");
-			writer.append("\t\treturn getOcelotToken.call(this, id.md5(), op, [").append(args.toString()).append("]);\n");
+			writer.append("\t\tvar id = (this.ds + \".\" + op + \"(\" + JSON.stringify([").append(keys.toString()).append("]) + \")\");\n");
+			writer.append("\t\treturn getOcelotToken.call(this, id.md5(), op, [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");\n");
 		} catch (IOException ex) {
 		}
 	}

@@ -28,13 +28,13 @@ public class TestEJBService {
 		return "Message from ejb service getMessageCached():" + Math.random();
 	}
 
-	@JsCacheResult(minute = 1, keys = "*, id, -, **")
+	@JsCacheResult(minute = 1, keys = {"i", "u.id", "s", "b"})
 	public String getMessageCached2(int i, User u, long l, short s, boolean b) {
 		return "Message from ejb service getMessageCached():" + Math.random();
 	}
 
-	@JsCacheRemove(cls = TestEJBService.class, methodName = "getMessageCached2", keys = "*, id, -, **")
-	public String getMessageCachedAndCleanCache(int i, User u, long l, short s, boolean b) {
+	@JsCacheRemove(cls = TestEJBService.class, methodName = "getMessageCached2", keys = {"i", "u.id", "s", "b"})
+	public String getMessageCachedAndCleanCache(User u, int i, long l, short s, boolean b) {
 		return "Cache entry clean";
 	}
 }

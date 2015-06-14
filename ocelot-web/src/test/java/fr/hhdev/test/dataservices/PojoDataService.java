@@ -7,6 +7,7 @@ package fr.hhdev.test.dataservices;
 
 import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.annotations.DataService;
+import fr.hhdev.ocelot.annotations.JsCacheResult;
 import fr.hhdev.test.MethodException;
 import fr.hhdev.test.Result;
 import java.io.FileInputStream;
@@ -150,7 +151,8 @@ public class PojoDataService {
 	public String methodWithCollectionOfCollectionResult(Collection<Collection<Result>> i) {
 		return "methodWithCollectionOfCollectionResult_" + i.size();
 	}
-
+	
+	@JsCacheResult(minute = 5, keys = {"a", "c.integer"})
 	public String methodWithManyParameters(String a, int b, Result c, Collection<String> d) {
 		return "methodWithManyParameters a="+a+" - b="+b+" - c="+c.getInteger()+" - d:"+d.size();
 	}

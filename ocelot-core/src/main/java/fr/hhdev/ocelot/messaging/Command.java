@@ -11,6 +11,8 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Object command for communication between Client to Server
@@ -18,6 +20,7 @@ import javax.json.JsonValue;
  * @author hhfrancois
  */
 public class Command {
+	private final static Logger logger = LoggerFactory.getLogger(Command.class);
 
 	String command;
 	String message;
@@ -38,9 +41,13 @@ public class Command {
 		this.message = message;
 	}
 	
-	
-
+	/**
+	 * 
+	 * @param json : {"cmd":"call","msg":{"id":"7b65b992407acdada143e66e77f2dfe8","ds":"demo.TestEJBService","op":"getMessage","argNames":["i"],"args":[1]}}
+	 * @return 
+	 */
 	public static Command createFromJson(String json) {
+		logger.debug("Convert json '{}' to object", json);
 		try (JsonReader reader = Json.createReader(new StringReader(json))) {
 			JsonObject root = reader.readObject();
 			Command command = new Command();

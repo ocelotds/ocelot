@@ -778,9 +778,9 @@ public class OcelotTest {
 		String resultJS = getJson(new Result(6));
 		String mapResultJS = getJson(destination.getMapResult());
 		String operation = "methodWithResult";
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":[%s,%s]}",
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":[\"%s\",\"%s\"],\"%s\":[%s,%s]}",
 				  Constants.Message.ID, uuid, Constants.Message.DATASERVICE, PojoDataService.class.getName(), Constants.Message.OPERATION, operation,
-				  Constants.Message.ARGUMENTS, resultJS, mapResultJS);
+				  Constants.Message.ARGUMENTNAMES, "r", "m", Constants.Message.ARGUMENTS, resultJS, mapResultJS);
 		MessageFromClient result = MessageFromClient.createFromJson(json);
 		assertEquals(uuid, result.getId());
 		assertEquals(PojoDataService.class.getName(), result.getDataService());

@@ -182,17 +182,18 @@ function Mdb(topic) {
 	this.onMessage = function (msg) {
 	};
 }
-var getOcelotToken = function (id, op, args) {
+var getOcelotToken = function (id, op, argNames, args) {
 	var evt = document.createEvent("Event");
 	evt.initEvent("call", true, false);
 	evt.dataservice = this.ds;
 	evt.ignoreCache = false;
 	evt.operation = op;
 	evt.args = args;
+	evt.argNames = argNames;
 	evt.delay = 0;
 	evt.id = id;
 	evt.getMessage = function () {
-		return "{\"id\":\"" + this.id + "\",\"ds\":\"" + this.dataservice + "\",\"op\":\"" + this.operation + "\", \"args\":" + JSON.stringify(this.args) + "}";
+		return "{\"id\":\"" + this.id + "\",\"ds\":\"" + this.dataservice + "\",\"op\":\"" + this.operation + "\",\"argNames\":" + JSON.stringify(this.argNames) + ",\"args\":" + JSON.stringify(this.args) + "}";
 	};
 	evt.onResult = function (resultEvt) {
 	};

@@ -19,6 +19,7 @@ public interface Constants {
 		String DATASERVICE = "ds";
 		String OPERATION = "op";
 		String ARGUMENTS = "args";
+		String ARGUMENTNAMES = "argNames";
 		String DEADLINE = "deadline";
 		String RESULT = "result";
 		String FAULT = "fault";
