@@ -18,10 +18,10 @@ public class Fault {
 	public Fault() {
 	}
 
-	public Fault(Throwable t) {
+	public Fault(Throwable t, int stackdeep) {
 		this.message = t.getMessage();
 		this.classname = t.getClass().getName();
-		String[] stackTraceElements = new String[Math.min(t.getStackTrace().length, 50)];
+		String[] stackTraceElements = new String[Math.min(t.getStackTrace().length, stackdeep)];
 		for (int i = 0; i < stackTraceElements.length; i++) {
 			stackTraceElements[i] = t.getStackTrace()[i].toString();
 		}
