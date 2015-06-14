@@ -68,6 +68,10 @@ public abstract class AbstractOcelotDataService {
 	@Any
 	private Instance<IDataServiceResolver> resolvers;
 
+	@Inject
+	private OcelotConfiguration configuration;
+
+
 	protected IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
 	}
@@ -242,10 +246,10 @@ public abstract class AbstractOcelotDataService {
 				if (InvocationTargetException.class.isInstance(ex)) {
 					cause = ex.getCause();
 				}
-				messageToClient.setFault(new Fault(cause));
+				messageToClient.setFault(new Fault(cause, configuration.getStacktracedeep()));
 			}
 		} catch (ClassNotFoundException | DataServiceException ex) {
-			messageToClient.setFault(new Fault(ex));
+			messageToClient.setFault(new Fault(ex, configuration.getStacktracedeep()));
 		}
 		try {
 			client.getBasicRemote().sendObject(messageToClient);
