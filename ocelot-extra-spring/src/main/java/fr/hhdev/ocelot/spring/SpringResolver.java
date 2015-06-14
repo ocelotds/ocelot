@@ -4,13 +4,13 @@
  */
 package fr.hhdev.ocelot.spring;
 
+import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.DataServiceResolver;
 import fr.hhdev.ocelot.spi.IDataServiceResolver;
 import fr.hhdev.ocelot.spi.Scope;
 import java.lang.annotation.Annotation;
 import java.util.Map;
-import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -21,16 +21,25 @@ import org.springframework.context.ApplicationContext;
  *
  * @author hhfrancois
  */
-@DataServiceResolver("SPRING")
+@DataServiceResolver(Constants.Resolver.SPRING)
 public class SpringResolver implements IDataServiceResolver {
 
 	private static final Logger logger = LoggerFactory.getLogger(SpringResolver.class);
 
-	@Inject
+//	@Inject
 	private ApplicationContext applicationContext;
+
+	public SpringResolver() {
+		if (applicationContext == null)  {
+			applicationContext = ApplicationContextProvider.getApplicationContext();
+		}
+	}
 
 	@Override
 	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
+
+		System.out.println("Je passe la");
+
 		Map<String, ?> beansOfType = applicationContext.getBeansOfType(clazz);
 		if (beansOfType == null || beansOfType.isEmpty()) {
 			throw new DataServiceException("Unable to find any Spring bean of type : " + clazz.getName());
@@ -57,7 +66,7 @@ public class SpringResolver implements IDataServiceResolver {
 				}
 			}
 		}
-		if(!this.applicationContext.isPrototype(clazz.getName()) && !this.applicationContext.isSingleton(clazz.getName())) {
+		if (!this.applicationContext.isPrototype(clazz.getName()) && !this.applicationContext.isSingleton(clazz.getName())) {
 			return Scope.SESSION;
 		}
 		return Scope.MANAGED;
