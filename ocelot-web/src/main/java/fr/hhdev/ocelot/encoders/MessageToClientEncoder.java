@@ -10,6 +10,8 @@ import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
 import javax.ws.rs.core.HttpHeaders;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Decoder for class MessageClient for webSocket endpoint
@@ -17,10 +19,16 @@ import javax.ws.rs.core.HttpHeaders;
  */
 public class MessageToClientEncoder implements Encoder.Text<MessageToClient> {
 
+	private static final Logger logger = LoggerFactory.getLogger(MessageToClientEncoder.class);
+
 	private EndpointConfig config;
+	
 	@Override
 	public String encode(MessageToClient object) throws EncodeException {
 		Collection<String> acceptLanguages = (Collection<String>) config.getUserProperties().get(HttpHeaders.ACCEPT_LANGUAGE);
+		if(acceptLanguages!=null) {
+			logger.debug("Encode MessageToClientEncoder : accept-language : {}", String.join(" - ", acceptLanguages));
+		}
 		return object.toJson();
 	}
 
