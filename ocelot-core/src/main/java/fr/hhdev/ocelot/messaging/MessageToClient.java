@@ -132,7 +132,7 @@ public class MessageToClient {
 				jsonResult = mapper.writeValueAsString(this.getResult());
 				res = String.format(resultFormat, Constants.Message.RESULT, jsonResult);
 			} catch (JsonProcessingException ex) {
-				Fault f = new Fault(ex);
+				Fault f = new Fault(ex, 0);
 				try {
 					res = String.format(resultFormat, Constants.Message.FAULT, f.toJson());
 				} catch (IOException ex1) {
