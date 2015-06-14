@@ -18,7 +18,7 @@ public interface Constants {
 
 	interface Options {
 		String MINIFYJS = "ocelot.minifyjs";
-		String STACKTRACE = "ocelot.stacktrace";
+		String STACKTRACE = "ocelot.stacktrace.deep";
 	}
 	interface Message {
 
