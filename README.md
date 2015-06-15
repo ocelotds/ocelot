@@ -6,7 +6,7 @@
 
 [Browsers limitations](http://webdebug.net/2013/12/browser-connection-limit)
 
-[HOW TO](wiki/howto)
+[HOW TO](/wiki/howto)
 
 ### Dependencies WEB
 ```xml
