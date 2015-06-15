@@ -6,7 +6,7 @@
 
 [Browsers limitations](http://webdebug.net/2013/12/browser-connection-limit)
 
-[HOW TO](/hhdevelopment/ocelot/wiki/howto)
+[HOW TO](https://github.com/hhdevelopment/ocelot/wiki/howto)
 
 ### Dependencies WEB
 ```xml
