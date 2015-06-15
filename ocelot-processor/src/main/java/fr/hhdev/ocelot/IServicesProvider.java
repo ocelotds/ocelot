@@ -11,5 +11,5 @@ import java.io.OutputStream;
  * @author hhfrancois
  */
 public interface IServicesProvider {
-	void streamJavascriptServices(OutputStream out);
+	void streamJavascriptServices(OutputStream out, boolean minify);
 }

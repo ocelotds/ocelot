@@ -12,7 +12,14 @@ package fr.hhdev.ocelot;
 public interface Constants {
 	
 	String OCELOT_SERVICES_JS = "ocelot-services.js";
+	String OCELOT_CORE_JS = "ocelot-core.js";
+	String OCELOT_SERVICES = "ocelot-services";
+	String JS = ".js";
 
+	interface Options {
+		String MINIFYJS = "ocelot.minifyjs";
+		String STACKTRACE = "ocelot.stacktrace.deep";
+	}
 	interface Message {
 
 		String ID = "id";

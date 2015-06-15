@@ -283,4 +283,26 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	public String visitUnknown(Element e, Writer p) {
 		return null;
 	}
+
+/** 
+ * Validation management
+ *
+ * @AssertFalse : The value of the field or property must be false.
+ * @AssertTrue : The value of the field or property must be true.
+ * @DecimalMax : @DecimalMax("30.00") : The value of the field or property must be a decimal value lower than or equal to the number in the value element.
+ * @DecimalMin : @DecimalMin("5.00") : The value of the field or property must be a decimal value greater than or equal to the number in the value element.
+ * @Digits : @Digits(integer=6, fraction=2) : The value of the field or property must be a number within a specified range. 
+ * The integer element specifies the maximum integral digits for the number, and the fraction element specifies the maximum fractional digits for the number.
+ * @Future : The value of the field or property must be a date in the future.
+ * @Max : @Max(10) : The value of the field or property must be an integer value lower than or equal to the number in the value element.
+ * @Min : @Min(5) : The value of the field or property must be an integer value greater than or equal to the number in the value element.
+ * @NotNull : The value of the field or property must not be null.
+ * @Null : The value of the field or property must be null.
+ * @Past : The value of the field or property must be a date in the past.
+ * @Pattern :  @Pattern(regexp="\\(\\d{3}\\)\\d{3}-\\d{4}") : The value of the field or property must match the regular expression defined in the regexp element.
+ * @Size : @Size(min=2, max=240) : The size of the field or property is evaluated and must match the specified boundaries.
+ * If the field or property is a String, the size of the string is evaluated. If the field or property is a Collection, the size of the Collection is evaluated.
+ * If the field or property is a Map, the size of the Map is evaluated.
+ * If the field or property is an array, the size of the array is evaluated. Use one of the optional max or min elements to specify the boundaries.
+ */
 }

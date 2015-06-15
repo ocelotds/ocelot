@@ -13,19 +13,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * This class extract info in request, and expose them to userProperties ServerEnpoint
+ * 
  * @author hhfrancois
  */
-public class OcelotConfigurator extends ServerEndpointConfig.Configurator {
-	private final static Logger logger = LoggerFactory.getLogger(OcelotConfigurator.class);
+public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator {
+
+	private final static Logger logger = LoggerFactory.getLogger(OcelotRequestConfigurator.class);
 
 	@Override
 	public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
 		Map<String, List<String>> headers = request.getHeaders();
-		logger.trace("Get accept-language and user-agent in client headers '{}', '{}'", headers.get(HttpHeaders.ACCEPT_LANGUAGE), headers.get(HttpHeaders.USER_AGENT));
+		logger.debug("Get accept-language from client headers : {}", headers.get(HttpHeaders.ACCEPT_LANGUAGE));
 		sec.getUserProperties().put(HttpHeaders.ACCEPT_LANGUAGE, headers.get(HttpHeaders.ACCEPT_LANGUAGE)); // accept-language : [fr, fr-FR;q=0.8, en-US;q=0.5, en;q=0.3]
-		sec.getUserProperties().put(HttpHeaders.USER_AGENT, headers.get(HttpHeaders.USER_AGENT)); 
 		super.modifyHandshake(sec, request, response);
 	}
-
 }

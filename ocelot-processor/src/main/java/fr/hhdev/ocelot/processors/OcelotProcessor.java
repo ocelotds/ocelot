@@ -4,7 +4,6 @@
  */
 package fr.hhdev.ocelot.processors;
 
-import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.annotations.DataService;
 import java.io.File;
 import java.io.FileReader;
@@ -115,7 +114,7 @@ public class OcelotProcessor extends AbstractProcessor {
 				writer.append("public class " + servicesName + " implements IServicesProvider {\n");
 				writer.append("	private static final Logger logger = LoggerFactory.getLogger("+servicesName+".class);\n");
 				writer.append("	@Override\n");
-				writer.append("	public void streamJavascriptServices(OutputStream out) {\n");
+				writer.append("	public void streamJavascriptServices(OutputStream out, boolean minify) {\n");
 				writer.append("		try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(\"srv_"+seed+".js\")) {\n");
 				writer.append("			byte[] buffer = new byte[1024];\n");
 				writer.append("			int read;\n");
