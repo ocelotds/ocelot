@@ -61,7 +61,7 @@ public class SessionManager {
 	 *
 	 * @param session
 	 */
-	public void removeSession(Session session) {
+	public void removeSessionToTopic(Session session) {
 		for (String topic : sessionsByTopic.keySet()) {
 			Set<Session> sessions = sessionsByTopic.get(topic);
 			if (sessions.contains(session)) {
@@ -76,9 +76,9 @@ public class SessionManager {
 	 * @param id
 	 * @return
 	 */
-	public Collection<Session> getTopicSessionsForId(String id) {
+	public Collection<Session> getSessionsForTopic(String id) {
 		Collection<Session> result;
-		if(existsTopicSessionForId(id)) {
+		if(existsSessionForTopic(id)) {
 			return sessionsByTopic.get(id);
 		} else {
 			result = Collections.EMPTY_LIST;
@@ -92,7 +92,7 @@ public class SessionManager {
 	 * @param id
 	 * @return
 	 */
-	public boolean existsTopicSessionForId(String id) {
+	public boolean existsSessionForTopic(String id) {
 		return sessionsByTopic.containsKey(id) && !sessionsByTopic.get(id).isEmpty();
 	}
 }
