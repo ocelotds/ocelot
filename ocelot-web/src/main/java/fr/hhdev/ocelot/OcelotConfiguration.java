@@ -11,14 +11,14 @@ import javax.inject.Singleton;
  */
 @Singleton
 public class OcelotConfiguration {
-	private int stacktracedeep = 50;
+	private int stacktracelength = 50;
 
-	public int getStacktracedeep() {
-		return stacktracedeep;
+	public int getStacktracelength() {
+		return stacktracelength;
 	}
 
-	public void setStacktracedeep(int stacktracedeep) {
-		this.stacktracedeep = stacktracedeep;
+	public void setStacktracelength(int stacktracelength) {
+		this.stacktracelength = stacktracelength;
 	}
 	
 }
