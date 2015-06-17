@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Resolver of EJB
+ *
  * @author hhfrancois
  */
 @DataServiceResolver(Constants.Resolver.EJB)
@@ -34,7 +35,7 @@ public class EJBResolver implements IDataServiceResolver {
 	private InitialContext initialContext = null;
 
 	public void EJBResolver() {
-		getInitialContext();		
+		getInitialContext();
 	}
 
 	@Override
@@ -45,7 +46,7 @@ public class EJBResolver implements IDataServiceResolver {
 	private Object resolveDataService(String name) throws DataServiceException {
 		Object obj;
 		InitialContext ic = getInitialContext();
-		if(jndiMap.containsKey(name)) {
+		if (jndiMap.containsKey(name)) {
 			String jndi = jndiMap.get(name);
 			try {
 				obj = ic.lookup(jndi);
@@ -55,7 +56,7 @@ public class EJBResolver implements IDataServiceResolver {
 		} else {
 			obj = findEJB(jndiPath, name);
 		}
-		if(null == obj){
+		if (null == obj) {
 			throw new DataServiceException(name);
 		}
 		return obj;
@@ -72,8 +73,8 @@ public class EJBResolver implements IDataServiceResolver {
 					String itemName = item.getName();
 					if (itemName.endsWith(name)) {
 						try {
-							result =  ic.lookup(jndi + JndiConstant.PATH_SEPARATOR + itemName);
-							if(result!=null) {
+							result = ic.lookup(jndi + JndiConstant.PATH_SEPARATOR + itemName);
+							if (result != null) {
 								jndiMap.put(name, jndi + JndiConstant.PATH_SEPARATOR + itemName);
 							}
 							return result;
@@ -82,7 +83,7 @@ public class EJBResolver implements IDataServiceResolver {
 						}
 					}
 					result = findEJB(jndi + JndiConstant.PATH_SEPARATOR + itemName, name);
-					if(result!=null) {
+					if (result != null) {
 						return result;
 					}
 				} catch (NamingException e) {
@@ -98,8 +99,8 @@ public class EJBResolver implements IDataServiceResolver {
 	@Override
 	public Scope getScope(Class clazz) {
 		for (Annotation anno : clazz.getAnnotations()) {
-			if(!anno.annotationType().equals(DataService.class)) {
-				String annoName =anno.annotationType().getName();
+			if (!anno.annotationType().equals(DataService.class)) {
+				String annoName = anno.annotationType().getName();
 				switch (annoName) {
 					case "javax.ejb.Stateful":
 						return Scope.SESSION;
@@ -111,11 +112,12 @@ public class EJBResolver implements IDataServiceResolver {
 	}
 
 	private interface JndiConstant {
+
 		String PREFIX = "java:global/";
 		String APP_NAME = "java:app/AppName";
 		String PATH_SEPARATOR = "/";
 	}
-	
+
 	private InitialContext getInitialContext() {
 		try {
 			if (null == initialContext) {
