@@ -45,11 +45,11 @@ public class ContextListener implements ServletContextListener {
 		logger.trace("Read minifyjs option in web.xml '{}' = {}.", Constants.Options.MINIFYJS, minify);
 		String stacktrace = sc.getInitParameter(Constants.Options.STACKTRACE);
 		if(stacktrace==null) {
-			stacktrace = "0";
+			stacktrace = "50";
 		}
-		int stacktracedeep = Integer.parseInt(stacktrace);
-		logger.trace("Read stacktracedeep option in web.xml '{}' = {}.", Constants.Options.STACKTRACE, stacktracedeep);
-		configuration.setStacktracedeep(stacktracedeep);
+		int stacktracelenght = Integer.parseInt(stacktrace);
+		logger.trace("Read stacktracedeep option in web.xml '{}' = {}.", Constants.Options.STACKTRACE, stacktracelenght);
+		configuration.setStacktracelength(stacktracelenght);
 		try {
 			String filename = createOcelotServicesJsFile(minify);
 			logger.trace("Generate temp file '{}' minified {}.", filename, minify);
