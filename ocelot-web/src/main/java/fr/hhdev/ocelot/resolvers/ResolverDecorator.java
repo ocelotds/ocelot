@@ -18,11 +18,11 @@ import javax.inject.Inject;
 @Decorator
 public abstract class ResolverDecorator implements IDataServiceResolver {
 
-    @Inject
-    @Delegate
-    @Any
-    IDataServiceResolver resolver;
-	 
+	@Inject
+	@Delegate
+	@Any
+	IDataServiceResolver resolver;
+
 	@Override
 	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
 		checkDataService(clazz);
@@ -31,11 +31,12 @@ public abstract class ResolverDecorator implements IDataServiceResolver {
 
 	/**
 	 * Check if class is DataService
+	 *
 	 * @param cls
-	 * @throws DataServiceException 
+	 * @throws DataServiceException
 	 */
 	protected void checkDataService(Class cls) throws DataServiceException {
-		if(!cls.isAnnotationPresent(DataService.class)) {
+		if (!cls.isAnnotationPresent(DataService.class)) {
 			throw new DataServiceException(cls.getSimpleName());
 		}
 	}
