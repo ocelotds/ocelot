@@ -227,29 +227,29 @@ public abstract class AbstractOcelotDataService {
 			Class cls = Class.forName(message.getDataService());
 			Object dataService = getDataService(client, cls);
 			logger.trace("Process message {}", message);
+			logger.trace("Invocation of : {}", message.getOperation());
+			Object[] arguments = new Object[message.getParameters().size()];
+			Method method = getMethodFromDataService(dataService, message, arguments);
+			logger.trace("Process method {}.", method.getName());
+			Object result = method.invoke(dataService, arguments);
+			messageToClient.setResult(result);
 			try {
-				logger.trace("Invocation of : {}", message.getOperation());
-				Object[] arguments = new Object[message.getParameters().size()];
-				Method method = getMethodFromDataService(dataService, message, arguments);
-				logger.trace("Process method {}.", method.getName());
-				Object result = method.invoke(dataService, arguments);
-				messageToClient.setResult(result);
-				try {
-					Method nonProxiedMethod = getNonProxiedMethod(cls, method.getName(), method.getParameterTypes());
-					messageToClient.setDeadline(getJsCacheResultDeadline(nonProxiedMethod));
-					processCleanCacheAnnotations(nonProxiedMethod, message.getParameterNames(), message.getParameters());
-				} catch (NoSuchMethodException ex) {
-					logger.error("Fail to process extra annotations (JsCacheResult, JsCacheRemove) for method : " + method.getName(), ex);
-				}
-			} catch (MethodNotFoundException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-				Throwable cause = ex;
-				if (InvocationTargetException.class.isInstance(ex)) {
-					cause = ex.getCause();
-				}
-				messageToClient.setFault(new Fault(cause, configuration.getStacktracedeep()));
+				Method nonProxiedMethod = getNonProxiedMethod(cls, method.getName(), method.getParameterTypes());
+				messageToClient.setDeadline(getJsCacheResultDeadline(nonProxiedMethod));
+				processCleanCacheAnnotations(nonProxiedMethod, message.getParameterNames(), message.getParameters());
+			} catch (NoSuchMethodException ex) {
+				logger.error("Fail to process extra annotations (JsCacheResult, JsCacheRemove) for method : " + method.getName(), ex);
 			}
-		} catch (ClassNotFoundException | DataServiceException ex) {
-			messageToClient.setFault(new Fault(ex, configuration.getStacktracedeep()));
+		} catch (MethodNotFoundException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException | DataServiceException ex) {
+			int stacktracelength =configuration.getStacktracedeep();
+			Throwable cause = ex;
+			if (InvocationTargetException.class.isInstance(ex)) {
+				cause = ex.getCause();
+			}
+			if(stacktracelength==0) {
+				logger.error("Invocation failed", ex);
+			}
+			messageToClient.setFault(new Fault(cause, stacktracelength));
 		}
 		try {
 			client.getBasicRemote().sendObject(messageToClient);
