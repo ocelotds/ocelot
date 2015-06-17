@@ -1,13 +1,19 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 package fr.hhdev.ocelot.messaging;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.hhdev.ocelot.Constants;
+import fr.hhdev.ocelot.i18n.OcelotI18nException;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 
 /**
  *
@@ -15,55 +21,71 @@ import java.util.Objects;
  */
 public class Fault {
 
-	public Fault() {
-	}
+	private final Throwable throwable;
+	final private int stacktracelength;
+	protected String message = null;
+	protected boolean ocelotException = false;
+	protected String classname = null;
 
-	public Fault(Throwable t, int stackdeep) {
-		this.message = t.getMessage();
-		this.classname = t.getClass().getName();
-		String[] stackTraceElements = new String[Math.min(t.getStackTrace().length, stackdeep)];
-		for (int i = 0; i < stackTraceElements.length; i++) {
-			stackTraceElements[i] = t.getStackTrace()[i].toString();
+	public Fault(Throwable t, int stacktracelength) {
+		this.throwable = t;
+		if (t != null) {
+			this.ocelotException = OcelotI18nException.class.isAssignableFrom(t.getClass());
+			this.message = t.getMessage();
+			this.classname = t.getClass().getName();
 		}
-		this.stacktrace = stackTraceElements;
+		this.stacktracelength = stacktracelength;
 	}
-
-	private String message;
-	private String classname;
-	private String[] stacktrace;
 
 	public String getMessage() {
 		return message;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
 	}
 
 	public String getClassname() {
 		return classname;
 	}
 
-	public void setClassname(String classname) {
-		this.classname = classname;
+	public StackTraceElement[] getStacktrace() {
+		if (throwable != null && stacktracelength > 0) {
+			StackTraceElement[] stackTraces = throwable.getStackTrace();
+			return Arrays.copyOf(stackTraces, Math.min(stackTraces.length, stacktracelength));
+		}
+		return new StackTraceElement[]{};
 	}
 
-	public String[] getStacktrace() {
-		return stacktrace;
+	public Throwable getThrowable() {
+		return throwable;
 	}
 
-	public void setStacktrace(String[] stacktrace) {
-		this.stacktrace = stacktrace;
+	public boolean isOcelotException() {
+		return ocelotException;
 	}
 
+	/**
+	 * Fault json format : {"message":"","classname":"","stacktrace":["","",""]}
+	 *
+	 * @param json
+	 * @return
+	 * @throws IOException
+	 */
 	public static Fault createFromJson(String json) throws IOException {
-		ObjectMapper mapper = new ObjectMapper();
-		return mapper.readValue(json, Fault.class);
+		Fault fault = new Fault(null, 0);
+		try (JsonReader reader = Json.createReader(new StringReader(json))) {
+			JsonObject root = reader.readObject();
+			fault.message = root.getString(Constants.Message.Fault.MESSAGE);
+			fault.classname = root.getString(Constants.Message.Fault.CLASSNAME);
+		}
+		return fault;
 	}
 
 	public String toJson() throws IOException {
-		ObjectMapper mapper = new ObjectMapper();
-		return mapper.writeValueAsString(this);
+		StackTraceElement[] stacktraceElt = getStacktrace();
+		String stacktrace = String.format(String.join(",", Collections.nCopies(stacktraceElt.length, "\"%s\"")), (Object[]) stacktraceElt);
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":[%s]}",
+				  Constants.Message.Fault.CLASSNAME, this.classname,
+				  Constants.Message.Fault.MESSAGE, this.message,
+				  Constants.Message.Fault.STACKTRACE, stacktrace);
+		return json;
 	}
 
 	@Override
@@ -72,7 +94,7 @@ public class Fault {
 			return toJson();
 		} catch (IOException ex) {
 		}
-		return "Fault{" + "message=" + message + ", classname=" + classname + ", stacktrace=" + Arrays.deepToString(stacktrace) + '}';
+		return "Fault{" + "message=" + message + ", classname=" + classname + ", stacktrace maxlength=" + stacktracelength + '}';
 	}
 
 	@Override
@@ -100,10 +122,5 @@ public class Fault {
 		}
 		return true;
 	}
-	
-	
-
-	
-	
 
 }
