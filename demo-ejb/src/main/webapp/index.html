@@ -25,6 +25,15 @@
 			};
 			var pojoService = new TestPojoService();
 			var ejbService = new TestEJBService();
+			function getErrorMessage(srv) {
+				var token = srv.getMessage(true);
+				token.success = function (msg) {
+					addMessage(msg);
+				};
+				token.fail = function (fault) {
+					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
+				};
+			}
 			function getMessage(srv) {
 				var token = srv.getMessage(Math.floor(Math.random() * 10));
 				token.success = function (msg) {
@@ -94,6 +103,7 @@
 		<button onclick="getMessageAndCleanCache(ejbService)">GET EJB MESSAGE AND CLEAN CACHE2 1Mn</button><br>
 		<button onclick="getMessage(pojoService)">GET POJO MESSAGE(int)</button><br>
 		<button onclick="getMessage2(pojoService)">GET POJO MESSAGE(str)</button><br>
+		<button onclick="getErrorMessage(pojoService)">GET ERROR MESSAGE</button><br>
 		<div id="output"></div>
 	</body>
 </html>
