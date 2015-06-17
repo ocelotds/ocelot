@@ -18,7 +18,7 @@ public interface Constants {
 
 	interface Options {
 		String MINIFYJS = "ocelot.minifyjs";
-		String STACKTRACE = "ocelot.stacktrace.deep";
+		String STACKTRACE = "ocelot.stacktrace.length";
 	}
 	interface Message {
 
@@ -30,6 +30,12 @@ public interface Constants {
 		String DEADLINE = "deadline";
 		String RESULT = "result";
 		String FAULT = "fault";
+		interface Fault {
+			String MESSAGE = "message";
+			String CLASSNAME = "classname";
+			String STACKTRACE = "stacktrace";
+
+		}
 	}
 
 	interface Resolver {
