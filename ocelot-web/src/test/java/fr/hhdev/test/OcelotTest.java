@@ -752,10 +752,7 @@ public class OcelotTest {
 	public void testMessageFaultToClientCreator() {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
-		Fault f = new Fault();
-		f.setMessage("Message d'erreur");
-		f.setClassname(NullPointerException.class.getName());
-		f.setStacktrace(null);
+		Fault f = new Fault(new NullPointerException("Message d'erreur"), 0);
 		String json;
 		try {
 			json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
