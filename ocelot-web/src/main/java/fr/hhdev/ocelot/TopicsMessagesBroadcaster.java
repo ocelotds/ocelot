@@ -36,10 +36,10 @@ public class TopicsMessagesBroadcaster {
 	public void sendMessageToTopic(@Observes @MessageEvent MessageToClient msg) {
 		logger.trace("Sending message/response to topic {}", msg.toJson());
 		try {
-			if (sessionManager.existsTopicSessionForId(msg.getId())) {
-				Collection<Session> sessions = sessionManager.getTopicSessionsForId(msg.getId());
+			if (sessionManager.existsSessionForTopic(msg.getId())) {
+				Collection<Session> sessions = sessionManager.getSessionsForTopic(msg.getId());
 				if (sessions != null && !sessions.isEmpty()) {
-					logger.trace("Send message to '{}' topic {} client(s) : {}", new Object[]{msg.getId(), sessions.size(), msg.toJson()});
+					logger.trace("Send message to '{}' topic {} client(s) : {}", new Object[]{msg.getId(), sessions.size(), msg.toJson(null)});
 					for (Session session : sessions) {
 						if (session.isOpen()) {
 							session.getBasicRemote().sendObject(msg);
