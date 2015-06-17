@@ -7,4 +7,8 @@
 		<param-name>ocelot.minifyjs</param-name>
 		<param-value>true</param-value>
 	</context-param>
+	<context-param>
+		<param-name>ocelot.stacktrace.length</param-name>
+		<param-value>10</param-value>
+	</context-param>
 </web-app>
