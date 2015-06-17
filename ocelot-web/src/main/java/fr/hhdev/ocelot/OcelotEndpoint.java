@@ -10,7 +10,6 @@ import fr.hhdev.ocelot.encoders.MessageToClientEncoder;
 import fr.hhdev.ocelot.messaging.Command;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import java.io.IOException;
-import java.util.Map;
 import javax.inject.Inject;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
@@ -60,7 +59,7 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 				session.close();
 			} catch (IOException ex) {
 			}
-			sessionManager.removeSession(session);
+			sessionManager.removeSessionToTopic(session);
 		}
 	}
 
