@@ -241,7 +241,7 @@ public abstract class AbstractOcelotDataService {
 				logger.error("Fail to process extra annotations (JsCacheResult, JsCacheRemove) for method : " + method.getName(), ex);
 			}
 		} catch (MethodNotFoundException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException | DataServiceException ex) {
-			int stacktracelength =configuration.getStacktracedeep();
+			int stacktracelength =configuration.getStacktracelength();
 			Throwable cause = ex;
 			if (InvocationTargetException.class.isInstance(ex)) {
 				cause = ex.getCause();
