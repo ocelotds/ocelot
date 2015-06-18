@@ -10,7 +10,14 @@ import fr.hhdev.test.dataservices.CDIDataService;
 import fr.hhdev.test.dataservices.SingletonCDIDataService;
 import fr.hhdev.test.dataservices.PojoDataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.hhdev.ocelot.AbstractOcelotDataService;
 import fr.hhdev.ocelot.Constants;
+import fr.hhdev.ocelot.OcelotConfiguration;
+import fr.hhdev.ocelot.OcelotEndpoint;
+import fr.hhdev.ocelot.OcelotRequestConfigurator;
+import fr.hhdev.ocelot.SessionManager;
+import fr.hhdev.ocelot.TopicsMessagesBroadcaster;
+import fr.hhdev.ocelot.i18n.Locale;
 import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.Command;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
@@ -137,9 +144,24 @@ public class OcelotTest {
 
 	public static JavaArchive createLibArchive() {
 		File bean = new File("src/main/resources/META-INF/beans.xml");
-		return ShrinkWrap.create(JavaArchive.class, "ocelot-core.jar")
-				  .addPackages(true, Constants.class.getPackage())
-				  .addAsManifestResource(new FileAsset(bean), "beans.xml");
+		File core = new File("src/main/resources/ocelot-core.js");
+		File localeFr = new File("src/main/resources/test_fr_FR.properties");
+		File localeUs = new File("src/main/resources/test_en_US.properties");
+		return ShrinkWrap.create(JavaArchive.class, "ocelot-web.jar")
+				  .addPackages(true, "fr.hhdev.ocelot.encoders")
+				  .addPackages(true, "fr.hhdev.ocelot.exceptions")
+				  .addPackages(true, "fr.hhdev.ocelot.resolvers")
+				  .addPackages(true, "fr.hhdev.ocelot.web")
+				  .addClass(AbstractOcelotDataService.class)
+				  .addClass(OcelotConfiguration.class)
+				  .addClass(OcelotEndpoint.class)
+				  .addClass(OcelotRequestConfigurator.class)
+				  .addClass(SessionManager.class)
+				  .addClass(TopicsMessagesBroadcaster.class)
+				  .addAsManifestResource(new FileAsset(bean), "beans.xml")
+				  .addAsResource(new FileAsset(core), "ocelot-core.js")
+				  .addAsResource(new FileAsset(localeUs), "test_en_US.properties")
+				  .addAsResource(new FileAsset(localeFr), "test_fr_FR.properties");
 	}
 
 	@BeforeClass
@@ -187,10 +209,10 @@ public class OcelotTest {
 	 * @param params
 	 * @return
 	 */
-	private MessageFromClient getMessageFromClient(Class clazz, String operation, String... params) {
+	private MessageFromClient getMessageFromClient(String classname, String operation, String... params) {
 		MessageFromClient messageFromClient = new MessageFromClient();
 		messageFromClient.setId(UUID.randomUUID().toString());
-		messageFromClient.setDataService(clazz.getName());
+		messageFromClient.setDataService(classname);
 		messageFromClient.setOperation(operation);
 		if (params != null) {
 			messageFromClient.getParameters().addAll(Arrays.asList(params));
@@ -240,7 +262,7 @@ public class OcelotTest {
 
 		@Override
 		public void onMessage(String message) {
-			logger.trace("RECEIVE RESPONSE FROM SERVER = {}", message);
+			logger.debug("RECEIVE RESPONSE FROM SERVER = {}", message);
 			MessageToClient messageToClientIn = MessageToClient.createFromJson(message);
 			if ((id != null && id.equals(messageToClientIn.getId())) || (id == null && messageToClientIn.getId() != null)) {
 				messageToClient = messageToClientIn;
@@ -279,7 +301,7 @@ public class OcelotTest {
 	 * @return
 	 */
 	private Object getResultAfterSendInSession(Session wsSession, Class clazz, String operation, String... params) {
-		return getMessageToClientAfterSendInSession(wsSession, clazz, operation, params).getResult();
+		return getMessageToClientAfterSendInSession(wsSession, clazz.getName(), operation, params).getResult();
 	}
 
 	/**
@@ -295,7 +317,7 @@ public class OcelotTest {
 		Command cmd = new Command();
 		cmd.setCommand(Constants.Command.Value.CALL);
 		// construction de lac commande
-		MessageFromClient messageFromClient = getMessageFromClient(clazz, operation, params);
+		MessageFromClient messageFromClient = getMessageFromClient(clazz.getName(), operation, params);
 		cmd.setMessage(messageFromClient.toJson());
 		// on crée un handler client de reception de la réponse
 		try {
@@ -306,14 +328,14 @@ public class OcelotTest {
 		}
 	}
 
-	private MessageToClient getMessageToClientAfterSendInSession(Session session, Class clazz, String operation, String... params) {
+	private MessageToClient getMessageToClientAfterSendInSession(Session session, String classname, String operation, String... params) {
 		MessageToClient result = null;
 		try {
 			// contruction de l'objet command
 			Command cmd = new Command();
 			cmd.setCommand(Constants.Command.Value.CALL);
 			// construction de lac commande
-			MessageFromClient messageFromClient = getMessageFromClient(clazz, operation, params);
+			MessageFromClient messageFromClient = getMessageFromClient(classname, operation, params);
 			cmd.setMessage(messageFromClient.toJson());
 			// on pose un locker
 			CountDownLatch lock = new CountDownLatch(1);
@@ -788,6 +810,75 @@ public class OcelotTest {
 	}
 
 	/**
+	 * Vérifie l'acces à la locale
+	 */
+	@Test
+	public void testLocale() {
+		try (Session wssession = createAndGetSession()) {
+			// Par default la locale est US
+			String methodName = "getLocale";
+			System.out.println(methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, "fr.hhdev.ocelot.OcelotServices", methodName);
+			Object result = messageToClient.getResult();
+			assertEquals("{\"language\":\"en\",\"country\":\"US\"}", result);
+			Fault fault = messageToClient.getFault();
+			assertEquals(null, fault);
+
+			// Récup du message en us
+			methodName = "getLocaleHello";
+			System.out.println(methodName);
+			messageToClient = getMessageToClientAfterSendInSession(wssession, EJBDataService.class.getName(), methodName, getJson("François"));
+			result = messageToClient.getResult();
+			assertEquals("\"Hello François\"", result);
+			fault = messageToClient.getFault();
+			assertEquals(null, fault);
+
+			// On change pour le francais
+			methodName = "setLocale";
+			System.out.println(methodName);
+			Locale locale = new Locale();
+			locale.setLanguage("fr");
+			locale.setCountry("FR");
+			messageToClient = getMessageToClientAfterSendInSession(wssession, "fr.hhdev.ocelot.OcelotServices", methodName, getJson(locale));
+			result = messageToClient.getResult();
+			assertEquals(null, result);
+			fault = messageToClient.getFault();
+			assertEquals(null, fault);
+
+			// Vérification
+			methodName = "getLocale";
+			System.out.println(methodName);
+			messageToClient = getMessageToClientAfterSendInSession(wssession, "fr.hhdev.ocelot.OcelotServices", methodName);
+			result = messageToClient.getResult();
+			assertEquals("{\"language\":\"fr\",\"country\":\"FR\"}", result);
+			fault = messageToClient.getFault();
+			assertEquals(null, fault);
+
+			//  Récup du message en francais
+			methodName = "getLocaleHello";
+			System.out.println(methodName);
+			messageToClient = getMessageToClientAfterSendInSession(wssession, EJBDataService.class.getName(), methodName, getJson("François"));
+			result = messageToClient.getResult();
+			assertEquals("\"Bonjour François\"", result);
+			fault = messageToClient.getFault();
+			assertEquals(null, fault);
+		} catch (IOException exception) {
+		}
+
+		// Une autre session doit en revanche pas être impacté
+		try (Session wssession = createAndGetSession()) {
+			String methodName = "getLocale";
+			System.out.println(methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, "fr.hhdev.ocelot.OcelotServices", methodName);
+			Object result = messageToClient.getResult();
+			assertEquals("{\"language\":\"en\",\"country\":\"US\"}", result);
+			Fault fault = messageToClient.getFault();
+			assertEquals(null, fault);
+		} catch (IOException exception) {
+		}
+	}
+
+	/**
 	 * Vérifie que l'appel à une methode inconue remonte bien une erreur adéquate
 	 */
 	@Test
@@ -796,7 +887,7 @@ public class OcelotTest {
 		String methodName = "getUnknownMethod";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals(null, result);
 			Fault fault = messageToClient.getFault();
@@ -814,7 +905,7 @@ public class OcelotTest {
 		String methodName = "getVoid";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals(null, result);
 			Fault fault = messageToClient.getFault();
@@ -832,7 +923,7 @@ public class OcelotTest {
 		String methodName = "getString";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getString()), result);
 			Fault fault = messageToClient.getFault();
@@ -850,7 +941,7 @@ public class OcelotTest {
 		String methodName = "getNum";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getNum()), result);
 			Fault fault = messageToClient.getFault();
@@ -868,7 +959,7 @@ public class OcelotTest {
 		String methodName = "getNumber";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getNumber()), result);
 			Fault fault = messageToClient.getFault();
@@ -886,7 +977,7 @@ public class OcelotTest {
 		String methodName = "getBool";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getBool()), result);
 			Fault fault = messageToClient.getFault();
@@ -904,7 +995,7 @@ public class OcelotTest {
 		String methodName = "getBoolean";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getBoolean()), result);
 			Fault fault = messageToClient.getFault();
@@ -923,7 +1014,7 @@ public class OcelotTest {
 		System.out.println("BEFORE = " + before.getTime());
 		try (Session wssession = createAndGetSession()) {
 			Thread.sleep(1000);
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, PojoDataService.class, "getDate");
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, PojoDataService.class.getName(), "getDate");
 			Object result = messageToClient.getResult();
 			assertNotNull(result);
 			Date res = new Date(Long.parseLong(result.toString()));
@@ -950,7 +1041,7 @@ public class OcelotTest {
 		String methodName = "getResult";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getResult()), result);
 			Fault fault = messageToClient.getFault();
@@ -968,7 +1059,7 @@ public class OcelotTest {
 		String methodName = "getCollectionInteger";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getCollectionInteger()), result);
 			Fault fault = messageToClient.getFault();
@@ -986,7 +1077,7 @@ public class OcelotTest {
 		String methodName = "getCollectionResult";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getCollectionResult()), result);
 			Fault fault = messageToClient.getFault();
@@ -1004,7 +1095,7 @@ public class OcelotTest {
 		String methodName = "getCollectionOfCollectionResult";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getCollectionOfCollectionResult()), result);
 			Fault fault = messageToClient.getFault();
@@ -1022,7 +1113,7 @@ public class OcelotTest {
 		String methodName = "getMapResult";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.getMapResult()), result);
 			Fault fault = messageToClient.getFault();
@@ -1040,7 +1131,7 @@ public class OcelotTest {
 		String methodName = "methodWithNum";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(1));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(1));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithNum(1)), result);
 			Fault fault = messageToClient.getFault();
@@ -1058,7 +1149,7 @@ public class OcelotTest {
 		String methodName = "methodWithNumber";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(2));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(2));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithNumber(2)), result);
 			Fault fault = messageToClient.getFault();
@@ -1076,7 +1167,7 @@ public class OcelotTest {
 		String methodName = "methodWithBool";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(true));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(true));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithBool(true)), result);
 			Fault fault = messageToClient.getFault();
@@ -1094,7 +1185,7 @@ public class OcelotTest {
 		String methodName = "methodWithBoolean";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(false));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(false));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithBoolean(false)), result);
 			Fault fault = messageToClient.getFault();
@@ -1113,7 +1204,7 @@ public class OcelotTest {
 		System.out.println(methodName);
 		Object arg = new Date();
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithDate((Date) arg)), result);
 			Fault fault = messageToClient.getFault();
@@ -1132,7 +1223,7 @@ public class OcelotTest {
 		System.out.println(methodName);
 		Object arg = new Result(6);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithResult((Result) arg)), result);
 			Fault fault = messageToClient.getFault();
@@ -1151,7 +1242,7 @@ public class OcelotTest {
 		System.out.println(methodName);
 		Object arg = new Integer[]{1, 2};
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithArrayInteger((Integer[]) arg)), result);
 			Fault fault = messageToClient.getFault();
@@ -1170,7 +1261,7 @@ public class OcelotTest {
 		System.out.println(methodName);
 		Object arg = destination.getCollectionInteger();
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithCollectionInteger((Collection<Integer>) arg)), result);
 			Fault fault = messageToClient.getFault();
@@ -1189,7 +1280,7 @@ public class OcelotTest {
 		System.out.println(methodName);
 		Object arg = new Result[]{new Result(1), new Result(2)};
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithArrayResult((Result[]) arg)), result);
 			Fault fault = messageToClient.getFault();
@@ -1208,7 +1299,7 @@ public class OcelotTest {
 		System.out.println(methodName);
 		Object arg = destination.getCollectionResult();
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithCollectionResult((Collection<Result>) arg)), result);
 			Fault fault = messageToClient.getFault();
@@ -1227,7 +1318,7 @@ public class OcelotTest {
 		System.out.println(methodName);
 		Object arg = destination.getMapResult();
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithMapResult((Map<String, Result>) arg)), result);
 			Fault fault = messageToClient.getFault();
@@ -1246,7 +1337,7 @@ public class OcelotTest {
 		System.out.println(methodName);
 		Object arg = destination.getCollectionOfCollectionResult();
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(arg));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithCollectionOfCollectionResult((Collection<Collection<Result>>) arg)), result);
 			Fault fault = messageToClient.getFault();
@@ -1267,7 +1358,7 @@ public class OcelotTest {
 		cl.add("foo");
 		cl.add("foo");
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson("foo"), getJson(5), getJson(new Result(3)), getJson(cl));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson("foo"), getJson(5), getJson(new Result(3)), getJson(cl));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithManyParameters("foo", 5, new Result(3), cl)), result);
 			Fault fault = messageToClient.getFault();
@@ -1285,7 +1376,7 @@ public class OcelotTest {
 		String methodName = "methodThatThrowException";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals(null, result);
 			Fault fault = messageToClient.getFault();
@@ -1303,7 +1394,7 @@ public class OcelotTest {
 		String methodName = "methodWithAlmostSameSignature";
 		System.out.println(methodName + "(int)");
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(5));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(5));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithAlmostSameSignature(5)), result);
 			Fault fault = messageToClient.getFault();
@@ -1321,7 +1412,7 @@ public class OcelotTest {
 		String methodName = "methodWithAlmostSameSignature";
 		System.out.println(methodName + "(string)");
 		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson("foo"));
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson("foo"));
 			Object result = messageToClient.getResult();
 			assertEquals(getJson(destination.methodWithAlmostSameSignature("foo")), result);
 			Fault fault = messageToClient.getFault();

@@ -79,7 +79,7 @@ public class EJBResolver implements IDataServiceResolver {
 							}
 							return result;
 						} catch (NamingException e) {
-							logger.trace("{} list.next() {} : {}", new Object[]{e.getClass().getSimpleName(), name, e.getMessage()});
+							logger.debug("{} list.next() {} : {}", new Object[]{e.getClass().getSimpleName(), name, e.getMessage()});
 						}
 					}
 					result = findEJB(jndi + JndiConstant.PATH_SEPARATOR + itemName, name);
@@ -87,11 +87,11 @@ public class EJBResolver implements IDataServiceResolver {
 						return result;
 					}
 				} catch (NamingException e) {
-					logger.trace("{} list.next() {} : {}", new Object[]{e.getClass().getSimpleName(), name, e.getMessage()});
+					logger.debug("{} list.next() {} : {}", new Object[]{e.getClass().getSimpleName(), name, e.getMessage()});
 				}
 			}
 		} catch (Throwable e) {
-			logger.trace("{} Context {} invalide : {}", new Object[]{e.getClass().getSimpleName(), name, e.getMessage()});
+			logger.debug("{} Context {} invalide : {}", new Object[]{e.getClass().getSimpleName(), name, e.getMessage()});
 		}
 		return null;
 	}

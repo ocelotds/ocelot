@@ -38,7 +38,7 @@ public class SessionManager {
 			sessions = new HashSet<>();
 			sessionsByTopic.put(topic, sessions);
 		}
-		logger.trace("'{}' subscribe to '{}'", session.getId(), topic);
+		logger.debug("'{}' subscribe to '{}'", session.getId(), topic);
 		sessions.add(session);
 	}
 
@@ -49,7 +49,7 @@ public class SessionManager {
 	 * @param session
 	 */
 	public void unregisterTopicSession(String topic, Session session) {
-		logger.trace("'{}' unsubscribe to '{}'", session.getId(), topic);
+		logger.debug("'{}' unsubscribe to '{}'", session.getId(), topic);
 		Set<Session> sessions = sessionsByTopic.get(topic);
 		if (sessions != null && sessions.contains(session)) {
 			sessions.remove(session);

@@ -15,6 +15,7 @@ import fr.hhdev.ocelot.annotations.JsCacheRemove;
 import fr.hhdev.ocelot.annotations.JsCacheRemoveAll;
 import fr.hhdev.ocelot.annotations.JsCacheRemoves;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
+import fr.hhdev.ocelot.i18n.ThreadLocalContextHolder;
 import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.MessageEvent;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
@@ -36,6 +37,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.el.MethodNotFoundException;
 import javax.enterprise.event.Event;
@@ -85,23 +87,23 @@ public abstract class AbstractOcelotDataService {
 	 * @return
 	 */
 	protected Method getMethodFromDataService(final Object dataService, final MessageFromClient message, Object[] arguments) throws MethodNotFoundException {
-		logger.trace("Try to find method {} on class {}", message.getOperation(), dataService);
+		logger.debug("Try to find method {} on class {}", message.getOperation(), dataService);
 		List<String> parameters = message.getParameters();
 		for (Method method : dataService.getClass().getMethods()) {
 			if (method.getName().equals(message.getOperation()) && method.getParameterCount() == parameters.size()) {
-				logger.trace("Process method {}", method.getName());
+				logger.debug("Process method {}", method.getName());
 				try {
 					Type[] params = method.getGenericParameterTypes();
 					int idx = 0;
 					for (Type param : params) {
 						String arg = cleanArg(parameters.get(idx));
-						logger.trace("Get argument ({}) {} : {}.", new Object[]{idx, param.getTypeName(), arg});
+						logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, param.getTypeName(), arg});
 						arguments[idx++] = convertArgument(arg, param);
 					}
-					logger.trace("Method {}.{} with good signature found.", dataService.getClass(), message.getOperation());
+					logger.debug("Method {}.{} with good signature found.", dataService.getClass(), message.getOperation());
 					return method;
 				} catch (IllegalArgumentException iae) {
-					logger.trace("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dataService.getClass(), message.getOperation(), iae.getMessage()});
+					logger.debug("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dataService.getClass(), message.getOperation(), iae.getMessage()});
 				}
 			}
 		}
@@ -110,17 +112,17 @@ public abstract class AbstractOcelotDataService {
 
 	private Object convertArgument(String arg, Type param) throws IllegalArgumentException {
 		Object result = null;
-		logger.trace("Try to convert {} : param = {} : {}", new Object[]{arg, param, param.getClass()});
+		logger.debug("Try to convert {} : param = {} : {}", new Object[]{arg, param, param.getClass()});
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			if(ParameterizedType.class.isInstance(param)) {
 				JavaType javaType = getJavaType(param);
-				logger.trace("Try to convert '{}' to JavaType : '{}'", arg, param);
+				logger.debug("Try to convert '{}' to JavaType : '{}'", arg, param);
 				result = mapper.readValue(arg, javaType);
-				logger.trace("Conversion of '{}' to '{}' : OK", arg, param);
+				logger.debug("Conversion of '{}' to '{}' : OK", arg, param);
 			} else if(Class.class.isInstance(param)) {
 				Class cls = (Class) param;
-				logger.trace("Try to convert '{}' to Class '{}'", arg, param);
+				logger.debug("Try to convert '{}' to Class '{}'", arg, param);
 				if (cls.equals(String.class) && (!arg.startsWith("\"") || !arg.endsWith("\""))) { // on cherche une string
 					throw new IOException();
 				}
@@ -128,10 +130,10 @@ public abstract class AbstractOcelotDataService {
 					throw new IOException();
 				}
 				result = mapper.readValue(arg, cls);
-				logger.trace("Conversion of '{}' to '{}' : OK", arg, param);
+				logger.debug("Conversion of '{}' to '{}' : OK", arg, param);
 			}
 		} catch (IOException ex) {
-			logger.trace("Conversion of '{}' to '{}' failed", arg, param);
+			logger.debug("Conversion of '{}' to '{}' failed", arg, param);
 			throw new IllegalArgumentException(param.getTypeName());
 		}
 		return result;
@@ -139,7 +141,7 @@ public abstract class AbstractOcelotDataService {
 
 	private JavaType getJavaType(Type type) {
 		Class clazz;
-		logger.trace("Computing type of {} - {}", type.getClass(), type.getTypeName());
+		logger.debug("Computing type of {} - {}", type.getClass(), type.getTypeName());
 		if (type instanceof ParameterizedType) {
 			clazz = (Class) ((ParameterizedType) type).getRawType();
 		} else {
@@ -193,7 +195,7 @@ public abstract class AbstractOcelotDataService {
 	 */
 	protected Object getDataService(Session client, Class cls) throws DataServiceException {
 		String dataServiceClassName = cls.getName();
-		logger.trace("Looking for dataservice : {}", dataServiceClassName);
+		logger.debug("Looking for dataservice : {}", dataServiceClassName);
 		if (cls.isAnnotationPresent(DataService.class)) {
 			DataService dataServiceAnno = (DataService) cls.getAnnotation(DataService.class);
 			IDataServiceResolver resolver = getResolver(dataServiceAnno.resolver());
@@ -226,11 +228,11 @@ public abstract class AbstractOcelotDataService {
 		try {
 			Class cls = Class.forName(message.getDataService());
 			Object dataService = getDataService(client, cls);
-			logger.trace("Process message {}", message);
-			logger.trace("Invocation of : {}", message.getOperation());
+			logger.debug("Process message {}", message);
+			logger.debug("Invocation of : {}", message.getOperation());
 			Object[] arguments = new Object[message.getParameters().size()];
 			Method method = getMethodFromDataService(dataService, message, arguments);
-			logger.trace("Process method {}.", method.getName());
+			logger.debug("Process method {}.", method.getName());
 			Object result = method.invoke(dataService, arguments);
 			messageToClient.setResult(result);
 			try {
@@ -318,7 +320,7 @@ public abstract class AbstractOcelotDataService {
 	 * @param jcra
 	 */
 	protected void processJsCacheRemoveAll(JsCacheRemoveAll jcra) {
-		logger.trace("Process JsCacheRemoveAll annotation : {}", jcra);
+		logger.debug("Process JsCacheRemoveAll annotation : {}", jcra);
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
 		messageToClient.setResult(Constants.Cache.ALL);
@@ -406,5 +408,35 @@ public abstract class AbstractOcelotDataService {
 		} catch (SecurityException ex) {
 		}
 		throw new NoSuchMethodException(methodName);
+	}
+
+	protected void processOcelotServices(Session client, MessageFromClient message) {
+		MessageToClient messageToClient = new MessageToClient();
+		messageToClient.setId(message.getId());
+		if("setLocale".equals(message.getOperation())) {
+			try {
+				ObjectMapper mapper = new ObjectMapper();
+				fr.hhdev.ocelot.i18n.Locale l = mapper.readValue(message.getParameters().get(0), fr.hhdev.ocelot.i18n.Locale.class);
+				Locale locale = new Locale(l.getLanguage(), l.getCountry());
+				client.getUserProperties().put(Constants.LOCALE, locale);
+				ThreadLocalContextHolder.put(Constants.LOCALE, locale);
+			} catch (IOException ex) {
+			}
+		}
+		if("getLocale".equals(message.getOperation())) {
+			Locale locale = (Locale) client.getUserProperties().get(Constants.LOCALE);
+			fr.hhdev.ocelot.i18n.Locale l = new fr.hhdev.ocelot.i18n.Locale();
+			l.setLanguage(locale.getLanguage());
+			l.setCountry(locale.getCountry());
+			Calendar deadline = Calendar.getInstance();
+			deadline.add(Calendar.YEAR, 1);
+			messageToClient.setDeadline(deadline.getTime().getTime());
+			messageToClient.setResult(l);
+		}
+		try {
+			client.getBasicRemote().sendObject(messageToClient);
+		} catch (IOException | EncodeException ex) {
+			logger.error("Fail to send : " + messageToClient.toJson(), ex);
+		}
 	}
 }

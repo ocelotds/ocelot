@@ -16,8 +16,7 @@ import javax.json.JsonReader;
 import javax.json.JsonValue;
 
 /**
- * Message to Client, for response after message from client.
- * Server send this response asynchronous
+ * Message to Client, for response after message from client. Server send this response asynchronous
  *
  * @author hhfrancois
  */
@@ -94,7 +93,7 @@ public class MessageToClient {
 	}
 
 	/**
-	 * Attention le result/fault n'est pas désérialisé
+	 * Becareful result/fault are not unmarshalled
 	 *
 	 * @param json
 	 * @return
@@ -151,7 +150,7 @@ public class MessageToClient {
 				  res);
 		return json;
 	}
-	
+
 	@Override
 	public String toString() {
 		return toJson();

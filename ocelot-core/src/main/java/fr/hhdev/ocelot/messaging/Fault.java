@@ -5,7 +5,6 @@
 package fr.hhdev.ocelot.messaging;
 
 import fr.hhdev.ocelot.Constants;
-import fr.hhdev.ocelot.i18n.OcelotI18nException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
@@ -24,13 +23,11 @@ public class Fault {
 	private final Throwable throwable;
 	final private int stacktracelength;
 	protected String message = null;
-	protected boolean ocelotException = false;
 	protected String classname = null;
 
 	public Fault(Throwable t, int stacktracelength) {
 		this.throwable = t;
 		if (t != null) {
-			this.ocelotException = OcelotI18nException.class.isAssignableFrom(t.getClass());
 			this.message = t.getMessage();
 			this.classname = t.getClass().getName();
 		}
@@ -55,10 +52,6 @@ public class Fault {
 
 	public Throwable getThrowable() {
 		return throwable;
-	}
-
-	public boolean isOcelotException() {
-		return ocelotException;
 	}
 
 	/**

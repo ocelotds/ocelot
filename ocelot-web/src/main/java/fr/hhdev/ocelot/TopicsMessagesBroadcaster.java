@@ -34,22 +34,22 @@ public class TopicsMessagesBroadcaster {
 	 * @param msg
 	 */
 	public void sendMessageToTopic(@Observes @MessageEvent MessageToClient msg) {
-		logger.trace("Sending message/response to topic {}", msg.toJson());
+		logger.debug("Sending message/response to topic {}", msg.toJson());
 		try {
 			if (sessionManager.existsSessionForTopic(msg.getId())) {
 				Collection<Session> sessions = sessionManager.getSessionsForTopic(msg.getId());
 				if (sessions != null && !sessions.isEmpty()) {
-					logger.trace("Send message to '{}' topic {} client(s) : {}", new Object[]{msg.getId(), sessions.size(), msg.toJson()});
+					logger.debug("Send message to '{}' topic {} client(s) : {}", new Object[]{msg.getId(), sessions.size(), msg.toJson()});
 					for (Session session : sessions) {
 						if (session.isOpen()) {
 							session.getBasicRemote().sendObject(msg);
 						}
 					}
 				} else {
-					logger.trace("No client for topic '{}'", msg.getId());
+					logger.debug("No client for topic '{}'", msg.getId());
 				}
 			} else {
-				logger.trace("No topic '{}'", msg.getId());
+				logger.debug("No topic '{}'", msg.getId());
 			}
 		} catch (IOException | EncodeException ex) {
 			logger.error("Fail to send message to topic: "+msg.getId(), ex);

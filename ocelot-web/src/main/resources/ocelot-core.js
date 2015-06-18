@@ -211,6 +211,31 @@ var getOcelotToken = function (id, op, argNames, args) {
 	return evt;
 };
 
+/**
+ * Classe des services ocelot
+ * @author hhfrancois
+ */
+function OcelotServices() {
+	this.ds = "fr.hhdev.ocelot.OcelotServices";
+
+	/**
+	 * @param locale
+	 */
+	this.setLocale = function (locale) {
+		var op = "setLocale";
+		var id = (this.ds + "." + op + "(" + JSON.stringify([locale]) + ")");
+		return getOcelotToken.call(this, id.md5(), op, ["locale"], [locale]);
+	};
+	/**
+	 * @return locale
+	 */
+	this.getLocale = function () {
+		var op = "getLocale";
+		var id = (this.ds + "." + op + "(" + JSON.stringify([]) + ")");
+		return getOcelotToken.call(this, id.md5(), op, [], []);
+	};
+}
+
 /*
  * Take a string and return the hex representation of its MD5.
  * 10637920c62fe58f57cbdb1afaa7ad3e

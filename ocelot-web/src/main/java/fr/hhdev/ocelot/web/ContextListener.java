@@ -39,20 +39,20 @@ public class ContextListener implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
-		logger.trace("Context initialisation...");
+		logger.debug("Context initialisation...");
 		ServletContext sc = sce.getServletContext();
 		boolean minify = Boolean.parseBoolean(sc.getInitParameter("ocelot.minifyjs"));
-		logger.trace("Read minifyjs option in web.xml '{}' = {}.", Constants.Options.MINIFYJS, minify);
+		logger.debug("Read minifyjs option in web.xml '{}' = {}.", Constants.Options.MINIFYJS, minify);
 		String stacktrace = sc.getInitParameter(Constants.Options.STACKTRACE);
 		if(stacktrace==null) {
 			stacktrace = "50";
 		}
 		int stacktracelenght = Integer.parseInt(stacktrace);
-		logger.trace("Read stacktracedeep option in web.xml '{}' = {}.", Constants.Options.STACKTRACE, stacktracelenght);
+		logger.debug("Read stacktracedeep option in web.xml '{}' = {}.", Constants.Options.STACKTRACE, stacktracelenght);
 		configuration.setStacktracelength(stacktracelenght);
 		try {
 			String filename = createOcelotServicesJsFile(minify);
-			logger.trace("Generate temp file '{}' minified {}.", filename, minify);
+			logger.debug("Generate temp file '{}' minified {}.", filename, minify);
 			sc.setInitParameter(Constants.OCELOT_SERVICES_JS, filename);
 		} catch (IOException ex) {
 		}
@@ -68,7 +68,7 @@ public class ContextListener implements ServletContextListener {
 	}
 
 	/**
-	 * Create ocelot-services.js from the contentation of all services available from all modules
+	 * Create ocelot-services.js from the concatenation of all services available from all modules
 	 * @param minify
 	 * @return
 	 * @throws IOException 
@@ -78,7 +78,7 @@ public class ContextListener implements ServletContextListener {
 		try (FileOutputStream out = new FileOutputStream(file)) {
 			createLicenceComment(out);
 			for (IServicesProvider servicesProvider : servicesProviders) {
-				logger.trace("Find javascript services provider : '{}'", servicesProvider.getClass().getName());
+				logger.debug("Find javascript services provider : '{}'", servicesProvider.getClass().getName());
 				servicesProvider.streamJavascriptServices(out, minify);
 			}
 		}

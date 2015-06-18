@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package fr.hhdev.ocelot;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import javax.websocket.HandshakeResponse;
@@ -24,8 +25,9 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 	@Override
 	public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
 		Map<String, List<String>> headers = request.getHeaders();
-		logger.debug("Get accept-language from client headers : {}", headers.get(HttpHeaders.ACCEPT_LANGUAGE));
-		sec.getUserProperties().put(HttpHeaders.ACCEPT_LANGUAGE, headers.get(HttpHeaders.ACCEPT_LANGUAGE)); // accept-language : [fr, fr-FR;q=0.8, en-US;q=0.5, en;q=0.3]
+		List<String> accept = headers.getOrDefault(HttpHeaders.ACCEPT_LANGUAGE, Arrays.asList(new String[] {"en-US;q=1"}));
+		logger.debug("Get accept-language from client headers : {}", accept);
+		sec.getUserProperties().put(HttpHeaders.ACCEPT_LANGUAGE, accept); // accept-language : [fr, fr-FR;q=0.8, en-US;q=0.5, en;q=0.3]
 		super.modifyHandshake(sec, request, response);
 	}
 }

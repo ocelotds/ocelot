@@ -7,11 +7,18 @@ package fr.hhdev.ocelot;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.encoders.CommandDecoder;
 import fr.hhdev.ocelot.encoders.MessageToClientEncoder;
+import fr.hhdev.ocelot.i18n.ThreadLocalContextHolder;
 import fr.hhdev.ocelot.messaging.Command;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
+import fr.hhdev.ocelot.messaging.MessageToClient;
 import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.websocket.CloseReason;
+import javax.websocket.EncodeException;
 import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -19,6 +26,7 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
+import javax.ws.rs.core.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +45,23 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 
 	@OnOpen
 	public void handleOpenConnexion(Session session, EndpointConfig config) throws IOException {
-		logger.trace("Open connexion for session '{}'", session.getId());
+		Locale locale = (Locale) session.getUserProperties().get(Constants.LOCALE);
+		if (null == locale) {
+			logger.debug("Locale is not set in session, get from config...");
+			List<String> accepts = (List<String>) config.getUserProperties().get(HttpHeaders.ACCEPT_LANGUAGE);
+			locale = new Locale("en", "US");
+			for (String accept : accepts) {
+				Pattern pattern = Pattern.compile("(\\w\\w)-(\\w\\w).*");
+				Matcher matcher = pattern.matcher(accept);
+				if (matcher.matches() && matcher.groupCount() == 2) {
+					locale = new Locale(matcher.group(1), matcher.group(2));
+					break;
+				}
+			}
+			session.getUserProperties().put(Constants.LOCALE, locale);
+		}
+		ThreadLocalContextHolder.put(Constants.LOCALE, locale);
+		logger.debug("Open connexion for session '{}' LOCALE : {}", session.getId(), locale);
 	}
 
 	@OnError
@@ -53,7 +77,7 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 	 */
 	@OnClose
 	public void handleClosedConnection(Session session, CloseReason closeReason) {
-		logger.trace("Close connexion for session '{}' : '{}'", session.getId(), closeReason.getCloseCode());
+		logger.debug("Close connexion for session '{}' : '{}'", session.getId(), closeReason.getCloseCode());
 		if (session.isOpen()) {
 			try {
 				session.close();
@@ -71,6 +95,11 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 	 */
 	@OnMessage
 	public void receiveCommandMessage(Session client, Command command) {
+		Locale locale = (Locale) client.getUserProperties().get(Constants.LOCALE);
+		if (null != locale) {
+			logger.debug("Locale is set in session : {}", locale);
+			ThreadLocalContextHolder.put(Constants.LOCALE, locale);
+		}
 		if (null != command.getCommand()) {
 			try {
 				ObjectMapper mapper = new ObjectMapper();
@@ -88,6 +117,10 @@ public class OcelotEndpoint extends AbstractOcelotDataService {
 						break;
 					case Constants.Command.Value.CALL:
 						MessageFromClient message = MessageFromClient.createFromJson(command.getMessage());
+						if ("fr.hhdev.ocelot.OcelotServices".equals(message.getDataService())) {
+							processOcelotServices(client, message);
+							break;
+						}
 						logger.debug("Receive call message '{}' for session '{}'", message.getId(), client.getId());
 						sendMessageToClients(client, message);
 						break;
