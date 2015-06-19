@@ -5,7 +5,7 @@ package fr.hhdev.ocelot.web;
 
 import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.IServicesProvider;
-import fr.hhdev.ocelot.OcelotConfiguration;
+import fr.hhdev.ocelot.configuration.OcelotConfiguration;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

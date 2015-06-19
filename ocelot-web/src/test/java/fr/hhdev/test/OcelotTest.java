@@ -10,13 +10,12 @@ import fr.hhdev.test.dataservices.CDIDataService;
 import fr.hhdev.test.dataservices.SingletonCDIDataService;
 import fr.hhdev.test.dataservices.PojoDataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.hhdev.ocelot.AbstractOcelotDataService;
 import fr.hhdev.ocelot.Constants;
-import fr.hhdev.ocelot.OcelotConfiguration;
-import fr.hhdev.ocelot.OcelotEndpoint;
-import fr.hhdev.ocelot.OcelotRequestConfigurator;
-import fr.hhdev.ocelot.SessionManager;
-import fr.hhdev.ocelot.TopicsMessagesBroadcaster;
+import fr.hhdev.ocelot.configuration.OcelotConfiguration;
+import fr.hhdev.ocelot.web.OcelotEndpoint;
+import fr.hhdev.ocelot.configuration.OcelotRequestConfigurator;
+import fr.hhdev.ocelot.web.SessionManager;
+import fr.hhdev.ocelot.web.TopicsMessagesBroadcaster;
 import fr.hhdev.ocelot.i18n.Locale;
 import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.Command;
@@ -152,12 +151,8 @@ public class OcelotTest {
 				  .addPackages(true, "fr.hhdev.ocelot.exceptions")
 				  .addPackages(true, "fr.hhdev.ocelot.resolvers")
 				  .addPackages(true, "fr.hhdev.ocelot.web")
-				  .addClass(AbstractOcelotDataService.class)
-				  .addClass(OcelotConfiguration.class)
-				  .addClass(OcelotEndpoint.class)
-				  .addClass(OcelotRequestConfigurator.class)
-				  .addClass(SessionManager.class)
-				  .addClass(TopicsMessagesBroadcaster.class)
+				  .addPackages(true, "fr.hhdev.ocelot.core")
+				  .addPackages(true, "fr.hhdev.ocelot.configuration")
 				  .addAsManifestResource(new FileAsset(bean), "beans.xml")
 				  .addAsResource(new FileAsset(core), "ocelot-core.js")
 				  .addAsResource(new FileAsset(localeUs), "test_en_US.properties")
