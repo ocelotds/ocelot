@@ -243,8 +243,8 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 					}
 				}
 			}
-			writer.append("\t\tvar id = (this.ds + \".\" + op + \"(\" + JSON.stringify([").append(keys.toString()).append("]) + \")\");\n");
-			writer.append("\t\treturn getOcelotToken.call(this, id.md5(), op, [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");\n");
+			writer.append("\t\tvar id = this.ds + \".\" + op + \"(\" + JSON.stringify([").append(keys.toString()).append("]) + \")\";\n");
+			writer.append("\t\treturn TokenFactory.createCallToken(this.ds, id.md5(), op, [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");\n");
 		} catch (IOException ex) {
 		}
 	}
