@@ -12,6 +12,7 @@ import fr.hhdev.test.dataservices.PojoDataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
+import fr.hhdev.ocelot.annotations.JsCacheStore;
 import fr.hhdev.ocelot.i18n.Locale;
 import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.Command;
@@ -722,7 +723,7 @@ public class OcelotTest {
 		String uuid = UUID.randomUUID().toString();
 		Object expectedResult = 1;
 		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":\"%s\",\"%s\":%s}",
-				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheResult.Store.NONE, Constants.Message.RESULT, expectedResult);
+				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheStore.NONE, Constants.Message.RESULT, expectedResult);
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(uuid, result.getId());
 		assertEquals("" + expectedResult, result.getResult());
@@ -737,7 +738,7 @@ public class OcelotTest {
 		String uuid = UUID.randomUUID().toString();
 		String expectedResultJS = "\"foo\"";
 		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":\"%s\",\"%s\":%s}",
-				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheResult.Store.NONE, Constants.Message.RESULT, expectedResultJS);
+				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheStore.NONE, Constants.Message.RESULT, expectedResultJS);
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(uuid, result.getId());
 		assertEquals(expectedResultJS, result.getResult());
@@ -752,7 +753,7 @@ public class OcelotTest {
 		String uuid = UUID.randomUUID().toString();
 		Object expectedResult = "{\"integer\":5,\"foo\":\"foo\"}";
 		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":\"%s\",\"%s\":%s}",
-				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheResult.Store.NONE, Constants.Message.RESULT, expectedResult);
+				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheStore.NONE, Constants.Message.RESULT, expectedResult);
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(uuid, result.getId());
 		assertEquals(expectedResult, result.getResult());
@@ -769,7 +770,7 @@ public class OcelotTest {
 		String json;
 		try {
 			json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":\"%s\",\"%s\":%s}",
-					  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheResult.Store.NONE, Constants.Message.FAULT, f.toJson());
+					  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheStore.NONE, Constants.Message.FAULT, f.toJson());
 			MessageToClient result = MessageToClient.createFromJson(json);
 			assertEquals(uuid, result.getId());
 			assertEquals(f.getClassname(), result.getFault().getClassname());
