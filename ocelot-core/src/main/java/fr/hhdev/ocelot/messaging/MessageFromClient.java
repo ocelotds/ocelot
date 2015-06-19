@@ -110,22 +110,29 @@ public class MessageFromClient {
 			List<String> params = new ArrayList<>();
 			message.setParameters(params);
 			int idx = 0;
-			logger.debug("Get arguments from message '{}'", json);
-			while(idx<argArray.size()) {
-				JsonValue arg = argArray.get(idx++);
-				logger.debug("Get argument Type : '{}'. Value : '{}'", arg.getValueType().name(), arg.toString());
-				params.add(arg.toString());
-			} 
+			logger.debug("Get arguments and argumentNames from message '{}'", json);
+			if(argArray.isEmpty()) {
+				logger.debug("No arguments from message");
+			} else {
+				while(idx<argArray.size()) {
+					JsonValue arg = argArray.get(idx++);
+					logger.debug("Get argument Type : '{}'. Value : '{}'", arg.getValueType().name(), arg.toString());
+					params.add(arg.toString());
+				} 
+			}
 			argArray = root.getJsonArray(Constants.Message.ARGUMENTNAMES);
 			params = new ArrayList<>();
 			message.setParameterNames(params);
 			idx = 0;
-			logger.debug("Get arguments from message '{}'", json);
-			while(idx<argArray.size()) {
-				JsonString arg = argArray.getJsonString(idx++);
-				logger.debug("Get argumentName : '{}'.", arg.toString());
-				params.add(arg.toString());
-			} 
+			if(argArray.isEmpty()) {
+				logger.debug("No argumentName from message");
+			} else {
+				while(idx<argArray.size()) {
+					JsonString arg = argArray.getJsonString(idx++);
+					logger.debug("Get argumentName : '{}'.", arg.toString());
+					params.add(arg.toString());
+				} 
+			}
 			return message;
 		}
 	}
