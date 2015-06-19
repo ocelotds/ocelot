@@ -40,30 +40,33 @@ public class CacheManager {
 	Event<MessageToClient> wsEvent;
 
 	/**
-	 * Récupere la date d'expiration du service via l'annotation sur la methode directement sur la classe, car sinon cela peut être un proxy
-	 * Eventuellement traite les annotation spécifiant que l'execution de la méthode doit supprimer un cache
+	 * Check if resultshould be cached in front-end
 	 *
 	 * @param nonProxiedMethod
 	 * @return
 	 */
-	public long getJsCacheResultDeadline(Method nonProxiedMethod) {
-		boolean cached = nonProxiedMethod.isAnnotationPresent(JsCacheResult.class);
-		if (cached) { // Ce service doit être mis en cache sur le client
-			logger.debug("The result of the method {} will be cached on client side.", nonProxiedMethod.getName());
-			JsCacheResult jcr = nonProxiedMethod.getAnnotation(JsCacheResult.class);
-			Calendar deadline = Calendar.getInstance();
-			deadline.add(Calendar.YEAR, jcr.year());
-			deadline.add(Calendar.MONTH, jcr.month());
-			deadline.add(Calendar.DATE, jcr.day());
-			deadline.add(Calendar.HOUR, jcr.hour());
-			deadline.add(Calendar.MINUTE, jcr.minute());
-			deadline.add(Calendar.SECOND, jcr.second());
-			deadline.add(Calendar.MILLISECOND, jcr.millisecond());
-			return deadline.getTime().getTime();
-		}
-		return 0;
+	public boolean isJsCached(Method nonProxiedMethod) {
+		logger.debug("The result of the method {} should be cached on client side.", nonProxiedMethod.getName());
+		return nonProxiedMethod.isAnnotationPresent(JsCacheResult.class);
 	}
-	
+	/**
+	 * Get deadline for cache
+	 * if 0 : is infinite
+	 * @param jcr
+	 * @return
+	 */
+	public long getJsCacheResultDeadline(JsCacheResult jcr) {
+		Calendar deadline = Calendar.getInstance();
+		deadline.add(Calendar.YEAR, jcr.year());
+		deadline.add(Calendar.MONTH, jcr.month());
+		deadline.add(Calendar.DATE, jcr.day());
+		deadline.add(Calendar.HOUR, jcr.hour());
+		deadline.add(Calendar.MINUTE, jcr.minute());
+		deadline.add(Calendar.SECOND, jcr.second());
+		deadline.add(Calendar.MILLISECOND, jcr.millisecond());
+		return deadline.getTime().getTime();
+	}
+
 	/**
 	 * Traite les annotations JsCacheRemove et JsCacheRemoves
 	 * 

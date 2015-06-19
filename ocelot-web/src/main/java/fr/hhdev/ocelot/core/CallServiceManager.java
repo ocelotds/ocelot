@@ -4,16 +4,15 @@
  */
 package fr.hhdev.ocelot.core;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.ArrayType;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.SimpleType;
-import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.configuration.OcelotConfiguration;
 import fr.hhdev.ocelot.annotations.DataService;
+import fr.hhdev.ocelot.annotations.JsCacheResult;
 import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import fr.hhdev.ocelot.messaging.MessageToClient;
@@ -222,7 +221,15 @@ public class CallServiceManager {
 			}
 			try {
 				Method nonProxiedMethod = getNonProxiedMethod(cls, method.getName(), method.getParameterTypes());
-				messageToClient.setDeadline(cacheManager.getJsCacheResultDeadline(nonProxiedMethod));
+				// TODO messageToClient.setStore(JsCacheResult.Store.NONE.name());
+				if(cacheManager.isJsCached(nonProxiedMethod)) {
+					JsCacheResult jcr = nonProxiedMethod.getAnnotation(JsCacheResult.class);
+					JsCacheResult.Store store = jcr.store();
+					if(!store.equals(JsCacheResult.Store.NONE)) {
+						// TODO messageToClient.setStore(store.name());
+						messageToClient.setDeadline(cacheManager.getJsCacheResultDeadline(jcr));
+					}
+				}
 				cacheManager.processCleanCacheAnnotations(nonProxiedMethod, message.getParameterNames(), message.getParameters());
 			} catch (NoSuchMethodException ex) {
 				logger.error("Fail to process extra annotations (JsCacheResult, JsCacheRemove) for method : " + method.getName(), ex);

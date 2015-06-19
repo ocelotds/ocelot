@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * @author hhfrancois
  */
 @ServerEndpoint(value = "/endpoint", encoders = {MessageToClientEncoder.class}, decoders = {CommandDecoder.class}, configurator = OcelotRequestConfigurator.class)
-public class OcelotEndpoint /*extends AbstractOcelotDataService */{
+public class OcelotEndpoint {
 
 	private final static Logger logger = LoggerFactory.getLogger(OcelotEndpoint.class);
 

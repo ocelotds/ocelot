@@ -33,8 +33,11 @@ function OcelotController() {
 					} else if (this.tokens[msgToClient.id]) {
 						var token = this.tokens[msgToClient.id];
 						// if msgToClient has dead line so we stock in cache
-						if (msgToClient.deadline) {
-							console.info("Add cache "+msgToClient.id+" : "+JSON.stringify(msgToClient));
+						if (msgToClient.store === "SESSION") {
+							console.info("Add SESSION cache "+msgToClient.id+" : "+JSON.stringify(msgToClient));
+							sessionStorage.setItem(msgToClient.id, JSON.stringify(msgToClient));
+						} else if (msgToClient.store === "BROWSER") {
+							console.info("Add BROWSER cache "+msgToClient.id+" : "+JSON.stringify(msgToClient));
 							localStorage.setItem(msgToClient.id, JSON.stringify(msgToClient));
 						}
 						if (token.onResult) {
@@ -58,10 +61,13 @@ function OcelotController() {
 				var mdb = new Mdb("ocelot-cleancache");
 				mdb.onMessage = function (id) {
 					console.info("Clean cache "+id);
-					if(id === "all") {
+					if(id === "BROWSER") {
 						localStorage.clear();
+					} else if(id === "SESSION") {
+						sessionStorage.clear();
 					} else {
 						localStorage.removeItem(id);
+						sessionStorage.removeItem(id);
 					}
 				};
 				mdb.subscribe();
@@ -130,7 +136,7 @@ function OcelotController() {
 	};
 	this.call = function (token) {
 		// check entry cache
-		var res = localStorage.getItem(token.id);
+		var res = localStorage.getItem(token.id) || sessionStorage.getItem(token.id);
 		if (!token.ignoreCache && res) {
 			var msgToClient = JSON.parse(res);
 			var now = new Date().getTime();
@@ -301,7 +307,7 @@ function OcelotServices() {
 		var nextYear = new Date();
 		nextYear.setFullYear(nextYear.getFullYear()+1);
 		var msgToClient = {"id":cleanid.md5(),"deadline":nextYear.getTime(),"result":locale};
-		console.info("Add cache "+msgToClient.id+" : "+JSON.stringify(msgToClient));
+		console.info("Add BROWSER cache "+msgToClient.id+" : "+JSON.stringify(msgToClient));
 		localStorage.setItem(msgToClient.id, JSON.stringify(msgToClient));
 		return TokenFactory.createCallToken(this.ds, id.md5(), "setLocale", ["locale"], [locale]);
 	};

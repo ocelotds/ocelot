@@ -28,6 +28,7 @@ public interface Constants {
 		String ARGUMENTS = "args";
 		String ARGUMENTNAMES = "argNames";
 		String DEADLINE = "deadline";
+		String STORE = "store";
 		String RESULT = "result";
 		String FAULT = "fault";
 		interface Fault {

@@ -7,6 +7,7 @@ package fr.hhdev.ocelot.messaging;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
+import fr.hhdev.ocelot.annotations.JsCacheResult;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Objects;
@@ -36,6 +37,11 @@ public class MessageToClient {
 	 * The request failed, fault
 	 */
 	protected Fault fault = null;
+	/**
+	 * cache store
+	 */
+	JsCacheResult.Store store = JsCacheResult.Store.NONE;
+
 	/**
 	 * validity limit
 	 */
@@ -73,6 +79,14 @@ public class MessageToClient {
 		this.deadline = deadline;
 	}
 
+	public JsCacheResult.Store getStore() {
+		return store;
+	}
+
+	public void setStore(JsCacheResult.Store store) {
+		this.store = store;
+	}
+
 	@Override
 	public int hashCode() {
 		int hash = 7;
@@ -103,6 +117,7 @@ public class MessageToClient {
 			JsonObject root = reader.readObject();
 			MessageToClient message = new MessageToClient();
 			message.setId(root.getString(Constants.Message.ID));
+			message.setStore(JsCacheResult.Store.valueOf(root.getString(Constants.Message.STORE)));
 			message.setDeadline(root.getInt(Constants.Message.DEADLINE));
 			if (root.containsKey(Constants.Message.RESULT)) {
 				JsonValue result = root.get(Constants.Message.RESULT);
@@ -145,9 +160,9 @@ public class MessageToClient {
 			} catch (IOException ex) {
 			}
 		}
-		String json = String.format("{\"%s\":\"%s\",\"%s\":%s%s}",
+		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":\"%s\"%s}",
 				  Constants.Message.ID, this.getId(), Constants.Message.DEADLINE, this.getDeadline(),
-				  res);
+				  Constants.Message.STORE, this.getStore().name(), res);
 		return json;
 	}
 
