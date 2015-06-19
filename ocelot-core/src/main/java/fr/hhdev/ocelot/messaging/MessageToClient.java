@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
+import fr.hhdev.ocelot.annotations.JsCacheStore;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Objects;
@@ -40,7 +41,7 @@ public class MessageToClient {
 	/**
 	 * cache store
 	 */
-	JsCacheResult.Store store = JsCacheResult.Store.NONE;
+	JsCacheStore store = JsCacheStore.NONE;
 
 	/**
 	 * validity limit
@@ -79,11 +80,11 @@ public class MessageToClient {
 		this.deadline = deadline;
 	}
 
-	public JsCacheResult.Store getStore() {
+	public JsCacheStore getStore() {
 		return store;
 	}
 
-	public void setStore(JsCacheResult.Store store) {
+	public void setStore(JsCacheStore store) {
 		this.store = store;
 	}
 
@@ -117,7 +118,7 @@ public class MessageToClient {
 			JsonObject root = reader.readObject();
 			MessageToClient message = new MessageToClient();
 			message.setId(root.getString(Constants.Message.ID));
-			message.setStore(JsCacheResult.Store.valueOf(root.getString(Constants.Message.STORE)));
+			message.setStore(JsCacheStore.valueOf(root.getString(Constants.Message.STORE)));
 			message.setDeadline(root.getInt(Constants.Message.DEADLINE));
 			if (root.containsKey(Constants.Message.RESULT)) {
 				JsonValue result = root.get(Constants.Message.RESULT);

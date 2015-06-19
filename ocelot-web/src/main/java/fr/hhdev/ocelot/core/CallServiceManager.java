@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.type.SimpleType;
 import fr.hhdev.ocelot.configuration.OcelotConfiguration;
 import fr.hhdev.ocelot.annotations.DataService;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
+import fr.hhdev.ocelot.annotations.JsCacheStore;
 import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import fr.hhdev.ocelot.messaging.MessageToClient;
@@ -61,7 +62,7 @@ public class CallServiceManager {
 	}
 
 	/**
-	 * Retourne la methode adéquate et peuple la liste des arguments en les déserialisant du message
+	 * Retourne la methode adÃ©quate et peuple la liste des arguments en les dÃ©serialisant du message
 	 *
 	 * @param dataService
 	 * @param message
@@ -79,13 +80,13 @@ public class CallServiceManager {
 					int idx = 0;
 					for (Type param : params) {
 						String arg = cleanArg(parameters.get(idx));
-						logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, param.getTypeName(), arg});
+						logger.debug("Get argument ({}) {}Â : {}.", new Object[]{idx, param.getTypeName(), arg});
 						arguments[idx++] = convertArgument(arg, param);
 					}
-					logger.debug("Method {}.{} with good signature found.", dataService.getClass(), message.getOperation());
+					logger.debug("Method {}.{}Â with good signature found.", dataService.getClass(), message.getOperation());
 					return method;
 				} catch (IllegalArgumentException iae) {
-					logger.debug("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dataService.getClass(), message.getOperation(), iae.getMessage()});
+					logger.debug("Method {}.{}Â not found. Arguments didn't match. {}.", new Object[]{dataService.getClass(), message.getOperation(), iae.getMessage()});
 				}
 			}
 		}
@@ -99,9 +100,9 @@ public class CallServiceManager {
 			ObjectMapper mapper = new ObjectMapper();
 			if(ParameterizedType.class.isInstance(param)) {
 				JavaType javaType = getJavaType(param);
-				logger.debug("Try to convert '{}' to JavaType : '{}'", arg, param);
+				logger.debug("Try to convert '{}'Â to JavaType : '{}'", arg, param);
 				result = mapper.readValue(arg, javaType);
-				logger.debug("Conversion of '{}' to '{}' : OK", arg, param);
+				logger.debug("Conversion of '{}'Â to '{}' : OK", arg, param);
 			} else if(Class.class.isInstance(param)) {
 				Class cls = (Class) param;
 				logger.debug("Try to convert '{}' to Class '{}'", arg, param);
@@ -112,7 +113,7 @@ public class CallServiceManager {
 					throw new IOException();
 				}
 				result = mapper.readValue(arg, cls);
-				logger.debug("Conversion of '{}' to '{}' : OK", arg, param);
+				logger.debug("Conversion of '{}'Â to '{}' : OK", arg, param);
 			}
 		} catch (IOException ex) {
 			logger.debug("Conversion of '{}' to '{}' failed", arg, param);
@@ -154,9 +155,9 @@ public class CallServiceManager {
 	}
 
 	/**
-	 * Methode permettant de nettoyer les arguments des attributs ajoutés par les framework web, 
+	 * Methode permettant de nettoyer les arguments des attributs ajoutÃ©s par les framework web, 
 	 * par exemple angularjs rajoute des variables commencant par $$
-	 * à remplacer : ,"$$hashKey":"object:\d"
+	 * Ã  remplacer : ,"$$hashKey":"object:\d"
 	 * TODO externaliser ca via SPI pour supporter n'importe quel framework
 	 *
 	 * @param arg
@@ -168,7 +169,7 @@ public class CallServiceManager {
 	}
 
 	/**
-	 * Get Dataservice, maybe in session if session scope and stored J'aimerais bien faire cela avec un interceptor/decorator, mais comment passer la session à celui ci ?
+	 * Get Dataservice, maybe in session if session scope and stored J'aimerais bien faire cela avec un interceptor/decorator, mais comment passer la session Ã  celui ci ?
 	 *
 	 * @param client
 	 * @param cls
@@ -199,7 +200,7 @@ public class CallServiceManager {
 	}
 
 	/**
-	 * Construction et envoi des messages response suite à un appel de type call
+	 * Construction et envoi des messages response suite Ã  un appel de type call
 	 *
 	 * @param client
 	 * @param message
@@ -224,8 +225,8 @@ public class CallServiceManager {
 				// TODO messageToClient.setStore(JsCacheResult.Store.NONE.name());
 				if(cacheManager.isJsCached(nonProxiedMethod)) {
 					JsCacheResult jcr = nonProxiedMethod.getAnnotation(JsCacheResult.class);
-					JsCacheResult.Store store = jcr.store();
-					if(!store.equals(JsCacheResult.Store.NONE)) {
+					JsCacheStore store = jcr.store();
+					if(!store.equals(JsCacheStore.NONE)) {
 						// TODO messageToClient.setStore(store.name());
 						messageToClient.setDeadline(cacheManager.getJsCacheResultDeadline(jcr));
 					}
@@ -253,7 +254,7 @@ public class CallServiceManager {
 	}
 
 	/**
-	 * Récupere la methode sur la classe d'origine en ignorant les eventuels proxies
+	 * RÃ©cupere la methode sur la classe d'origine en ignorant les eventuels proxies
 	 * @param cls
 	 * @param methodName
 	 * @param parameterTypes

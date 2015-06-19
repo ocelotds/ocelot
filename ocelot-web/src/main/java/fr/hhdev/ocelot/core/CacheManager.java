@@ -109,7 +109,7 @@ public class CacheManager {
 		logger.debug("Process JsCacheRemoveAll annotation : {}", jcra);
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
-		messageToClient.setResult(Constants.Cache.ALL);
+		messageToClient.setResult(jcra.store());
 		wsEvent.fire(messageToClient);
 	}
 	

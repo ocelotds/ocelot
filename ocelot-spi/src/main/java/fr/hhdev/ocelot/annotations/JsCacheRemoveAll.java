@@ -15,4 +15,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface JsCacheRemoveAll {
+	JsCacheStore store() default JsCacheStore.BROWSER;
 }

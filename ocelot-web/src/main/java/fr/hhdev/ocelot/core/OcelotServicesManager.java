@@ -5,7 +5,7 @@ package fr.hhdev.ocelot.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
-import fr.hhdev.ocelot.annotations.JsCacheResult;
+import fr.hhdev.ocelot.annotations.JsCacheStore;
 import fr.hhdev.ocelot.i18n.ThreadLocalContextHolder;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import fr.hhdev.ocelot.messaging.MessageToClient;
@@ -56,7 +56,7 @@ public class OcelotServicesManager {
 				l.setCountry(locale.getCountry());
 				Calendar deadline = Calendar.getInstance();
 				deadline.add(Calendar.YEAR, 1);
-				messageToClient.setStore(JsCacheResult.Store.BROWSER);
+				messageToClient.setStore(JsCacheStore.BROWSER);
 				messageToClient.setDeadline(deadline.getTime().getTime());
 				messageToClient.setResult(l);
 				logger.debug("getLocale() = {}", l);

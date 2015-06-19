@@ -19,7 +19,7 @@ public @interface JsCacheResult {
 	 * Define where should be store the result
 	 * @return 
 	 */
-	Store store() default Store.BROWSER;
+	JsCacheStore store() default JsCacheStore.BROWSER;
 	int year() default 0;
 	int month() default 0;
 	int day() default 0;
@@ -37,19 +37,4 @@ public @interface JsCacheResult {
 	 * @return set of used keys ordered
 	 */
 	String[] keys() default {"*"};
-	
-	public enum Store {
-		/**
-		 * The result will not be store in cache
-		 */
-		NONE, 
-		/**
-		 * The result should be store in browser storage (localStorage)
-		 */
-		BROWSER, 
-		/**
-		 * The result should be store in session storage (sessionStorage)
-		 */
-		SESSION;
-	}
 }
