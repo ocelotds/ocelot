@@ -91,9 +91,34 @@
 				var obj = eval(document.getElementById("testobject").value);
 				document.getElementById("objectarea").textContent = JSON.stringify(obj).replace(/,/g, ",\n");
 			}
+			var ocelotServices = new OcelotServices();
+			var tokenLocale = ocelotServices.getLocale();
+			tokenLocale.success = function(locale) {
+				var localeSelector = document.getElementById("localeSelector");
+				for (i = 0; i < localeSelector.options.length; i++) {
+					var currentLocale = JSON.parse(localeSelector.options[i].value);
+					if(currentLocale.language === locale.language && currentLocale.country === locale.country) {
+						localeSelector.options.selectedIndex = i;
+						break;
+					}
+				}
+			}
+			function changeLocale() {
+				var localeSelector = document.getElementById("localeSelector");
+				var idx = localeSelector.options.selectedIndex;
+				var currentLocale = JSON.parse(localeSelector.options[idx].value);
+				var token = ocelotServices.setLocale(currentLocale);
+				token.success = function(msg) {
+					location.reload();
+				}
+			}
 		</script>
 		<div id="status" style="width:10px;height:10px;background-color:#f00">X</div>
 		<input id="testobject" type="text" value="document.location"/>
+		<select id="localeSelector" onchange="changeLocale()">
+			<option value='{"language":"fr","country":"FR"}' selected>fr</option>
+			<option value='{"language":"en","country":"US"}'>en</option>
+		</select>
 		<button onclick="showObject()">SHOW OBJECT</button><br>
 		<textarea style="height:200px;width:100%" id="objectarea"></textarea><br>
 		<button onclick="ocelotController.close()">CLOSE WS</button><button onclick="mdb.subscribe();">SUBSCRIBE</button><button onclick="mdb.unsubscribe();">UNSUBSCRIBE</button><br>
