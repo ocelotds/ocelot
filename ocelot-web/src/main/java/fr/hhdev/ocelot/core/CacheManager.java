@@ -51,19 +51,23 @@ public class CacheManager {
 	}
 	/**
 	 * Get deadline for cache
-	 * if 0 : is infinite
+	 * if 0 : is 1 year cache
 	 * @param jcr
 	 * @return
 	 */
 	public long getJsCacheResultDeadline(JsCacheResult jcr) {
 		Calendar deadline = Calendar.getInstance();
-		deadline.add(Calendar.YEAR, jcr.year());
-		deadline.add(Calendar.MONTH, jcr.month());
-		deadline.add(Calendar.DATE, jcr.day());
-		deadline.add(Calendar.HOUR, jcr.hour());
-		deadline.add(Calendar.MINUTE, jcr.minute());
-		deadline.add(Calendar.SECOND, jcr.second());
-		deadline.add(Calendar.MILLISECOND, jcr.millisecond());
+		if((jcr.year() + jcr.month() + jcr.day() + jcr.hour() + jcr.minute() + jcr.second() + jcr.millisecond()) == 0) {
+			deadline.add(Calendar.YEAR, 1);
+		} else {
+			deadline.add(Calendar.YEAR, jcr.year());
+			deadline.add(Calendar.MONTH, jcr.month());
+			deadline.add(Calendar.DATE, jcr.day());
+			deadline.add(Calendar.HOUR, jcr.hour());
+			deadline.add(Calendar.MINUTE, jcr.minute());
+			deadline.add(Calendar.SECOND, jcr.second());
+			deadline.add(Calendar.MILLISECOND, jcr.millisecond());
+		}
 		return deadline.getTime().getTime();
 	}
 
