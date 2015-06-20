@@ -184,7 +184,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 		try {
 			String methodComment = environment.getElementUtils().getDocComment(methodElement);
 			writer.write("\t/**\n");
-			// Le commentaire de la javadoc
+			// The javadoc comment
 			if (methodComment != null) {
 				methodComment = methodComment.split("@")[0];
 				int lastIndexOf = methodComment.lastIndexOf("\n");
