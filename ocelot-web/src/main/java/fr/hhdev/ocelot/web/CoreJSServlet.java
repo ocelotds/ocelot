@@ -20,9 +20,13 @@ import javax.servlet.http.HttpServletResponse;
  * Servlet to serve ocelot-core.js
  * @author hhfrancois
  */
-@WebServlet(name = "CoreJSServlet", urlPatterns = {"/ocelot-core.js"})
+@WebServlet(urlPatterns = {"/ocelot-core.js"})
 public class CoreJSServlet extends HttpServlet {
 
+	/**
+	 * This string will be replaced by the contextPath in ocelot-core.js
+	 */
+	private static final String CTXPATH = "%CTXPATH%";
 	/**
 	 * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
 	 *
@@ -31,17 +35,27 @@ public class CoreJSServlet extends HttpServlet {
 	 * @throws ServletException if a servlet-specific error occurs
 	 * @throws IOException if an I/O error occurs
 	 */
-	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-			  throws ServletException, IOException {
-		response.setContentType("text/javascript;charset=UTF-8");
+	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		response.setContentType(Constants.JSTYPE);
+		String minify = request.getParameter(Constants.MINIFY_PARAMETER);
 		try (Writer out = response.getWriter()) {
 			String ctxPath = request.getContextPath();
 			URL js = this.getClass().getResource("/"+Constants.OCELOT_CORE_JS);
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream()))) {
-				String inputLine;
-				while ((inputLine = in.readLine()) != null) {
-					out.write(inputLine.replaceAll("%CTXPATH%", ctxPath));
-					out.write("\n");
+			if (Constants.FALSE.equalsIgnoreCase(minify)) {
+				try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream()))) {
+					String inputLine;
+					while ((inputLine = in.readLine()) != null) {
+						out.write(inputLine.replaceAll(CTXPATH, ctxPath));
+						out.write("\n");
+					}
+				}
+			} else { // TODO implement minification
+				try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream()))) {
+					String inputLine;
+					while ((inputLine = in.readLine()) != null) {
+						out.write(inputLine.replaceAll(CTXPATH, ctxPath));
+						out.write("\n");
+					}
 				}
 			}
 		}

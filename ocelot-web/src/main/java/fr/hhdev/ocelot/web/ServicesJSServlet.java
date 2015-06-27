@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author hhfrancois
  */
-@WebServlet(name = "ServicesServlet", urlPatterns = {"/" + Constants.OCELOT_SERVICES_JS})
+@WebServlet(urlPatterns = {"/" + Constants.OCELOT_SERVICES_JS})
 public class ServicesJSServlet extends HttpServlet {
 
 	/**
@@ -32,14 +32,25 @@ public class ServicesJSServlet extends HttpServlet {
 	 * @throws IOException if an I/O error occurs
 	 */
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		response.setContentType("text/javascript;charset=UTF-8");
+		response.setContentType(Constants.JSTYPE);
+		String minify = request.getParameter(Constants.MINIFY_PARAMETER);
+		String filename = request.getServletContext().getInitParameter(Constants.OCELOT_SERVICES_JS);
 		try (Writer out = response.getWriter()) {
-			String filename = request.getServletContext().getInitParameter(Constants.OCELOT_SERVICES_JS);
-			try (BufferedReader in = new BufferedReader(new FileReader(filename))) {
-				String inputLine;
-				while ((inputLine = in.readLine()) != null) {
-					out.write(inputLine);
-					out.write("\n");
+			if (Constants.FALSE.equalsIgnoreCase(minify)) {
+				try (BufferedReader in = new BufferedReader(new FileReader(filename))) {
+					String inputLine;
+					while ((inputLine = in.readLine()) != null) {
+						out.write(inputLine);
+						out.write("\n");
+					}
+				}
+			} else { // TODO Implement minification
+				try (BufferedReader in = new BufferedReader(new FileReader(filename))) {
+					String inputLine;
+					while ((inputLine = in.readLine()) != null) {
+						out.write(inputLine);
+						out.write("\n");
+					}
 				}
 			}
 		}
