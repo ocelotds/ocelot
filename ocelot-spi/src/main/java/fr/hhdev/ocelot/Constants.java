@@ -10,16 +10,23 @@ package fr.hhdev.ocelot;
  * @author hhfrancois
  */
 public interface Constants {
+
 	String LOCALE = "LOCALE";
 	String OCELOT_SERVICES_JS = "ocelot-services.js";
 	String OCELOT_CORE_JS = "ocelot-core.js";
 	String OCELOT_SERVICES = "ocelot-services";
+	String MINIFY_PARAMETER = "minify";
 	String JS = ".js";
-
+	String JSTYPE = "text/javascript;charset=UTF-8";
+	String FALSE = "false";
+	String TRUE = "true";
+	
 	interface Options {
+
 		String MINIFYJS = "ocelot.minifyjs";
 		String STACKTRACE = "ocelot.stacktrace.length";
 	}
+
 	interface Message {
 
 		String ID = "id";
@@ -31,7 +38,9 @@ public interface Constants {
 		String STORE = "store";
 		String RESULT = "result";
 		String FAULT = "fault";
+
 		interface Fault {
+
 			String MESSAGE = "message";
 			String CLASSNAME = "classname";
 			String STACKTRACE = "stacktrace";
@@ -48,10 +57,11 @@ public interface Constants {
 	}
 
 	interface Cache {
+
 		String CLEANCACHE_TOPIC = "ocelot-cleancache";
 		String ALL = "all";
 	}
-	
+
 	interface Command {
 
 		// Attention si on modifie ces deux varaibles, elles sont aussi dans ocelot-core.js en dur
