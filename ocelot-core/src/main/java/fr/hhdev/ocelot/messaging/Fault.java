@@ -71,7 +71,7 @@ public class Fault {
 		return fault;
 	}
 
-	public String toJson() throws IOException {
+	public String toJson() {
 		StackTraceElement[] stacktraceElt = getStacktrace();
 		String stacktrace = String.format(String.join(",", Collections.nCopies(stacktraceElt.length, "\"%s\"")), (Object[]) stacktraceElt);
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":[%s]}",
@@ -83,11 +83,7 @@ public class Fault {
 
 	@Override
 	public String toString() {
-		try {
-			return toJson();
-		} catch (IOException ex) {
-		}
-		return "Fault{" + "message=" + message + ", classname=" + classname + ", stacktrace maxlength=" + stacktracelength + '}';
+		return toJson();
 	}
 
 	@Override
