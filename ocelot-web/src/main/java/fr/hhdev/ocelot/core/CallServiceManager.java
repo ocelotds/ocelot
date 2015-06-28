@@ -62,7 +62,7 @@ public class CallServiceManager {
 	}
 
 	/**
-	 * Retourne la methode adÃ©quate et peuple la liste des arguments en les dÃ©serialisant du message
+	 * Get pertinint method and fill the argument list from message arguments
 	 *
 	 * @param dataService
 	 * @param message
@@ -80,13 +80,13 @@ public class CallServiceManager {
 					int idx = 0;
 					for (Type param : params) {
 						String arg = cleanArg(parameters.get(idx));
-						logger.debug("Get argument ({}) {}Â : {}.", new Object[]{idx, param.getTypeName(), arg});
+						logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, param.getTypeName(), arg});
 						arguments[idx++] = convertArgument(arg, param);
 					}
-					logger.debug("Method {}.{}Â with good signature found.", dataService.getClass(), message.getOperation());
+					logger.debug("Method {}.{} with good signature found.", dataService.getClass(), message.getOperation());
 					return method;
 				} catch (IllegalArgumentException iae) {
-					logger.debug("Method {}.{}Â not found. Arguments didn't match. {}.", new Object[]{dataService.getClass(), message.getOperation(), iae.getMessage()});
+					logger.debug("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dataService.getClass(), message.getOperation(), iae.getMessage()});
 				}
 			}
 		}
@@ -100,9 +100,9 @@ public class CallServiceManager {
 			ObjectMapper mapper = new ObjectMapper();
 			if(ParameterizedType.class.isInstance(param)) {
 				JavaType javaType = getJavaType(param);
-				logger.debug("Try to convert '{}'Â to JavaType : '{}'", arg, param);
+				logger.debug("Try to convert '{}' to JavaType : '{}'", arg, param);
 				result = mapper.readValue(arg, javaType);
-				logger.debug("Conversion of '{}'Â to '{}' : OK", arg, param);
+				logger.debug("Conversion of '{}' to '{}' : OK", arg, param);
 			} else if(Class.class.isInstance(param)) {
 				Class cls = (Class) param;
 				logger.debug("Try to convert '{}' to Class '{}'", arg, param);
@@ -113,7 +113,7 @@ public class CallServiceManager {
 					throw new IOException();
 				}
 				result = mapper.readValue(arg, cls);
-				logger.debug("Conversion of '{}'Â to '{}' : OK", arg, param);
+				logger.debug("Conversion of '{}' to '{}' : OK", arg, param);
 			}
 		} catch (IOException ex) {
 			logger.debug("Conversion of '{}' to '{}' failed", arg, param);
@@ -155,10 +155,10 @@ public class CallServiceManager {
 	}
 
 	/**
-	 * Methode permettant de nettoyer les arguments des attributs ajoutÃ©s par les framework web, 
-	 * par exemple angularjs rajoute des variables commencant par $$
-	 * Ã  remplacer : ,"$$hashKey":"object:\d"
-	 * TODO externaliser ca via SPI pour supporter n'importe quel framework
+	 * Method allow cleaning all extra fields on arguments from framework web
+	 * For sample angularjs add some variables begin $$
+	 * So replace : ,"$$hashKey":"object:\d"
+	 * TODO externalize this feature by SPI for extend that for all framework
 	 *
 	 * @param arg
 	 * @return
@@ -200,7 +200,7 @@ public class CallServiceManager {
 	}
 
 	/**
-	 * Construction et envoi des messages response suite Ã  un appel de type call
+	 * Build and send response messages after call request
 	 *
 	 * @param client
 	 * @param message
@@ -217,21 +217,17 @@ public class CallServiceManager {
 			Method method = getMethodFromDataService(dataService, message, arguments);
 			Object result = method.invoke(dataService, arguments);
 			messageToClient.setResult(result);
-			if(logger.isDebugEnabled()) {
-				logger.debug("Method {} proceed messageToClient : {}.", method.getName(), messageToClient.toJson());
-			}
 			try {
 				Method nonProxiedMethod = getNonProxiedMethod(cls, method.getName(), method.getParameterTypes());
-				// TODO messageToClient.setStore(JsCacheResult.Store.NONE.name());
 				if(cacheManager.isJsCached(nonProxiedMethod)) {
 					JsCacheResult jcr = nonProxiedMethod.getAnnotation(JsCacheResult.class);
-					JsCacheStore store = jcr.store();
-					if(!store.equals(JsCacheStore.NONE)) {
-						// TODO messageToClient.setStore(store.name());
-						messageToClient.setDeadline(cacheManager.getJsCacheResultDeadline(jcr));
-					}
+					messageToClient.setStore(jcr.store());
+					messageToClient.setDeadline(cacheManager.getJsCacheResultDeadline(jcr));
 				}
 				cacheManager.processCleanCacheAnnotations(nonProxiedMethod, message.getParameterNames(), message.getParameters());
+				if(logger.isDebugEnabled()) {
+					logger.debug("Method {} proceed messageToClient : {}.", method.getName(), messageToClient.toJson());
+				}
 			} catch (NoSuchMethodException ex) {
 				logger.error("Fail to process extra annotations (JsCacheResult, JsCacheRemove) for method : " + method.getName(), ex);
 			}
@@ -254,7 +250,7 @@ public class CallServiceManager {
 	}
 
 	/**
-	 * RÃ©cupere la methode sur la classe d'origine en ignorant les eventuels proxies
+	 * Get the method on origin class without proxies
 	 * @param cls
 	 * @param methodName
 	 * @param parameterTypes
