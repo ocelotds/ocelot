@@ -20,64 +20,41 @@
 			};
 			mdb1.subscribe();
 			var mdb = new Mdb("mytopic");
-			mdb.onMessage = function (msg) {
-				addMessage(msg);
-			};
+			mdb.onMessage = addMessage;
 			var pojoService = new TestPojoService();
 			var ejbService = new TestEJBService();
 			function getErrorMessage(srv) {
 				var token = srv.getMessage(true);
-				token.success = function (msg) {
-					addMessage(msg);
-				};
-				token.fail = function (fault) {
-					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
-				};
+				token.success = addMessage;
+				token.fail = showError;
 			}
 			function getMessage(srv) {
 				var token = srv.getMessage(Math.floor(Math.random() * 10));
-				token.success = function (msg) {
-					addMessage(msg);
-				};
-				token.fail = function (fault) {
-					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
-				};
+				token.success = addMessage;
+				token.fail = showError;
 			}
 			function getMessageCached(srv) {
 				var token = srv.getMessageCached();
-				token.success = function (msg) {
-					addMessage(msg);
-				};
-				token.fail = function (fault) {
-					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
-				};
+				token.success = addMessage;
+				token.fail = showError;
 			}
 			function getMessageCached2(srv) {
 				var token = srv.getMessageCached2(1, {"id":"5"}, Math.random(), 5, true);
-				token.success = function (msg) {
-					addMessage(msg);
-				};
-				token.fail = function (fault) {
-					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
-				};
+				token.success = addMessage;
+				token.fail = showError;
 			}
 			function getMessageAndCleanCache(srv) {
 				var token = srv.getMessageCachedAndCleanCache({"id":"5"}, 1, Math.random(), 5, true);
-				token.success = function (msg) {
-					addMessage(msg);
-				};
-				token.fail = function (fault) {
-					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
-				};
+				token.success = addMessage;
+				token.fail = showError;
 			}
 			function getMessage2(srv) {
 				var token = srv.getMessage("" + Math.floor(Math.random() * 10));
-				token.success = function (msg) {
-					addMessage(msg);
-				};
-				token.fail = function (fault) {
-					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
-				};
+				token.success = addMessage;
+				token.fail = showError;
+			}
+			function showError(fault) {
+				alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
 			}
 			function addMessage(msg) {
 				var output = document.getElementById("output");
