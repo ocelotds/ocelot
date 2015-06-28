@@ -8,6 +8,7 @@ import fr.hhdev.ocelot.annotations.JsCacheRemove;
 import fr.hhdev.ocelot.annotations.JsCacheRemoveAll;
 import fr.hhdev.ocelot.annotations.JsCacheRemoves;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
+import fr.hhdev.ocelot.annotations.JsCacheStore;
 import fr.hhdev.ocelot.messaging.MessageEvent;
 import fr.hhdev.ocelot.messaging.MessageToClient;
 import java.io.StringReader;
@@ -47,8 +48,13 @@ public class CacheManager {
 	 * @return
 	 */
 	public boolean isJsCached(Method nonProxiedMethod) {
-		logger.debug("The result of the method {} should be cached on client side.", nonProxiedMethod.getName());
-		return nonProxiedMethod.isAnnotationPresent(JsCacheResult.class);
+		boolean cached = nonProxiedMethod.isAnnotationPresent(JsCacheResult.class);
+		if(cached) {
+			JsCacheResult jcr = nonProxiedMethod.getAnnotation(JsCacheResult.class);
+			cached = !JsCacheStore.NONE.equals(jcr.store());
+		}
+		logger.debug("The result of the method {} should be cached on client side {}.", nonProxiedMethod.getName(), cached);
+		return cached;
 	}
 	/**
 	 * Get deadline for cache
@@ -122,8 +128,7 @@ public class CacheManager {
 	 */
 	public void processJsCacheRemove(JsCacheRemove jcr, List<String> paramNames, List<String> jsonArgs) {
 		logger.debug("Process JsCacheRemove annotation : {}", jcr);
-		StringBuilder sb = new StringBuilder(jcr.cls().getName()).append(".").append(jcr.methodName());
-		sb.append("([");
+		StringBuilder sb = new StringBuilder("[");
 		MessageToClient messageToClient = new MessageToClient();
 		logger.debug("CLASSNAME : {} - METHODNAME : {} - KEYS : {}", jcr.cls().getName(), jcr.methodName(), jcr.keys());
 		logger.debug("JSONARGS : {}", Arrays.deepToString(jsonArgs.toArray(new String[]{})));
@@ -167,19 +172,27 @@ public class CacheManager {
 				}
 			}
 		}
-		sb.append("])");
+		sb.append("]");
 		logger.debug("KEYS FROM ARGS : {}", sb.toString());
 		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
+		messageToClient.setResult(getMd5(jcr.cls().getName()+"."+jcr.methodName())+"_"+getMd5(sb.toString()));
+		wsEvent.fire(messageToClient);
+	}
+	
+	/**
+	 * Create a md5 from string
+	 * @param msg
+	 * @return 
+	 */
+	private String getMd5(String msg) {
 		MessageDigest md;
 		try {
 			md = MessageDigest.getInstance("MD5");
-			byte[] bytes = sb.toString().getBytes();
+			byte[] bytes = msg.getBytes();
 			md.update(bytes, 0, bytes.length);
-			String md5 = new BigInteger(1, md.digest()).toString(16);
-			messageToClient.setResult(md5);
-			wsEvent.fire(messageToClient);
+			return new BigInteger(1, md.digest()).toString(16);
 		} catch (NoSuchAlgorithmException ex) {
 		}
+		return null;
 	}
-	
 }
