@@ -20,9 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Message from client for call any service.
- * the topic of command identify the resolver for get instance of service
- * 
+ * Message from client for call any service. the topic of command identify the resolver for get instance of service
+ *
  * @author hhfrancois
  */
 public class MessageFromClient {
@@ -36,7 +35,7 @@ public class MessageFromClient {
 	 */
 	protected List<String> parameters = new ArrayList<>();
 	/**
-	 * parameter names 
+	 * parameter names
 	 */
 	protected List<String> parameterNames = new ArrayList<>();
 
@@ -98,11 +97,11 @@ public class MessageFromClient {
 		final MessageFromClient other = (MessageFromClient) obj;
 		return Objects.equals(this.id, other.id);
 	}
-	
+
 	public static MessageFromClient createFromJson(String json) {
+		MessageFromClient message = new MessageFromClient();
 		try (JsonReader reader = Json.createReader(new StringReader(json))) {
 			JsonObject root = reader.readObject();
-			MessageFromClient message = new MessageFromClient();
 			message.setId(root.getString(Constants.Message.ID));
 			message.setDataService(root.getString(Constants.Message.DATASERVICE));
 			message.setOperation(root.getString(Constants.Message.OPERATION));
@@ -111,55 +110,55 @@ public class MessageFromClient {
 			message.setParameters(params);
 			int idx = 0;
 			logger.debug("Get arguments and argumentNames from message '{}'", json);
-			if(argArray.isEmpty()) {
+			if (argArray.isEmpty()) {
 				logger.debug("No arguments from message");
 			} else {
-				while(idx<argArray.size()) {
+				while (idx < argArray.size()) {
 					JsonValue arg = argArray.get(idx++);
 					logger.debug("Get argument Type : '{}'. Value : '{}'", arg.getValueType().name(), arg.toString());
 					params.add(arg.toString());
-				} 
+				}
 			}
 			argArray = root.getJsonArray(Constants.Message.ARGUMENTNAMES);
 			params = new ArrayList<>();
 			message.setParameterNames(params);
 			idx = 0;
-			if(argArray.isEmpty()) {
+			if (argArray.isEmpty()) {
 				logger.debug("No argumentName from message");
 			} else {
-				while(idx<argArray.size()) {
+				while (idx < argArray.size()) {
 					JsonString arg = argArray.getJsonString(idx++);
 					logger.debug("Get argumentName : '{}'.", arg.toString());
 					params.add(arg.toString());
-				} 
+				}
 			}
-			return message;
 		}
+		return message;
 	}
-	
+
 	public String toJson() {
 		String args = "";
 		Iterator<String> iterator = parameters.iterator();
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			args += iterator.next();
-			if(iterator.hasNext()) {
+			if (iterator.hasNext()) {
 				args += ",";
 			}
 		}
 		String argnames = "";
 		iterator = parameterNames.iterator();
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			args += iterator.next();
-			if(iterator.hasNext()) {
+			if (iterator.hasNext()) {
 				argnames += ",";
 			}
 		}
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":[%s],\"%s\":[%s]}",
-			Constants.Message.ID, this.getId(),
-			Constants.Message.DATASERVICE, this.getDataService(),
-			Constants.Message.OPERATION, this.getOperation(),
-			Constants.Message.ARGUMENTNAMES, argnames,
-			Constants.Message.ARGUMENTS, args);
+				  Constants.Message.ID, this.getId(),
+				  Constants.Message.DATASERVICE, this.getDataService(),
+				  Constants.Message.OPERATION, this.getOperation(),
+				  Constants.Message.ARGUMENTNAMES, argnames,
+				  Constants.Message.ARGUMENTS, args);
 		return json;
 	}
 
