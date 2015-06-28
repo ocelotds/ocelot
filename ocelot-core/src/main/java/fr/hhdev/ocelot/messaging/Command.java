@@ -43,7 +43,7 @@ public class Command {
 	
 	/**
 	 * 
-	 * @param json : {"cmd":"call","msg":{"id":"7b65b992407acdada143e66e77f2dfe8","ds":"demo.TestEJBService","op":"getMessage","argNames":["i"],"args":[1]}}
+	 * @param json : {"cmd":"call","msg":{"id":"7b65b992407acdada143e66e77f2dfe8_7b65b992407acdada143e66e77f2dfe9","ds":"demo.TestEJBService","op":"getMessage","argNames":["i"],"args":[1]}}
 	 * @return 
 	 */
 	public static Command createFromJson(String json) {
@@ -94,13 +94,7 @@ public class Command {
 			return false;
 		}
 		final Command other = (Command) obj;
-		if (!Objects.equals(this.command, other.command)) {
-			return false;
-		}
-		if (!Objects.equals(this.message, other.message)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this.command, other.command) && Objects.equals(this.message, other.message);
 	}
 	
 	
