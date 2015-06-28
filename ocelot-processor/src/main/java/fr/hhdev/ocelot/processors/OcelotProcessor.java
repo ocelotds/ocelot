@@ -104,7 +104,6 @@ public class OcelotProcessor extends AbstractProcessor {
 			FileObject servicesProvider = filer.createSourceFile("services." + servicesName);
 			try (Writer writer = servicesProvider.openWriter()) {
 				writer.append("package services;\n");
-				writer.append("import fr.hhdev.ocelot.Constants;\n");
 				writer.append("import java.io.InputStream;\n");
 				writer.append("import java.io.OutputStream;\n");
 				writer.append("import java.io.IOException;\n");
@@ -114,7 +113,7 @@ public class OcelotProcessor extends AbstractProcessor {
 				writer.append("public class " + servicesName + " implements IServicesProvider {\n");
 				writer.append("	private static final Logger logger = LoggerFactory.getLogger("+servicesName+".class);\n");
 				writer.append("	@Override\n");
-				writer.append("	public void streamJavascriptServices(OutputStream out, boolean minify) {\n");
+				writer.append("	public void streamJavascriptServices(OutputStream out) {\n");
 				writer.append("		try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(\"srv_"+seed+".js\")) {\n");
 				writer.append("			byte[] buffer = new byte[1024];\n");
 				writer.append("			int read;\n");
