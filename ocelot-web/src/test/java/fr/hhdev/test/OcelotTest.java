@@ -129,19 +129,21 @@ public class OcelotTest {
 	public static WebArchive createWarArchive() {
 		File[] libs = Maven.resolver().loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
 		File logback = new File("src/test/resources/logback.xml");
+		File localeFr = new File("src/test/resources/test_fr_FR.properties");
+		File localeUs = new File("src/test/resources/test_en_US.properties");
 		return ShrinkWrap.create(WebArchive.class, ctxpath + ".war")
 				  .addAsLibraries(libs)
 				  .addAsLibraries(createLibArchive())
 				  .addPackages(true, OcelotTest.class.getPackage())
 				  .addAsWebInfResource(new FileAsset(logback), "logback.xml")
+				  .addAsResource(new FileAsset(localeUs), "test_en_US.properties")
+				  .addAsResource(new FileAsset(localeFr), "test_fr_FR.properties")
 				  .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
 	}
 
 	public static JavaArchive createLibArchive() {
 		File bean = new File("src/main/resources/META-INF/beans.xml");
 		File core = new File("src/main/resources/ocelot-core.js");
-		File localeFr = new File("src/main/resources/test_fr_FR.properties");
-		File localeUs = new File("src/main/resources/test_en_US.properties");
 		return ShrinkWrap.create(JavaArchive.class, "ocelot-web.jar")
 				  .addPackages(true, "fr.hhdev.ocelot.encoders")
 				  .addPackages(true, "fr.hhdev.ocelot.exceptions")
@@ -150,9 +152,7 @@ public class OcelotTest {
 				  .addPackages(true, "fr.hhdev.ocelot.core")
 				  .addPackages(true, "fr.hhdev.ocelot.configuration")
 				  .addAsManifestResource(new FileAsset(bean), "beans.xml")
-				  .addAsResource(new FileAsset(core), "ocelot-core.js")
-				  .addAsResource(new FileAsset(localeUs), "test_en_US.properties")
-				  .addAsResource(new FileAsset(localeFr), "test_fr_FR.properties");
+				  .addAsResource(new FileAsset(core), "ocelot-core.js");
 	}
 
 	@BeforeClass
@@ -766,16 +766,11 @@ public class OcelotTest {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
 		Fault f = new Fault(new NullPointerException("Message d'erreur"), 0);
-		String json;
-		try {
-			json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":\"%s\",\"%s\":%s}",
+		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":\"%s\",\"%s\":%s}",
 					  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheStore.NONE, Constants.Message.FAULT, f.toJson());
-			MessageToClient result = MessageToClient.createFromJson(json);
-			assertEquals(uuid, result.getId());
-			assertEquals(f.getClassname(), result.getFault().getClassname());
-		} catch (IOException ex) {
-			fail(ex.getMessage());
-		}
+		MessageToClient result = MessageToClient.createFromJson(json);
+		assertEquals(uuid, result.getId());
+		assertEquals(f.getClassname(), result.getFault().getClassname());
 	}
 
 	/**
