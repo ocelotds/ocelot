@@ -7,7 +7,6 @@ package fr.hhdev.ocelot.messaging;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
-import fr.hhdev.ocelot.annotations.JsCacheResult;
 import fr.hhdev.ocelot.annotations.JsCacheStore;
 import java.io.IOException;
 import java.io.StringReader;
@@ -41,7 +40,7 @@ public class MessageToClient {
 	/**
 	 * cache store
 	 */
-	JsCacheStore store = JsCacheStore.NONE;
+	protected JsCacheStore store = JsCacheStore.NONE;
 
 	/**
 	 * validity limit
@@ -148,18 +147,12 @@ public class MessageToClient {
 				res = String.format(resultFormat, Constants.Message.RESULT, jsonResult);
 			} catch (JsonProcessingException ex) {
 				Fault f = new Fault(ex, 0);
-				try {
-					res = String.format(resultFormat, Constants.Message.FAULT, f.toJson());
-				} catch (IOException ex1) {
-				}
+				res = String.format(resultFormat, Constants.Message.FAULT, f.toJson());
 			}
 		}
 		if (null != this.getFault()) {
 			String faultFormat = ",\"%s\":%s";
-			try {
-				res = String.format(faultFormat, Constants.Message.FAULT, this.getFault().toJson());
-			} catch (IOException ex) {
-			}
+			res = String.format(faultFormat, Constants.Message.FAULT, this.getFault().toJson());
 		}
 		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":\"%s\"%s}",
 				  Constants.Message.ID, this.getId(), Constants.Message.DEADLINE, this.getDeadline(),
