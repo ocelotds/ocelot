@@ -148,7 +148,7 @@ public class MessageFromClient {
 		String argnames = "";
 		iterator = parameterNames.iterator();
 		while (iterator.hasNext()) {
-			args += iterator.next();
+			argnames += iterator.next();
 			if (iterator.hasNext()) {
 				argnames += ",";
 			}
