@@ -66,9 +66,7 @@ public class Command {
 			String msgFormat = ",\"%s\":%s";
 			msg = String.format(msgFormat, Constants.Command.MESSAGE, this.getMessage());
 		}
-		String json = String.format("{\"%s\":\"%s\"%s}",
-				  Constants.Command.COMMAND, this.getCommand(),
-				  msg);
+		String json = String.format("{\"%s\":\"%s\"%s}", Constants.Command.COMMAND, this.getCommand(), msg);
 		return json;
 	}
 	
