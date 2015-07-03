@@ -8,6 +8,9 @@ import fr.hhdev.ocelot.annotations.JsCacheResult;
 import fr.hhdev.ocelot.annotations.TransientDataService;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -52,7 +55,8 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 		try {
 			createClassComment(typeElement, writer);
 			writer.append("function ").append(typeElement.getSimpleName()).append("() {\n");
-			writer.append("\tthis.ds = \"").append(typeElement.getQualifiedName().toString()).append("\";\n");
+			String classname = typeElement.getQualifiedName().toString();
+			writer.append("\tthis.ds = \"").append(classname).append("\";\n");
 			List<ExecutableElement> methodElements = ElementFilter.methodsIn(typeElement.getEnclosedElements());
 			for (ExecutableElement methodElement : methodElements) {
 				if (isConsiderateMethod(methodElement)) {
@@ -77,7 +81,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 					}
 					writer.append(") {\n");
 
-					createMethodBody(methodElement, arguments.iterator(), writer);
+					createMethodBody(classname, methodElement, arguments.iterator(), writer);
 
 					writer.append("\t};\n");
 				}
@@ -211,13 +215,15 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	/**
 	 * Create javascript method body
 	 *
+	 * @param classname
 	 * @param methodElement
 	 * @param arguments
 	 * @param writer
 	 */
-	protected void createMethodBody(ExecutableElement methodElement, Iterator<String> arguments, Writer writer) {
+	protected void createMethodBody(String classname, ExecutableElement methodElement, Iterator<String> arguments, Writer writer) {
 		try {
-			writer.append("\t\tvar op = \"").append(methodElement.getSimpleName()).append("\";\n");
+			String methodName = methodElement.getSimpleName().toString();
+			writer.append("\t\tvar op = \"").append(methodName).append("\";\n");
 			StringBuilder args = new StringBuilder("");
 			StringBuilder paramNames = new StringBuilder("");
 			StringBuilder keys = new StringBuilder("");
@@ -243,10 +249,31 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 					}
 				}
 			}
-			writer.append("\t\tvar id = this.ds + \".\" + op + \"(\" + JSON.stringify([").append(keys.toString()).append("]) + \")\";\n");
-			writer.append("\t\treturn TokenFactory.createCallToken(this.ds, id.md5(), op, [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");\n");
+			String md5 = "\""+getMd5(classname+"."+methodName);
+//			writer.append("\t\tvar id = this.ds + \".\" + op + \"(\" + JSON.stringify([").append(keys.toString()).append("]) + \")\";\n");
+			writer.append("\t\tvar id = "+md5+"_\" + JSON.stringify([").append(keys.toString()).append("]).md5();\n");
+			writer.append("\t\tconsole.info(\"CALL ID : \" + id);\n");
+			writer.append("\t\tconsole.info(\"CALL ID : "+classname+"."+methodName+"_["+keys.toString()+"]\");\n");
+			writer.append("\t\treturn TokenFactory.createCallToken(this.ds, id, op, [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");\n");
 		} catch (IOException ex) {
 		}
+	}
+
+	/**
+	 * Create a md5 from string
+	 * @param msg
+	 * @return 
+	 */
+	private String getMd5(String msg) {
+		MessageDigest md;
+		try {
+			md = MessageDigest.getInstance("MD5");
+			byte[] bytes = msg.getBytes();
+			md.update(bytes, 0, bytes.length);
+			return new BigInteger(1, md.digest()).toString(16);
+		} catch (NoSuchAlgorithmException ex) {
+		}
+		return null;
 	}
 
 	@Override
