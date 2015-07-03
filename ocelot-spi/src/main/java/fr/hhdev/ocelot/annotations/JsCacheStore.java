@@ -13,9 +13,9 @@ public enum JsCacheStore {
 		 */
 		NONE, 
 		/**
-		 * The result should be store in browser storage (localStorage)
+		 * The result should be store in browser for the application storage (localStorage)
 		 */
-		BROWSER, 
+		APPLICATION, 
 		/**
 		 * The result should be store in session storage (sessionStorage)
 		 */
