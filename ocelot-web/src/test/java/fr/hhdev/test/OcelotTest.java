@@ -210,6 +210,11 @@ public class OcelotTest {
 		}
 		return messageFromClient;
 	}
+	private MessageFromClient getMessageFromClient(Class cls, String operation, String paramNames, String... params) {
+		MessageFromClient messageFromClient = getMessageFromClient(cls.getName(), operation, params);
+		messageFromClient.setParameterNames(Arrays.asList(paramNames.split(",")));
+		return messageFromClient;
+	}
 
 	/**
 	 * Transforme un objet en json, attention aux string
@@ -230,16 +235,13 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Handler de message de type result
-	 * Si le handler compte un id, il decomptera le lock uniquement s'il arrive à récuperer un message avec le bon id
-	 * Sinon la récupération d'un message décompte le lock
+	 * Handler de message de type result Si le handler compte un id, il decomptera le lock uniquement s'il arrive à récuperer un message avec le bon id Sinon la récupération d'un message décompte le
+	 * lock
 	 */
 	private class CountDownMessageHandler implements MessageHandler.Whole<String> {
 
 		private final CountDownLatch lock;
-		private Object result = null;
 		private MessageToClient messageToClient = null;
-		private Fault fault = null;
 		private String id = null;
 
 		CountDownMessageHandler(String id, CountDownLatch lock) {
@@ -257,8 +259,6 @@ public class OcelotTest {
 			MessageToClient messageToClientIn = MessageToClient.createFromJson(message);
 			if ((id != null && id.equals(messageToClientIn.getId())) || (id == null && messageToClientIn.getId() != null)) {
 				messageToClient = messageToClientIn;
-				result = messageToClientIn.getResult();
-				fault = messageToClientIn.getFault();
 				synchronized (lock) {
 					lock.countDown();
 				}
@@ -268,19 +268,6 @@ public class OcelotTest {
 		public MessageToClient getMessageToClient() {
 			return messageToClient;
 		}
-
-		public Object getResult() {
-			return result;
-		}
-
-		public Fault getFault() {
-			return fault;
-		}
-
-		public CountDownLatch getLock() {
-			return lock;
-		}
-
 	}
 
 	/**
@@ -299,16 +286,16 @@ public class OcelotTest {
 	 * Cette methode appel via la session passé en argument sur la classe l'operation et decompte le lock
 	 *
 	 * @param session
-	 * @param clazz
+	 * @param className
 	 * @param operation
 	 * @return
 	 */
-	private void checkMessageAfterSendInSession(Session session, Class clazz, String operation, String... params) {
+	private void checkMessageAfterSendInSession(Session session, String className, String operation, String... params) {
 		// contruction de l'objet command
 		Command cmd = new Command();
 		cmd.setCommand(Constants.Command.Value.CALL);
-		// construction de lac commande
-		MessageFromClient messageFromClient = getMessageFromClient(clazz.getName(), operation, params);
+		// construction de la commande
+		MessageFromClient messageFromClient = getMessageFromClient(className, operation, params);
 		cmd.setMessage(messageFromClient.toJson());
 		// on crée un handler client de reception de la réponse
 		try {
@@ -350,8 +337,8 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération de 2 instances du mm bean, il doivent être differents on met l'un dans un thread, on lui set value à 500 en dehors du thread on
-	 * recup un autre bean, et on compare value, elles doivent etre different
+	 * Teste de la récupération de 2 instances du mm bean, il doivent être differents on met l'un dans un thread, on lui set value à 500 en dehors du thread on recup un autre bean, et on compare value,
+	 * elles doivent etre different
 	 */
 	private void testDifferentInstancesInDifferentThreads(final Class<? extends GetValue> clazz, String resolverId) {
 		final IDataServiceResolver resolver = getResolver(resolverId);
@@ -439,8 +426,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'un Singleton On excecute une methode via 2 session distincte sur le même bean. le resultat stockéà l'interieur du bean doit
-	 * etre identique
+	 * Teste de la récupération d'un Singleton On excecute une methode via 2 session distincte sur le même bean. le resultat stockéà l'interieur du bean doit etre identique
 	 *
 	 * @param clazz
 	 */
@@ -480,8 +466,8 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'un bean session, on le récupere deux fois et on check que le resultat soit identique pour une meme session, puis on crée une
-	 * new session cela doit donner un resultat different
+	 * Teste de la récupération d'un bean session, on le récupere deux fois et on check que le resultat soit identique pour une meme session, puis on crée une new session cela doit donner un resultat
+	 * different
 	 */
 	private void testResultSessionScope(Class clazz) {
 		// premiere requete 
@@ -547,8 +533,8 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'un ejb session (stateful), on le récupere deux fois et on check que le resultat soit identique pour une meme session, puis on
-	 * crée une new session cela doit donner un resultat different les EJBs stateful on un scope SESSION
+	 * Teste de la récupération d'un ejb session (stateful), on le récupere deux fois et on check que le resultat soit identique pour une meme session, puis on crée une new session cela doit donner un
+	 * resultat different les EJBs stateful on un scope SESSION
 	 */
 	@Test
 	public void testGetResultEJBSession() {
@@ -648,8 +634,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération de cdi beans annoté Dependent effectivement il depend du scope de l'objet le gérant donc hors session c'est comme un scope
-	 * REQUEST
+	 * Teste de la récupération de cdi beans annoté Dependent effectivement il depend du scope de l'objet le gérant donc hors session c'est comme un scope REQUEST
 	 */
 	@Test
 	public void testGetCdiBeanSession() {
@@ -658,8 +643,8 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'un cdi bean session, on le récupere deux fois et on check que le resultat soit identique pour une meme session, puis on crée
-	 * une new session cela doit donner un resultat different
+	 * Teste de la récupération d'un cdi bean session, on le récupere deux fois et on check que le resultat soit identique pour une meme session, puis on crée une new session cela doit donner un
+	 * resultat different
 	 */
 	@Test
 	public void testGetResultCdiBeanSession() {
@@ -767,7 +752,7 @@ public class OcelotTest {
 		String uuid = UUID.randomUUID().toString();
 		Fault f = new Fault(new NullPointerException("Message d'erreur"), 0);
 		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":\"%s\",\"%s\":%s}",
-					  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheStore.NONE, Constants.Message.FAULT, f.toJson());
+				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheStore.NONE, Constants.Message.FAULT, f.toJson());
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(uuid, result.getId());
 		assertEquals(f.getClassname(), result.getFault().getClassname());
@@ -1409,6 +1394,7 @@ public class OcelotTest {
 	}
 
 	final int NB_SIMUL_METHODS = 500;
+
 	/**
 	 * Teste l'appel simultané de methodes sur autant de session differentes<br>
 	 * TODO Voir pourquoi cela ne marche pas au dela des 900 cnx
@@ -1416,7 +1402,7 @@ public class OcelotTest {
 	@Test
 	public void testCallMultiMethodsMultiSessions() {
 		int nb = NB_SIMUL_METHODS;
-		System.out.println("call"+nb+"MethodsMultiSession");
+		System.out.println("call" + nb + "MethodsMultiSession");
 		ExecutorService executorService = Executors.newFixedThreadPool(nb);
 		final List<Session> sessions = new ArrayList<>();
 		try {
@@ -1431,7 +1417,7 @@ public class OcelotTest {
 				session.addMessageHandler(messageHandler);
 				executorService.execute(new TestThread(clazz, methodName, session));
 			}
-			lock.await(10*nb, TimeUnit.MILLISECONDS);
+			lock.await(10 * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
 			System.out.println("Excecution de " + nb + " appels multisession en " + (t1 - t0) + "ms");
 			assertEquals("Timeout", 0, lock.getCount());
@@ -1454,7 +1440,7 @@ public class OcelotTest {
 	@Test
 	public void testCallMultiMethodsMonoSessions() {
 		int nb = NB_SIMUL_METHODS;
-		System.out.println("call"+nb+"MethodsMonoSession");
+		System.out.println("call" + nb + "MethodsMonoSession");
 		ExecutorService executorService = Executors.newFixedThreadPool(nb);
 		try (Session session = OcelotTest.createAndGetSession()) {
 			final CountDownLatch lock = new CountDownLatch(nb);
@@ -1466,7 +1452,7 @@ public class OcelotTest {
 			for (int i = 0; i < nb; i++) {
 				executorService.execute(new TestThread(clazz, methodName, session));
 			}
-			lock.await(10*nb, TimeUnit.MILLISECONDS);
+			lock.await(10 * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
 			System.out.println("Excecution de " + nb + " appels monosession en " + (t1 - t0) + "ms");
 			assertEquals("Timeout", 0, lock.getCount());
@@ -1491,9 +1477,48 @@ public class OcelotTest {
 
 		@Override
 		public void run() {
-			checkMessageAfterSendInSession(wsSession, clazz, methodName);
+			checkMessageAfterSendInSession(wsSession, clazz.getName(), methodName);
 		}
 
+	}
+
+	/**
+	 * Test d'envoi d'un message generant un message de suppression de cache
+	 */
+	@Test
+	public void testSendRemoveCacheMessage() {
+		System.out.println("sendMessageToTopic");
+		final String topic = "ocelot-cleancache";
+		System.out.println("Enregistrement au Topic '" + topic + "'");
+		Command command = new Command();
+		command.setCommand(Constants.Command.Value.SUBSCRIBE);
+		command.setMessage("\"" + topic + "\"");
+		try (Session wssession = createAndGetSession()) {
+			wssession.getBasicRemote().sendText(command.toJson());
+			String methodName = "generateCleanCacheMessage";
+			System.out.println(methodName);
+			// contruction de l'objet command
+			Command cmd = new Command();
+			cmd.setCommand(Constants.Command.Value.CALL);
+			// construction de lac commande
+			MessageFromClient messageFromClient = getMessageFromClient(EJBDataService.class, methodName, "\"a\",\"r\"", getJson(""), getJson(new Result(5)));
+			System.out.println("messageFromClient.toJson : "+messageFromClient.toJson());
+			cmd.setMessage(messageFromClient.toJson());
+			// on pose un locker 2 car on doit recevoir deux messages, un pour la reponse et un pour 
+			CountDownLatch lock = new CountDownLatch(2);
+			// on crée un handler client de reception de la réponse
+			CountDownMessageHandler messageHandler = new CountDownMessageHandler(lock);
+			wssession.addMessageHandler(messageHandler);
+			// send
+			wssession.getBasicRemote().sendText(cmd.toJson());
+			// wait le delock ou timeout
+			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			// lockCount doit être à zero sinon, on a pas eu le resultat
+			assertEquals("Timeout", 0, lock.getCount());
+			wssession.removeMessageHandler(messageHandler);
+		} catch (InterruptedException | IOException ex) {
+			fail(ex.getMessage());
+		}
 	}
 
 	/**
