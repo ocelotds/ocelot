@@ -8,6 +8,8 @@ package fr.hhdev.test.dataservices;
 import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.OcelotServices;
 import fr.hhdev.ocelot.annotations.DataService;
+import fr.hhdev.ocelot.annotations.JsCacheRemove;
+import fr.hhdev.test.Result;
 import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
@@ -48,4 +50,9 @@ public class EJBDataService implements GetValue {
 	public void setValue(double d) {
 		this.d = d;
 	}
+	
+	@JsCacheRemove(cls = EJBDataService.class , methodName = "getLocaleHello", keys = {"a","r.integer"})
+	public void generateCleanCacheMessage(String a, Result r) {
+		
+	} 
 }
