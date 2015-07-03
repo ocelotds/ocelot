@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletResponse;
  * Servlet to serve ocelot-core.js
  * @author hhfrancois
  */
-@WebServlet(urlPatterns = {"/ocelot-core.js"})
+@WebServlet(urlPatterns = {Constants.SLASH + Constants.OCELOT_CORE+Constants.JS})
 public class CoreJSServlet extends HttpServlet {
 
 	/**
@@ -40,13 +40,13 @@ public class CoreJSServlet extends HttpServlet {
 		String minify = request.getParameter(Constants.MINIFY_PARAMETER);
 		try (Writer out = response.getWriter()) {
 			String ctxPath = request.getContextPath();
-			URL js = this.getClass().getResource("/"+Constants.OCELOT_CORE_JS);
+			URL js = this.getClass().getResource(Constants.SLASH + Constants.OCELOT_CORE+Constants.JS);
 			if (Constants.FALSE.equalsIgnoreCase(minify)) {
 				try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream()))) {
 					String inputLine;
 					while ((inputLine = in.readLine()) != null) {
 						out.write(inputLine.replaceAll(CTXPATH, ctxPath));
-						out.write("\n");
+						out.write(Constants.BACKSLASH_N);
 					}
 				}
 			} else { // TODO implement minification
@@ -54,7 +54,7 @@ public class CoreJSServlet extends HttpServlet {
 					String inputLine;
 					while ((inputLine = in.readLine()) != null) {
 						out.write(inputLine.replaceAll(CTXPATH, ctxPath));
-						out.write("\n");
+						out.write(Constants.BACKSLASH_N);
 					}
 				}
 			}
