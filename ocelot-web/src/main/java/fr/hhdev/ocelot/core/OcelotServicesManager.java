@@ -56,7 +56,7 @@ public class OcelotServicesManager {
 				l.setCountry(locale.getCountry());
 				Calendar deadline = Calendar.getInstance();
 				deadline.add(Calendar.YEAR, 1);
-				messageToClient.setStore(JsCacheStore.BROWSER);
+				messageToClient.setStore(JsCacheStore.APPLICATION);
 				messageToClient.setDeadline(deadline.getTime().getTime());
 				messageToClient.setResult(l);
 				logger.debug("getLocale() = {}", l);
