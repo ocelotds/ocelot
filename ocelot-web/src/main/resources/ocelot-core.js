@@ -2,6 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
  */
+/**
+ * Ocelot Controller
+ * @returns {OcelotController}
+ */
 function OcelotController() {
 	var ws;
 	this.init = function () {
@@ -34,11 +38,9 @@ function OcelotController() {
 						var token = this.tokens[msgToClient.id];
 						// if msgToClient has dead line so we stock in cache
 						if (msgToClient.store === "SESSION") {
-							console.info("Add SESSION cache "+msgToClient.id+" : "+JSON.stringify(msgToClient));
-							sessionStorage.setItem(msgToClient.id, JSON.stringify(msgToClient));
-						} else if (msgToClient.store === "BROWSER") {
-							console.info("Add BROWSER cache "+msgToClient.id+" : "+JSON.stringify(msgToClient));
-							localStorage.setItem(msgToClient.id, JSON.stringify(msgToClient));
+							OcelotCacheManager.putResultInCache(sessionStorage, msgToClient);
+						} else if (msgToClient.store === "APPLICATION") {
+							OcelotCacheManager.putResultInCache(localStorage, msgToClient);
 						}
 						if (token.onResult) {
 							var evt = this.createEventFromToken("result", token);
@@ -58,23 +60,23 @@ function OcelotController() {
 					this.topicHandlers["ocelot-status"](this.status);
 				}
 				// Controller subscribe to ocelot-cleancache topic
-				var mdb = new Mdb("ocelot-cleancache");
+				var mdb = new TopicConsumer("ocelot-cleancache");
 				mdb.onMessage = function (id) {
-					console.info("Clean cache "+id);
-					if(id === "BROWSER") {
-						localStorage.clear();
-					} else if(id === "SESSION") {
-						sessionStorage.clear();
+					console.debug("Clean cache " + id);
+					if (id === "APPLICATION") {
+						OcelotCacheManager.clearCache(localStorage);
+					} else if (id === "SESSION") {
+						OcelotCacheManager.clearCache(sessionStorage);
 					} else {
-						localStorage.removeItem(id);
-						sessionStorage.removeItem(id);
+						OcelotCacheManager.removeEntryInCache(localStorage, id);
+						OcelotCacheManager.removeEntryInCache(sessionStorage, id);
 					}
 				};
 				mdb.subscribe();
 				// Get Locale from server or cache and re-set it
 				var ocelotServices = new OcelotServices();
 				var token = ocelotServices.getLocale();
-				token.success = function(locale) {
+				token.success = function (locale) {
 					ocelotServices.setLocale(locale);
 				};
 			};
@@ -135,24 +137,17 @@ function OcelotController() {
 		}
 	};
 	this.call = function (token) {
+		console.debug("Call request " + JSON.stringify(token));
 		// check entry cache
-		var res = localStorage.getItem(token.id) || sessionStorage.getItem(token.id);
-		if (!token.ignoreCache && res) {
-			var msgToClient = JSON.parse(res);
-			var now = new Date().getTime();
-			console.info("Cache "+token.id+" found : "+res);
-			// check validity
-			if (now < msgToClient.deadline) {
-				console.info("Cache valid "+res);
-				// present and valid, return result without call
-				var evt = this.createEventFromToken("result", token);
-				evt.result = msgToClient.result;
-				token.onResult(evt);
-				token.success(msgToClient.result);
-				return;
-			} else {
-				console.info("Cache "+token.id+" novalid : "+msgToClient.deadline+"<"+now);
-			}
+		var msgToClient = OcelotCacheManager.getResultInCache(localStorage, token.id, token.ignoreCache) || OcelotCacheManager.getResultInCache(sessionStorage, token.id, token.ignoreCache);
+		if(msgToClient) {
+			console.debug("Cache valid send message");
+			// present and valid, return result without call
+			var evt = this.createEventFromToken("result", token);
+			evt.result = msgToClient.result;
+			token.onResult(evt);
+			token.success(evt.result);
+			return;
 		}
 		// else call
 		if (ws.status === "OPEN") {
@@ -176,7 +171,88 @@ function OcelotController() {
 	this.init();
 }
 /**
- * The GlobalController
+ * instance to manage cache
+ * @type OcelotCacheManager
+ */
+var OcelotCacheManager = {
+	/**
+	 * Add result in cache storage
+	 * @param {Storage JS Plateform} storage
+	 * @param {MessageToClient} msgToClient
+	 */
+	putResultInCache : function(storage, msgToClient) {
+		var ids = msgToClient.id.split("_");
+		var json = storage.getItem(ids[0]);
+		var obj = {};
+		if(json) {
+			obj = JSON.parse(json);
+		}
+		obj[ids[1]] = msgToClient;
+		json = JSON.stringify(obj);
+		console.debug("Cache new entry "+ids[0]+" : "+json);
+		storage.setItem(ids[0], json);
+	},
+	/**
+	 * 
+	 * @param {Storage JS Plateform} storage
+	 * @param {String} compositeKey
+	 * @param {boolean} ignoreCache
+	 * @returns {MessageToClient}
+	 */
+	getResultInCache : function(storage, compositeKey, ignoreCache) {
+		if(ignoreCache) {
+			console.debug("Cache ignore");
+			return null;
+		}
+		console.debug("Looking Cache for compositeKey "+compositeKey);
+		var ids = compositeKey.split("_");
+		var msgToClient = null;
+		var json = storage.getItem(ids[0]);
+		if(json) {
+			var obj = JSON.parse(json);
+			msgToClient = obj[ids[1]];
+		}
+		if(msgToClient) {
+			console.debug("Cache entry " + compositeKey + " found : " + JSON.stringify(msgToClient));
+			var now = new Date().getTime();
+			// check validity
+			if (now > msgToClient.deadline) {
+				OcelotCacheManager.removeEntryInCache(storage, compositeKey);
+				msgToClient = null; // invalid
+			}
+		}
+		return msgToClient;
+	},
+	/**
+	 * Remove sub entry or entry in cache
+	 * @param {Storage JS Plateform} storage
+	 * @param {String} compositeKey
+	 */
+	removeEntryInCache : function(storage, compositeKey) {
+		var ids = compositeKey.split("_");
+		var entry = storage.getItem(ids[0]);
+		if(entry) {
+			var obj = JSON.parse(entry);
+			if(ids.length===2) {
+				console.debug("Remove Cache entry for compositeKey "+compositeKey);
+				delete obj[ids[1]];
+				storage.setItem(ids[0], JSON.stringify(obj));
+			} else {
+				console.debug("Remove Cache entries for key "+ids[0]);
+				storage.removeItem(ids[0]);
+			}
+		}
+	},
+	/**
+	 * Clear specific cache storage
+	 * @param {Storage JS Plateform} storage
+	 */
+	clearCache : function(storage) {
+		storage.clear();
+	}
+};
+/**
+ * instance of OcelotController as GlobalController
  * @type OcelotController
  */
 var ocelotController = new OcelotController();
@@ -196,23 +272,10 @@ window.addEventListener("beforeunload", function (e) {
 });
 /**
  * Consumer Class
- * @param {type} topic
- * @returns {Mdb}
+ * @param {String} topic
+ * @returns {TopicConsumer}
  */
 function TopicConsumer(topic) {
-	var topic = topic;
-	this.subscribe = function () {
-		var token = TokenFactory.createSubscribeToken(topic, this.onMessage);
-		document.dispatchEvent(token);
-	};
-	this.unsubscribe = function () {
-		var token = TokenFactory.createUnsubscribeToken(topic);
-		document.dispatchEvent(token);
-	};
-	this.onMessage = function (msg) {
-	};
-}
-function Mdb(topic) {
 	var topic = topic;
 	this.subscribe = function () {
 		var token = TokenFactory.createSubscribeToken(topic, this.onMessage);
@@ -238,7 +301,7 @@ var TokenFactory = {
 	 * @param {type} args
 	 * @returns {TokenFactory.createToken.evt|Event}
 	 */
-	createCallToken : function(ds, id, op, argNames, args) {
+	createCallToken: function (ds, id, op, argNames, args) {
 		var evt = document.createEvent("Event");
 		evt.initEvent("call", true, false);
 		evt.dataservice = ds;
@@ -272,7 +335,7 @@ var TokenFactory = {
 	 * @param {type} messageHandler
 	 * @returns {Event|TokenFactory.createSubscribeToken.evt}
 	 */
-	createSubscribeToken : function(topic, messageHandler) {
+	createSubscribeToken: function (topic, messageHandler) {
 		var evt = document.createEvent("Event");
 		evt.initEvent("subscribe", true, false);
 		evt.message = topic;
@@ -284,7 +347,7 @@ var TokenFactory = {
 	 * @param {type} topic
 	 * @returns {Event|TokenFactory.createUnsubscribeToken.evt}
 	 */
-	createUnsubscribeToken : function(topic) {
+	createUnsubscribeToken: function (topic) {
 		var evt = document.createEvent("Event");
 		evt.initEvent("unsubscribe", true, false);
 		evt.message = topic;
@@ -302,21 +365,26 @@ function OcelotServices() {
 	 * @param locale
 	 */
 	this.setLocale = function (locale) {
-		var id = this.ds + ".setLocale(" + JSON.stringify([locale]) + ")";
-		var cleanid = this.ds + ".getLocale([])";
+		var id0 = (this.ds + ".setLocale").md5();
+		var id1 = JSON.stringify([locale]).md5();
+		var id = id0+"_"+id1;
+		id0 = (this.ds + ".getLocale").md5();
+		id1 = JSON.stringify([]).md5();
+		var cleanid = "\""+id0+"_"+id1+"\"";
 		var nextYear = new Date();
-		nextYear.setFullYear(nextYear.getFullYear()+1);
-		var msgToClient = {"id":cleanid.md5(),"deadline":nextYear.getTime(),"result":locale};
-		console.info("Add BROWSER cache "+msgToClient.id+" : "+JSON.stringify(msgToClient));
-		localStorage.setItem(msgToClient.id, JSON.stringify(msgToClient));
-		return TokenFactory.createCallToken(this.ds, id.md5(), "setLocale", ["locale"], [locale]);
+		nextYear.setFullYear(nextYear.getFullYear() + 1);
+		var msgToClient = {"id": cleanid, "deadline": nextYear.getTime(), "store":"APPLICATION", "result": locale};
+		OcelotCacheManager.putResultInCache(localStorage, msgToClient);
+		return TokenFactory.createCallToken(this.ds, id, "setLocale", ["locale"], [locale]);
 	};
 	/**
 	 * @return locale
 	 */
 	this.getLocale = function () {
-		var id = this.ds + ".getLocale([])";
-		return TokenFactory.createCallToken(this.ds, id.md5(), "getLocale", [], []);
+		var id0 = (this.ds + ".getLocale").md5();
+		var id1 = JSON.stringify([]).md5();
+		var id = id0+"_"+id1;
+		return TokenFactory.createCallToken(this.ds, id, "getLocale", [], []);
 	};
 }
 
