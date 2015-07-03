@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author hhfrancois
  */
-@WebServlet(urlPatterns = {"/" + Constants.OCELOT_SERVICES_JS})
+@WebServlet(urlPatterns = {Constants.SLASH + Constants.OCELOT_SERVICES+Constants.JS})
 public class ServicesJSServlet extends HttpServlet {
 
 	/**
@@ -34,14 +34,14 @@ public class ServicesJSServlet extends HttpServlet {
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType(Constants.JSTYPE);
 		String minify = request.getParameter(Constants.MINIFY_PARAMETER);
-		String filename = request.getServletContext().getInitParameter(Constants.OCELOT_SERVICES_JS);
+		String filename = request.getServletContext().getInitParameter(Constants.OCELOT_SERVICES);
 		try (Writer out = response.getWriter()) {
 			if (Constants.FALSE.equalsIgnoreCase(minify)) {
 				try (BufferedReader in = new BufferedReader(new FileReader(filename))) {
 					String inputLine;
 					while ((inputLine = in.readLine()) != null) {
 						out.write(inputLine);
-						out.write("\n");
+						out.write(Constants.BACKSLASH_N);
 					}
 				}
 			} else { // TODO Implement minification
@@ -49,7 +49,7 @@ public class ServicesJSServlet extends HttpServlet {
 					String inputLine;
 					while ((inputLine = in.readLine()) != null) {
 						out.write(inputLine);
-						out.write("\n");
+						out.write(Constants.BACKSLASH_N);
 					}
 				}
 			}
