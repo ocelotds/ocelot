@@ -9,7 +9,7 @@
 	</head>
 	<body>
 		<script>
-			var mdb1 = new Mdb("ocelot-status");
+			var mdb1 = new TopicConsumer("ocelot-status");
 			mdb1.onMessage = function (msg) {
 				var status = document.getElementById("status");
 				if (msg === "OPEN") {
@@ -19,7 +19,7 @@
 				}
 			};
 			mdb1.subscribe();
-			var mdb = new Mdb("mytopic");
+			var mdb = new TopicConsumer("mytopic");
 			mdb.onMessage = addMessage;
 			var pojoService = new TestPojoService();
 			var ejbService = new TestEJBService();
@@ -98,7 +98,7 @@
 		</select>
 		<button onclick="showObject()">SHOW OBJECT</button><br>
 		<textarea style="height:200px;width:100%" id="objectarea"></textarea><br>
-		<button onclick="ocelotController.close()">CLOSE WS</button><button onclick="mdb.subscribe();">SUBSCRIBE</button><button onclick="mdb.unsubscribe();">UNSUBSCRIBE</button><br>
+		<button onclick="ocelotController.close()">CLOSE WS</button><button onclick="mdb.subscribe();">SUBSCRIBE</button><button onclick="mdb.unsubscribe();">UNSUBSCRIBE</button><button onclick="localStorage.clear();sessionStorage.clear()">CLEARCACHE</button><br>
 		<button onclick="getMessage(ejbService)">GET EJB MESSAGE(int)</button><button onclick="getMessage2(ejbService)">GET EJB MESSAGE(str)</button><br>
 		<button onclick="getMessageCached(ejbService)">GET EJB MESSAGE CACHED 1Mn</button><br>
 		<button onclick="getMessageCached2(ejbService)">GET EJB MESSAGE2 CACHED 1Mn</button><br>
