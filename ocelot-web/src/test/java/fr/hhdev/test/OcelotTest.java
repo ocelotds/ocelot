@@ -210,6 +210,7 @@ public class OcelotTest {
 		}
 		return messageFromClient;
 	}
+
 	private MessageFromClient getMessageFromClient(Class cls, String operation, String paramNames, String... params) {
 		MessageFromClient messageFromClient = getMessageFromClient(cls.getName(), operation, params);
 		messageFromClient.setParameterNames(Arrays.asList(paramNames.split(",")));
@@ -257,7 +258,8 @@ public class OcelotTest {
 		public void onMessage(String message) {
 			logger.debug("RECEIVE RESPONSE FROM SERVER = {}", message);
 			MessageToClient messageToClientIn = MessageToClient.createFromJson(message);
-			if ((id != null && id.equals(messageToClientIn.getId())) || (id == null && messageToClientIn.getId() != null)) {
+			if (id == null || id.equals(messageToClientIn.getId())) {
+//			if ((id != null && id.equals(messageToClientIn.getId())) || (id == null && messageToClientIn.getId() != null)) {
 				messageToClient = messageToClientIn;
 				synchronized (lock) {
 					lock.countDown();
@@ -1413,8 +1415,7 @@ public class OcelotTest {
 			for (int i = 0; i < nb; i++) {
 				Session session = OcelotTest.createAndGetSession();
 				sessions.add(session);
-				CountDownMessageHandler messageHandler = new CountDownMessageHandler(lock);
-				session.addMessageHandler(messageHandler);
+				session.addMessageHandler(new CountDownMessageHandler(lock));
 				executorService.execute(new TestThread(clazz, methodName, session));
 			}
 			lock.await(10 * nb, TimeUnit.MILLISECONDS);
@@ -1502,7 +1503,7 @@ public class OcelotTest {
 			cmd.setCommand(Constants.Command.Value.CALL);
 			// construction de lac commande
 			MessageFromClient messageFromClient = getMessageFromClient(EJBDataService.class, methodName, "\"a\",\"r\"", getJson(""), getJson(new Result(5)));
-			System.out.println("messageFromClient.toJson : "+messageFromClient.toJson());
+			System.out.println("messageFromClient.toJson : " + messageFromClient.toJson());
 			cmd.setMessage(messageFromClient.toJson());
 			// on pose un locker 2 car on doit recevoir deux messages, un pour la reponse et un pour 
 			CountDownLatch lock = new CountDownLatch(2);
