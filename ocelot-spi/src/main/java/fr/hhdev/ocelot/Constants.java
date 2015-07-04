@@ -11,15 +11,22 @@ package fr.hhdev.ocelot;
  */
 public interface Constants {
 
+	String JS = ".js";
+	String MIN = "-min";
 	String SLASH = "/";
 	String BACKSLASH_N = "\n";
 	String LOCALE = "LOCALE";
+
 	String OCELOT_CORE = "ocelot-core";
 	String OCELOT_SERVICES = "ocelot-services";
+
+	String OCELOT_CORE_MIN = OCELOT_CORE+MIN;
+	String OCELOT_SERVICES_MIN = OCELOT_SERVICES+MIN;
+
+	String SLASH_OCELOT_CORE_JS = SLASH+OCELOT_CORE+JS;
+	String SLASH_OCELOT_SERVICES_JS = SLASH+OCELOT_SERVICES+JS;
+	
 	String MINIFY_PARAMETER = "minify";
-	String MIN = "min";
-	String DOT = "-";
-	String JS = ".js";
 	String JSTYPE = "text/javascript;charset=UTF-8";
 	String FALSE = "false";
 	String TRUE = "true";
