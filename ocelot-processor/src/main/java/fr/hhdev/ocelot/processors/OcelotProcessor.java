@@ -115,10 +115,12 @@ public class OcelotProcessor extends AbstractProcessor {
 				writer.append("	@Override\n");
 				writer.append("	public void streamJavascriptServices(OutputStream out) {\n");
 				writer.append("		try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(\"srv_"+seed+".js\")) {\n");
-				writer.append("			byte[] buffer = new byte[1024];\n");
-				writer.append("			int read;\n");
-				writer.append("			while((read = in.read(buffer, 0, 1024))>=0) {\n");
-				writer.append("				out.write(buffer, 0, read);\n");
+				writer.append("			if(null!=in){\n");
+				writer.append("				byte[] buffer = new byte[1024];\n");
+				writer.append("				int read;\n");
+				writer.append("				while((read = in.read(buffer, 0, 1024))>=0) {\n");
+				writer.append("					out.write(buffer, 0, read);\n");
+				writer.append("				}\n");
 				writer.append("			}\n");
 				writer.append("		} catch(IOException ex) {\n");
 				writer.append("			logger.error(\"Generation of 'srv_"+seed+".js' failed.\", ex);\n");
