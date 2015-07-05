@@ -28,10 +28,15 @@ import fr.hhdev.test.dataservices.GetValue;
 import fr.hhdev.test.dataservices.SessionCDIDataService;
 import fr.hhdev.test.dataservices.SessionEJBDataService;
 import fr.hhdev.test.dataservices.SingletonEJBDataService;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -145,6 +150,7 @@ public class OcelotTest {
 		File bean = new File("src/main/resources/META-INF/beans.xml");
 		File core = new File("src/main/resources/ocelot-core.js");
 		return ShrinkWrap.create(JavaArchive.class, "ocelot-web.jar")
+				  .addPackages(true, "services")
 				  .addPackages(true, "fr.hhdev.ocelot.encoders")
 				  .addPackages(true, "fr.hhdev.ocelot.exceptions")
 				  .addPackages(true, "fr.hhdev.ocelot.resolvers")
@@ -236,7 +242,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Handler de message de type result Si le handler compte un id, il decomptera le lock uniquement s'il arrive à récuperer un message avec le bon id Sinon la récupération d'un message décompte le
+	 * Handler de message de type result Si le handler compte un id, il decomptera le lock uniquement s'il arrive à  récuperer un message avec le bon id Sinon la récupération d'un message décompte le
 	 * lock
 	 */
 	private class CountDownMessageHandler implements MessageHandler.Whole<String> {
@@ -273,7 +279,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Cette methode appel via la session passé en argument sur la classe l'operationet retourne le resultat
+	 * Cette methode appel via la session passé en argument sur la classe l'operation et retourne le resultat
 	 *
 	 * @param wsSession
 	 * @param clazz
@@ -326,7 +332,7 @@ public class OcelotTest {
 			session.getBasicRemote().sendText(cmd.toJson());
 			// wait le delock ou timeout
 			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			// lockCount doit être à zero sinon, on a pas eu le resultat
+			// lockCount doit être à  zero sinon, on a pas eu le resultat
 			assertEquals("Timeout", 0, lock.getCount());
 			// lecture du resultat dans le handler
 			result = messageHandler.getMessageToClient();
@@ -339,8 +345,8 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération de 2 instances du mm bean, il doivent être differents on met l'un dans un thread, on lui set value à 500 en dehors du thread on recup un autre bean, et on compare value,
-	 * elles doivent etre different
+	 * Teste de la récupération de 2 instances du mm bean, il doivent être differents on met l'un dans un thread, on lui set value à  500 en dehors du thread on recup un autre bean, et on compare
+	 * value, elles doivent etre different
 	 */
 	private void testDifferentInstancesInDifferentThreads(final Class<? extends GetValue> clazz, String resolverId) {
 		final IDataServiceResolver resolver = getResolver(resolverId);
@@ -428,7 +434,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'un Singleton On excecute une methode via 2 session distincte sur le même bean. le resultat stockéà l'interieur du bean doit etre identique
+	 * Teste de la récupération d'un Singleton On excecute une methode via 2 session distincte sur le même bean. le resultat stocké  l'interieur du bean doit etre identique
 	 *
 	 * @param clazz
 	 */
@@ -494,12 +500,103 @@ public class OcelotTest {
 	}
 
 	/**
+	 * Récupere la resource via un HttpConnection
+	 * @param resource
+	 * @param min
+	 * @return
+	 * @throws MalformedURLException
+	 * @throws IOException 
+	 */
+	public HttpURLConnection getConnectionForResource(String resource, boolean min) throws MalformedURLException, IOException {
+		URL url = new URL("http://localhost:8282/" + ctxpath + Constants.SLASH + resource);
+		if(min) {
+			url = new URL("http://localhost:8282/" + ctxpath + Constants.SLASH + resource + "?" + Constants.MINIFY_PARAMETER + "=false");
+		}
+		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+		connection.setRequestMethod("GET");
+		connection.connect();
+		assertEquals(200, connection.getResponseCode());
+		return connection;
+	}
+
+	/**
+	 * Vérification de la minification des javascripts
+	 *
+	 * @param resource : nom de la ressource sans slash
+	 */
+	public void javascriptMinification(final String resource) {
+		try {
+			HttpURLConnection connection = getConnectionForResource(resource, true);
+			int minlength = connection.getContentLength();
+			connection = getConnectionForResource(resource, false);
+			int length = connection.getContentLength();
+			assertTrue("Minification doesn't work, same size of file magnifier : "+length+" / minifer : "+minlength, minlength < length);
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
+	}
+
+	/**
+	 * Vérification de la generation des services
+	 */
+	@Test
+	public void testJavascriptServicesGeneration() {
+		System.out.println("testJavascriptServicesGeneration");
+		try {
+			getConnectionForResource(Constants.OCELOT_SERVICES+Constants.JS, false);
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
+	}
+
+	/**
+	 * Vérification de la minification des services
+	 */
+	@Test
+	public void testJavascriptServicesMinification() {
+		System.out.println("testJavascriptServicesMinification");
+		javascriptMinification(Constants.OCELOT_SERVICES + Constants.JS);
+	}
+
+	/**
+	 * Vérification de la generation du core
+	 */
+	@Test
+	public void testJavascriptCoreGeneration() {
+		System.out.println("testJavascriptCoreGeneration");
+		try {
+			HttpURLConnection connection = getConnectionForResource(Constants.OCELOT_CORE+Constants.JS, false);
+			boolean replaced;
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+				String inputLine;
+				replaced = false;
+				while ((inputLine = in.readLine()) != null) {
+					assertFalse("Dynamic replacement of " + Constants.CTXPATH + " doen't work", inputLine.contains(Constants.CTXPATH));
+					replaced |= inputLine.contains(ctxpath);
+				}
+			}
+			assertTrue("Dynamic replacement of context doen't work", replaced);
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
+	}
+
+	/**
+	 * Vérification de la minification des services
+	 */
+	@Test
+	public void testJavascriptCoreMinification() {
+		System.out.println("testJavascriptCoreMinification");
+		javascriptMinification(Constants.OCELOT_CORE + Constants.JS);
+	}
+
+	/**
 	 * Vérification qu'un resolver inconnu remonte bien une exception
 	 */
 	@Test(expected = UnsatisfiedResolutionException.class)
 	public void testDataServiceExceptionOnUnknownResolver() {
 		System.out.println("failResolveDataService");
-		IDataServiceResolver resolver = getResolver("foo");
+		getResolver("foo");
 	}
 
 	/**
@@ -619,7 +716,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'un cdi bean et verify que la classe est bien managé en controllant la presence d'un injection à l'interieur
+	 * Teste de la récupération d'un cdi bean et verify que la classe est bien managé en controllant la presence d'un injection à  l'interieur
 	 */
 	@Test
 	public void testGetCdiBeanIsManaged() {
@@ -783,7 +880,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Vérifie l'acces à la locale
+	 * Vérifie l'acces à  la locale
 	 */
 	@Test
 	public void testLocale() {
@@ -800,9 +897,9 @@ public class OcelotTest {
 			// Récup du message en us
 			methodName = "getLocaleHello";
 			System.out.println(methodName);
-			messageToClient = getMessageToClientAfterSendInSession(wssession, EJBDataService.class.getName(), methodName, getJson("François"));
+			messageToClient = getMessageToClientAfterSendInSession(wssession, EJBDataService.class.getName(), methodName, getJson("Franà§ois"));
 			result = messageToClient.getResult();
-			assertEquals("\"Hello François\"", result);
+			assertEquals("\"Hello Franà§ois\"", result);
 			fault = messageToClient.getFault();
 			assertEquals(null, fault);
 
@@ -830,9 +927,9 @@ public class OcelotTest {
 			//  Récup du message en francais
 			methodName = "getLocaleHello";
 			System.out.println(methodName);
-			messageToClient = getMessageToClientAfterSendInSession(wssession, EJBDataService.class.getName(), methodName, getJson("François"));
+			messageToClient = getMessageToClientAfterSendInSession(wssession, EJBDataService.class.getName(), methodName, getJson("Franà§ois"));
 			result = messageToClient.getResult();
-			assertEquals("\"Bonjour François\"", result);
+			assertEquals("\"Bonjour Franà§ois\"", result);
 			fault = messageToClient.getFault();
 			assertEquals(null, fault);
 		} catch (IOException exception) {
@@ -852,7 +949,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Vérifie que l'appel à une methode inconue remonte bien une erreur adéquate
+	 * Vérifie que l'appel à  une methode inconue remonte bien une erreur adéquate
 	 */
 	@Test
 	public void testMethodUnknow() {
@@ -870,7 +967,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste l'appel à une méthode retournant void (sans resultat)
+	 * Teste l'appel à  une méthode retournant void (sans resultat)
 	 */
 	@Test
 	public void testMethodNoResult() {
@@ -888,7 +985,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste l'appel à une méthode retournant une String Attention la string retourné est sous la forme "foo" avec les double côtes
+	 * Teste l'appel à  une méthode retournant une String Attention la string retourné est sous la forme "foo" avec les double cà´tes
 	 */
 	@Test
 	public void testGetString() {
@@ -906,7 +1003,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste l'appel à une méthode retournant un int
+	 * Teste l'appel à  une méthode retournant un int
 	 */
 	@Test
 	public void testGetNum() {
@@ -924,7 +1021,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste l'appel à une méthode retournant un Integer
+	 * Teste l'appel à  une méthode retournant un Integer
 	 */
 	@Test
 	public void testGetNumber() {
@@ -942,7 +1039,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste l'appel à une méthode retournant un boolean
+	 * Teste l'appel à  une méthode retournant un boolean
 	 */
 	@Test
 	public void testGetBool() {
@@ -960,7 +1057,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste l'appel à une méthode retournant un Boolean
+	 * Teste l'appel à  une méthode retournant un Boolean
 	 */
 	@Test
 	public void testGetBoolean() {
@@ -978,7 +1075,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste l'appel à une méthode retournant une date
+	 * Teste l'appel à  une méthode retournant une date
 	 */
 	@Test
 	public void testGetDate() {
@@ -1006,7 +1103,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste l'appel à une méthode retournant un objet de type Result
+	 * Teste l'appel à  une méthode retournant un objet de type Result
 	 */
 	@Test
 	public void testGetResult() {
@@ -1024,7 +1121,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste l'appel à une méthode retournant une Collection&lt;Integer&gt;
+	 * Teste l'appel à  une méthode retournant une Collection&lt;Integer&gt;
 	 */
 	@Test
 	public void testGetCollectionInteger() {
@@ -1042,7 +1139,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste l'appel à une méthode retournant une Collection&lt;Result&gt;
+	 * Teste l'appel à  une méthode retournant une Collection&lt;Result&gt;
 	 */
 	@Test
 	public void testGetCollectionResult() {
@@ -1060,7 +1157,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste l'appel à une méthode retournant une Collection&lt;Collection&lt;Result&gt;&gt;
+	 * Teste l'appel à  une méthode retournant une Collection&lt;Collection&lt;Result&gt;&gt;
 	 */
 	@Test
 	public void testGetCollectionOfCollectionResult() {
@@ -1078,7 +1175,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Teste l'appel à une méthode retournant une Map&lt;Result&gt;
+	 * Teste l'appel à  une méthode retournant une Map&lt;Result&gt;
 	 */
 	@Test
 	public void testGetMapResult() {
@@ -1514,7 +1611,7 @@ public class OcelotTest {
 			wssession.getBasicRemote().sendText(cmd.toJson());
 			// wait le delock ou timeout
 			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			// lockCount doit être à zero sinon, on a pas eu le resultat
+			// lockCount doit être à  zero sinon, on a pas eu le resultat
 			assertEquals("Timeout", 0, lock.getCount());
 			wssession.removeMessageHandler(messageHandler);
 		} catch (InterruptedException | IOException ex) {
@@ -1523,7 +1620,7 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Test d'envoi d'un message à un topic
+	 * Test d'envoi d'un message à  un topic
 	 */
 	@Test
 	public void testSendMessageToTopic() {
