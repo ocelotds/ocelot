@@ -6,6 +6,7 @@ package fr.hhdev.ocelot.web;
 
 import fr.hhdev.ocelot.Constants;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Writer;
@@ -14,6 +15,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Servlet to serve ocelot-core.js and ocelot-services.js
@@ -22,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @WebServlet(urlPatterns = {Constants.SLASH_OCELOT_CORE_JS, Constants.SLASH_OCELOT_SERVICES_JS})
 public class JSServlet extends HttpServlet {
+	private final static Logger logger = LoggerFactory.getLogger(JSServlet.class);
 
 	/**
 	 * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -47,6 +51,9 @@ public class JSServlet extends HttpServlet {
 				filename = request.getServletContext().getInitParameter(Constants.OCELOT_CORE);
 			}
 		}
+		long lg = new File(filename).length();
+		logger.debug("Get resource {}({})", filename, lg);
+		response.setContentLength((int) lg);
 		try (Writer out = response.getWriter()) {
 			try (BufferedReader in = new BufferedReader(new FileReader(filename))) {
 				String inputLine;

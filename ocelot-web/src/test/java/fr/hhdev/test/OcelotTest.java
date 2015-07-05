@@ -31,6 +31,7 @@ import fr.hhdev.test.dataservices.SingletonEJBDataService;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -504,16 +505,17 @@ public class OcelotTest {
 
 	/**
 	 * Récupere la resource via un HttpConnection
+	 *
 	 * @param resource
 	 * @param min
 	 * @return
 	 * @throws MalformedURLException
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public HttpURLConnection getConnectionForResource(String resource, boolean min) throws MalformedURLException, IOException {
 		StringBuilder sb = new StringBuilder("http://localhost:");
 		sb.append(PORT).append(Constants.SLASH).append(ctxpath).append(Constants.SLASH).append(resource);
-		if(!min) {
+		if (!min) {
 			sb.append("?").append(Constants.MINIFY_PARAMETER).append("=false");
 		}
 		URL url = new URL(sb.toString());
@@ -530,14 +532,36 @@ public class OcelotTest {
 	 * @param resource : nom de la ressource sans slash
 	 */
 	public void javascriptMinification(final String resource) {
+		HttpURLConnection connection1 = null;
+		HttpURLConnection connection2 = null;
 		try {
-			HttpURLConnection connection = getConnectionForResource(resource, true);
-			int minlength = connection.getContentLength();
-			connection = getConnectionForResource(resource, false);
-			int length = connection.getContentLength();
-			assertTrue("Minification doesn't work, same size of file magnifier : "+length+" / minifer : "+minlength, minlength < length);
+			connection1 = getConnectionForResource(resource, true);
+			int minlength = connection1.getContentLength();
+//			traceFile(connection1.getInputStream(), resource, minlength, true);
+			connection2 = getConnectionForResource(resource, false);
+			int length = connection2.getContentLength();
+//			traceFile(connection2.getInputStream(), resource, length, false);
+			assertTrue("Minification doesn't work, same size of file magnifier : " + length + " / minifer : " + minlength, minlength < length);
 		} catch (Exception e) {
 			fail(e.getMessage());
+		} finally {
+			if (connection1 != null) {
+				connection1.disconnect();
+			}
+			if (connection2 != null) {
+				connection2.disconnect();
+			}
+		}
+	}
+
+	private void traceFile(InputStream input, String filename, int size, boolean min) {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(input))) {
+			String inputLine;
+			while ((inputLine = in.readLine()) != null) {
+				System.out.write(inputLine.getBytes());
+				System.out.write(Constants.BACKSLASH_N.getBytes());
+			}
+		} catch(IOException e) {
 		}
 	}
 
@@ -547,10 +571,15 @@ public class OcelotTest {
 	@Test
 	public void testJavascriptServicesGeneration() {
 		System.out.println("testJavascriptServicesGeneration");
+		HttpURLConnection connection = null;
 		try {
-			getConnectionForResource(Constants.OCELOT_SERVICES+Constants.JS, false);
+			connection = getConnectionForResource(Constants.OCELOT_SERVICES + Constants.JS, false);
 		} catch (Exception e) {
 			fail(e.getMessage());
+		} finally {
+			if (connection != null) {
+				connection.disconnect();
+			}
 		}
 	}
 
@@ -570,7 +599,7 @@ public class OcelotTest {
 	public void testJavascriptCoreGeneration() {
 		System.out.println("testJavascriptCoreGeneration");
 		try {
-			HttpURLConnection connection = getConnectionForResource(Constants.OCELOT_CORE+Constants.JS, false);
+			HttpURLConnection connection = getConnectionForResource(Constants.OCELOT_CORE + Constants.JS, false);
 			boolean replaced;
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
 				String inputLine;
