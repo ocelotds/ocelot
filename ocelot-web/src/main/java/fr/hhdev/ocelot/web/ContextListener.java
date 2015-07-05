@@ -38,10 +38,6 @@ public class ContextListener implements ServletContextListener {
 
 	private final static Logger logger = LoggerFactory.getLogger(ContextListener.class);
 	/**
-	 * This string will be replaced by the contextPath in ocelot-core.js
-	 */
-	private static final String CTXPATH = "%CTXPATH%";
-	/**
 	 * Minify option, breakline
 	 */
 	private static final int LINEBREAK = 80;
@@ -49,11 +45,6 @@ public class ContextListener implements ServletContextListener {
 	 * Default size of stacktrace include in messageToClient fault
 	 */
 	private static final String DEFAULTSTACKTRACE = "50";
-
-	/**
-	 * For the moment, minification doesn't work, so it's disabled
-	 */
-	private static final boolean MINIFY = false;
 
 	@Inject
 	@Any
@@ -81,32 +72,15 @@ public class ContextListener implements ServletContextListener {
 		try {
 			// create tmp/ocelot-services.js
 			File file = createOcelotServicesJsFile();
-			String filePath = file.getAbsolutePath();
-			sc.setInitParameter(Constants.OCELOT_SERVICES, filePath);
-			logger.debug("Generate '{}' : '{}'.", Constants.OCELOT_SERVICES, filePath);
-			// create tmp/ocelot-services-min.js
-			if(MINIFY) {
-				file = minifyJs(filePath, Constants.OCELOT_SERVICES_MIN);
-			}
-			filePath = file.getAbsolutePath();
-			sc.setInitParameter(Constants.OCELOT_SERVICES_MIN, filePath);
-			logger.debug("Generate '{}' : '{}'.", Constants.OCELOT_SERVICES_MIN, filePath);
+			setInitParameterAnMinifyJs(sc, file, Constants.OCELOT_SERVICES, Constants.OCELOT_SERVICES_MIN);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
+
 		try {
 			// create tmp/ocelot-core.js
-			File file = createOcelotCoreJsFile(sce.getServletContext().getContextPath());
-			String filePath = file.getAbsolutePath();
-			sc.setInitParameter(Constants.OCELOT_CORE, filePath);
-			logger.debug("Generate '{}' : '{}'.", Constants.OCELOT_CORE, filePath);
-			// create tmp/ocelot-core-min.js
-			if(MINIFY) {
-				file = minifyJs(filePath, Constants.OCELOT_CORE_MIN);
-			}
-			filePath = file.getAbsolutePath();
-			sc.setInitParameter(Constants.OCELOT_CORE_MIN, filePath);
-			logger.debug("Generate '{}' : '{}'.", Constants.OCELOT_CORE_MIN, filePath);
+			File file = createOcelotCoreJsFile(sc.getContextPath());
+			setInitParameterAnMinifyJs(sc, file, Constants.OCELOT_CORE, Constants.OCELOT_CORE_MIN);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
@@ -131,15 +105,42 @@ public class ContextListener implements ServletContextListener {
 	 *
 	 * @param filename
 	 */
-	public void deleteFile(String filename) {
+	private void deleteFile(String filename) {
 		if (!filename.isEmpty()) {
 			File file = new File(filename);
 			if (file.exists()) {
-				file.delete();
+//				file.delete();
 			}
 		}
 	}
 
+	/**
+	 * Set js name as an init-parameter on ServletContext,<br>
+	 * Minify it and set the minify name as init-parameter too.
+	 * @param sc
+	 * @param file
+	 * @param normalName
+	 * @param minifyName 
+	 */
+	private void setInitParameterAnMinifyJs(ServletContext sc, File file, String normalName, String minifyName) {
+		// create tmp/ocelot-xxx.js
+		String filePath = file.getAbsolutePath();
+		sc.setInitParameter(normalName, filePath);
+		logger.debug("Generate '{}' : '{}'.", normalName, filePath);
+		try {
+			// create tmp/ocelot-xxx-min.js
+			file = minifyJs(filePath, minifyName);
+			filePath = file.getAbsolutePath();
+		} catch (Exception ex) {
+			logger.error("Minification from "+normalName+" to "+minifyName+" failed. minify version will be equals to normal version.", ex);
+		}
+		if(filePath!=null) {
+			sc.setInitParameter(minifyName, filePath);
+			logger.debug("Generate '{}' : '{}'.", minifyName, filePath);
+		}
+		
+	}
+	
 	/**
 	 * Minify javascriptFile
 	 *
@@ -148,7 +149,7 @@ public class ContextListener implements ServletContextListener {
 	 * @return
 	 * @throws IOException
 	 */
-	protected File minifyJs(String filename, String prefix) throws IOException {
+	private File minifyJs(String filename, String prefix) throws IOException {
 		File minifiedFile = File.createTempFile(prefix, Constants.JS);
 		try (Reader reader = new FileReader(filename)) {
 			JavaScriptCompressor compressor = new JavaScriptCompressor(reader, new CompressErrorReporter(filename));
@@ -174,7 +175,7 @@ public class ContextListener implements ServletContextListener {
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream()))) {
 				String inputLine;
 				while ((inputLine = in.readLine()) != null) {
-					writer.write(inputLine.replaceAll(CTXPATH, ctxPath));
+					writer.write(inputLine.replaceAll(Constants.CTXPATH, ctxPath));
 					writer.write(Constants.BACKSLASH_N);
 				}
 			}
