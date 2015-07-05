@@ -11,9 +11,9 @@ var ocelotController, OcelotCacheManager, OcelotTokenFactory, OcelotEventFactory
 ocelotController = function () {
 	var ws;
 	if (document.location.href.toString().indexOf(document.location.protocol + "//" + document.location.hostname + ":" + document.location.port + "%CTXPATH%") === 0) {
-		ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "%CTXPATH%/endpoint");
+		ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "%CTXPATH%/ocelot-endpoint");
 	} else {
-		ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/endpoint");
+		ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/ocelot-endpoint");
 	}
 	ws.tokens = {};
 	ws.topicHandlers = {};

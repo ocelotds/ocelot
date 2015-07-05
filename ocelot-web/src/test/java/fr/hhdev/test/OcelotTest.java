@@ -90,7 +90,8 @@ public class OcelotTest {
 
 	final static Logger logger = LoggerFactory.getLogger(OcelotTest.class);
 
-	private final long TIMEOUT = 1000;
+	private final static long TIMEOUT = 1000;
+	private final static String PORT = "8282";
 
 	private final static String ctxpath = "ocelot-test";
 
@@ -190,7 +191,9 @@ public class OcelotTest {
 		WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 		try {
 			System.out.println("TRY TO CONNECT");
-			URI uri = new URI("ws://localhost:8282/" + ctxpath + "/endpoint");
+			StringBuilder sb = new StringBuilder("ws://localhost:");
+			sb.append(PORT).append(Constants.SLASH).append(ctxpath).append(Constants.SLASH).append("ocelot-endpoint");
+			URI uri = new URI(sb.toString());
 			return container.connectToServer(OcelotClientEnpoint.class, uri);
 		} catch (URISyntaxException | DeploymentException | IOException ex) {
 			fail("CONNEXION FAILED " + ex.getMessage());
@@ -508,10 +511,12 @@ public class OcelotTest {
 	 * @throws IOException 
 	 */
 	public HttpURLConnection getConnectionForResource(String resource, boolean min) throws MalformedURLException, IOException {
-		URL url = new URL("http://localhost:8282/" + ctxpath + Constants.SLASH + resource);
+		StringBuilder sb = new StringBuilder("http://localhost:");
+		sb.append(PORT).append(Constants.SLASH).append(ctxpath).append(Constants.SLASH).append(resource);
 		if(min) {
-			url = new URL("http://localhost:8282/" + ctxpath + Constants.SLASH + resource + "?" + Constants.MINIFY_PARAMETER + "=false");
+			sb.append("?").append(Constants.MINIFY_PARAMETER).append("=false");
 		}
+		URL url = new URL(sb.toString());
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("GET");
 		connection.connect();
