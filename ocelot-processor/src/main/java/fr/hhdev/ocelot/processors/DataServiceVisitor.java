@@ -250,10 +250,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 				}
 			}
 			String md5 = "\""+getMd5(classname+"."+methodName);
-//			writer.append("\t\tvar id = this.ds + \".\" + op + \"(\" + JSON.stringify([").append(keys.toString()).append("]) + \")\";\n");
 			writer.append("\t\tvar id = "+md5+"_\" + JSON.stringify([").append(keys.toString()).append("]).md5();\n");
-			writer.append("\t\tconsole.info(\"CALL ID : \" + id);\n");
-			writer.append("\t\tconsole.info(\"CALL ID : "+classname+"."+methodName+"_["+keys.toString()+"]\");\n");
 			writer.append("\t\treturn TokenFactory.createCallToken(this.ds, id, op, [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");\n");
 		} catch (IOException ex) {
 		}
