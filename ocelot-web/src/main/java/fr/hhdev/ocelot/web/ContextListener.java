@@ -109,7 +109,7 @@ public class ContextListener implements ServletContextListener {
 		if (!filename.isEmpty()) {
 			File file = new File(filename);
 			if (file.exists()) {
-//				file.delete();
+				file.delete();
 			}
 		}
 	}
