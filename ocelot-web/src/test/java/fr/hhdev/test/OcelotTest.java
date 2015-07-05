@@ -513,7 +513,7 @@ public class OcelotTest {
 	public HttpURLConnection getConnectionForResource(String resource, boolean min) throws MalformedURLException, IOException {
 		StringBuilder sb = new StringBuilder("http://localhost:");
 		sb.append(PORT).append(Constants.SLASH).append(ctxpath).append(Constants.SLASH).append(resource);
-		if(min) {
+		if(!min) {
 			sb.append("?").append(Constants.MINIFY_PARAMETER).append("=false");
 		}
 		URL url = new URL(sb.toString());
