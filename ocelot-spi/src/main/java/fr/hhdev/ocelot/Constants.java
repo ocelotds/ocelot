@@ -31,6 +31,11 @@ public interface Constants {
 	String FALSE = "false";
 	String TRUE = "true";
 	
+	/**
+	 * This string will be replaced by the contextPath in ocelot-core.js
+	 */
+	String CTXPATH = "%CTXPATH%";
+	
 	interface Options {
 
 		String STACKTRACE = "ocelot.stacktrace.length";
