@@ -91,7 +91,6 @@ public class EJBResolver implements IDataServiceResolver {
 				}
 			}
 		} catch (Throwable e) {
-			logger.debug("{} Context {} invalide : {}", new Object[]{e.getClass().getSimpleName(), name, e.getMessage()});
 		}
 		return null;
 	}
