@@ -57,8 +57,12 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 			writer.append("function ").append(typeElement.getSimpleName()).append("() {\n");
 			String classname = typeElement.getQualifiedName().toString();
 			writer.append("\tthis.ds = \"").append(classname).append("\";\n");
+			writer.append("}\n");
+			writer.append(typeElement.getSimpleName()).append(".prototype = {\n");
 			List<ExecutableElement> methodElements = ElementFilter.methodsIn(typeElement.getEnclosedElements());
-			for (ExecutableElement methodElement : methodElements) {
+			Iterator<ExecutableElement> iterator = methodElements.iterator();
+			while(iterator.hasNext()) {
+				ExecutableElement methodElement = iterator.next();
 				if (isConsiderateMethod(methodElement)) {
 					String methodName = methodElement.getSimpleName().toString();
 					List<String> argumentsType = getArgumentsType(methodElement);
@@ -67,7 +71,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 					writer.append("\n");
 					createMethodComment(methodElement, arguments, argumentsType, returnType, writer);
 
-					writer.append("\tthis.").append(methodName).append(" = function (");
+					writer.append("\t").append(methodName).append(" : function (");
 					if (arguments.size() != argumentsType.size()) {
 						messager.printMessage(Diagnostic.Kind.ERROR, (new StringBuilder()).append("Cannot Create service : ").append(typeElement.getSimpleName()).append(" cause method ").append(methodElement.getSimpleName()).append(" arguments inconsistent - argNames : ").append(arguments.size()).append(" / args : ").append(argumentsType.size()).toString(), typeElement);
 						return null;
@@ -83,10 +87,14 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 
 					createMethodBody(classname, methodElement, arguments.iterator(), writer);
 
-					writer.append("\t};\n");
+					writer.append("\t}");
+					if(iterator.hasNext()) {
+						writer.append(",");
+					}
+					writer.append("\n");
 				}
 			}
-			writer.append("}\n");
+			writer.append("};\n");
 		} catch (IOException ex) {
 		}
 		return null;
@@ -251,7 +259,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 			}
 			String md5 = "\""+getMd5(classname+"."+methodName);
 			writer.append("\t\tvar id = "+md5+"_\" + JSON.stringify([").append(keys.toString()).append("]).md5();\n");
-			writer.append("\t\treturn TokenFactory.createCallToken(this.ds, id, op, [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");\n");
+			writer.append("\t\treturn OcelotTokenFactory.createCallToken(this.ds, id, op, [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");\n");
 		} catch (IOException ex) {
 		}
 	}
