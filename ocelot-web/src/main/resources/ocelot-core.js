@@ -8,176 +8,166 @@ var ocelotController, OcelotCacheManager, OcelotTokenFactory, OcelotEventFactory
  * Ocelot Controller
  * @returns {OcelotController}
  */
-ocelotController = function () {
-	var ws;
-	if (document.location.href.toString().indexOf(document.location.protocol + "//" + document.location.hostname + ":" + document.location.port + "%CTXPATH%") === 0) {
-		ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "%CTXPATH%/ocelot-endpoint");
+/* ready state : CONNECTING = 0, OPEN = 1, CLOSING = 2, CLOSED = 3; */
+if (document.location.href.toString().indexOf(document.location.protocol + "//" + document.location.hostname + ":" + document.location.port + "%CTXPATH%") === 0) {
+	ocelotController = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "%CTXPATH%/ocelot-endpoint");
+} else {
+	ocelotController = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/ocelot-endpoint");
+}
+ocelotController.tokens = {};
+ocelotController.topicHandlers = {};
+/**
+ * Close connection to ws
+ * @returns {undefined}
+ */
+ocelotController.dispose = function () {
+	document.dispatchEvent(OcelotTokenFactory.createUnsubscribeToken("ocelot-cleancache"));
+	this.close();
+};
+/**
+ * Subscribe to topic 
+ * @param {type} token
+ * @returns {undefined}
+ */
+ocelotController.subscribe = function (token) {
+	if (this.readyState === 1) {
+		this.topicHandlers[token.message] = token.onMessage;
+		if (token.message === "ocelot-status") {
+		} else {
+			var command = "{\"cmd\":\"subscribe\",\"msg\":\"" + token.message + "\"}";
+			this.send(command);
+		}
 	} else {
-		ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/ocelot-endpoint");
+		this.showErrorSocketIsClosed("Subscribe to "+token.message+" fail.");
 	}
-	ws.tokens = {};
-	ws.topicHandlers = {};
-	ws.status = "OPEN";
-	ws.onmessage = function (evt) {
-		var token, e, i, msgToClient = JSON.parse(evt.data);
-		// Receipt fault
-		if (msgToClient.fault) {
+};
+/**
+ * Unsubscribe to topic
+ * @param {type} token
+ * @returns {undefined}
+ */
+ocelotController.unsubscribe = function (token) {
+	if (this.readyState === 1) {
+		this.topicHandlers[token.message] = null;
+		if (token.message !== "ocelot-status") {
+			var command = "{\"cmd\":\"unsubscribe\",\"msg\":\"" + token.message + "\"}";
+			this.send(command);
+		}
+	} else {
+		this.showErrorSocketIsClosed("Unsubscribe to "+token.message+" fail.");
+	}
+};
+ocelotController.call = function (token) {
+	console.debug("Call request " + JSON.stringify(token));
+	// check entry cache
+	var msgToClient = OcelotCacheManager.getResultInCache(token.id, token.ignoreCache);
+	if (msgToClient) {
+		console.debug("Cache valid send message");
+		// present and valid, return result without call
+		token.onResult(OcelotEventFactory.createResultEventFromToken(token, msgToClient.result));
+		token.success(msgToClient.result);
+		return;
+	}
+	// else call
+	if (this.readyState === 1) {
+		this.tokens[token.id] = token;
+		this.send("{\"cmd\":\"call\",\"msg\":" + token.getMessage() + "}");
+	} else {
+		this.showErrorSocketIsClosed("Call "+token.getMessage()+" fail.");
+	}
+};
+ocelotController.showErrorSocketIsClosed = function (msg) {
+	alert("WebSocket is not open : "+msg);
+};
+ocelotController.onmessage = function (evt) {
+	var token, e, i, msgToClient = JSON.parse(evt.data);
+	// Receipt fault
+	if (msgToClient.fault) {
+		token = this.tokens[msgToClient.id];
+		e = OcelotEventFactory.createFaultEventFromToken(token, msgToClient.fault);
+		if (token.onFault) {
+			token.onFault(e);
+		}
+		for (i = 0; i < token.faultHandlers.length; i++) {
+			token.faultHandlers[i](e);
+		}
+		if (token.fail) {
+			token.fail(msgToClient.fault);
+		}
+	} else { // Receipt result
+		if (this.topicHandlers[msgToClient.id]) {
+			this.topicHandlers[msgToClient.id](msgToClient.result);
+		} else if (this.tokens[msgToClient.id]) {
 			token = this.tokens[msgToClient.id];
-			e = OcelotEventFactory.createFaultEventFromToken(token, msgToClient.fault);
-			if (token.onFault) {
-				token.onFault(e);
+			// if msgToClient has dead line so we stock in cache
+			OcelotCacheManager.putResultInCache(msgToClient);
+			e = OcelotEventFactory.createResultEventFromToken(token, msgToClient.result);
+			if (token.onResult) {
+				token.onResult(e);
 			}
-			for (i = 0; i < token.faultHandlers.length; i++) {
-				token.faultHandlers[i](e);
+			for (i = 0; i < token.resultHandlers.length; i++) {
+				token.resultHandlers[i](e);
 			}
-			if (token.fail) {
-				token.fail(msgToClient.fault);
-			}
-		} else { // Receipt result
-			if (this.topicHandlers[msgToClient.id]) {
-				this.topicHandlers[msgToClient.id](msgToClient.result);
-			} else if (this.tokens[msgToClient.id]) {
-				token = this.tokens[msgToClient.id];
-				// if msgToClient has dead line so we stock in cache
-				OcelotCacheManager.putResultInCache(msgToClient);
-				e = OcelotEventFactory.createResultEventFromToken(token, msgToClient.result);
-				if (token.onResult) {
-					token.onResult(e);
-				}
-				for (i = 0; i < token.resultHandlers.length; i++) {
-					token.resultHandlers[i](e);
-				}
-				if (token.success) {
-					token.success(msgToClient.result);
-				}
-			}
-		}
-		delete this.tokens[msgToClient.id];
-	};
-	ws.onopen = function (evt) {
-		this.status = "OPEN";
-		if (this.topicHandlers["ocelot-status"]) {
-			this.topicHandlers["ocelot-status"](this.status);
-		}
-		var ocelotServices, mdb, token;
-		// Controller subscribe to ocelot-cleancache topic
-		mdb = new TopicConsumer("ocelot-cleancache");
-		mdb.onMessage = function (id) {
-			console.debug("Clean cache " + id);
-			if (id === "ALL") {
-				OcelotCacheManager.clearCache();
-			} else {
-				OcelotCacheManager.removeEntryInCache(id);
-			}
-		};
-		mdb.subscribe();
-		// Get Locale from server or cache and re-set it
-		ocelotServices = new OcelotServices();
-		token = ocelotServices.getLocale();
-		token.success = function (locale) {
-			ocelotServices.setLocale(locale);
-		};
-		// send states or current objects in cache with lastupdate
-		token = ocelotServices.sendLastUpdateCacheStates(OcelotCacheManager.lastUpdateManager.getLastUpdateCache());
-		token.success = function (list) {
-			OcelotCacheManager.removeEntries(list);
-		};
-	};
-	ws.onerror = function (evt) {
-		this.status = "ERROR";
-		if (this.topicHandlers["ocelot-status"])
-			this.topicHandlers["ocelot-status"](this.status);
-	};
-	ws.onclose = function (evt) {
-		this.status = "CLOSED";
-		if (this.topicHandlers["ocelot-status"])
-			this.topicHandlers["ocelot-status"](this.status);
-	};
-	return  {
-		/**
-		 * Close connection to ws
-		 * @returns {undefined}
-		 */
-		close: function () {
-			if (ws) {
-				document.dispatchEvent(OcelotTokenFactory.createUnsubscribeToken("ocelot-cleancache"));
-				ws.close();
-			}
-		},
-		/**
-		 * Subscribe to topic 
-		 * @param {type} token
-		 * @returns {undefined}
-		 */
-		subscribe: function (token) {
-			if (ws.status === "OPEN") {
-				ws.topicHandlers[token.message] = token.onMessage;
-				if (token.message === "ocelot-status") {
-				} else {
-					var command = "{\"cmd\":\"subscribe\",\"msg\":\"" + token.message + "\"}";
-					ws.send(command);
-				}
-			} else {
-				this.showErrorSocketIsClosed();
-			}
-		},
-		/**
-		 * Unsubscribe to topic
-		 * @param {type} token
-		 * @returns {undefined}
-		 */
-		unsubscribe: function (token) {
-			if (ws.status === "OPEN") {
-				ws.topicHandlers[token.message] = null;
-				if (token.message !== "ocelot-status") {
-					var command = "{\"cmd\":\"unsubscribe\",\"msg\":\"" + token.message + "\"}";
-					ws.send(command);
-				}
-			} else {
-				this.showErrorSocketIsClosed();
-			}
-		},
-		call: function (token) {
-			console.debug("Call request " + JSON.stringify(token));
-			// check entry cache
-			var msgToClient = OcelotCacheManager.getResultInCache(token.id, token.ignoreCache);
-			if (msgToClient) {
-				console.debug("Cache valid send message");
-				// present and valid, return result without call
-				token.onResult(OcelotEventFactory.createResultEventFromToken(token, msgToClient.result));
+			if (token.success) {
 				token.success(msgToClient.result);
-				return;
 			}
-			// else call
-			if (ws.status === "OPEN") {
-				ws.tokens[token.id] = token;
-				ws.send("{\"cmd\":\"call\",\"msg\":" + token.getMessage() + "}");
-			} else {
-				this.showErrorSocketIsClosed();
-			}
-		},
-		showErrorSocketIsClosed: function () {
-			alert("WebSocket is not open");
+		}
+	}
+	delete this.tokens[msgToClient.id];
+};
+ocelotController.onopen = function (evt) {
+	if (this.topicHandlers["ocelot-status"]) {
+		this.topicHandlers["ocelot-status"](this.readyState);
+	}
+	var ocelotServices, mdb, token;
+	// Controller subscribe to ocelot-cleancache topic
+	mdb = new TopicConsumer("ocelot-cleancache");
+	mdb.onMessage = function (id) {
+		console.debug("Clean cache " + id);
+		if (id === "ALL") {
+			OcelotCacheManager.clearCache();
+		} else {
+			OcelotCacheManager.removeEntryInCache(id);
 		}
 	};
-}();
+	mdb.subscribe();
+	// Get Locale from server or cache and re-set it
+	ocelotServices = new OcelotServices();
+	token = ocelotServices.getLocale();
+	token.success = function (locale) {
+		ocelotServices.setLocale(locale);
+	};
+	// send states or current objects in cache with lastupdate
+	token = ocelotServices.sendLastUpdateCacheStates(OcelotCacheManager.lastUpdateManager.getLastUpdateCache());
+	token.success = function (list) {
+		OcelotCacheManager.removeEntries(list);
+	};
+};
+ocelotController.onerror = function (evt) {
+	if (this.topicHandlers["ocelot-status"])
+		this.topicHandlers["ocelot-status"](this.readyState);
+};
+ocelotController.onclose = function (evt) {
+	if (this.topicHandlers["ocelot-status"])
+		this.topicHandlers["ocelot-status"](this.readyState);
+};
 /**
  * instance to manage cache
  * @type OcelotCacheManager
  */
 OcelotCacheManager = {
 	lastUpdateManager: {
-		addEntry : function(id) {
+		addEntry: function (id) {
 			var lastUpdates = this.getLastUpdateCache();
 			lastUpdates[id] = Date.now();
 			localStorage.setItem("ocelot-lastupdate", JSON.stringify(lastUpdates));
-		}, 
-		removeEntry : function(id) {
+		},
+		removeEntry: function (id) {
 			var lastUpdates = this.getLastUpdateCache();
 			delete lastUpdates[id];
 			localStorage.setItem("ocelot-lastupdate", JSON.stringify(lastUpdates));
-		}, 
-		getLastUpdateCache : function() {
+		},
+		getLastUpdateCache: function () {
 			var lastUpdates = localStorage.getItem("ocelot-lastupdate");
 			if (!lastUpdates) {
 				lastUpdates = {};
@@ -285,7 +275,7 @@ document.addEventListener("call", function (event) {
 });
 window.addEventListener("beforeunload", function (e) {
 	if (ocelotController) {
-		ocelotController.close();
+		ocelotController.dispose();
 	}
 });
 /**
@@ -294,19 +284,18 @@ window.addEventListener("beforeunload", function (e) {
  * @returns {TopicConsumer}
  */
 function TopicConsumer(topic) {
-	var token;
 	this.topic = topic;
-	this.subscribe = function () {
-		token = OcelotTokenFactory.createSubscribeToken(this.topic, this.onMessage);
-		document.dispatchEvent(token);
-	};
-	this.unsubscribe = function () {
-		token = OcelotTokenFactory.createUnsubscribeToken(this.topic);
-		document.dispatchEvent(token);
-	};
 	this.onMessage = function (msg) {
 	};
 }
+TopicConsumer.prototype = {
+	subscribe : function () {
+		document.dispatchEvent(OcelotTokenFactory.createSubscribeToken(this.topic, this.onMessage));
+	},
+	unsubscribe : function () {
+		document.dispatchEvent(OcelotTokenFactory.createUnsubscribeToken(this.topic));
+	}
+};
 /**
  * Events Factory
  */
@@ -410,7 +399,6 @@ OcelotTokenFactory = function () {
 		}
 	};
 }();
-
 /**
  * Classe of ocelot services
  * @author hhfrancois
@@ -422,7 +410,7 @@ OcelotServices.prototype = {
 	/**
 	 * @param {locale} locale
 	 */
-	setLocale : function (locale) {
+	setLocale: function (locale) {
 		var id0, id1, id, cleanid, nextYear, msgToClient;
 		id0 = (this.ds + ".setLocale").md5();
 		id1 = JSON.stringify([locale]).md5();
@@ -439,7 +427,7 @@ OcelotServices.prototype = {
 	/**
 	 * @return locale
 	 */
-	getLocale : function () {
+	getLocale: function () {
 		var id0, id1, id;
 		id0 = (this.ds + ".getLocale").md5();
 		id1 = JSON.stringify([]).md5();
@@ -450,7 +438,7 @@ OcelotServices.prototype = {
 	 * Send lastupate time of cache in store
 	 * @param {Object} states
 	 */
-	sendLastUpdateCacheStates : function(states) {
+	sendLastUpdateCacheStates: function (states) {
 		var id0, id1, id;
 		id0 = (this.ds + ".sendLastUpdateCacheStates").md5();
 		id1 = JSON.stringify([states]).md5();
@@ -458,7 +446,6 @@ OcelotServices.prototype = {
 		return OcelotTokenFactory.createCallToken(this.ds, id, "sendLastUpdateCacheStates", ["states"], [states]);
 	}
 };
-
 /*
  * Take a string and return the hex representation of its MD5.
  * 10637920c62fe58f57cbdb1afaa7ad3e
@@ -507,7 +494,6 @@ String.prototype.md5 = function () {
 		d = gg(d, a, b, c, x[i + 2], 9, -51403784);
 		c = gg(c, d, a, b, x[i + 7], 14, 1735328473);
 		b = gg(b, c, d, a, x[i + 12], 20, -1926607734);
-
 		a = hh(a, b, c, d, x[i + 5], 4, -378558);
 		d = hh(d, a, b, c, x[i + 8], 11, -2022574463);
 		c = hh(c, d, a, b, x[i + 11], 16, 1839030562);
@@ -547,7 +533,6 @@ String.prototype.md5 = function () {
 	}
 	return rhex(a) + rhex(b) + rhex(c) + rhex(d);
 };
-
 /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
  * Digest Algorithm, as defined in RFC 1321.
