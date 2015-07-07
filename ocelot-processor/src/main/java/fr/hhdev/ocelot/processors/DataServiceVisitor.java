@@ -12,6 +12,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -61,9 +62,10 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 			writer.append(typeElement.getSimpleName()).append(".prototype = {\n");
 			List<ExecutableElement> methodElements = ElementFilter.methodsIn(typeElement.getEnclosedElements());
 			Iterator<ExecutableElement> iterator = methodElements.iterator();
+			Collection<String> methodProceeds = new ArrayList<>();
 			while(iterator.hasNext()) {
 				ExecutableElement methodElement = iterator.next();
-				if (isConsiderateMethod(methodElement)) {
+				if (isConsiderateMethod(methodProceeds, methodElement)) {
 					String methodName = methodElement.getSimpleName().toString();
 					List<String> argumentsType = getArgumentsType(methodElement);
 					List<String> arguments = getArguments(methodElement);
@@ -131,10 +133,18 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	 * Not annotated by TransientDataService<br>
 	 * Not static and not from Object herited.
 	 *
+	 * @param methodProceeds
 	 * @param methodElement
 	 * @return
 	 */
-	public boolean isConsiderateMethod(ExecutableElement methodElement) {
+	public boolean isConsiderateMethod(Collection<String> methodProceeds, ExecutableElement methodElement) {
+		int argNum = methodElement.getParameters().size();
+		String signature = methodElement.getSimpleName().toString()+"("+argNum+")";
+		// Check if method ith same signature has been already proceed.
+		if(methodProceeds.contains(signature)) {
+			return false;
+		}
+		methodProceeds.add(signature);
 		// Herited from Object
 		TypeElement objectElement = environment.getElementUtils().getTypeElement(Object.class.getName());
 		if(objectElement.getEnclosedElements().contains(methodElement)) {
@@ -209,11 +219,11 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 			Iterator<String> typeIterator = argumentsType.iterator();
 			for (String argumentName : argumentsName) {
 				String type = typeIterator.next();
-				writer.append("\t * @param ").append(argumentName).append(" : ").append(type).append("\n");
+				writer.append("\t * @param {").append(type).append("} ").append(argumentName).append("\n");
 			}
 			// Si la methode retourne ou non quelque chose
 			if (!returnType.toString().equals("void")) {
-				writer.append("\t * @return ").append(returnType.toString()).append("\n");
+				writer.append("\t * @return {").append(returnType.toString()).append("}\n");
 			}
 			writer.append("\t */\n");
 		} catch (IOException ex) {
