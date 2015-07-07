@@ -14,6 +14,23 @@ if (document.location.href.toString().indexOf(document.location.protocol + "//" 
 } else {
 	ocelotController = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/ocelot-endpoint");
 }
+/**
+ * Add ocelotController events to document
+ */
+document.addEventListener("subscribe", function (event) {
+	ocelotController.subscribe(event);
+});
+document.addEventListener("unsubscribe", function (event) {
+	ocelotController.unsubscribe(event);
+});
+document.addEventListener("call", function (event) {
+	ocelotController.call(event);
+});
+window.addEventListener("beforeunload", function (e) {
+	if (ocelotController) {
+		ocelotController.dispose();
+	}
+});
 ocelotController.tokens = {};
 ocelotController.topicHandlers = {};
 /**
@@ -264,20 +281,6 @@ OcelotCacheManager = {
 		localStorage.clear();
 	}
 };
-document.addEventListener("subscribe", function (event) {
-	ocelotController.subscribe(event);
-});
-document.addEventListener("unsubscribe", function (event) {
-	ocelotController.unsubscribe(event);
-});
-document.addEventListener("call", function (event) {
-	ocelotController.call(event);
-});
-window.addEventListener("beforeunload", function (e) {
-	if (ocelotController) {
-		ocelotController.dispose();
-	}
-});
 /**
  * Consumer Class
  * @param {String} topic
