@@ -11,7 +11,6 @@ import fr.hhdev.test.dataservices.SingletonCDIDataService;
 import fr.hhdev.test.dataservices.PojoDataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
-import fr.hhdev.ocelot.annotations.JsCacheStore;
 import fr.hhdev.ocelot.i18n.Locale;
 import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.Command;
@@ -30,6 +29,7 @@ import fr.hhdev.test.dataservices.SessionEJBDataService;
 import fr.hhdev.test.dataservices.SingletonEJBDataService;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -138,21 +138,32 @@ public class OcelotTest {
 		File logback = new File("src/test/resources/logback.xml");
 		File localeFr = new File("src/test/resources/test_fr_FR.properties");
 		File localeUs = new File("src/test/resources/test_en_US.properties");
-		return ShrinkWrap.create(WebArchive.class, ctxpath + ".war")
+		File classes = new File("target/test-classes");
+		File[] jsFiles = classes.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File file) {
+				return file.isFile() && file.getName().endsWith(".js");
+			}
+		});
+		WebArchive webArchive = ShrinkWrap.create(WebArchive.class, ctxpath + ".war")
 				  .addAsLibraries(libs)
 				  .addAsLibraries(createLibArchive())
+				  .addPackages(true, "services")
 				  .addPackages(true, OcelotTest.class.getPackage())
 				  .addAsWebInfResource(new FileAsset(logback), "logback.xml")
 				  .addAsResource(new FileAsset(localeUs), "test_en_US.properties")
 				  .addAsResource(new FileAsset(localeFr), "test_fr_FR.properties")
 				  .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+		for (File file : jsFiles) {
+			webArchive.addAsResource(new FileAsset(file), file.getName());
+		}
+		return webArchive;
 	}
 
 	public static JavaArchive createLibArchive() {
 		File bean = new File("src/main/resources/META-INF/beans.xml");
 		File core = new File("src/main/resources/ocelot-core.js");
 		return ShrinkWrap.create(JavaArchive.class, "ocelot-web.jar")
-				  .addPackages(true, "services")
 				  .addPackages(true, "fr.hhdev.ocelot.encoders")
 				  .addPackages(true, "fr.hhdev.ocelot.exceptions")
 				  .addPackages(true, "fr.hhdev.ocelot.resolvers")
@@ -537,10 +548,10 @@ public class OcelotTest {
 		try {
 			connection1 = getConnectionForResource(resource, true);
 			int minlength = connection1.getContentLength();
-//			traceFile(connection1.getInputStream(), resource, minlength, true);
+			traceFile(connection1.getInputStream(), resource, minlength, true);
 			connection2 = getConnectionForResource(resource, false);
 			int length = connection2.getContentLength();
-//			traceFile(connection2.getInputStream(), resource, length, false);
+			traceFile(connection2.getInputStream(), resource, length, false);
 			assertTrue("Minification doesn't work, same size of file magnifier : " + length + " / minifer : " + minlength, minlength < length);
 		} catch (Exception e) {
 			fail(e.getMessage());
@@ -839,8 +850,8 @@ public class OcelotTest {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
 		Object expectedResult = 1;
-		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":\"%s\",\"%s\":%s}",
-				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheStore.NONE, Constants.Message.RESULT, expectedResult);
+		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.RESULT, expectedResult);
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(uuid, result.getId());
 		assertEquals("" + expectedResult, result.getResult());
@@ -854,8 +865,8 @@ public class OcelotTest {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
 		String expectedResultJS = "\"foo\"";
-		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":\"%s\",\"%s\":%s}",
-				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheStore.NONE, Constants.Message.RESULT, expectedResultJS);
+		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.RESULT, expectedResultJS);
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(uuid, result.getId());
 		assertEquals(expectedResultJS, result.getResult());
@@ -869,8 +880,8 @@ public class OcelotTest {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
 		Object expectedResult = "{\"integer\":5,\"foo\":\"foo\"}";
-		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":\"%s\",\"%s\":%s}",
-				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheStore.NONE, Constants.Message.RESULT, expectedResult);
+		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.RESULT, expectedResult);
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(uuid, result.getId());
 		assertEquals(expectedResult, result.getResult());
@@ -884,8 +895,8 @@ public class OcelotTest {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
 		Fault f = new Fault(new NullPointerException("Message d'erreur"), 0);
-		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":\"%s\",\"%s\":%s}",
-				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.STORE, JsCacheStore.NONE, Constants.Message.FAULT, f.toJson());
+		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.FAULT, f.toJson());
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(uuid, result.getId());
 		assertEquals(f.getClassname(), result.getFault().getClassname());
