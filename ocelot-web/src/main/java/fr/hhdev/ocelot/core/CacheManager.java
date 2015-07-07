@@ -8,7 +8,7 @@ import fr.hhdev.ocelot.annotations.JsCacheRemove;
 import fr.hhdev.ocelot.annotations.JsCacheRemoveAll;
 import fr.hhdev.ocelot.annotations.JsCacheRemoves;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
-import fr.hhdev.ocelot.annotations.JsCacheStore;
+import fr.hhdev.ocelot.messaging.CacheEvent;
 import fr.hhdev.ocelot.messaging.MessageEvent;
 import fr.hhdev.ocelot.messaging.MessageToClient;
 import java.io.StringReader;
@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Calss managing frond-end ccache
+ * Class managing frond-end ccache
  *
  * @author hhfrancois
  */
@@ -41,6 +41,9 @@ public class CacheManager {
 	@MessageEvent
 	Event<MessageToClient> wsEvent;
 
+	@Inject
+	@CacheEvent
+	Event<String> cacheEvent;
 	/**
 	 * Check if resultshould be cached in front-end
 	 *
@@ -49,10 +52,6 @@ public class CacheManager {
 	 */
 	public boolean isJsCached(Method nonProxiedMethod) {
 		boolean cached = nonProxiedMethod.isAnnotationPresent(JsCacheResult.class);
-		if (cached) {
-			JsCacheResult jcr = nonProxiedMethod.getAnnotation(JsCacheResult.class);
-			cached = !JsCacheStore.NONE.equals(jcr.store());
-		}
 		logger.debug("The result of the method {} should be cached on client side {}.", nonProxiedMethod.getName(), cached);
 		return cached;
 	}
@@ -80,7 +79,7 @@ public class CacheManager {
 	}
 
 	/**
-	 * Traite les annotations JsCacheRemove et JsCacheRemoves
+	 * Process annotations JsCacheRemove and JsCacheRemoves
 	 *
 	 * @param nonProxiedMethod
 	 * @param paramNames
@@ -110,15 +109,14 @@ public class CacheManager {
 	}
 
 	/**
-	 * Traite l'annotation JsCacheRemoveAll et envoi un message de suppression de tous le cache
-	 *
-	 * @param jcra
+	 * Process annotation JsCacheRemoveAll and send message for suppress all the cache
+	 * @param jcra : the annotation
 	 */
 	public void processJsCacheRemoveAll(JsCacheRemoveAll jcra) {
 		logger.debug("Process JsCacheRemoveAll annotation : {}", jcra);
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
-		messageToClient.setResult(jcra.store());
+		messageToClient.setResult("ALL");
 		wsEvent.fire(messageToClient);
 	}
 
@@ -126,23 +124,32 @@ public class CacheManager {
 	 * Process an annotation JsCacheRemove and send a removeCache message to all clients connected
 	 *
 	 * @param jcr : l'annotation
-	 * @param paramNames
-	 * @param jsonArgs : les arguments de la methode au format json
+	 * @param paramNames : name of parameters
+	 * @param jsonArgs : method arguments json format
 	 */
 	public void processJsCacheRemove(JsCacheRemove jcr, List<String> paramNames, List<String> jsonArgs) {
 		logger.debug("Process JsCacheRemove annotation : {}", jcr);
 		StringBuilder sb = new StringBuilder("[");
 		MessageToClient messageToClient = new MessageToClient();
-		logger.debug("CLASSNAME : {} - METHODNAME : {} - KEYS : {}", jcr.cls().getName(), jcr.methodName(), jcr.keys());
-		logger.debug("JSONARGS : {}", Arrays.deepToString(jsonArgs.toArray(new String[]{})));
-		logger.debug("PARAMNAMES : {}", Arrays.deepToString(paramNames.toArray(new String[]{})));
+		logger.debug("JsonArgs from Call : {}", Arrays.deepToString(jsonArgs.toArray(new String[]{})));
+		logger.debug("ParamName from considerated method : {}", Arrays.deepToString(paramNames.toArray(new String[]{})));
 		String[] keys = jcr.keys();
-		for (int idKey = 0; idKey < keys.length; idKey++) {
-			String key = keys[idKey];
-			if ("*".equals(key)) {
-				sb.append(String.join(",", jsonArgs));
-				break;
-			} else {
+		if(keys.length==1 && (Constants.Cache.ARGS_NOT_CONSIDERATED.equals(keys[0]) || Constants.Cache.USE_ALL_ARGUMENTS.equals(keys[0]))) {
+			String key = keys[0];
+			switch (key) {
+				case Constants.Cache.ARGS_NOT_CONSIDERATED:
+					sb = new StringBuilder("");
+					break;
+				case Constants.Cache.USE_ALL_ARGUMENTS:
+					sb = new StringBuilder("[");
+					sb.append(String.join(",", jsonArgs));
+					sb.append("]");
+					break;
+			}
+		} else {
+			sb = new StringBuilder("[");
+			for (int idKey = 0; idKey < keys.length; idKey++) {
+				String key = keys[idKey];
 				logger.debug("Process {} : ", key);
 				String[] path = key.split("\\.");
 				logger.debug("Process '{}' : token nb '{}'", key, path.length);
@@ -174,13 +181,17 @@ public class CacheManager {
 					sb.append(",");
 				}
 			}
+			sb.append("]");
 		}
-		sb.append("]");
 		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
-		String cachekey = getMd5(jcr.cls().getName() + "." + jcr.methodName()) + "_" + getMd5(sb.toString());
+		String cachekey = getMd5(jcr.cls().getName() + "." + jcr.methodName());
+		if(sb.length()>0) {
+			cachekey += "_" + getMd5(sb.toString());
+		}
 		messageToClient.setResult(cachekey);
 		logger.debug("CACHEID : {}.{}_{} = {}", jcr.cls().getName(), jcr.methodName(), sb.toString(), cachekey);
 		wsEvent.fire(messageToClient);
+		cacheEvent.fire(cachekey);
 	}
 
 	/**
