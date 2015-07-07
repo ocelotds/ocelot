@@ -49,7 +49,6 @@ public interface Constants {
 		String ARGUMENTS = "args";
 		String ARGUMENTNAMES = "argNames";
 		String DEADLINE = "deadline";
-		String STORE = "store";
 		String RESULT = "result";
 		String FAULT = "fault";
 
@@ -73,7 +72,9 @@ public interface Constants {
 	interface Cache {
 
 		String CLEANCACHE_TOPIC = "ocelot-cleancache";
-		String ALL = "all";
+		String ALL = "ALL";
+		String USE_ALL_ARGUMENTS = "*";
+		String ARGS_NOT_CONSIDERATED = "-";
 	}
 
 	interface Command {
