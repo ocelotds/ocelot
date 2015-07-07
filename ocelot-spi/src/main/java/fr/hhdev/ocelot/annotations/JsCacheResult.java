@@ -15,11 +15,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface JsCacheResult {
-	/**
-	 * Define where should be store the result
-	 * @return 
-	 */
-	JsCacheStore store() default JsCacheStore.APPLICATION;
 	int year() default 0;
 	int month() default 0;
 	int day() default 0;
