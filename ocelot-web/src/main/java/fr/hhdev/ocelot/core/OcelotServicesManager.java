@@ -3,15 +3,18 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package fr.hhdev.ocelot.core;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
-import fr.hhdev.ocelot.annotations.JsCacheStore;
 import fr.hhdev.ocelot.i18n.ThreadLocalContextHolder;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import fr.hhdev.ocelot.messaging.MessageToClient;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import javax.inject.Inject;
 import javax.websocket.EncodeException;
 import javax.websocket.Session;
 import org.slf4j.Logger;
@@ -26,6 +29,8 @@ public class OcelotServicesManager {
 
 	private static final Logger logger = LoggerFactory.getLogger(OcelotServicesManager.class);
 
+	@Inject
+	private UpdatedCacheManager updatedCacheManager;
 	/**
 	 * The EndPoint receive a call for ocelotServices
 	 *
@@ -56,10 +61,22 @@ public class OcelotServicesManager {
 				l.setCountry(locale.getCountry());
 				Calendar deadline = Calendar.getInstance();
 				deadline.add(Calendar.YEAR, 1);
-				messageToClient.setStore(JsCacheStore.APPLICATION);
 				messageToClient.setDeadline(deadline.getTime().getTime());
 				messageToClient.setResult(l);
 				logger.debug("getLocale() = {}", l);
+				break;
+			case "sendLastUpdateCacheStates":
+				logger.debug("Receive sendLastUpdateCacheStates call from client.");
+				try {
+					ObjectMapper mapper = new ObjectMapper();
+					Map<String, Long> states = mapper.readValue(message.getParameters().get(0), new TypeReference<HashMap<String,Long>>() {});
+					for (String id : states.keySet()) {
+						logger.debug("The client has this cache {} since {}.", id, states.get(id));
+					}
+					messageToClient.setResult(updatedCacheManager.getOutDatedCache(states));
+				} catch (IOException ex) {
+					logger.error("Fail read argument(0) : " + message.getParameters().get(0), ex);
+				}	
 				break;
 		}
 		try {
