@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.type.SimpleType;
 import fr.hhdev.ocelot.configuration.OcelotConfiguration;
 import fr.hhdev.ocelot.annotations.DataService;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
-import fr.hhdev.ocelot.annotations.JsCacheStore;
 import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import fr.hhdev.ocelot.messaging.MessageToClient;
@@ -221,7 +220,6 @@ public class CallServiceManager {
 				Method nonProxiedMethod = getNonProxiedMethod(cls, method.getName(), method.getParameterTypes());
 				if(cacheManager.isJsCached(nonProxiedMethod)) {
 					JsCacheResult jcr = nonProxiedMethod.getAnnotation(JsCacheResult.class);
-					messageToClient.setStore(jcr.store());
 					messageToClient.setDeadline(cacheManager.getJsCacheResultDeadline(jcr));
 				}
 				cacheManager.processCleanCacheAnnotations(nonProxiedMethod, message.getParameterNames(), message.getParameters());
