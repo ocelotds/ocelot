@@ -51,6 +51,12 @@ public class OcelotEndpoint {
 	@Inject
 	private CallServiceManager callServiceManager;
 
+	/**
+	 * A connection is open
+	 * @param session
+	 * @param config
+	 * @throws IOException 
+	 */
 	@OnOpen
 	public void handleOpenConnexion(Session session, EndpointConfig config) throws IOException {
 		Locale locale = (Locale) session.getUserProperties().get(Constants.LOCALE);
@@ -78,7 +84,7 @@ public class OcelotEndpoint {
 	}
 
 	/**
-	 * Ferme une session
+	 * Close a session
 	 *
 	 * @param session
 	 * @param closeReason
@@ -96,7 +102,7 @@ public class OcelotEndpoint {
 	}
 
 	/**
-	 * Recevoir un message correspond à la demande d'execution d'un service ou à l'abonnement à un topic
+	 * A message is a call service request or subscribe/unsubscribe topic
 	 *
 	 * @param client
 	 * @param command
