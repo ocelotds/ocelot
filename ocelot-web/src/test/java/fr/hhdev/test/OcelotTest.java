@@ -572,7 +572,7 @@ public class OcelotTest {
 				System.out.write(inputLine.getBytes());
 				System.out.write(Constants.BACKSLASH_N.getBytes());
 			}
-		} catch(IOException e) {
+		} catch (IOException e) {
 		}
 	}
 
