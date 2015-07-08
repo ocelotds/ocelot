@@ -12,13 +12,13 @@
 			var mdb1 = new TopicConsumer("ocelot-status");
 			mdb1.onMessage = function (msg) {
 				var status = document.getElementById("status");
-				if (msg === "OPEN") {
+				if (msg === 1) {
 					status.style.backgroundColor = '#0f0';
 				} else {
 					status.style.backgroundColor = '#f00';
 				}
 			};
-			mdb1.subscribe();
+			ocelotController.addOpenEventListener(function(event) {mdb1.subscribe();});
 			var mdb = new TopicConsumer("mytopic");
 			mdb.onMessage = addMessage;
 			var pojoService = new TestPojoService();
@@ -79,7 +79,7 @@
 						break;
 					}
 				}
-			}
+			};
 			function changeLocale() {
 				var localeSelector = document.getElementById("localeSelector");
 				var idx = localeSelector.options.selectedIndex;
@@ -87,7 +87,7 @@
 				var token = ocelotServices.setLocale(currentLocale);
 				token.success = function(msg) {
 					location.reload();
-				}
+				};
 			}
 		</script>
 		<div id="status" style="width:10px;height:10px;background-color:#f00">X</div>
