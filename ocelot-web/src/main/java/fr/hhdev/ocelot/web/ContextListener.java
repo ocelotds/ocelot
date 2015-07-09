@@ -106,7 +106,7 @@ public class ContextListener implements ServletContextListener {
 	 * @param filename
 	 */
 	private void deleteFile(String filename) {
-		if (!filename.isEmpty()) {
+		if (null != filename && !filename.isEmpty()) {
 			File file = new File(filename);
 			if (file.exists()) {
 				file.delete();
@@ -132,7 +132,7 @@ public class ContextListener implements ServletContextListener {
 			file = minifyJs(filePath, minifyName);
 			filePath = file.getAbsolutePath();
 		} catch (Exception ex) {
-			logger.error("Minification from "+normalName+" to "+minifyName+" failed. minify version will be equals to normal version.", ex);
+			logger.error("Minification from "+normalName+" to "+minifyName+" failed. minify version will be equals to normal version.");
 		}
 		if(filePath!=null) {
 			sc.setInitParameter(minifyName, filePath);
