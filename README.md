@@ -9,9 +9,9 @@
 [HOW TO](https://github.com/hhdevelopment/ocelot/wiki/howto)
 
 ### Tested Servers
-Glassfish 4.x
-Wildfly 9
-TomEE
+ - Glassfish 4.x  
+ - Wildfly 9
+ - TomEE
 
 ### Dependencies WEB
 ```xml
