@@ -150,7 +150,7 @@ public class OcelotTest {
 				  .addAsLibraries(createLibArchive())
 				  .addPackages(true, "services")
 				  .addPackages(true, OcelotTest.class.getPackage())
-				  .addAsWebInfResource(new FileAsset(logback), "logback.xml")
+				  .addAsResource(new FileAsset(logback), "logback.xml")
 				  .addAsResource(new FileAsset(localeUs), "test_en_US.properties")
 				  .addAsResource(new FileAsset(localeFr), "test_fr_FR.properties")
 				  .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
