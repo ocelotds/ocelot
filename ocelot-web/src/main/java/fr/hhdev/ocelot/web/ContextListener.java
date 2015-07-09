@@ -74,7 +74,7 @@ public class ContextListener implements ServletContextListener {
 			File file = createOcelotServicesJsFile();
 			setInitParameterAnMinifyJs(sc, file, Constants.OCELOT_SERVICES, Constants.OCELOT_SERVICES_MIN);
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			logger.error("Fail to create ocelot-services.js.", ex);
 		}
 
 		try {
@@ -82,7 +82,7 @@ public class ContextListener implements ServletContextListener {
 			File file = createOcelotCoreJsFile(sc.getContextPath());
 			setInitParameterAnMinifyJs(sc, file, Constants.OCELOT_CORE, Constants.OCELOT_CORE_MIN);
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			logger.error("Fail to create ocelot-core.js.", ex);
 		}
 	}
 
