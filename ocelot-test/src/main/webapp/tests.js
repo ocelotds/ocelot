@@ -351,21 +351,28 @@ ocelotController.addOpenEventListener(function (event) {
 		srv.publish();
 	});
 	QUnit.test(".onMessages()", function (assert) {
-		var result = 0, j, expected = 1000, 
+		var result = 0, j, expected = 10000, timer,
 		done = assert.async(), 
 		mdb = new TopicConsumer("mytopic");
 		mdb.onMessage = function (msg) {
 			result++;
+			assert.ok(true, ""+msg+" : ("+result+")");
+			if(result===expected) {
+				window.clearTimeout(timer);
+				assert.equal(result, expected, "receive "+expected+" messages");
+				mdb.unsubscribe();
+				done();
+			}
 		};
 		mdb.subscribe();
+		timer = setTimeout(function() {
+			assert.equal(result, expected, "receive "+expected+" messages");
+			mdb.unsubscribe();
+			done();
+		}, 2 * expected);
 		for (j = 0; j < expected; j++) {
 			srv.publish();
 		}
-		setTimeout(function() {
-			assert.equal(result, expected);
-			done();
-			mdb.unsubscribe();
-		}, 5 * expected);
 	});
 	QUnit.test(".methodCached()", function (assert) {
 		var expected, done = assert.async();
