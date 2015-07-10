@@ -95,7 +95,7 @@ public class OcelotEndpoint {
 		if (session.isOpen()) {
 			try {
 				session.close();
-			} catch (IOException ex) {
+			} catch (Exception ex) {
 			}
 			sessionManager.removeSessionToTopic(session);
 		}
