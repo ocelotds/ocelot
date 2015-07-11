@@ -55,7 +55,7 @@ public class CallServiceManager {
 
 	@Inject
 	private CacheManager cacheManager;
-	
+
 	protected IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
 	}
@@ -97,12 +97,12 @@ public class CallServiceManager {
 		logger.debug("Try to convert {} : param = {} : {}", new Object[]{arg, param, param.getClass()});
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			if(ParameterizedType.class.isInstance(param)) {
+			if (ParameterizedType.class.isInstance(param)) {
 				JavaType javaType = getJavaType(param);
 				logger.debug("Try to convert '{}' to JavaType : '{}'", arg, param);
 				result = mapper.readValue(arg, javaType);
 				logger.debug("Conversion of '{}' to '{}' : OK", arg, param);
-			} else if(Class.class.isInstance(param)) {
+			} else if (Class.class.isInstance(param)) {
 				Class cls = (Class) param;
 				logger.debug("Try to convert '{}' to Class '{}'", arg, param);
 				if (cls.equals(String.class) && (!arg.startsWith("\"") || !arg.endsWith("\""))) { // on cherche une string
@@ -154,10 +154,8 @@ public class CallServiceManager {
 	}
 
 	/**
-	 * Method allow cleaning all extra fields on arguments from framework web
-	 * For sample angularjs add some variables begin $$
-	 * So replace : ,"$$hashKey":"object:\d"
-	 * TODO externalize this feature by SPI for extend that for all framework
+	 * Method allow cleaning all extra fields on arguments from framework web For sample angularjs add some variables begin $$ So replace : ,"$$hashKey":"object:\d" TODO externalize this feature by SPI
+	 * for extend that for all framework
 	 *
 	 * @param arg
 	 * @return
@@ -218,24 +216,24 @@ public class CallServiceManager {
 			messageToClient.setResult(result);
 			try {
 				Method nonProxiedMethod = getNonProxiedMethod(cls, method.getName(), method.getParameterTypes());
-				if(cacheManager.isJsCached(nonProxiedMethod)) {
+				if (cacheManager.isJsCached(nonProxiedMethod)) {
 					JsCacheResult jcr = nonProxiedMethod.getAnnotation(JsCacheResult.class);
 					messageToClient.setDeadline(cacheManager.getJsCacheResultDeadline(jcr));
 				}
 				cacheManager.processCleanCacheAnnotations(nonProxiedMethod, message.getParameterNames(), message.getParameters());
-				if(logger.isDebugEnabled()) {
+				if (logger.isDebugEnabled()) {
 					logger.debug("Method {} proceed messageToClient : {}.", method.getName(), messageToClient.toJson());
 				}
 			} catch (NoSuchMethodException ex) {
 				logger.error("Fail to process extra annotations (JsCacheResult, JsCacheRemove) for method : " + method.getName(), ex);
 			}
 		} catch (MethodNotFoundException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException | DataServiceException ex) {
-			int stacktracelength =configuration.getStacktracelength();
+			int stacktracelength = configuration.getStacktracelength();
 			Throwable cause = ex;
 			if (InvocationTargetException.class.isInstance(ex)) {
 				cause = ex.getCause();
 			}
-			if(stacktracelength==0) {
+			if (stacktracelength == 0) {
 				logger.error("Invocation failed", ex);
 			}
 			messageToClient.setFault(new Fault(cause, stacktracelength));
@@ -249,13 +247,14 @@ public class CallServiceManager {
 
 	/**
 	 * Get the method on origin class without proxies
+	 *
 	 * @param cls
 	 * @param methodName
 	 * @param parameterTypes
 	 * @throws NoSuchMethodException
-	 * @return 
+	 * @return
 	 */
-	private Method getNonProxiedMethod(Class cls, String methodName,  Class<?>[] parameterTypes) throws NoSuchMethodException {
+	private Method getNonProxiedMethod(Class cls, String methodName, Class<?>[] parameterTypes) throws NoSuchMethodException {
 		try {
 			return cls.getMethod(methodName, parameterTypes);
 		} catch (SecurityException ex) {
