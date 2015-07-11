@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import javax.ejb.Schedule;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
@@ -175,11 +174,13 @@ public class TestServices {
 	@MessageEvent
 	Event<MessageToClient> wsEvent;
 
-	public void publish() {
-		MessageToClient messageToClient = new MessageToClient();
-		messageToClient.setId("mytopic");
-		messageToClient.setResult("Message From server");
-		wsEvent.fire(messageToClient);
+	public void publish(String topic, int nb) {
+		for (int i = 0; i < nb; i++) {
+			MessageToClient messageToClient = new MessageToClient();
+			messageToClient.setId(topic);
+			messageToClient.setResult("Message From server "+1);
+			wsEvent.fire(messageToClient);
+		}
 	}
 
 	@JsCacheResult(minute = 1)
