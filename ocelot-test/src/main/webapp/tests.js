@@ -341,7 +341,7 @@ ocelotController.addOpenEventListener(function (event) {
 	});
 	QUnit.test(".onMessage()", function (assert) {
 		var done = assert.async(),
-		mdb = new TopicConsumer("mytopic");
+				  mdb = new TopicConsumer("mytopic");
 		mdb.onMessage = function (msg) {
 			assert.equal(msg, "Message From server 1");
 			done();
@@ -351,22 +351,33 @@ ocelotController.addOpenEventListener(function (event) {
 		srv.publish("mytopic", 1);
 	});
 	QUnit.test(".onMessages()", function (assert) {
-		var result = 0, j, expected = 100000, timer,
-		done = assert.async(), 
+		var result = 0, j, expected = 10000, timer, done, mdb, params, i, query;
+		query = location.search;
+		params = query.split("&");
+		for (i = 0; i < params.length; i++) {
+			var param = params[i].replace("?", "");
+			var keyval = param.split("=");
+			if(keyval.length === 2) {
+				if(keyval[0] === "nbmsg") {
+					expected = parseInt(keyval[1]);
+				}
+			}
+		}
+		done = assert.async();
 		mdb = new TopicConsumer("mytopic");
 		mdb.onMessage = function (msg) {
 			result++;
-			assert.ok(true, ""+msg+" : ("+result+")");
-			if(result===expected) {
+			assert.ok(true, "" + msg + " : (" + result + ")");
+			if (result === expected) {
 				window.clearTimeout(timer);
-				assert.equal(result, expected, "receive "+expected+" messages");
+				assert.equal(result, expected, "receive " + expected + " messages");
 				mdb.unsubscribe();
 				done();
 			}
 		};
 		mdb.subscribe();
-		timer = setTimeout(function() {
-			assert.equal(result, expected, "receive "+expected+" messages");
+		timer = setTimeout(function () {
+			assert.equal(result, expected, "receive " + expected + " messages");
 			mdb.unsubscribe();
 			done();
 		}, 5 * expected);

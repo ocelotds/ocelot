@@ -175,10 +175,10 @@ public class TestServices {
 	Event<MessageToClient> wsEvent;
 
 	public void publish(String topic, int nb) {
-		for (int i = 0; i < nb; i++) {
+		for (int i = 1; i <= nb; i++) {
 			MessageToClient messageToClient = new MessageToClient();
 			messageToClient.setId(topic);
-			messageToClient.setResult("Message From server "+1);
+			messageToClient.setResult("Message From server "+i);
 			wsEvent.fire(messageToClient);
 		}
 	}
