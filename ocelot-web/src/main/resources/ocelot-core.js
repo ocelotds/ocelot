@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
  */
 // globals variables or static class pattern
+if ("WebSocket" in window) {
 var ocelotController, OcelotCacheManager, OcelotTokenFactory, OcelotEventFactory;
 /**
  * Ocelot Controller
@@ -689,4 +690,7 @@ function hh(a, b, c, d, x, s, t) {
 }
 function ii(a, b, c, d, x, s, t) {
 	return cmn(c ^ (b | (~d)), a, b, x, s, t);
+}
+} else {
+	alert("Sorry, but your browser doesn't support websocket");
 }
