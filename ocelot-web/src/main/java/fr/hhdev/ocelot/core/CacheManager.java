@@ -44,6 +44,7 @@ public class CacheManager {
 	@Inject
 	@CacheEvent
 	Event<String> cacheEvent;
+
 	/**
 	 * Check if resultshould be cached in front-end
 	 *
@@ -110,6 +111,7 @@ public class CacheManager {
 
 	/**
 	 * Process annotation JsCacheRemoveAll and send message for suppress all the cache
+	 *
 	 * @param jcra : the annotation
 	 */
 	public void processJsCacheRemoveAll(JsCacheRemoveAll jcra) {
@@ -129,63 +131,58 @@ public class CacheManager {
 	 */
 	public void processJsCacheRemove(JsCacheRemove jcr, List<String> paramNames, List<String> jsonArgs) {
 		logger.debug("Process JsCacheRemove annotation : {}", jcr);
-		StringBuilder sb = new StringBuilder("[");
+		StringBuilder sb;
 		MessageToClient messageToClient = new MessageToClient();
 		logger.debug("JsonArgs from Call : {}", Arrays.deepToString(jsonArgs.toArray(new String[]{})));
 		logger.debug("ParamName from considerated method : {}", Arrays.deepToString(paramNames.toArray(new String[]{})));
 		String[] keys = jcr.keys();
-		if(keys.length==1 && (Constants.Cache.ARGS_NOT_CONSIDERATED.equals(keys[0]) || Constants.Cache.USE_ALL_ARGUMENTS.equals(keys[0]))) {
-			String key = keys[0];
-			switch (key) {
-				case Constants.Cache.ARGS_NOT_CONSIDERATED:
-					sb = new StringBuilder("");
-					break;
-				case Constants.Cache.USE_ALL_ARGUMENTS:
-					sb = new StringBuilder("[");
-					sb.append(String.join(",", jsonArgs));
-					sb.append("]");
-					break;
-			}
+		if (keys.length == 0) {
+			sb = new StringBuilder("");
 		} else {
 			sb = new StringBuilder("[");
-			for (int idKey = 0; idKey < keys.length; idKey++) {
-				String key = keys[idKey];
-				logger.debug("Process {} : ", key);
-				String[] path = key.split("\\.");
-				logger.debug("Process '{}' : token nb '{}'", key, path.length);
-				String paramName = path[0];
-				logger.debug("Looking for index of param '{}'", paramName);
-				int idx = paramNames.indexOf("\"" + paramName + "\"");
-				logger.debug("Index of param '{}' : '{}'", paramName, idx);
-				String jsonArg = jsonArgs.get(idx);
-				logger.debug("Param '{}' : '{}'", paramName, jsonArg);
-				if (path.length > 1) {
-					try (JsonReader reader = Json.createReader(new StringReader(jsonArg))) {
-						JsonValue jsonObject = reader.readObject();
-						for (int i = 1; i < path.length; i++) {
-							String p = path[i];
-							if (!(jsonObject instanceof JsonObject)) {
-								logger.error("Impossible to get " + p + " on " + jsonObject.toString() + ". It's not an json objet.");
+			if (Constants.Cache.USE_ALL_ARGUMENTS.equals(keys[0])) {
+				sb.append(String.join(",", jsonArgs));
+			} else {
+				for (int idKey = 0; idKey < keys.length; idKey++) {
+					String key = keys[idKey];
+					logger.debug("Process {} : ", key);
+					String[] path = key.split("\\.");
+					logger.debug("Process '{}' : token nb '{}'", key, path.length);
+					String paramName = path[0];
+					logger.debug("Looking for index of param '{}'", paramName);
+					int idx = paramNames.indexOf("\"" + paramName + "\"");
+					logger.debug("Index of param '{}' : '{}'", paramName, idx);
+					String jsonArg = jsonArgs.get(idx);
+					logger.debug("Param '{}' : '{}'", paramName, jsonArg);
+					if (path.length > 1) {
+						try (JsonReader reader = Json.createReader(new StringReader(jsonArg))) {
+							JsonValue jsonObject = reader.readObject();
+							for (int i = 1; i < path.length; i++) {
+								String p = path[i];
+								if (!(jsonObject instanceof JsonObject)) {
+									logger.error("Impossible to get " + p + " on " + jsonObject.toString() + ". It's not an json objet.");
+								}
+								logger.debug("Access to '{}' for '{}'", p, jsonObject.toString());
+								jsonObject = ((JsonObject) jsonObject).get(p);
 							}
-							logger.debug("Access to '{}' for '{}'", p, jsonObject.toString());
-							jsonObject = ((JsonObject) jsonObject).get(p);
+							jsonArg = jsonObject.toString();
+						} catch (JsonParsingException exception) {
+							logger.warn("Fail to access to field for '{}'", jsonArg);
 						}
-						jsonArg = jsonObject.toString();
-					} catch (JsonParsingException exception) {
-						logger.warn("Fail to access to field for '{}'", jsonArg);
+					}
+					logger.debug("Add value for '{}' : '{}' to builder cache key", key, jsonArg);
+					sb.append(jsonArg);
+					if (idKey + 1 < keys.length) {
+						sb.append(",");
 					}
 				}
-				logger.debug("Add value for '{}' : '{}' to builder cache key", key, jsonArg);
-				sb.append(jsonArg);
-				if (idKey + 1 < keys.length) {
-					sb.append(",");
-				}
+
 			}
 			sb.append("]");
 		}
 		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
 		String cachekey = getMd5(jcr.cls().getName() + "." + jcr.methodName());
-		if(sb.length()>0) {
+		if (sb.length() > 0) {
 			cachekey += "_" + getMd5(sb.toString());
 		}
 		messageToClient.setResult(cachekey);
