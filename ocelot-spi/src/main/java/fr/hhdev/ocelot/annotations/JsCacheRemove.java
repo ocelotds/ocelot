@@ -9,7 +9,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation for spscify that the method annotated remove entry cache
+ * Annotation for specify that the method annotated remove entry cache
  * @author hhfrancois
  */
 @Retention(RetentionPolicy.RUNTIME)
