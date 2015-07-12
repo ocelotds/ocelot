@@ -24,6 +24,7 @@ public @interface JsCacheRemove {
 	 * '*' : use all arguments in calculating cache key<br>
 	 * 'obj.id' : mean that for compute the key the value of id from argument named obj will be used.<br>
 	 * Exemple {"i", "u.id", "f.name"}
+	 * finally if you set nothing that means that you want to remove all result of this method without considering arguments
 	 * @return set of used keys ordered
 	 */
 	String[] keys() default {"*"};
