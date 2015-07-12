@@ -22,6 +22,13 @@ import javax.json.JsonValue;
  */
 public class MessageToClient {
 
+	public MessageToClient() {
+	}
+
+	public MessageToClient(String id) {
+		this.id = id;
+	}
+	
 	private static final long serialVersionUID = -834697863344344124L;
 
 	/**
