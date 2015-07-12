@@ -321,12 +321,8 @@ public class OcelotTest {
 		MessageFromClient messageFromClient = getMessageFromClient(className, operation, params);
 		cmd.setMessage(messageFromClient.toJson());
 		// on crée un handler client de reception de la réponse
-		try {
-			// send
-			session.getBasicRemote().sendText(cmd.toJson());
-		} catch (IOException ex) {
-			fail("Bean not reached");
-		}
+		// send
+		session.getAsyncRemote().sendText(cmd.toJson());
 	}
 
 	private MessageToClient getMessageToClientAfterSendInSession(Session session, String classname, String operation, String... params) {
@@ -344,7 +340,7 @@ public class OcelotTest {
 			CountDownMessageHandler messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
 			session.addMessageHandler(messageHandler);
 			// send
-			session.getBasicRemote().sendText(cmd.toJson());
+			session.getAsyncRemote().sendText(cmd.toJson());
 			// wait le delock ou timeout
 			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			// lockCount doit être à  zero sinon, on a pas eu le resultat
@@ -353,7 +349,7 @@ public class OcelotTest {
 			result = messageHandler.getMessageToClient();
 			assertNotNull(result);
 			session.removeMessageHandler(messageHandler);
-		} catch (InterruptedException | IOException ex) {
+		} catch (InterruptedException ex) {
 			fail("Bean not reached");
 		}
 		return result;
@@ -1541,7 +1537,6 @@ public class OcelotTest {
 
 	/**
 	 * Teste l'appel simultané de methodes sur autant de session differentes<br>
-	 * TODO Voir pourquoi cela ne marche pas au dela des 900 cnx
 	 */
 	@Test
 	public void testCallMultiMethodsMultiSessions() {
@@ -1637,7 +1632,7 @@ public class OcelotTest {
 		command.setCommand(Constants.Command.Value.SUBSCRIBE);
 		command.setMessage("\"" + topic + "\"");
 		try (Session wssession = createAndGetSession()) {
-			wssession.getBasicRemote().sendText(command.toJson());
+			wssession.getAsyncRemote().sendText(command.toJson());
 			String methodName = "generateCleanCacheMessage";
 			System.out.println(methodName);
 			// contruction de l'objet command
@@ -1653,7 +1648,7 @@ public class OcelotTest {
 			CountDownMessageHandler messageHandler = new CountDownMessageHandler(lock);
 			wssession.addMessageHandler(messageHandler);
 			// send
-			wssession.getBasicRemote().sendText(cmd.toJson());
+			wssession.getAsyncRemote().sendText(cmd.toJson());
 			// wait le delock ou timeout
 			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			// lockCount doit être à  zero sinon, on a pas eu le resultat
@@ -1676,7 +1671,7 @@ public class OcelotTest {
 		command.setCommand(Constants.Command.Value.SUBSCRIBE);
 		command.setMessage("\"" + topic + "\"");
 		try (Session wssession = createAndGetSession()) {
-			wssession.getBasicRemote().sendText(command.toJson());
+			wssession.getAsyncRemote().sendText(command.toJson());
 			Thread.sleep(TIMEOUT);
 			int nbMsg = 10;
 			CountDownLatch lock = new CountDownLatch(nbMsg);
