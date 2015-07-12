@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import javax.inject.Inject;
-import javax.websocket.EncodeException;
 import javax.websocket.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,12 +78,8 @@ public class OcelotServicesManager {
 				}	
 				break;
 		}
-		try {
-			logger.debug("Send response from inner ocelotServices.");
-			client.getBasicRemote().sendObject(messageToClient);
-		} catch (IOException | EncodeException ex) {
-			logger.error("Fail to send : " + messageToClient.toJson(), ex);
-		}
+		logger.debug("Send response from inner ocelotServices.");
+		client.getAsyncRemote().sendObject(messageToClient);
 	}
 
 }

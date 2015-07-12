@@ -32,7 +32,6 @@ import javax.el.MethodNotFoundException;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import javax.websocket.EncodeException;
 import javax.websocket.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +45,9 @@ public class CallServiceManager {
 
 	private static final Logger logger = LoggerFactory.getLogger(CallServiceManager.class);
 
+	@Inject
+	private Cleaner cleaner;
+	
 	@Inject
 	@Any
 	private Instance<IDataServiceResolver> resolvers;
@@ -78,7 +80,7 @@ public class CallServiceManager {
 					Type[] params = method.getGenericParameterTypes();
 					int idx = 0;
 					for (Type param : params) {
-						String arg = cleanArg(parameters.get(idx));
+						String arg = cleaner.cleanArg(parameters.get(idx));
 						logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, param.getTypeName(), arg});
 						arguments[idx++] = convertArgument(arg, param);
 					}
@@ -154,18 +156,6 @@ public class CallServiceManager {
 	}
 
 	/**
-	 * Method allow cleaning all extra fields on arguments from framework web For sample angularjs add some variables begin $$ So replace : ,"$$hashKey":"object:\d" TODO externalize this feature by SPI
-	 * for extend that for all framework
-	 *
-	 * @param arg
-	 * @return
-	 */
-	private String cleanArg(String arg) {
-		String angularvar = "(,\"\\$\\$\\w+\":\".*\")";
-		return arg.replaceAll(angularvar, "");
-	}
-
-	/**
 	 * Get Dataservice, maybe in session if session scope and stored J'aimerais bien faire cela avec un interceptor/decorator, mais comment passer la session Ã  celui ci ?
 	 *
 	 * @param client
@@ -238,11 +228,7 @@ public class CallServiceManager {
 			}
 			messageToClient.setFault(new Fault(cause, stacktracelength));
 		}
-		try {
-			client.getBasicRemote().sendObject(messageToClient);
-		} catch (IOException | EncodeException ex) {
-			logger.error("Fail to send : " + messageToClient.toJson(), ex);
-		}
+		client.getAsyncRemote().sendObject(messageToClient);
 	}
 
 	/**
