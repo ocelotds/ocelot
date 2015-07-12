@@ -70,8 +70,7 @@
 		<module>ocelot-spi</module>
 		<module>ocelot-extra-spring</module>
 		<module>ocelot-processor</module>
-    <module>ocelot-test</module>
-  </modules>
+	</modules>
 	<dependencies>		
 		<dependency>
 			<groupId>org.slf4j</groupId>
