@@ -29,6 +29,11 @@ public class MessageToClient {
 		this.id = id;
 	}
 	
+	public MessageToClient(String id, Object result) {
+		this.id = id;
+		this.result = result;
+	}
+	
 	private static final long serialVersionUID = -834697863344344124L;
 
 	/**
