@@ -4,12 +4,11 @@
  */
 package fr.hhdev.ocelot.web;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import javax.inject.Singleton;
 import javax.websocket.Session;
 import org.slf4j.Logger;
@@ -22,7 +21,7 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class SessionManager {
 	private final static Logger logger = LoggerFactory.getLogger(SessionManager.class);
-	private final Map<String, Set<Session>> sessionsByTopic = new HashMap<>();
+	private final Map<String, Collection<Session>> sessionsByTopic = new HashMap<>();
 	
 	/**
 	 * Register session for topic
@@ -31,11 +30,11 @@ public class SessionManager {
 	 * @param session
 	 */
 	public void registerTopicSession(String topic, Session session) {
-		Set<Session> sessions;
+		Collection<Session> sessions;
 		if (sessionsByTopic.containsKey(topic)) {
 			sessions = sessionsByTopic.get(topic);
 		} else {
-			sessions = new HashSet<>();
+			sessions =  Collections.synchronizedCollection(new ArrayList<Session>());
 			sessionsByTopic.put(topic, sessions);
 		}
 		logger.debug("'{}' subscribe to '{}'", session.getId(), topic);
@@ -50,7 +49,7 @@ public class SessionManager {
 	 */
 	public void unregisterTopicSession(String topic, Session session) {
 		logger.debug("'{}' unsubscribe to '{}'", session.getId(), topic);
-		Set<Session> sessions = sessionsByTopic.get(topic);
+		Collection<Session> sessions = sessionsByTopic.get(topic);
 		if (sessions != null && sessions.contains(session)) {
 			sessions.remove(session);
 		}
@@ -63,23 +62,20 @@ public class SessionManager {
 	 */
 	public void removeSessionToTopic(Session session) {
 		for (String topic : sessionsByTopic.keySet()) {
-			Set<Session> sessions = sessionsByTopic.get(topic);
-			if (sessions.contains(session)) {
-				sessions.remove(session);
-			}
+			unregisterTopicSession(topic, session);
 		}
 	}
 
 	/**
 	 * Get Sessions for topics
 	 *
-	 * @param id
+	 * @param topic
 	 * @return
 	 */
-	public Collection<Session> getSessionsForTopic(String id) {
+	public Collection<Session> getSessionsForTopic(String topic) {
 		Collection<Session> result;
-		if(existsSessionForTopic(id)) {
-			return sessionsByTopic.get(id);
+		if(existsSessionForTopic(topic)) {
+			return sessionsByTopic.get(topic);
 		} else {
 			result = Collections.EMPTY_LIST;
 		}
@@ -89,10 +85,10 @@ public class SessionManager {
 	/**
 	 * check if sessions exist for topic
 	 *
-	 * @param id
+	 * @param topic
 	 * @return
 	 */
-	public boolean existsSessionForTopic(String id) {
-		return sessionsByTopic.containsKey(id) && !sessionsByTopic.get(id).isEmpty();
+	public boolean existsSessionForTopic(String topic) {
+		return sessionsByTopic.containsKey(topic) && !sessionsByTopic.get(topic).isEmpty();
 	}
 }
