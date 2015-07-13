@@ -133,16 +133,18 @@ public class CacheManager {
 		logger.debug("Process JsCacheRemove annotation : {}", jcr);
 		StringBuilder sb;
 		MessageToClient messageToClient = new MessageToClient();
-		logger.debug("JsonArgs from Call : {}", Arrays.deepToString(jsonArgs.toArray(new String[]{})));
-		logger.debug("ParamName from considerated method : {}", Arrays.deepToString(paramNames.toArray(new String[]{})));
+		if(logger.isDebugEnabled()) {
+			logger.debug("JsonArgs from Call : {}", Arrays.toString(jsonArgs.toArray(new String[]{})));
+			logger.debug("ParamName from considerated method : {}", Arrays.toString(paramNames.toArray(new String[]{})));
+		}
 		String[] keys = jcr.keys();
 		if (keys.length == 0) {
 			sb = new StringBuilder("");
 		} else {
-			sb = new StringBuilder("[");
 			if (Constants.Cache.USE_ALL_ARGUMENTS.equals(keys[0])) {
-				sb.append(String.join(",", jsonArgs));
+				sb = new StringBuilder(Arrays.toString(jsonArgs.toArray(new String[]{})));
 			} else {
+				sb = new StringBuilder("[");
 				for (int idKey = 0; idKey < keys.length; idKey++) {
 					String key = keys[idKey];
 					logger.debug("Process {} : ", key);
@@ -176,9 +178,8 @@ public class CacheManager {
 						sb.append(",");
 					}
 				}
-
+				sb.append("]");
 			}
-			sb.append("]");
 		}
 		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
 		String cachekey = getMd5(jcr.cls().getName() + "." + jcr.methodName());
