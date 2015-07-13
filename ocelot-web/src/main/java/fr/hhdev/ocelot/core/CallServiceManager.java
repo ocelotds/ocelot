@@ -74,14 +74,14 @@ public class CallServiceManager {
 		logger.debug("Try to find method {} on class {}", message.getOperation(), dataService);
 		List<String> parameters = message.getParameters();
 		for (Method method : dataService.getClass().getMethods()) {
-			if (method.getName().equals(message.getOperation()) && method.getParameterCount() == parameters.size()) {
+			if (method.getName().equals(message.getOperation()) && method.getParameters().length == parameters.size()) {
 				logger.debug("Process method {}", method.getName());
 				try {
 					Type[] params = method.getGenericParameterTypes();
 					int idx = 0;
 					for (Type param : params) {
 						String arg = cleaner.cleanArg(parameters.get(idx));
-						logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, param.getTypeName(), arg});
+						logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, param.toString(), arg});
 						arguments[idx++] = convertArgument(arg, param);
 					}
 					logger.debug("Method {}.{} with good signature found.", dataService.getClass(), message.getOperation());
@@ -118,14 +118,14 @@ public class CallServiceManager {
 			}
 		} catch (IOException ex) {
 			logger.debug("Conversion of '{}' to '{}' failed", arg, param);
-			throw new IllegalArgumentException(param.getTypeName());
+			throw new IllegalArgumentException(param.toString());
 		}
 		return result;
 	}
 
 	private JavaType getJavaType(Type type) {
 		Class clazz;
-		logger.debug("Computing type of {} - {}", type.getClass(), type.getTypeName());
+		logger.debug("Computing type of {} - {}", type.getClass(), type.toString());
 		if (type instanceof ParameterizedType) {
 			clazz = (Class) ((ParameterizedType) type).getRawType();
 		} else {
