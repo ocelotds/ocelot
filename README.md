@@ -1,5 +1,6 @@
 # OCELOT
 ![](https://travis-ci.org/hhdevelopment/ocelot.svg?branch=master)  
+[Travis-ci](https://travis-ci.org/hhdevelopment/ocelot)  
 ## The best and easiest communication way between java and javascript
 #### Forget REST, forget AJAX, forget http, forget protocol, Ocelot uses websocket and do everything for you.
 
