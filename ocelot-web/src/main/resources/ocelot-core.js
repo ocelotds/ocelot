@@ -367,15 +367,28 @@ OcelotCacheManager = {
  */
 function TopicConsumer(topic) {
 	this.topic = topic;
+	this.on = false;
 	this.onMessage = function (msg) {
 	};
 }
 TopicConsumer.prototype = {
-	subscribe: function () {
-		document.dispatchEvent(OcelotTokenFactory.createSubscribeToken(this.topic, this.onMessage));
+	subscribe: function (topic) {
+		if(topic) {
+			if(this.on) {
+				this.unsubscribe();
+			}
+			this.topic = topic;
+		}
+		if(this.topic) {
+			document.dispatchEvent(OcelotTokenFactory.createSubscribeToken(this.topic, this.onMessage));
+			this. on = true;
+		}
 	},
 	unsubscribe: function () {
-		document.dispatchEvent(OcelotTokenFactory.createUnsubscribeToken(this.topic));
+		if(this.topic && this.on) {
+			document.dispatchEvent(OcelotTokenFactory.createUnsubscribeToken(this.topic));
+			this.on = false;
+		}
 	}
 };
 /**
