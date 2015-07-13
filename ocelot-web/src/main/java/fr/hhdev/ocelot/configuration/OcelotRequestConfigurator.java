@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This class extract info in request, and expose them to userProperties ServerEnpoint
- * 
+ *
  * @author hhfrancois
  */
 public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator {
@@ -25,7 +25,10 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 	@Override
 	public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
 		Map<String, List<String>> headers = request.getHeaders();
-		List<String> accept = headers.getOrDefault(HttpHeaders.ACCEPT_LANGUAGE, Arrays.asList(new String[] {"en-US;q=1"}));
+		List<String> accept = headers.get(HttpHeaders.ACCEPT_LANGUAGE);
+		if (accept == null || accept.isEmpty()) {
+			accept = Arrays.asList(new String[]{"en-US;q=1"});
+		}
 		logger.debug("Get accept-language from client headers : {}", accept);
 		sec.getUserProperties().put(HttpHeaders.ACCEPT_LANGUAGE, accept); // accept-language : [fr, fr-FR;q=0.8, en-US;q=0.5, en;q=0.3]
 		super.modifyHandshake(sec, request, response);
