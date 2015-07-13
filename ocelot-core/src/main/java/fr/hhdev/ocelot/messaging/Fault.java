@@ -73,8 +73,8 @@ public class Fault {
 
 	public String toJson() {
 		StackTraceElement[] stacktraceElt = getStacktrace();
-		String stacktrace = String.format(String.join(",", Collections.nCopies(stacktraceElt.length, "\"%s\"")), (Object[]) stacktraceElt);
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":[%s]}",
+		String stacktrace = String.format(Arrays.toString(Collections.nCopies(stacktraceElt.length, "\"%s\"").toArray()), (Object[]) stacktraceElt);
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s}",
 				  Constants.Message.Fault.CLASSNAME, this.classname,
 				  Constants.Message.Fault.MESSAGE, this.message,
 				  Constants.Message.Fault.STACKTRACE, stacktrace);
