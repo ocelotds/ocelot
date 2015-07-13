@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -63,7 +62,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 			List<ExecutableElement> methodElements = ElementFilter.methodsIn(typeElement.getEnclosedElements());
 			Iterator<ExecutableElement> iterator = methodElements.iterator();
 			Collection<String> methodProceeds = new ArrayList<>();
-			while(iterator.hasNext()) {
+			while (iterator.hasNext()) {
 				ExecutableElement methodElement = iterator.next();
 				if (isConsiderateMethod(methodProceeds, methodElement)) {
 					String methodName = methodElement.getSimpleName().toString();
@@ -90,7 +89,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 					createMethodBody(classname, methodElement, arguments.iterator(), writer);
 
 					writer.append("\t}");
-					if(iterator.hasNext()) {
+					if (iterator.hasNext()) {
 						writer.append(",");
 					}
 					writer.append("\n");
@@ -139,15 +138,15 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	 */
 	public boolean isConsiderateMethod(Collection<String> methodProceeds, ExecutableElement methodElement) {
 		int argNum = methodElement.getParameters().size();
-		String signature = methodElement.getSimpleName().toString()+"("+argNum+")";
+		String signature = methodElement.getSimpleName().toString() + "(" + argNum + ")";
 		// Check if method ith same signature has been already proceed.
-		if(methodProceeds.contains(signature)) {
+		if (methodProceeds.contains(signature)) {
 			return false;
 		}
 		methodProceeds.add(signature);
 		// Herited from Object
 		TypeElement objectElement = environment.getElementUtils().getTypeElement(Object.class.getName());
-		if(objectElement.getEnclosedElements().contains(methodElement)) {
+		if (objectElement.getEnclosedElements().contains(methodElement)) {
 			return false;
 		}
 		// Static, not public ?
@@ -247,13 +246,22 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 			StringBuilder keys = new StringBuilder("");
 			if (arguments != null && arguments.hasNext()) {
 				JsCacheResult jcr = methodElement.getAnnotation(JsCacheResult.class);
-				boolean allArgs = null==jcr || (jcr.keys().length > 0 && "*".equals(jcr.keys()[0]));
-				if(!allArgs) {
-					keys.append(String.join(",", jcr.keys()));
+				boolean allArgs = true;
+				// if there is a jcr annotation with value diferrent of *, so we dont use all arguments
+				if (null != jcr && null!=jcr.keys() && (jcr.keys().length == 0 || (jcr.keys().length > 0 && !"*".equals(jcr.keys()[0])))) {
+					allArgs = false;
+					for (int i = 0; i < jcr.keys().length; i++) {
+						String arg = jcr.keys()[i];
+						keys.append(arg);
+						if(i<jcr.keys().length-1) {
+							keys.append(",");
+						}
+					}
+//					keys.append(String.join(",", jcr.keys()));
 				}
 				while (arguments.hasNext()) {
 					String arg = arguments.next();
-					if(allArgs) {
+					if (allArgs) {
 						keys.append(arg);
 					}
 					args.append(arg);
@@ -261,14 +269,14 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 					if (arguments.hasNext()) {
 						args.append(",");
 						paramNames.append(",");
-						if(allArgs) {
+						if (allArgs) {
 							keys.append(",");
 						}
 					}
 				}
 			}
-			String md5 = "\""+getMd5(classname+"."+methodName);
-			writer.append("\t\tvar id = "+md5+"_\" + JSON.stringify([").append(keys.toString()).append("]).md5();\n");
+			String md5 = "\"" + getMd5(classname + "." + methodName);
+			writer.append("\t\tvar id = " + md5 + "_\" + JSON.stringify([").append(keys.toString()).append("]).md5();\n");
 			writer.append("\t\treturn OcelotTokenFactory.createCallToken(this.ds, id, op, [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");\n");
 		} catch (IOException ex) {
 		}
@@ -276,8 +284,9 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 
 	/**
 	 * Create a md5 from string
+	 *
 	 * @param msg
-	 * @return 
+	 * @return
 	 */
 	private String getMd5(String msg) {
 		MessageDigest md;
@@ -326,25 +335,24 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 		return null;
 	}
 
-/** 
- * Validation management
- *
- * @AssertFalse : The value of the field or property must be false.
- * @AssertTrue : The value of the field or property must be true.
- * @DecimalMax : @DecimalMax("30.00") : The value of the field or property must be a decimal value lower than or equal to the number in the value element.
- * @DecimalMin : @DecimalMin("5.00") : The value of the field or property must be a decimal value greater than or equal to the number in the value element.
- * @Digits : @Digits(integer=6, fraction=2) : The value of the field or property must be a number within a specified range. 
- * The integer element specifies the maximum integral digits for the number, and the fraction element specifies the maximum fractional digits for the number.
- * @Future : The value of the field or property must be a date in the future.
- * @Max : @Max(10) : The value of the field or property must be an integer value lower than or equal to the number in the value element.
- * @Min : @Min(5) : The value of the field or property must be an integer value greater than or equal to the number in the value element.
- * @NotNull : The value of the field or property must not be null.
- * @Null : The value of the field or property must be null.
- * @Past : The value of the field or property must be a date in the past.
- * @Pattern :  @Pattern(regexp="\\(\\d{3}\\)\\d{3}-\\d{4}") : The value of the field or property must match the regular expression defined in the regexp element.
- * @Size : @Size(min=2, max=240) : The size of the field or property is evaluated and must match the specified boundaries.
- * If the field or property is a String, the size of the string is evaluated. If the field or property is a Collection, the size of the Collection is evaluated.
- * If the field or property is a Map, the size of the Map is evaluated.
- * If the field or property is an array, the size of the array is evaluated. Use one of the optional max or min elements to specify the boundaries.
- */
+	/**
+	 * Validation management
+	 *
+	 * @AssertFalse : The value of the field or property must be false.
+	 * @AssertTrue : The value of the field or property must be true.
+	 * @DecimalMax : @DecimalMax("30.00") : The value of the field or property must be a decimal value lower than or equal to the number in the value element.
+	 * @DecimalMin : @DecimalMin("5.00") : The value of the field or property must be a decimal value greater than or equal to the number in the value element.
+	 * @Digits : @Digits(integer=6, fraction=2) : The value of the field or property must be a number within a specified range. The integer element specifies the maximum integral digits for the number,
+	 * and the fraction element specifies the maximum fractional digits for the number.
+	 * @Future : The value of the field or property must be a date in the future.
+	 * @Max : @Max(10) : The value of the field or property must be an integer value lower than or equal to the number in the value element.
+	 * @Min : @Min(5) : The value of the field or property must be an integer value greater than or equal to the number in the value element.
+	 * @NotNull : The value of the field or property must not be null.
+	 * @Null : The value of the field or property must be null.
+	 * @Past : The value of the field or property must be a date in the past.
+	 * @Pattern : @Pattern(regexp="\\(\\d{3}\\)\\d{3}-\\d{4}") : The value of the field or property must match the regular expression defined in the regexp element.
+	 * @Size : @Size(min=2, max=240) : The size of the field or property is evaluated and must match the specified boundaries. If the field or property is a String, the size of the string is evaluated.
+	 * If the field or property is a Collection, the size of the Collection is evaluated. If the field or property is a Map, the size of the Map is evaluated. If the field or property is an array, the
+	 * size of the array is evaluated. Use one of the optional max or min elements to specify the boundaries.
+	 */
 }
