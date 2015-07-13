@@ -4,7 +4,6 @@
 package fr.hhdev.ocelot.core;
 
 import fr.hhdev.ocelot.messaging.CacheEvent;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -26,7 +25,7 @@ public class UpdatedCacheManager {
 	private final Map<String, Long> lastupdateTime = new HashMap<>();
 	
 	public void receiveCacheRemoveEvent(@Observes @CacheEvent String cachekey) {
-		Date now = Date.from(Instant.now());
+		Date now = new Date();
 		logger.debug("RemoveCache {} at instant {}", cachekey, now);
 		lastupdateTime.put(cachekey, now.getTime());
 	}
