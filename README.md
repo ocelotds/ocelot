@@ -20,7 +20,7 @@
 <dependency>
   <groupId>fr.hhdev</groupId>
   <artifactId>ocelot-web</artifactId>
-  <version>1.3.0</version>
+  <version>1.3.1</version>
 </dependency>
 ```
 
@@ -29,7 +29,7 @@
 <dependency>
   <groupId>fr.hhdev</groupId>
   <artifactId>ocelot-core</artifactId>
-  <version>1.3.0</version>
+  <version>1.3.1</version>
 </dependency>
 ```
 
