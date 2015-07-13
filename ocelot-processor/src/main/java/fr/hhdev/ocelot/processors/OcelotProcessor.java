@@ -60,7 +60,11 @@ public class OcelotProcessor extends AbstractProcessor {
 		Properties options = new Properties();
 		try(Reader reader = new FileReader(file)) {
 			options.load(reader);
-			disabled = Boolean.parseBoolean((String) options.getOrDefault("disabled", false));
+			Object value = options.get("disabled");
+			disabled = false;
+			if(null!=value) {
+				disabled = Boolean.parseBoolean((String) value);
+			}
 		} catch(IOException e) {
 		}
 		filer = processingEnv.getFiler();
