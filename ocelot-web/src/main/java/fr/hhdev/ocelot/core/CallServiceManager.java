@@ -74,7 +74,7 @@ public class CallServiceManager {
 		logger.debug("Try to find method {} on class {}", message.getOperation(), dataService);
 		List<String> parameters = message.getParameters();
 		for (Method method : dataService.getClass().getMethods()) {
-			if (method.getName().equals(message.getOperation()) && method.getParameters().length == parameters.size()) {
+			if (method.getName().equals(message.getOperation()) && method.getParameterTypes().length == parameters.size()) {
 				logger.debug("Process method {}", method.getName());
 				try {
 					Type[] params = method.getGenericParameterTypes();
