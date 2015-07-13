@@ -247,7 +247,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 			StringBuilder keys = new StringBuilder("");
 			if (arguments != null && arguments.hasNext()) {
 				JsCacheResult jcr = methodElement.getAnnotation(JsCacheResult.class);
-				boolean allArgs = Objects.isNull(jcr) || (jcr.keys().length > 0 && "*".equals(jcr.keys()[0]));
+				boolean allArgs = null==jcr || (jcr.keys().length > 0 && "*".equals(jcr.keys()[0]));
 				if(!allArgs) {
 					keys.append(String.join(",", jcr.keys()));
 				}
