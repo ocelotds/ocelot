@@ -37,10 +37,10 @@ public class UpdatedCacheManager {
 	 */
 	public Collection<String> getOutDatedCache(Map<String, Long> map) {
 		Collection<String> result = new ArrayList<>();
-		
-		for (String key : map.keySet()) {
+		for (Map.Entry<String, Long> entry : map.entrySet()) {
+			String key = entry.getKey();
 			if(lastupdateTime.containsKey(key)) {
-				if(lastupdateTime.get(key).compareTo(map.get(key)) == 1) { // map element is smaller of lastupdateTime element
+				if(lastupdateTime.get(key).compareTo(entry.getValue()) == 1) { // map element is smaller of lastupdateTime element
 					logger.debug("Cache {} is outdated", key);
 					result.add(key);
 				}

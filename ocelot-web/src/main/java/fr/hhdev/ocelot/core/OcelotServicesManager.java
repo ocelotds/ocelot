@@ -69,8 +69,10 @@ public class OcelotServicesManager {
 				try {
 					ObjectMapper mapper = new ObjectMapper();
 					Map<String, Long> states = mapper.readValue(message.getParameters().get(0), new TypeReference<HashMap<String,Long>>() {});
-					for (String id : states.keySet()) {
-						logger.debug("The client has this cache {} since {}.", id, states.get(id));
+					if(logger.isDebugEnabled()) {
+						for (Map.Entry<String, Long> entry : states.entrySet()) {
+							logger.debug("The client has this cache {} since {}.", entry.getKey(), entry.getValue());
+						}
 					}
 					messageToClient.setResult(updatedCacheManager.getOutDatedCache(states));
 				} catch (IOException ex) {
