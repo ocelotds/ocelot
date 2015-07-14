@@ -260,7 +260,7 @@ public class OcelotTest {
 	 * Handler de message de type result Si le handler compte un id, il decomptera le lock uniquement s'il arrive à  récuperer un message avec le bon id Sinon la récupération d'un message décompte le
 	 * lock
 	 */
-	private class CountDownMessageHandler implements MessageHandler.Whole<String> {
+	private static class CountDownMessageHandler implements MessageHandler.Whole<String> {
 
 		private final CountDownLatch lock;
 		private MessageToClient messageToClient = null;
@@ -342,9 +342,9 @@ public class OcelotTest {
 			// send
 			session.getAsyncRemote().sendText(cmd.toJson());
 			// wait le delock ou timeout
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			// lockCount doit être à  zero sinon, on a pas eu le resultat
-			assertEquals("Timeout", 0, lock.getCount());
+			assertTrue("Timeout : "+lock.getCount(), await);
 			// lecture du resultat dans le handler
 			result = messageHandler.getMessageToClient();
 			assertNotNull(result);
@@ -364,20 +364,7 @@ public class OcelotTest {
 		try {
 			// hors session, deux beans session scope doivent être differents
 			ExecutorService executorService = Executors.newSingleThreadExecutor();
-			executorService.execute(new Runnable() {
-
-				@Override
-				public void run() {
-					try {
-						GetValue bean1 = resolver.resolveDataService(clazz);
-						bean1.setValue(500);
-						Thread.sleep(1000);
-						assertNotNull(bean1);
-						assertTrue(clazz.isInstance(bean1));
-					} catch (DataServiceException | InterruptedException ex) {
-					}
-				}
-			});
+			executorService.execute(new CallRunnable(clazz, resolver));
 			executorService.shutdown();
 			GetValue bean2 = resolver.resolveDataService(clazz);
 			assertNotNull(bean2);
@@ -385,6 +372,31 @@ public class OcelotTest {
 		} catch (DataServiceException ex) {
 			fail(resolverId + " bean not reached");
 		}
+	}
+
+	private static class CallRunnable implements Runnable {
+		
+		private final Class<? extends GetValue> clazz;
+		private final IDataServiceResolver resolver;
+
+		public CallRunnable(Class<? extends GetValue> clazz, IDataServiceResolver resolver) {
+			this.clazz = clazz;
+			this.resolver = resolver;
+		}
+		
+		
+		@Override
+		public void run() {
+			try {
+				GetValue bean1 = resolver.resolveDataService(clazz);
+				bean1.setValue(500);
+				Thread.sleep(1000);
+				assertNotNull(bean1);
+				assertTrue(clazz.isInstance(bean1));
+			} catch (DataServiceException | InterruptedException ex) {
+			}
+		}
+
 	}
 
 	/**
@@ -562,11 +574,11 @@ public class OcelotTest {
 	}
 
 	private void traceFile(InputStream input, String filename, int size, boolean min) {
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(input))) {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(input, Constants.UTF_8))) {
 			String inputLine;
 			while ((inputLine = in.readLine()) != null) {
-				System.out.write(inputLine.getBytes());
-				System.out.write(Constants.BACKSLASH_N.getBytes());
+				System.out.write(inputLine.getBytes(Constants.UTF_8));
+				System.out.write(Constants.BACKSLASH_N.getBytes(Constants.UTF_8));
 			}
 		} catch (IOException e) {
 		}
@@ -608,7 +620,7 @@ public class OcelotTest {
 		try {
 			HttpURLConnection connection = getConnectionForResource(Constants.OCELOT_CORE + Constants.JS, false);
 			boolean replaced;
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), Constants.UTF_8))) {
 				String inputLine;
 				replaced = false;
 				while ((inputLine = in.readLine()) != null) {
@@ -1555,10 +1567,10 @@ public class OcelotTest {
 				session.addMessageHandler(new CountDownMessageHandler(lock));
 				executorService.execute(new TestThread(clazz, methodName, session));
 			}
-			lock.await(10 * nb, TimeUnit.MILLISECONDS);
+			boolean await = lock.await(10L * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
 			System.out.println("Excecution de " + nb + " appels multisession en " + (t1 - t0) + "ms");
-			assertEquals("Timeout", 0, lock.getCount());
+			assertTrue("Timeout", await);
 		} catch (InterruptedException ex) {
 			fail(ex.getMessage());
 		} finally {
@@ -1590,10 +1602,10 @@ public class OcelotTest {
 			for (int i = 0; i < nb; i++) {
 				executorService.execute(new TestThread(clazz, methodName, session));
 			}
-			lock.await(10 * nb, TimeUnit.MILLISECONDS);
+			boolean await = lock.await(10L * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
 			System.out.println("Excecution de " + nb + " appels monosession en " + (t1 - t0) + "ms");
-			assertEquals("Timeout", 0, lock.getCount());
+			assertTrue("Timeout", await);
 		} catch (IOException | InterruptedException ex) {
 			fail(ex.getMessage());
 		} finally {
@@ -1650,9 +1662,9 @@ public class OcelotTest {
 			// send
 			wssession.getAsyncRemote().sendText(cmd.toJson());
 			// wait le delock ou timeout
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			// lockCount doit être à  zero sinon, on a pas eu le resultat
-			assertEquals("Timeout", 0, lock.getCount());
+			assertTrue("Timeout : "+lock.getCount(), await);
 			wssession.removeMessageHandler(messageHandler);
 		} catch (InterruptedException | IOException ex) {
 			fail(ex.getMessage());
@@ -1685,8 +1697,8 @@ public class OcelotTest {
 				toTopic.setResult(new Result(i));
 				wsEvent.fire(toTopic);
 			}
-			lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertEquals("Timeout", 0, lock.getCount());
+			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			assertTrue("Timeout", await);
 			wssession.removeMessageHandler(messageHandler);
 		} catch (InterruptedException | IOException ex) {
 			fail(ex.getMessage());

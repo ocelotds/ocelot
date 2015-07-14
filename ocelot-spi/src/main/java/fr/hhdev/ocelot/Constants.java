@@ -11,6 +11,7 @@ package fr.hhdev.ocelot;
  */
 public interface Constants {
 
+	String UTF_8 = "UTF-8";
 	String JS = ".js";
 	String MIN = "-min";
 	String SLASH = "/";

@@ -95,7 +95,7 @@ public class OcelotEndpoint {
 		if (session.isOpen()) {
 			try {
 				session.close();
-			} catch (Exception ex) {
+			} catch (IOException ex) {
 			}
 			sessionManager.removeSessionToTopic(session);
 		}
@@ -137,6 +137,8 @@ public class OcelotEndpoint {
 						}
 						logger.debug("Receive call message '{}' for session '{}'", message.getId(), client.getId());
 						callServiceManager.sendMessageToClients(client, message);
+						break;
+					default:
 						break;
 				}
 			} catch (IOException ex) {

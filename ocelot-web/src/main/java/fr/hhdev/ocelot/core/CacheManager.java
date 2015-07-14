@@ -19,7 +19,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
-import java.util.logging.Level;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.json.Json;
@@ -204,7 +203,7 @@ public class CacheManager {
 		MessageDigest md;
 		try {
 			md = MessageDigest.getInstance("MD5");
-			byte[] hash = md.digest(msg.getBytes("UTF-8"));
+			byte[] hash = md.digest(msg.getBytes(Constants.UTF_8));
 			//converting byte array to Hexadecimal String
 			StringBuilder sb = new StringBuilder(2 * hash.length);
 			for (byte b : hash) {

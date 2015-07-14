@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
@@ -27,6 +28,9 @@ import javax.inject.Inject;
  */
 @DataService(resolver = Constants.Resolver.CDI)
 public class TestServices {
+	
+	private final Random random = new Random();
+	
 	public void getVoid() {
 	}
 
@@ -186,7 +190,7 @@ public class TestServices {
 	@JsCacheResult(minute = 1)
 	public Collection<Integer> methodCached() {
 		Collection<Integer> result = new ArrayList<>();
-		for (int i = 0; i < new Double(Math.random() *100).intValue() ; i++) {
+		for (int i = 0; i < random.nextInt(100); i++) {
 			result.add(i);
 		}
 		return result;

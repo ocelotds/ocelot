@@ -20,10 +20,11 @@ import org.slf4j.LoggerFactory;
  */
 @Singleton
 public class UpdatedCacheManager {
+
 	private final static Logger logger = LoggerFactory.getLogger(UpdatedCacheManager.class);
 
 	private final Map<String, Long> lastupdateTime = new HashMap<>();
-	
+
 	public void receiveCacheRemoveEvent(@Observes @CacheEvent String cachekey) {
 		Date now = new Date();
 		logger.debug("RemoveCache {} at instant {}", cachekey, now);
@@ -31,18 +32,20 @@ public class UpdatedCacheManager {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param map
-	 * @return 
+	 * @return
 	 */
 	public Collection<String> getOutDatedCache(Map<String, Long> map) {
 		Collection<String> result = new ArrayList<>();
-		for (Map.Entry<String, Long> entry : map.entrySet()) {
-			String key = entry.getKey();
-			if(lastupdateTime.containsKey(key)) {
-				if(lastupdateTime.get(key).compareTo(entry.getValue()) == 1) { // map element is smaller of lastupdateTime element
-					logger.debug("Cache {} is outdated", key);
-					result.add(key);
+		if (null != map) {
+			for (Map.Entry<String, Long> entry : map.entrySet()) {
+				String key = entry.getKey();
+				if (lastupdateTime.containsKey(key)) {
+					if (lastupdateTime.get(key).compareTo(entry.getValue()) == 1) { // map element is smaller of lastupdateTime element
+						logger.debug("Cache {} is outdated", key);
+						result.add(key);
+					}
 				}
 			}
 		}

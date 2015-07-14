@@ -5,7 +5,6 @@
 package fr.hhdev.ocelot.processors;
 
 import fr.hhdev.ocelot.annotations.DataService;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -56,9 +55,8 @@ public class OcelotProcessor extends AbstractProcessor {
 	public void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
 		messager = processingEnv.getMessager();
-		File file = new File("ocelot.properties");
 		Properties options = new Properties();
-		try(Reader reader = new FileReader(file)) {
+		try(Reader reader = new FileReader("ocelot.properties")) {
 			options.load(reader);
 			Object value = options.get("disabled");
 			disabled = false;
@@ -88,7 +86,7 @@ public class OcelotProcessor extends AbstractProcessor {
 					element.accept(visitor, writer);
 				}
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
 		}
 		disabled = true;
@@ -132,7 +130,7 @@ public class OcelotProcessor extends AbstractProcessor {
 				writer.append("	}\n");
 				writer.append("}");
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
 		}
 		return "srv_"+seed+".js";

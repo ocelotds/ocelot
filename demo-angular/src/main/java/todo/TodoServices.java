@@ -54,9 +54,4 @@ public class TodoServices {
 		}
 		return todos;
 	}
-
-	@Override
-	public Object clone() throws CloneNotSupportedException {
-		throw new CloneNotSupportedException();
-	}
 }

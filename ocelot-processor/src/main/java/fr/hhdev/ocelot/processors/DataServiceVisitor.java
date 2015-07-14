@@ -4,9 +4,11 @@
  */
 package fr.hhdev.ocelot.processors;
 
+import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
 import fr.hhdev.ocelot.annotations.TransientDataService;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -208,7 +210,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 			// The javadoc comment
 			if (methodComment != null) {
 				methodComment = methodComment.split("@")[0];
-				int lastIndexOf = methodComment.lastIndexOf("\n");
+				int lastIndexOf = methodComment.lastIndexOf('\n');
 				if (lastIndexOf >= 0) {
 					methodComment = methodComment.substring(0, lastIndexOf); // include the \n
 				}
@@ -292,10 +294,11 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 		MessageDigest md;
 		try {
 			md = MessageDigest.getInstance("MD5");
-			byte[] bytes = msg.getBytes();
+			byte[] bytes = msg.getBytes(Constants.UTF_8);
 			md.update(bytes, 0, bytes.length);
 			return new BigInteger(1, md.digest()).toString(16);
-		} catch (NoSuchAlgorithmException ex) {
+		} catch (NoSuchAlgorithmException | UnsupportedEncodingException ex) {
+			messager.printMessage(Diagnostic.Kind.ERROR, (new StringBuilder()).append("Cannot build MD5 : ").append(msg));
 		}
 		return null;
 	}

@@ -14,6 +14,8 @@ import javax.enterprise.util.AnnotationLiteral;
 @SuppressWarnings("AnnotationAsSuperInterface")
 public class DataServiceResolverIdLitteral extends AnnotationLiteral<DataServiceResolver> implements DataServiceResolver {
 
+ 	private static final long serialVersionUID = 7844713893702557467L;
+	
 	private final String val;
 	public DataServiceResolverIdLitteral(String val) {
 		this.val = val;

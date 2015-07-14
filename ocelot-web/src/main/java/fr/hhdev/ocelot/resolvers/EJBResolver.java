@@ -34,8 +34,14 @@ public class EJBResolver implements IDataServiceResolver {
 	private String jndiPath = "";
 	private InitialContext initialContext = null;
 
-	public void EJBResolver() {
-		getInitialContext();
+	public EJBResolver() {
+		logger.info("Initializing context ...");
+		try {
+			initialContext = new InitialContext();
+			jndiPath = JndiConstant.PREFIX + (String) initialContext.lookup(JndiConstant.APP_NAME);
+		} catch (NamingException ex) {
+			logger.error("InitialContext initialisation Failed ", ex);
+		}
 	}
 
 	@Override
@@ -118,17 +124,6 @@ public class EJBResolver implements IDataServiceResolver {
 	}
 
 	private InitialContext getInitialContext() {
-		try {
-			if (null == initialContext) {
-				logger.info("Initializing context ...");
-				initialContext = new InitialContext();
-				if (jndiPath.isEmpty()) {
-					jndiPath += JndiConstant.PREFIX + (String) initialContext.lookup(JndiConstant.APP_NAME);
-				}
-			}
-		} catch (NamingException ex) {
-			logger.error("InitialContext initialisation Failed ", ex);
-		}
 		return initialContext;
 	}
 }

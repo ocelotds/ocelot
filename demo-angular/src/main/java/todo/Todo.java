@@ -52,10 +52,7 @@ public class Todo {
 			return false;
 		}
 		final Todo other = (Todo) obj;
-		if (!Objects.equals(this.text, other.text)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this.text, other.text);
 	}
 	
 	

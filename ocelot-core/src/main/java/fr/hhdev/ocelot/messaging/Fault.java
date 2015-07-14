@@ -103,13 +103,7 @@ public class Fault {
 			return false;
 		}
 		final Fault other = (Fault) obj;
-		if (!Objects.equals(this.message, other.message)) {
-			return false;
-		}
-		if (!Objects.equals(this.classname, other.classname)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this.classname, other.classname);
 	}
 
 }

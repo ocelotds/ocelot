@@ -7,6 +7,7 @@ package fr.hhdev.ocelot.messaging;
 import fr.hhdev.ocelot.Constants;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -137,28 +138,28 @@ public class MessageFromClient {
 	}
 
 	public String toJson() {
-		String args = "";
-		Iterator<String> iterator = parameters.iterator();
-		while (iterator.hasNext()) {
-			args += iterator.next();
-			if (iterator.hasNext()) {
-				args += ",";
-			}
-		}
-		String argnames = "";
-		iterator = parameterNames.iterator();
-		while (iterator.hasNext()) {
-			argnames += iterator.next();
-			if (iterator.hasNext()) {
-				argnames += ",";
-			}
-		}
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":[%s],\"%s\":[%s]}",
+//		StringBuilder args = new StringBuilder("");
+//		Iterator<String> iterator = parameters.iterator();
+//		while (iterator.hasNext()) {
+//			args.append(iterator.next());
+//			if (iterator.hasNext()) {
+//				args.append(args);
+//			}
+//		}
+//		StringBuilder argnames = new StringBuilder("");
+//		iterator = parameterNames.iterator();
+//		while (iterator.hasNext()) {
+//			argnames.append(iterator.next());
+//			if (iterator.hasNext()) {
+//				argnames.append(",");
+//			}
+//		}
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
 				  Constants.Message.ID, this.getId(),
 				  Constants.Message.DATASERVICE, this.getDataService(),
 				  Constants.Message.OPERATION, this.getOperation(),
-				  Constants.Message.ARGUMENTNAMES, argnames,
-				  Constants.Message.ARGUMENTS, args);
+				  Constants.Message.ARGUMENTNAMES, Arrays.toString(parameterNames.toArray(new String[parameterNames.size()])),
+				  Constants.Message.ARGUMENTS, Arrays.toString(parameters.toArray(new String[parameters.size()])));
 		return json;
 	}
 

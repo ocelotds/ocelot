@@ -70,8 +70,7 @@ public class OcelotServicesManager {
 					logger.debug("Receive sendLastUpdateCacheStates call from client.");
 					try {
 						ObjectMapper mapper = new ObjectMapper();
-						Map<String, Long> states = mapper.readValue(message.getParameters().get(0), new TypeReference<HashMap<String, Long>>() {
-						});
+						Map<String, Long> states = mapper.readValue(message.getParameters().get(0), new MapTypeReference());
 						if (!logger.isDebugEnabled() || null == states) {
 						} else {
 							for (Map.Entry<String, Long> entry : states.entrySet()) {
@@ -90,5 +89,6 @@ public class OcelotServicesManager {
 		logger.debug("Send response from inner ocelotServices.");
 		client.getAsyncRemote().sendObject(messageToClient);
 	}
-
+	private static class MapTypeReference extends TypeReference<HashMap<String, Long>> {
+	}
 }

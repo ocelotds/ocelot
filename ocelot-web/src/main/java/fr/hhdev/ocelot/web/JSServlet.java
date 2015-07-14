@@ -25,6 +25,9 @@ import org.slf4j.LoggerFactory;
  */
 @WebServlet(urlPatterns = {Constants.SLASH_OCELOT_CORE_JS, Constants.SLASH_OCELOT_SERVICES_JS})
 public class JSServlet extends HttpServlet {
+	
+	private static final long serialVersionUID = 1973549844535787671L;
+
 	private final static Logger logger = LoggerFactory.getLogger(JSServlet.class);
 
 	/**

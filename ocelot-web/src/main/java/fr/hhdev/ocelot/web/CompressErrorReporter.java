@@ -24,11 +24,11 @@ public class CompressErrorReporter implements ErrorReporter {
 
 	@Override
 	public void warning(String message, String sourceName, int line, String lineSource, int lineOffset) {
-		if (line < 0) {
+//		if (line < 0) {
 //			logger.warn("[WARNING] in " + filename+"  " + message);
-		} else {
+//		} else {
 //			logger.warn("[WARNING] in " + filename+"  " + line + ':' + lineOffset + ':' + message);
-		}
+//		}
 	}
 
 	@Override
