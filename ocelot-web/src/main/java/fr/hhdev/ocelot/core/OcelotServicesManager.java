@@ -30,6 +30,7 @@ public class OcelotServicesManager {
 
 	@Inject
 	private UpdatedCacheManager updatedCacheManager;
+
 	/**
 	 * The EndPoint receive a call for ocelotServices
 	 *
@@ -39,46 +40,52 @@ public class OcelotServicesManager {
 	public void processOcelotServices(Session client, MessageFromClient message) {
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(message.getId());
-		if (null != message.getOperation()) switch (message.getOperation()) {
-			case "setLocale":
-				try {
-					ObjectMapper mapper = new ObjectMapper();
-					fr.hhdev.ocelot.i18n.Locale l = mapper.readValue(message.getParameters().get(0), fr.hhdev.ocelot.i18n.Locale.class);
-					Locale locale = new Locale(l.getLanguage(), l.getCountry());
-					logger.debug("Receive setLocale({}) call from client.", locale);
-					client.getUserProperties().put(Constants.LOCALE, locale);
-					ThreadLocalContextHolder.put(Constants.LOCALE, locale);
-				} catch (IOException ex) {
-					logger.error("Fail read argument(0) : " + message.getParameters().get(0), ex);
-				}	
-				break;
-			case "getLocale":
-				logger.debug("Receive getLocale call from client.");
-				Locale locale = (Locale) client.getUserProperties().get(Constants.LOCALE);
-				fr.hhdev.ocelot.i18n.Locale l = new fr.hhdev.ocelot.i18n.Locale();
-				l.setLanguage(locale.getLanguage());
-				l.setCountry(locale.getCountry());
-				Calendar deadline = Calendar.getInstance();
-				deadline.add(Calendar.YEAR, 1);
-				messageToClient.setDeadline(deadline.getTime().getTime());
-				messageToClient.setResult(l);
-				logger.debug("getLocale() = {}", l);
-				break;
-			case "sendLastUpdateCacheStates":
-				logger.debug("Receive sendLastUpdateCacheStates call from client.");
-				try {
-					ObjectMapper mapper = new ObjectMapper();
-					Map<String, Long> states = mapper.readValue(message.getParameters().get(0), new TypeReference<HashMap<String,Long>>() {});
-					if(logger.isDebugEnabled()) {
-						for (Map.Entry<String, Long> entry : states.entrySet()) {
-							logger.debug("The client has this cache {} since {}.", entry.getKey(), entry.getValue());
-						}
+		if (null != message.getOperation()) {
+			switch (message.getOperation()) {
+				case "setLocale":
+					try {
+						ObjectMapper mapper = new ObjectMapper();
+						fr.hhdev.ocelot.i18n.Locale l = mapper.readValue(message.getParameters().get(0), fr.hhdev.ocelot.i18n.Locale.class);
+						Locale locale = new Locale(l.getLanguage(), l.getCountry());
+						logger.debug("Receive setLocale({}) call from client.", locale);
+						client.getUserProperties().put(Constants.LOCALE, locale);
+						ThreadLocalContextHolder.put(Constants.LOCALE, locale);
+					} catch (IOException ex) {
+						logger.error("Fail read argument(0) : " + message.getParameters().get(0), ex);
 					}
-					messageToClient.setResult(updatedCacheManager.getOutDatedCache(states));
-				} catch (IOException ex) {
-					logger.error("Fail read argument(0) : " + message.getParameters().get(0), ex);
-				}	
-				break;
+					break;
+				case "getLocale":
+					logger.debug("Receive getLocale call from client.");
+					Locale locale = (Locale) client.getUserProperties().get(Constants.LOCALE);
+					fr.hhdev.ocelot.i18n.Locale l = new fr.hhdev.ocelot.i18n.Locale();
+					l.setLanguage(locale.getLanguage());
+					l.setCountry(locale.getCountry());
+					Calendar deadline = Calendar.getInstance();
+					deadline.add(Calendar.YEAR, 1);
+					messageToClient.setDeadline(deadline.getTime().getTime());
+					messageToClient.setResult(l);
+					logger.debug("getLocale() = {}", l);
+					break;
+				case "sendLastUpdateCacheStates":
+					logger.debug("Receive sendLastUpdateCacheStates call from client.");
+					try {
+						ObjectMapper mapper = new ObjectMapper();
+						Map<String, Long> states = mapper.readValue(message.getParameters().get(0), new TypeReference<HashMap<String, Long>>() {
+						});
+						if (!logger.isDebugEnabled() || null == states) {
+						} else {
+							for (Map.Entry<String, Long> entry : states.entrySet()) {
+								logger.debug("The client has this cache {} since {}.", entry.getKey(), entry.getValue());
+							}
+						}
+						messageToClient.setResult(updatedCacheManager.getOutDatedCache(states));
+					} catch (IOException ex) {
+						logger.error("Fail read argument(0) : " + message.getParameters().get(0), ex);
+					}
+					break;
+				default:
+					break;
+			}
 		}
 		logger.debug("Send response from inner ocelotServices.");
 		client.getAsyncRemote().sendObject(messageToClient);

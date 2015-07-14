@@ -12,12 +12,14 @@ import fr.hhdev.ocelot.messaging.CacheEvent;
 import fr.hhdev.ocelot.messaging.MessageEvent;
 import fr.hhdev.ocelot.messaging.MessageToClient;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
+import java.util.logging.Level;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.json.Json;
@@ -134,15 +136,15 @@ public class CacheManager {
 		StringBuilder sb;
 		MessageToClient messageToClient = new MessageToClient();
 		if(logger.isDebugEnabled()) {
-			logger.debug("JsonArgs from Call : {}", Arrays.toString(jsonArgs.toArray(new String[]{})));
-			logger.debug("ParamName from considerated method : {}", Arrays.toString(paramNames.toArray(new String[]{})));
+			logger.debug("JsonArgs from Call : {}", Arrays.toString(jsonArgs.toArray(new String[jsonArgs.size()])));
+			logger.debug("ParamName from considerated method : {}", Arrays.toString(paramNames.toArray(new String[paramNames.size()])));
 		}
 		String[] keys = jcr.keys();
 		if (keys.length == 0) {
 			sb = new StringBuilder("");
 		} else {
 			if (Constants.Cache.USE_ALL_ARGUMENTS.equals(keys[0])) {
-				sb = new StringBuilder(Arrays.toString(jsonArgs.toArray(new String[]{})));
+				sb = new StringBuilder(Arrays.toString(jsonArgs.toArray(new String[jsonArgs.size()])));
 			} else {
 				sb = new StringBuilder("[");
 				for (int idKey = 0; idKey < keys.length; idKey++) {
@@ -202,14 +204,15 @@ public class CacheManager {
 		MessageDigest md;
 		try {
 			md = MessageDigest.getInstance("MD5");
-			byte[] hash = md.digest(msg.getBytes());
+			byte[] hash = md.digest(msg.getBytes("UTF-8"));
 			//converting byte array to Hexadecimal String
 			StringBuilder sb = new StringBuilder(2 * hash.length);
 			for (byte b : hash) {
 				sb.append(String.format("%02x", b & 0xff));
 			}
 			return sb.toString();
-		} catch (NoSuchAlgorithmException ex) {
+		} catch (NoSuchAlgorithmException | UnsupportedEncodingException ex) {
+			logger.error("Fail to get MD5 of String "+msg, ex);
 		}
 		return null;
 	}
