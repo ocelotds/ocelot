@@ -9,7 +9,9 @@ addons:
     project:
       name: "hhdevelopment/ocelot"
     notification_email: francois.achache@gmail.com
-    branch_pattern: coverity_scan
+    build_command_prepend: "mvn clean"
+    build_command:   "mvn -DskipTests=true compile"
+    branch_pattern: master
 
 language: java
 install: mvn install -DskipTests=true -Dgpg.skip=true
