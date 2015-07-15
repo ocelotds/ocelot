@@ -103,6 +103,9 @@ public class OcelotTest {
 	@Inject
 	@Any
 	private Instance<IDataServiceResolver> resolvers;
+	
+	@Inject
+	TestTopicAccessControl accessControl;
 
 	private IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
@@ -328,6 +331,7 @@ public class OcelotTest {
 	private MessageToClient getMessageToClientAfterSendInSession(Session session, String classname, String operation, String... params) {
 		MessageToClient result = null;
 		try {
+			long t0 = System.currentTimeMillis();
 			// contruction de l'objet command
 			Command cmd = new Command();
 			cmd.setCommand(Constants.Command.Value.CALL);
@@ -344,7 +348,8 @@ public class OcelotTest {
 			// wait le delock ou timeout
 			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			// lockCount doit être à  zero sinon, on a pas eu le resultat
-			assertTrue("Timeout : Remain "+lock.getCount()+" msgs.", await);
+			long t1 = System.currentTimeMillis();
+			assertTrue("Timeout. waiting "+(t1 - t0)+" ms. Remain "+lock.getCount()+"/1 msgs", await);
 			// lecture du resultat dans le handler
 			result = messageHandler.getMessageToClient();
 			assertNotNull(result);
@@ -1569,7 +1574,7 @@ public class OcelotTest {
 			}
 			boolean await = lock.await(20L * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
-			assertTrue("Timeout. waiting "+(t1 - t0)+" ms. Remain "+lock.getCount()+" msgs", await);
+			assertTrue("Timeout. waiting "+(t1 - t0)+" ms. Remain "+lock.getCount()+"/"+nb+" msgs", await);
 		} catch (InterruptedException ex) {
 			fail(ex.getMessage());
 		} finally {
@@ -1641,6 +1646,7 @@ public class OcelotTest {
 		Command command = new Command();
 		command.setCommand(Constants.Command.Value.SUBSCRIBE);
 		command.setMessage("\"" + topic + "\"");
+		long t0 = System.currentTimeMillis();
 		try (Session wssession = createAndGetSession()) {
 			wssession.getAsyncRemote().sendText(command.toJson());
 			String methodName = "generateCleanCacheMessage";
@@ -1662,7 +1668,8 @@ public class OcelotTest {
 			// wait le delock ou timeout
 			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			// lockCount doit être à  zero sinon, on a pas eu le resultat
-			assertTrue("Timeout : Remain "+lock.getCount()+" msgs.", await);
+			long t1 = System.currentTimeMillis();
+			assertTrue("Timeout. waiting "+(t1 - t0)+" ms. Remain "+lock.getCount()+"/2 msgs", await);
 			wssession.removeMessageHandler(messageHandler);
 		} catch (InterruptedException | IOException ex) {
 			fail(ex.getMessage());
@@ -1680,6 +1687,7 @@ public class OcelotTest {
 		Command command = new Command();
 		command.setCommand(Constants.Command.Value.SUBSCRIBE);
 		command.setMessage("\"" + topic + "\"");
+		long t0 = System.currentTimeMillis();
 		try (Session wssession = createAndGetSession()) {
 			wssession.getAsyncRemote().sendText(command.toJson());
 			Thread.sleep(TIMEOUT);
@@ -1696,7 +1704,8 @@ public class OcelotTest {
 				wsEvent.fire(toTopic);
 			}
 			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertTrue("Timeout : Remain "+lock.getCount()+" msgs.", await);
+			long t1 = System.currentTimeMillis();
+			assertTrue("Timeout. waiting "+(t1 - t0)+" ms. Remain "+lock.getCount()+"/"+nbMsg+" msgs", await);
 			wssession.removeMessageHandler(messageHandler);
 		} catch (InterruptedException | IOException ex) {
 			fail(ex.getMessage());
