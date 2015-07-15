@@ -282,9 +282,9 @@ public class OcelotTest {
 			if (id == null || id.equals(messageToClientIn.getId())) {
 //			if ((id != null && id.equals(messageToClientIn.getId())) || (id == null && messageToClientIn.getId() != null)) {
 				messageToClient = messageToClientIn;
-				synchronized (lock) {
+//				synchronized (lock) {
 					lock.countDown();
-				}
+//				}
 			}
 		}
 
@@ -344,7 +344,7 @@ public class OcelotTest {
 			// wait le delock ou timeout
 			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			// lockCount doit être à  zero sinon, on a pas eu le resultat
-			assertTrue("Timeout : "+lock.getCount(), await);
+			assertTrue("Timeout : Remain "+lock.getCount()+" msgs.", await);
 			// lecture du resultat dans le handler
 			result = messageHandler.getMessageToClient();
 			assertNotNull(result);
@@ -1567,10 +1567,9 @@ public class OcelotTest {
 				session.addMessageHandler(new CountDownMessageHandler(lock));
 				executorService.execute(new TestThread(clazz, methodName, session));
 			}
-			boolean await = lock.await(10L * nb, TimeUnit.MILLISECONDS);
+			boolean await = lock.await(20L * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
-			System.out.println("Excecution de " + nb + " appels multisession en " + (t1 - t0) + "ms");
-			assertTrue("Timeout", await);
+			assertTrue("Timeout. waiting "+(t1 - t0)+" ms. Remain "+lock.getCount()+" msgs", await);
 		} catch (InterruptedException ex) {
 			fail(ex.getMessage());
 		} finally {
@@ -1604,8 +1603,7 @@ public class OcelotTest {
 			}
 			boolean await = lock.await(10L * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
-			System.out.println("Excecution de " + nb + " appels monosession en " + (t1 - t0) + "ms");
-			assertTrue("Timeout", await);
+			assertTrue("Timeout. waiting "+(t1 - t0)+" ms. Remain "+lock.getCount()+" msgs", await);
 		} catch (IOException | InterruptedException ex) {
 			fail(ex.getMessage());
 		} finally {
@@ -1664,7 +1662,7 @@ public class OcelotTest {
 			// wait le delock ou timeout
 			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			// lockCount doit être à  zero sinon, on a pas eu le resultat
-			assertTrue("Timeout : "+lock.getCount(), await);
+			assertTrue("Timeout : Remain "+lock.getCount()+" msgs.", await);
 			wssession.removeMessageHandler(messageHandler);
 		} catch (InterruptedException | IOException ex) {
 			fail(ex.getMessage());
@@ -1698,7 +1696,7 @@ public class OcelotTest {
 				wsEvent.fire(toTopic);
 			}
 			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			assertTrue("Timeout", await);
+			assertTrue("Timeout : Remain "+lock.getCount()+" msgs.", await);
 			wssession.removeMessageHandler(messageHandler);
 		} catch (InterruptedException | IOException ex) {
 			fail(ex.getMessage());
