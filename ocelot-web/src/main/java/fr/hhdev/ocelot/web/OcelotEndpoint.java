@@ -4,6 +4,7 @@
  */
 package fr.hhdev.ocelot.web;
 
+import fr.hhdev.ocelot.core.SessionManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.configuration.OcelotRequestConfigurator;

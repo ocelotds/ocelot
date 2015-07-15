@@ -4,6 +4,7 @@
  */
 package fr.hhdev.ocelot.web;
 
+import fr.hhdev.ocelot.core.SessionManager;
 import fr.hhdev.ocelot.messaging.MessageEvent;
 import fr.hhdev.ocelot.messaging.MessageToClient;
 import java.util.ArrayList;
