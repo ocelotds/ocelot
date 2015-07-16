@@ -12,31 +12,41 @@ import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.util.AnnotationLiteral;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author hhfrancois
  */
 public abstract class CdiBootstrap {
+
+	private final static Logger logger = LoggerFactory.getLogger(CdiBootstrap.class);
+
 	private static BeanManager beanManager = null;
 
-	public CdiBootstrap() {
-		try {
-			InitialContext initialContext = new InitialContext();
-			beanManager = (BeanManager) initialContext.lookup("java:comp/env/BeanManager");
-		} catch (NamingException e) {
+	public BeanManager getBeanManager() {
+		if (null == beanManager) {
+			try {
+				InitialContext initialContext = new InitialContext();
+				beanManager = (BeanManager) initialContext.lookup("java:comp/env/BeanManager");
+			} catch (NamingException e) {
+			}
 		}
+		return beanManager;
 	}
-	
+
 	public <T> T getBean(Class<T> cls) {
-		Set<Bean<?>> beans = beanManager.getBeans(cls, DEFAULT_AT);
+		BeanManager bm = getBeanManager();
+		logger.info("Generate bean from {}, cause native injection doesn't work.");
+		Set<Bean<?>> beans = bm.getBeans(cls, DEFAULT_AT);
 		Bean<?> b = beans.iterator().next();
-		final CreationalContext context = beanManager.createCreationalContext(b);
-		return cls.cast(beanManager.getReference(b, b.getBeanClass(), context));
+		final CreationalContext context = bm.createCreationalContext(b);
+		return cls.cast(bm.getReference(b, b.getBeanClass(), context));
 	}
 
 	private static final Annotation DEFAULT_AT = new AnnotationLiteral<Default>() {
 		private static final long serialVersionUID = 1L;
 	};
-	
+
 }
