@@ -11,7 +11,7 @@ addons:
     notification_email: francois.achache@gmail.com
     build_command_prepend: "mvn clean"
     build_command:   "mvn -DskipTests=true compile"
-    branch_pattern: master
+    branch_pattern: coverity
 
 language: java
 install: mvn install -DskipTests=true -Dgpg.skip=true
