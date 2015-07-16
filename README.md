@@ -52,7 +52,8 @@ If you use mananged classes, you benefits of all features
 **CDI features, WebSocket features, jsonp features, are provided by glassfish**  
 **Ocelot can be work in servlet container like tomcat without EJB features of course. but requires some extra dependencies and configure them :
  - [cdi](http://docs.jboss.org/weld/reference/1.0.0/en-US/html/environments.html)
- - [jsonp](https://jsonp.java.net/)  
+ - [jsonp](https://jsonp.java.net/) 
+
 See wiki for details.
 
 
