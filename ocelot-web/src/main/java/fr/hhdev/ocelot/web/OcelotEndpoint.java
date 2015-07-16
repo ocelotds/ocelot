@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * @author hhfrancois
  */
 @ServerEndpoint(value = "/ocelot-endpoint", encoders = {MessageToClientEncoder.class}, decoders = {CommandDecoder.class}, configurator = OcelotRequestConfigurator.class)
-public class OcelotEndpoint {
+public class OcelotEndpoint extends CdiBootstrap {
 
 	private final static Logger logger = LoggerFactory.getLogger(OcelotEndpoint.class);
 
@@ -48,15 +48,16 @@ public class OcelotEndpoint {
 
 	@Inject
 	private OcelotServicesManager ocelotServicesManager;
-	
+
 	@Inject
 	private CallServiceManager callServiceManager;
 
 	/**
 	 * A connection is open
+	 *
 	 * @param session
 	 * @param config
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	@OnOpen
 	public void handleOpenConnexion(Session session, EndpointConfig config) throws IOException {
@@ -96,9 +97,9 @@ public class OcelotEndpoint {
 		if (session.isOpen()) {
 			try {
 				session.close();
-			} catch (IOException ex) {
+			} catch (IllegalStateException | IOException ex) {
 			}
-			sessionManager.removeSessionToTopic(session);
+			getSessionManager().removeSessionToTopic(session);
 		}
 	}
 
@@ -123,21 +124,21 @@ public class OcelotEndpoint {
 					case Constants.Command.Value.SUBSCRIBE:
 						topic = mapper.readValue(command.getMessage(), String.class);
 						logger.debug("Subscribe client '{}' to topic '{}'", client.getId(), topic);
-						sessionManager.registerTopicSession(topic, client);
+						getSessionManager().registerTopicSession(topic, client);
 						break;
 					case Constants.Command.Value.UNSUBSCRIBE:
 						topic = mapper.readValue(command.getMessage(), String.class);
 						logger.debug("Unsubscribe client '{}' to topic '{}'", client.getId(), topic);
-						sessionManager.unregisterTopicSession(topic, client);
+						getSessionManager().unregisterTopicSession(topic, client);
 						break;
 					case Constants.Command.Value.CALL:
 						MessageFromClient message = MessageFromClient.createFromJson(command.getMessage());
 						if ("fr.hhdev.ocelot.OcelotServices".equals(message.getDataService())) {
-							ocelotServicesManager.processOcelotServices(client, message);
+							getOcelotServicesManager().processOcelotServices(client, message);
 							break;
 						}
 						logger.debug("Receive call message '{}' for session '{}'", message.getId(), client.getId());
-						callServiceManager.sendMessageToClients(client, message);
+						getCallServiceManager().sendMessageToClients(client, message);
 						break;
 					default:
 						break;
@@ -148,4 +149,26 @@ public class OcelotEndpoint {
 			logger.warn("Receive unsupported message '{}' from client '{}'", command, client.getId());
 		}
 	}
+
+	public SessionManager getSessionManager() {
+		if (null == sessionManager) {
+			sessionManager = getBean(SessionManager.class);
+		}
+		return sessionManager;
+	}
+
+	public OcelotServicesManager getOcelotServicesManager() {
+		if (null == ocelotServicesManager) {
+			ocelotServicesManager = getBean(OcelotServicesManager.class);
+		}
+		return ocelotServicesManager;
+	}
+
+	public CallServiceManager getCallServiceManager() {
+		if (null == callServiceManager) {
+			callServiceManager = getBean(CallServiceManager.class);
+		}
+		return callServiceManager;
+	}
+
 }
