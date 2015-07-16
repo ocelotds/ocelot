@@ -51,7 +51,7 @@ If you use mananged classes, you benefits of all features
 **Ocelot is develop on reference Java EE server glassfish 4.**
 **CDI features, WebSocket features, jsonp features, are provided by glassfish**  
 
-Ocelot can be work in servlet container like tomcat without EJB features of course. but requires some extra dependencies and configure them :
+Ocelot can work in servlet container like tomcat without EJB features of course. but requires some extra dependencies and configure them :
  - [cdi](http://docs.jboss.org/weld/reference/1.0.0/en-US/html/environments.html)
  - [jsonp](https://jsonp.java.net/) 
 
