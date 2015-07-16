@@ -1,3 +1,5 @@
+var nbMsgToBroadcast = 500;
+document.getElementById("nbMsgToBroadcast").innerHTML = nbMsgToBroadcast;
 OcelotCacheManager.clearCache();
 ocelotController.addOpenEventListener(function (event) {
 	var srv = new TestServices();
@@ -57,14 +59,16 @@ ocelotController.addOpenEventListener(function (event) {
 		token.fail = token.success;
 	});
 	QUnit.test(".getDateBefore()", function (assert) {
-		var before = new Date();
 		var done = assert.async();
-		var token = srv.getDate();
-		token.success = function (msg) {
-			assert.ok(msg > before.getTime());
-			done();
-		};
-		token.fail = token.success;
+		var before = new Date();
+		setTimeout(function() {
+			var token = srv.getDate();
+			token.success = function (msg) {
+				assert.ok(msg > before.getTime());
+				done();
+			};
+			token.fail = token.success;
+		}, 500);
 	});
 	QUnit.test(".getDateAfter()", function (assert) {
 		var done = assert.async();
@@ -351,7 +355,7 @@ ocelotController.addOpenEventListener(function (event) {
 		srv.publish("mytopic", 1);
 	});
 	QUnit.test(".onMessages()", function (assert) {
-		var result = 0, j, expected = 10000, timer, done, mdb, params, i, query;
+		var result = 0, j, expected = nbMsgToBroadcast, timer, done, mdb, params, i, query;
 		query = location.search;
 		params = query.split("&");
 		for (i = 0; i < params.length; i++) {
