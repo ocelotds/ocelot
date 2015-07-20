@@ -13,6 +13,9 @@ addons:
     build_command:   "mvn -DskipTests=true compile"
     branch_pattern: coverity
 
+after_success:
+  - mvn clean cobertura:cobertura coveralls:report
+
 language: java
 install: mvn install -DskipTests=true -Dgpg.skip=true
 jdk: oraclejdk7
