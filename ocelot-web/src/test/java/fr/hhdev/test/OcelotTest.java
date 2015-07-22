@@ -11,6 +11,7 @@ import fr.hhdev.test.dataservices.SingletonCDIDataService;
 import fr.hhdev.test.dataservices.PojoDataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
+import fr.hhdev.ocelot.OcelotServices;
 import fr.hhdev.ocelot.i18n.Locale;
 import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.Command;
@@ -44,6 +45,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -63,6 +65,8 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.FileAsset;
+import org.jboss.shrinkwrap.api.container.ClassContainer;
+import org.jboss.shrinkwrap.api.container.ResourceContainer;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
@@ -89,7 +93,9 @@ import org.slf4j.LoggerFactory;
 @RunWith(Arquillian.class)
 public class OcelotTest {
 
-	final static Logger logger = LoggerFactory.getLogger(OcelotTest.class);
+	private final static Random random = new Random();
+
+	private final static Logger logger = LoggerFactory.getLogger(OcelotTest.class);
 
 	private final static long TIMEOUT = 1000;
 	private final static String PORT = "8282";
@@ -138,35 +144,33 @@ public class OcelotTest {
 //	}
 	public static WebArchive createWarArchive() {
 		File[] libs = Maven.resolver().loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
+		for (File lib : libs) {
+			System.out.println("LIB : "+lib.getAbsolutePath());
+		}
 		File logback = new File("src/test/resources/logback.xml");
 		File localeFr = new File("src/test/resources/test_fr_FR.properties");
 		File localeUs = new File("src/test/resources/test_en_US.properties");
-		File classes = new File("target/test-classes");
-		File[] jsFiles = classes.listFiles(new FileFilter() {
-			@Override
-			public boolean accept(File file) {
-				return file.isFile() && file.getName().endsWith(".js");
-			}
-		});
 		WebArchive webArchive = ShrinkWrap.create(WebArchive.class, ctxpath + ".war")
 				  .addAsLibraries(libs)
 				  .addAsLibraries(createLibArchive())
-				  .addPackages(true, "services")
 				  .addPackages(true, OcelotTest.class.getPackage())
 				  .addAsResource(new FileAsset(logback), "logback.xml")
 				  .addAsResource(new FileAsset(localeUs), "test_en_US.properties")
 				  .addAsResource(new FileAsset(localeFr), "test_fr_FR.properties")
 				  .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
-		for (File file : jsFiles) {
-			webArchive.addAsResource(new FileAsset(file), file.getName());
-		}
+		addJSAndProvider("target/test-classes", webArchive, webArchive);
 		return webArchive;
 	}
 
+	/**
+	 * Build ocelot-web.jar
+	 * @return 
+	 */
 	public static JavaArchive createLibArchive() {
 		File bean = new File("src/main/resources/META-INF/beans.xml");
 		File core = new File("src/main/resources/ocelot-core.js");
-		return ShrinkWrap.create(JavaArchive.class, "ocelot-web.jar")
+		JavaArchive javaArchive = ShrinkWrap.create(JavaArchive.class, String.format("ocelot-web-%s.jar", random.nextInt(10)))
+				  .addClass(OcelotServices.class)
 				  .addPackages(true, "fr.hhdev.ocelot.encoders")
 				  .addPackages(true, "fr.hhdev.ocelot.exceptions")
 				  .addPackages(true, "fr.hhdev.ocelot.resolvers")
@@ -174,7 +178,35 @@ public class OcelotTest {
 				  .addPackages(true, "fr.hhdev.ocelot.core")
 				  .addPackages(true, "fr.hhdev.ocelot.configuration")
 				  .addAsManifestResource(new FileAsset(bean), "beans.xml")
-				  .addAsResource(new FileAsset(core), "ocelot-core.js");
+				  .addAsResource(new FileAsset(core), "ocelot-core2.js");
+		addJSAndProvider("target/classes", javaArchive, javaArchive);
+		return javaArchive;
+	}
+
+	/**
+	 * Add srv_xxxx.js and srv_xxxx.ServiceProvider.class
+	 * @param root
+	 * @param resourceContainer
+	 * @param classContainer 
+	 */
+	private static void addJSAndProvider(final String root, ResourceContainer resourceContainer, ClassContainer classContainer) {
+		File classes = new File(root);
+		File[] jsFiles = classes.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File file) {
+				String name = file.getName();
+				System.out.println("Trouvé dans "+root+" : "+name+" match : "+name.matches("^srv_.*.js$"));
+				return file.isFile() && name.startsWith("srv_") && name.endsWith(".js");
+			}
+		});
+		for (File file : jsFiles) {
+			String jsName = file.getName();
+			System.out.println("Traitement de "+jsName);
+			String providerPackage = jsName.replaceAll(".js$", "");
+			System.out.println("Add "+providerPackage);
+			classContainer.addPackage(providerPackage);
+			resourceContainer.addAsResource(new FileAsset(file), file.getName());
+		}
 	}
 
 	@BeforeClass
@@ -565,7 +597,7 @@ public class OcelotTest {
 			connection2 = getConnectionForResource(resource, false);
 			int length = connection2.getContentLength();
 			traceFile(connection2.getInputStream(), resource, length, false);
-			assertTrue("Minification doesn't work, same size of file magnifier : " + length + " / minifer : " + minlength, minlength < length);
+			assertTrue("Minification of "+resource+" didn't work, same size of file magnifier : " + length + " / minifer : " + minlength, minlength < length);
 		} catch (Exception e) {
 			fail(e.getMessage());
 		} finally {
@@ -942,11 +974,12 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testLocale() {
+		Class clazz = OcelotServices.class;
 		try (Session wssession = createAndGetSession()) {
 			// Par default la locale est US
 			String methodName = "getLocale";
 			System.out.println(methodName);
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, "fr.hhdev.ocelot.OcelotServices", methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals("{\"language\":\"en\",\"country\":\"US\"}", result);
 			Fault fault = messageToClient.getFault();
@@ -955,9 +988,9 @@ public class OcelotTest {
 			// Récup du message en us
 			methodName = "getLocaleHello";
 			System.out.println(methodName);
-			messageToClient = getMessageToClientAfterSendInSession(wssession, EJBDataService.class.getName(), methodName, getJson("Franà§ois"));
+			messageToClient = getMessageToClientAfterSendInSession(wssession, EJBDataService.class.getName(), methodName, getJson("hhfrancois"));
 			result = messageToClient.getResult();
-			assertEquals("\"Hello Franà§ois\"", result);
+			assertEquals("\"Hello hhfrancois\"", result);
 			fault = messageToClient.getFault();
 			assertEquals(null, fault);
 
@@ -967,7 +1000,7 @@ public class OcelotTest {
 			Locale locale = new Locale();
 			locale.setLanguage("fr");
 			locale.setCountry("FR");
-			messageToClient = getMessageToClientAfterSendInSession(wssession, "fr.hhdev.ocelot.OcelotServices", methodName, getJson(locale));
+			messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(locale));
 			result = messageToClient.getResult();
 			assertEquals(null, result);
 			fault = messageToClient.getFault();
@@ -976,7 +1009,7 @@ public class OcelotTest {
 			// Vérification
 			methodName = "getLocale";
 			System.out.println(methodName);
-			messageToClient = getMessageToClientAfterSendInSession(wssession, "fr.hhdev.ocelot.OcelotServices", methodName);
+			messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			result = messageToClient.getResult();
 			assertEquals("{\"language\":\"fr\",\"country\":\"FR\"}", result);
 			fault = messageToClient.getFault();
@@ -985,9 +1018,9 @@ public class OcelotTest {
 			//  Récup du message en francais
 			methodName = "getLocaleHello";
 			System.out.println(methodName);
-			messageToClient = getMessageToClientAfterSendInSession(wssession, EJBDataService.class.getName(), methodName, getJson("Franà§ois"));
+			messageToClient = getMessageToClientAfterSendInSession(wssession, EJBDataService.class.getName(), methodName, getJson("hhfrancois"));
 			result = messageToClient.getResult();
-			assertEquals("\"Bonjour Franà§ois\"", result);
+			assertEquals("\"Bonjour hhfrancois\"", result);
 			fault = messageToClient.getFault();
 			assertEquals(null, fault);
 		} catch (IOException exception) {
@@ -997,7 +1030,7 @@ public class OcelotTest {
 		try (Session wssession = createAndGetSession()) {
 			String methodName = "getLocale";
 			System.out.println(methodName);
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, "fr.hhdev.ocelot.OcelotServices", methodName);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
 			Object result = messageToClient.getResult();
 			assertEquals("{\"language\":\"en\",\"country\":\"US\"}", result);
 			Fault fault = messageToClient.getFault();
