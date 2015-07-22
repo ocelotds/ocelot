@@ -8,6 +8,7 @@ import fr.hhdev.ocelot.annotations.JsCacheRemove;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
 import fr.hhdev.ocelot.annotations.TransientDataService;
 import fr.hhdev.ocelot.core.MethodWithSessionInjection;
+import fr.hhdev.ocelot.core.SessionManager;
 import fr.hhdev.ocelot.core.UpdatedCacheManager;
 import fr.hhdev.ocelot.i18n.Locale;
 import fr.hhdev.ocelot.i18n.ThreadLocalContextHolder;
@@ -29,6 +30,9 @@ public class OcelotServices {
 
 	@Inject
 	private UpdatedCacheManager updatedCacheManager;
+	
+	@Inject
+	private SessionManager sessionManager;
 
 	@MethodWithSessionInjection
 	@JsCacheRemove(cls = OcelotServices.class, methodName = "getLocale")
@@ -37,7 +41,6 @@ public class OcelotServices {
 
 	@TransientDataService
 	public void setLocale(Locale l, Session session) {
-		System.out.println("METHODE DETOURNE PAR LA  DEMANDE D'INJECTION");
 		java.util.Locale locale = new java.util.Locale(l.getLanguage(), l.getCountry());
 		logger.debug("Receive setLocale({}) call from client.", locale);
 		session.getUserProperties().put(Constants.LOCALE, locale);
@@ -52,7 +55,6 @@ public class OcelotServices {
 
 	@TransientDataService
 	public Locale getLocale(Session session) {
-		System.out.println("METHODE DETOURNE PAR LA  DEMANDE D'INJECTION");
 		logger.debug("Receive getLocale call from client.");
 		java.util.Locale locale = (java.util.Locale) session.getUserProperties().get(Constants.LOCALE);
 		Locale l = new Locale();
@@ -66,11 +68,21 @@ public class OcelotServices {
 		return updatedCacheManager.getOutDatedCache(states);
 	}
 	
+	@MethodWithSessionInjection
 	public void subscribe(String topic) {
-		
 	}
 
+	@MethodWithSessionInjection
 	public void unsubscribe(String topic) {
-		
+	}
+
+	@TransientDataService
+	public void subscribe(Session session, String topic) throws IllegalAccessException {
+		sessionManager.registerTopicSession(topic, session);
+	}
+
+	@TransientDataService
+	public void unsubscribe(Session session, String topic) {
+		sessionManager.unregisterTopicSession(topic, session);
 	}
 }
