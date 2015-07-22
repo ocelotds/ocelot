@@ -6,7 +6,7 @@
 package fr.hhdev.test.dataservices;
 
 import fr.hhdev.ocelot.Constants;
-import fr.hhdev.ocelot.OcelotServices;
+import fr.hhdev.ocelot.OcelotI18nServices;
 import fr.hhdev.ocelot.annotations.DataService;
 import fr.hhdev.ocelot.annotations.JsCacheRemove;
 import fr.hhdev.test.Result;
@@ -30,7 +30,7 @@ public class EJBDataService implements GetValue {
 	private double d;
 
 	@Inject
-	private OcelotServices ocelotServices;
+	private OcelotI18nServices ocelotServices;
 
 	@PostConstruct
 	protected void init() {
