@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
@@ -33,6 +34,8 @@ import javax.tools.StandardLocation;
 @SupportedAnnotationTypes(value = {"fr.hhdev.ocelot.annotations.DataService"})
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class OcelotProcessor extends AbstractProcessor {
+
+	private final static Random random = new Random();
 
 	private boolean disabled = false;
 	/**
@@ -100,23 +103,23 @@ public class OcelotProcessor extends AbstractProcessor {
 	 */
 	private String createJSServicesProvider() {
 		// Creation du provider de ocelot-services.js
-		String seed = ("" + Math.random()).replaceAll("\\.", "");
+		String prefix = "srv_" + random.nextInt(100_000_000);
 		try {
-			String servicesName = "ServiceProvider"+seed;
-			FileObject servicesProvider = filer.createSourceFile("services." + servicesName);
+			String servicesName = "ServiceProvider";
+			FileObject servicesProvider = filer.createSourceFile(prefix+"." + servicesName);
 			try (Writer writer = servicesProvider.openWriter()) {
-				writer.append("package services;\n");
+				writer.append("package " + prefix + ";\n");
 				writer.append("import java.io.InputStream;\n");
 				writer.append("import java.io.OutputStream;\n");
 				writer.append("import java.io.IOException;\n");
 				writer.append("import fr.hhdev.ocelot.IServicesProvider;\n");
 				writer.append("import org.slf4j.Logger;\n");
 				writer.append("import org.slf4j.LoggerFactory;\n");
-				writer.append("public class " + servicesName + " implements IServicesProvider {\n");
+				writer.append("public class ServiceProvider implements IServicesProvider {\n");
 				writer.append("	private static final Logger logger = LoggerFactory.getLogger("+servicesName+".class);\n");
 				writer.append("	@Override\n");
 				writer.append("	public void streamJavascriptServices(OutputStream out) {\n");
-				writer.append("		try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(\"srv_"+seed+".js\")) {\n");
+				writer.append("		try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(\""+prefix+".js\")) {\n");
 				writer.append("			if(null!=in){\n");
 				writer.append("				byte[] buffer = new byte[1024];\n");
 				writer.append("				int read;\n");
@@ -125,7 +128,7 @@ public class OcelotProcessor extends AbstractProcessor {
 				writer.append("				}\n");
 				writer.append("			}\n");
 				writer.append("		} catch(IOException ex) {\n");
-				writer.append("			logger.error(\"Generation of 'srv_"+seed+".js' failed.\", ex);\n");
+				writer.append("			logger.error(\"Generation of '"+prefix+".js' failed.\", ex);\n");
 				writer.append("		}\n");
 				writer.append("	}\n");
 				writer.append("}");
@@ -133,6 +136,6 @@ public class OcelotProcessor extends AbstractProcessor {
 		} catch (IOException e) {
 			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
 		}
-		return "srv_"+seed+".js";
+		return prefix+".js";
 	}
 }
