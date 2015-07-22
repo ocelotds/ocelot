@@ -5,12 +5,17 @@
 package fr.hhdev.ocelot.core;
 
 import fr.hhdev.ocelot.security.TopicAccessControl;
+import fr.hhdev.ocelot.security.TopicControl;
+import fr.hhdev.ocelot.security.TopicControlAnnotationLiteral;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
+import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.websocket.Session;
@@ -28,8 +33,12 @@ public class SessionManager {
 	private final static Logger logger = LoggerFactory.getLogger(SessionManager.class);
 	private final Map<String, Collection<Session>> sessionsByTopic = new HashMap<>();
 
+	private static final Annotation DEFAULT_AT = new AnnotationLiteral<Default>() {
+		private static final long serialVersionUID = 1L;
+	};
+
 	@Inject
-	Instance<TopicAccessControl> accessControls;
+	Instance<TopicAccessControl> allAccessControls;
 
 	/**
 	 * Register session for topic
@@ -39,13 +48,18 @@ public class SessionManager {
 	 */
 	public void registerTopicSession(String topic, Session session) {
 		try {
-			TopicAccessControl accessControl = accessControls.get();
-			accessControl.checkAccess(session, topic);
+			TopicControlAnnotationLiteral tcal = new TopicControlAnnotationLiteral(topic);
+			Instance<TopicAccessControl> accessControls = allAccessControls.select(tcal, DEFAULT_AT);
+			if (!accessControls.isUnsatisfied()) {
+				for (TopicAccessControl accessControl : accessControls) {
+					accessControl.checkAccess(session, topic);
+				}
+			} else {
+				logger.warn("No topic access control found in project, add {} implementation with optional Qualifier {} in your project for add topic security.", TopicAccessControl.class, TopicControl.class);
+			}
 		} catch (IllegalAccessException ex) {
-			logger.error("Subscribtion request to " + topic + " for " + session.getUserPrincipal() + " is illegal : '"+ex.getMessage()+"'");
+			logger.error("Subscribtion request to " + topic + " for " + session.getUserPrincipal() + " is illegal : '" + ex.getMessage() + "'");
 			return;
-		} catch (Exception ex) {
-			logger.warn("No topic access control found in project, add {} implementation in your project for add topic security.", TopicAccessControl.class);
 		}
 		Collection<Session> sessions;
 		if (sessionsByTopic.containsKey(topic)) {
