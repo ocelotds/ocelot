@@ -65,15 +65,15 @@ public class CallServiceManager {
 	/**
 	 * Get pertinent method and fill the argument list from message arguments
 	 *
-	 * @param dataService
+	 * @param dsClass
 	 * @param message
 	 * @param arguments
 	 * @return
 	 */
-	protected Method getMethodFromDataService(final Object dataService, final MessageFromClient message, Object[] arguments) throws MethodNotFoundException {
-		logger.debug("Try to find method {} on class {}", message.getOperation(), dataService);
+	protected Method getMethodFromDataService(final Class dsClass, final MessageFromClient message, Object[] arguments) throws MethodNotFoundException {
+		logger.debug("Try to find method {} on class {}", message.getOperation(), dsClass);
 		List<String> parameters = message.getParameters();
-		for (Method method : dataService.getClass().getMethods()) {
+		for (Method method : dsClass.getMethods()) {
 			if (method.getName().equals(message.getOperation()) && method.getParameterTypes().length == parameters.size()) {
 				logger.debug("Process method {}", method.getName());
 				try {
@@ -84,29 +84,29 @@ public class CallServiceManager {
 						logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, param.toString(), arg});
 						arguments[idx++] = convertArgument(arg, param);
 					}
-					logger.debug("Method {}.{} with good signature found.", dataService.getClass(), message.getOperation());
+					logger.debug("Method {}.{} with good signature found.", dsClass, message.getOperation());
 					return method;
 				} catch (IllegalArgumentException iae) {
-					logger.debug("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dataService.getClass(), message.getOperation(), iae.getMessage()});
+					logger.debug("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
 				}
 			}
 		}
-		throw new MethodNotFoundException(dataService.getClass() + "." + message.getOperation());
+		throw new MethodNotFoundException(dsClass + "." + message.getOperation());
 	}
 
 	/**
 	 * Get pertinent method and fill the argument list from message arguments This method inject an additional argument, the client session
 	 *
 	 * @param session
-	 * @param dataService
+	 * @param dsClass
 	 * @param message
 	 * @param arguments
 	 * @return
 	 */
-	protected Method getMethodFromDataServiceWithSessionInjection(final Session session, final Object dataService, final MessageFromClient message, Object[] arguments) throws MethodNotFoundException {
-		logger.debug("Try to find method {} on class {}", message.getOperation(), dataService);
+	protected Method getMethodFromDataServiceWithSessionInjection(final Session session, final Class dsClass, final MessageFromClient message, Object[] arguments) throws MethodNotFoundException {
+		logger.debug("Try to find method with session {} on class {}", message.getOperation(), dsClass);
 		List<String> parameters = message.getParameters();
-		for (Method method : dataService.getClass().getMethods()) {
+		for (Method method : dsClass.getMethods()) {
 			int nbParamater = parameters.size() + 1;
 			if (method.getName().equals(message.getOperation()) && method.getParameterTypes().length == nbParamater) {
 				logger.debug("Process method {}", method.getName());
@@ -114,22 +114,25 @@ public class CallServiceManager {
 					Type[] params = method.getGenericParameterTypes();
 					int idx = 0;
 					for (Type param : params) {
-						if (idx < parameters.size()) {
-							String jsonArg = parameters.get(idx);
-							String arg = cleaner.cleanArg(jsonArg);
-							logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, param.toString(), arg});
-							arguments[idx++] = convertArgument(arg, param);
+						if (idx < nbParamater) {
+							if(Session.class.equals(param)) {
+								arguments[idx++] = session;
+							} else {
+								String jsonArg = parameters.get(idx);
+								String arg = cleaner.cleanArg(jsonArg);
+								logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, param.toString(), arg});
+								arguments[idx++] = convertArgument(arg, param);
+							}
 						}
 					}
-					arguments[idx] = session;
-					logger.debug("Method {}.{} with good signature found.", dataService.getClass(), message.getOperation());
+					logger.debug("Method {}.{} with good signature found.", dsClass, message.getOperation());
 					return method;
 				} catch (IllegalArgumentException iae) {
-					logger.debug("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dataService.getClass(), message.getOperation(), iae.getMessage()});
+					logger.debug("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
 				}
 			}
 		}
-		throw new MethodNotFoundException(dataService.getClass() + "." + message.getOperation());
+		throw new MethodNotFoundException(dsClass + "." + message.getOperation());
 	}
 
 	private Object convertArgument(String arg, Type param) throws IllegalArgumentException {
@@ -240,12 +243,12 @@ public class CallServiceManager {
 			logger.debug("Invocation of : {}", message.getOperation());
 			int nbParam = message.getParameters().size();
 			Object[] arguments = new Object[nbParam];
-			Method method = getMethodFromDataService(dataService, message, arguments);
+			Method method = getMethodFromDataService(cls, message, arguments);
 			if (!method.isAnnotationPresent(MethodWithSessionInjection.class)) {
 				messageToClient.setResult(method.invoke(dataService, arguments));
 			} else {
 				arguments = new Object[nbParam + 1];
-				Method methodWithInjection = getMethodFromDataServiceWithSessionInjection(client, dataService, message, arguments);
+				Method methodWithInjection = getMethodFromDataServiceWithSessionInjection(client, cls, message, arguments);
 				messageToClient.setResult(methodWithInjection.invoke(dataService, arguments));
 			}
 			try {
