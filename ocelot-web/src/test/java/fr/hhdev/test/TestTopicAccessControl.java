@@ -32,7 +32,7 @@ public class TestTopicAccessControl implements TopicAccessControl {
 	public void checkAccess(Session session, String topic) throws IllegalAccessException {
 		logger.debug("Check access to topic {} : access = {}", topic, access);
 		if(!access) {
-			throw new IllegalAccessException("access is setto false");
+			throw new IllegalAccessException("access is set to false");
 		}
 	}
 	
