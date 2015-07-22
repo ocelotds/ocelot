@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.configuration.OcelotRequestConfigurator;
 import fr.hhdev.ocelot.core.CallServiceManager;
-import fr.hhdev.ocelot.core.OcelotServicesManager;
 import fr.hhdev.ocelot.encoders.CommandDecoder;
 import fr.hhdev.ocelot.encoders.MessageToClientEncoder;
 import fr.hhdev.ocelot.i18n.ThreadLocalContextHolder;
@@ -45,9 +44,6 @@ public class OcelotEndpoint extends CdiBootstrap {
 
 	@Inject
 	private SessionManager sessionManager;
-
-	@Inject
-	private OcelotServicesManager ocelotServicesManager;
 
 	@Inject
 	private CallServiceManager callServiceManager;
@@ -133,10 +129,6 @@ public class OcelotEndpoint extends CdiBootstrap {
 						break;
 					case Constants.Command.Value.CALL:
 						MessageFromClient message = MessageFromClient.createFromJson(command.getMessage());
-						if ("fr.hhdev.ocelot.OcelotServices".equals(message.getDataService())) {
-							getOcelotServicesManager().processOcelotServices(client, message);
-							break;
-						}
 						logger.debug("Receive call message '{}' for session '{}'", message.getId(), client.getId());
 						getCallServiceManager().sendMessageToClients(client, message);
 						break;
@@ -155,13 +147,6 @@ public class OcelotEndpoint extends CdiBootstrap {
 			sessionManager = getBean(SessionManager.class);
 		}
 		return sessionManager;
-	}
-
-	public OcelotServicesManager getOcelotServicesManager() {
-		if (null == ocelotServicesManager) {
-			ocelotServicesManager = getBean(OcelotServicesManager.class);
-		}
-		return ocelotServicesManager;
 	}
 
 	public CallServiceManager getCallServiceManager() {
