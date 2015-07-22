@@ -47,7 +47,7 @@ public class CallServiceManager {
 
 	@Inject
 	private Cleaner cleaner;
-	
+
 	@Inject
 	@Any
 	private Instance<IDataServiceResolver> resolvers;
@@ -63,7 +63,7 @@ public class CallServiceManager {
 	}
 
 	/**
-	 * Get pertinint method and fill the argument list from message arguments
+	 * Get pertinent method and fill the argument list from message arguments
 	 *
 	 * @param dataService
 	 * @param message
@@ -84,6 +84,44 @@ public class CallServiceManager {
 						logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, param.toString(), arg});
 						arguments[idx++] = convertArgument(arg, param);
 					}
+					logger.debug("Method {}.{} with good signature found.", dataService.getClass(), message.getOperation());
+					return method;
+				} catch (IllegalArgumentException iae) {
+					logger.debug("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dataService.getClass(), message.getOperation(), iae.getMessage()});
+				}
+			}
+		}
+		throw new MethodNotFoundException(dataService.getClass() + "." + message.getOperation());
+	}
+
+	/**
+	 * Get pertinent method and fill the argument list from message arguments This method inject an additional argument, the client session
+	 *
+	 * @param session
+	 * @param dataService
+	 * @param message
+	 * @param arguments
+	 * @return
+	 */
+	protected Method getMethodFromDataServiceWithSessionInjection(final Session session, final Object dataService, final MessageFromClient message, Object[] arguments) throws MethodNotFoundException {
+		logger.debug("Try to find method {} on class {}", message.getOperation(), dataService);
+		List<String> parameters = message.getParameters();
+		for (Method method : dataService.getClass().getMethods()) {
+			int nbParamater = parameters.size() + 1;
+			if (method.getName().equals(message.getOperation()) && method.getParameterTypes().length == nbParamater) {
+				logger.debug("Process method {}", method.getName());
+				try {
+					Type[] params = method.getGenericParameterTypes();
+					int idx = 0;
+					for (Type param : params) {
+						if (idx < parameters.size()) {
+							String jsonArg = parameters.get(idx);
+							String arg = cleaner.cleanArg(jsonArg);
+							logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, param.toString(), arg});
+							arguments[idx++] = convertArgument(arg, param);
+						}
+					}
+					arguments[idx] = session;
 					logger.debug("Method {}.{} with good signature found.", dataService.getClass(), message.getOperation());
 					return method;
 				} catch (IllegalArgumentException iae) {
@@ -200,10 +238,16 @@ public class CallServiceManager {
 			Object dataService = getDataService(client, cls);
 			logger.debug("Process message {}", message);
 			logger.debug("Invocation of : {}", message.getOperation());
-			Object[] arguments = new Object[message.getParameters().size()];
+			int nbParam = message.getParameters().size();
+			Object[] arguments = new Object[nbParam];
 			Method method = getMethodFromDataService(dataService, message, arguments);
-			Object result = method.invoke(dataService, arguments);
-			messageToClient.setResult(result);
+			if (!method.isAnnotationPresent(MethodWithSessionInjection.class)) {
+				messageToClient.setResult(method.invoke(dataService, arguments));
+			} else {
+				arguments = new Object[nbParam + 1];
+				Method methodWithInjection = getMethodFromDataServiceWithSessionInjection(client, dataService, message, arguments);
+				messageToClient.setResult(methodWithInjection.invoke(dataService, arguments));
+			}
 			try {
 				Method nonProxiedMethod = getNonProxiedMethod(cls, method.getName(), method.getParameterTypes());
 				if (cacheManager.isJsCached(nonProxiedMethod)) {
@@ -246,5 +290,9 @@ public class CallServiceManager {
 		} catch (SecurityException ex) {
 		}
 		throw new NoSuchMethodException(methodName);
+	}
+
+	private static class MethodWithSessionInjectionExeption extends Exception {
+		private static final long serialVersionUID = 5103504405002719013L;
 	}
 }
