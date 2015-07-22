@@ -120,7 +120,10 @@ public class OcelotEndpoint extends CdiBootstrap {
 					case Constants.Command.Value.SUBSCRIBE:
 						topic = mapper.readValue(command.getMessage(), String.class);
 						logger.debug("Subscribe client '{}' to topic '{}'", client.getId(), topic);
-						getSessionManager().registerTopicSession(topic, client);
+						try {
+							getSessionManager().registerTopicSession(topic, client);
+						} catch (IllegalAccessException ex) {
+						}
 						break;
 					case Constants.Command.Value.UNSUBSCRIBE:
 						topic = mapper.readValue(command.getMessage(), String.class);
