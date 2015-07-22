@@ -144,9 +144,6 @@ public class OcelotTest {
 //	}
 	public static WebArchive createWarArchive() {
 		File[] libs = Maven.resolver().loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
-		for (File lib : libs) {
-			System.out.println("LIB : "+lib.getAbsolutePath());
-		}
 		File logback = new File("src/test/resources/logback.xml");
 		File localeFr = new File("src/test/resources/test_fr_FR.properties");
 		File localeUs = new File("src/test/resources/test_en_US.properties");
@@ -195,15 +192,12 @@ public class OcelotTest {
 			@Override
 			public boolean accept(File file) {
 				String name = file.getName();
-				System.out.println("Trouvé dans "+root+" : "+name+" match : "+name.matches("^srv_.*.js$"));
 				return file.isFile() && name.startsWith("srv_") && name.endsWith(".js");
 			}
 		});
 		for (File file : jsFiles) {
 			String jsName = file.getName();
-			System.out.println("Traitement de "+jsName);
 			String providerPackage = jsName.replaceAll(".js$", "");
-			System.out.println("Add "+providerPackage);
 			classContainer.addPackage(providerPackage);
 			resourceContainer.addAsResource(new FileAsset(file), file.getName());
 		}
