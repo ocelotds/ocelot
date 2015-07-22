@@ -45,21 +45,17 @@ public class SessionManager {
 	 *
 	 * @param topic
 	 * @param session
+	 * @throws IllegalAccessException
 	 */
-	public void registerTopicSession(String topic, Session session) {
-		try {
-			TopicControlAnnotationLiteral tcal = new TopicControlAnnotationLiteral(topic);
-			Instance<TopicAccessControl> accessControls = allAccessControls.select(tcal, DEFAULT_AT);
-			if (!accessControls.isUnsatisfied()) {
-				for (TopicAccessControl accessControl : accessControls) {
-					accessControl.checkAccess(session, topic);
-				}
-			} else {
-				logger.warn("No topic access control found in project, add {} implementation with optional Qualifier {} in your project for add topic security.", TopicAccessControl.class, TopicControl.class);
+	public void registerTopicSession(String topic, Session session) throws IllegalAccessException {
+		TopicControlAnnotationLiteral tcal = new TopicControlAnnotationLiteral(topic);
+		Instance<TopicAccessControl> accessControls = allAccessControls.select(tcal, DEFAULT_AT);
+		if (accessControls.isUnsatisfied()) {
+			logger.info("No topic access control found in project, add {} implementation with optional Qualifier {} in your project for add topic security.", TopicAccessControl.class, TopicControl.class);
+		} else {
+			for (TopicAccessControl accessControl : accessControls) {
+				accessControl.checkAccess(session, topic);
 			}
-		} catch (IllegalAccessException ex) {
-			logger.error("Subscribtion request to " + topic + " for " + session.getUserPrincipal() + " is illegal : '" + ex.getMessage() + "'");
-			return;
 		}
 		Collection<Session> sessions;
 		if (sessionsByTopic.containsKey(topic)) {
