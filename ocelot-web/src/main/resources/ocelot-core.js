@@ -186,7 +186,7 @@ ocelotController.onopen = function (evt) {
 		ocelotServices.setLocale(locale);
 	};
 	// send states or current objects in cache with lastupdate
-	token = ocelotServices.sendLastUpdateCacheStates(OcelotCacheManager.lastUpdateManager.getLastUpdateCache());
+	token = ocelotServices.getOutDatedCache(OcelotCacheManager.lastUpdateManager.getLastUpdateCache());
 	token.success = function (list) {
 		OcelotCacheManager.removeEntries(list);
 	};
@@ -500,53 +500,6 @@ OcelotTokenFactory = function () {
 		}
 	};
 }();
-/**
- * Classe of ocelot services
- * @author hhfrancois
- */
-function OcelotServices() {
-	this.ds = "fr.hhdev.ocelot.OcelotServices";
-}
-OcelotServices.prototype = {
-	/**
-	 * @param {locale} locale
-	 */
-	setLocale: function (locale) {
-		var id0, id1, id, cleanid, nextYear, msgToClient;
-		id0 = (this.ds + ".setLocale").md5();
-		id1 = JSON.stringify([locale]).md5();
-		id = id0 + "_" + id1;
-		id0 = (this.ds + ".getLocale").md5();
-		id1 = JSON.stringify([]).md5();
-		cleanid = "\"" + id0 + "_" + id1 + "\"";
-		nextYear = new Date();
-		nextYear.setFullYear(nextYear.getFullYear() + 1);
-		msgToClient = {"id": cleanid, "deadline": nextYear.getTime(), "result": locale};
-		OcelotCacheManager.putResultInCache(msgToClient);
-		return OcelotTokenFactory.createCallToken(this.ds, id, "setLocale", ["locale"], [locale]);
-	},
-	/**
-	 * @return locale
-	 */
-	getLocale: function () {
-		var id0, id1, id;
-		id0 = (this.ds + ".getLocale").md5();
-		id1 = JSON.stringify([]).md5();
-		id = id0 + "_" + id1;
-		return OcelotTokenFactory.createCallToken(this.ds, id, "getLocale", [], []);
-	},
-	/**
-	 * Send lastupate time of cache in store
-	 * @param {Object} states
-	 */
-	sendLastUpdateCacheStates: function (states) {
-		var id0, id1, id;
-		id0 = (this.ds + ".sendLastUpdateCacheStates").md5();
-		id1 = JSON.stringify([states]).md5();
-		id = id0 + "_" + id1;
-		return OcelotTokenFactory.createCallToken(this.ds, id, "sendLastUpdateCacheStates", ["states"], [states]);
-	}
-};
 /*
  * Take a string and return the hex representation of its MD5.
  * 10637920c62fe58f57cbdb1afaa7ad3e
