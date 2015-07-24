@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package fr.hhdev.ocelot.test;
+package fr.hhdev.ocelot.drawing;
 
 import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.annotations.DataService;

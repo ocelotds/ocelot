@@ -1,5 +1,6 @@
 package demo;
 
+import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.annotations.DataService;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
 import javax.ejb.Stateless;
@@ -9,7 +10,7 @@ import javax.ejb.Stateless;
  * @author hhfrancois
  */
 @Stateless
-@DataService(resolver = "ejb")
+@DataService(resolver = Constants.Resolver.EJB)
 public class TestEJBService2 {
 
 	public String getMessage(int i) {

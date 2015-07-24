@@ -1,0 +1,26 @@
+<!doctype html>
+<html ng-app="todoApp">
+	<head>
+		<title>Demo knockout</title>
+		<meta charset="UTF-8">
+		<script src="http://knockoutjs.com/downloads/knockout-3.3.0.js"></script>
+		<script src="ocelot-services.js" type="text/javascript"></script>
+		<script src="ocelot-core.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<h2>Live example</h2>
+		<img src="http://knockoutjs.com/img/ko-logo.png"/>
+		<div id="liveExample">
+			<p>
+				Choose a ticket class:
+				<select data-bind="options: tickets, optionsCaption: 'Choose...', optionsText: 'name', value: chosenTicket"></select>
+				<button data-bind="enable: chosenTicket, click: resetTicket">Clear</button>
+			</p>                   
+			<p data-bind="with: chosenTicket">
+				You have chosen <b data-bind="text: name"></b>
+				($<span data-bind="text: price"></span>)    
+			</p>
+		</div>
+		<script src="assets/knockout.js"></script>
+	</body>
+</html>

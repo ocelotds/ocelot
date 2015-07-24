@@ -12,6 +12,7 @@
 	<properties>
 		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<owb.version>1.6.0</owb.version>
 	</properties>
     
 	<dependencies>
@@ -27,6 +28,7 @@
 			<scope>provided</scope>
 		</dependency>
 		<!-- FOR TOMCAT -->
+		<!-- COMMON -->
 <!--		<dependency>
 			<groupId>javax.json</groupId>
 			<artifactId>javax.json-api</artifactId>
@@ -36,12 +38,63 @@
 			<groupId>org.glassfish</groupId>
 			<artifactId>javax.json</artifactId>
 			<version>1.0.4</version>
-		</dependency>	
-		<dependency>
+		</dependency>	-->
+		<!-- END COMMON -->
+		<!-- WELD -->
+<!--		<dependency>
 			<groupId>org.jboss.weld.servlet</groupId>
 			<artifactId>weld-servlet-core</artifactId>
-			<version>3.0.0.Alpha11</version>
+			<version>2.2.14.Final</version>
 		</dependency>	-->
+		<!-- END WELD -->
+		<!-- OPENWEBBEAN -->
+<!--		<dependency>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-tomcat7</artifactId>
+			<version>${owb.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-web</artifactId>
+			<version>${owb.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-spi</artifactId>
+			<version>${owb.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.openwebbeans</groupId>
+			<artifactId>openwebbeans-impl</artifactId>
+			<version>${owb.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-atinject_1.0_spec</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-jcdi_1.1_spec</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-interceptor_1.2_spec</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-annotation_1.2_spec</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>-->
+		<!-- END OPENWEBBEAN -->
 		<!-- END FOR TOMCAT -->
 	</dependencies>
 

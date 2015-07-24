@@ -1,5 +1,5 @@
 'use strict';
-ocelotController.addOpenEventListener(function () {
+ocelotController.addOpenListener(function () {
 	var canvas, context, pencil, 
 	drawing = false,
 	drawingServices = new DrawingServices();

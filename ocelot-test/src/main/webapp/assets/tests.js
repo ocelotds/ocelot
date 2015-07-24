@@ -1,8 +1,8 @@
 'use strict';
 var nbMsgToBroadcast = 500;
 document.getElementById("nbMsgToBroadcast").innerHTML = nbMsgToBroadcast;
-OcelotCacheManager.clearCache();
-ocelotController.addOpenEventListener(function (event) {
+ocelotController.cacheManager.clearCache();
+ocelotController.addOpenListener(function () {
 	var srv = new TestServices();
 	var ocelotsrv = new OcelotServices();
 	QUnit.module("TestServices");
@@ -295,7 +295,7 @@ ocelotController.addOpenEventListener(function (event) {
 		});
 	});
 	QUnit.test(".methodRemoveCache()", function (assert) {
-		OcelotCacheManager.clearCache();
+		ocelotController.cacheManager.clearCache();
 		var expected, done = assert.async();
 		srv.methodCached().event(function (evt) {
 			expected = evt.result.length;
@@ -313,7 +313,7 @@ ocelotController.addOpenEventListener(function (event) {
 		});
 	});
 	QUnit.test(".methodRemoveAllCache()", function (assert) {
-		OcelotCacheManager.clearCache();
+		ocelotController.cacheManager.clearCache();
 		var expected, done = assert.async();
 		srv.methodCached().event(function (evt) {
 			expected = evt.result.length;
