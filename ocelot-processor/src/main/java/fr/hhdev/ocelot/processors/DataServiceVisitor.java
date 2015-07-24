@@ -259,7 +259,6 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 							keys.append(",");
 						}
 					}
-//					keys.append(String.join(",", jcr.keys()));
 				}
 				while (arguments.hasNext()) {
 					String arg = arguments.next();
@@ -279,7 +278,8 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 			}
 			String md5 = "\"" + getMd5(classname + "." + methodName);
 			writer.append("\t\tvar id = " + md5 + "_\" + JSON.stringify([").append(keys.toString()).append("]).md5();\n");
-			writer.append("\t\treturn OcelotTokenFactory.createCallToken(this.ds, id, op, [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");\n");
+			writer.append("\t\treturn OcelotPromiseFactory.createPromise(this.ds, id, op, [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");\n");
+//			writer.append("\t\treturn OcelotTokenFactory.createCallToken(this.ds, id, op, [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");\n");
 		} catch (IOException ex) {
 		}
 	}

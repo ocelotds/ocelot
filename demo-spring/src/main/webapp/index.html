@@ -16,14 +16,12 @@
 				pre.innerHTML = "msg";
 				output.appendChild(pre);
 
-				var token = srv.getMessage();
-				token.onResult = function (msg) {
+				srv.getMessage().then(function (msg) {
 					alert("J'ai recu un resultat correct");
 					addMessage(msg);
-				};
-				token.onFault = function (fault) {
+				}).catch(function (fault) {
 					alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
-				};
+				});
 			}
 			function addMessage(msg) {
 				var output = document.getElementById("output");

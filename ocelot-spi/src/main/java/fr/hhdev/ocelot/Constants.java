@@ -45,6 +45,7 @@ public interface Constants {
 	interface Message {
 
 		String ID = "id";
+		String TYPE = "type";
 		String DATASERVICE = "ds";
 		String OPERATION = "op";
 		String ARGUMENTS = "args";

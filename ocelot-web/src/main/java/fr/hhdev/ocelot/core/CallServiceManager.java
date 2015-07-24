@@ -112,13 +112,13 @@ public class CallServiceManager {
 				logger.debug("Process method {}", method.getName());
 				try {
 					Type[] params = method.getGenericParameterTypes();
-					int idx = 0;
+					int idx = 0, pidx = 0;
 					for (Type param : params) {
 						if (idx < nbParamater) {
 							if(Session.class.equals(param)) {
 								arguments[idx++] = session;
 							} else {
-								String jsonArg = parameters.get(idx);
+								String jsonArg = parameters.get(pidx++);
 								String arg = cleaner.cleanArg(jsonArg);
 								logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, param.toString(), arg});
 								arguments[idx++] = convertArgument(arg, param);

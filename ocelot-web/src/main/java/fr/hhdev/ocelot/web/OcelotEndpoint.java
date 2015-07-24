@@ -5,17 +5,14 @@
 package fr.hhdev.ocelot.web;
 
 import fr.hhdev.ocelot.core.SessionManager;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.configuration.OcelotRequestConfigurator;
 import fr.hhdev.ocelot.core.CallServiceManager;
-import fr.hhdev.ocelot.encoders.CommandDecoder;
 import fr.hhdev.ocelot.encoders.MessageToClientEncoder;
 import fr.hhdev.ocelot.i18n.ThreadLocalContextHolder;
-import fr.hhdev.ocelot.messaging.Command;
-import fr.hhdev.ocelot.messaging.MessageFromClient;
 import java.io.IOException;
 import java.util.List;
+import fr.hhdev.ocelot.messaging.MessageFromClient;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,7 +34,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author hhfrancois
  */
-@ServerEndpoint(value = "/ocelot-endpoint", encoders = {MessageToClientEncoder.class}, decoders = {CommandDecoder.class}, configurator = OcelotRequestConfigurator.class)
+@ServerEndpoint(value = "/ocelot-endpoint", encoders = {MessageToClientEncoder.class}, configurator = OcelotRequestConfigurator.class)
 public class OcelotEndpoint extends CdiBootstrap {
 
 	private final static Logger logger = LoggerFactory.getLogger(OcelotEndpoint.class);
@@ -103,46 +100,18 @@ public class OcelotEndpoint extends CdiBootstrap {
 	 * A message is a call service request or subscribe/unsubscribe topic
 	 *
 	 * @param client
-	 * @param command
+	 * @param json
 	 */
 	@OnMessage
-	public void receiveCommandMessage(Session client, Command command) {
+	public void receiveCommandMessage(Session client, String json) {
 		Locale locale = (Locale) client.getUserProperties().get(Constants.LOCALE);
 		if (null != locale) {
 			logger.debug("Locale is set in session : {}", locale);
 			ThreadLocalContextHolder.put(Constants.LOCALE, locale);
 		}
-		if (null != command.getCommand()) {
-			try {
-				ObjectMapper mapper = new ObjectMapper();
-				String topic;
-				switch (command.getCommand()) {
-					case Constants.Command.Value.SUBSCRIBE:
-						topic = mapper.readValue(command.getMessage(), String.class);
-						logger.debug("Subscribe client '{}' to topic '{}'", client.getId(), topic);
-						try {
-							getSessionManager().registerTopicSession(topic, client);
-						} catch (IllegalAccessException ex) {
-						}
-						break;
-					case Constants.Command.Value.UNSUBSCRIBE:
-						topic = mapper.readValue(command.getMessage(), String.class);
-						logger.debug("Unsubscribe client '{}' to topic '{}'", client.getId(), topic);
-						getSessionManager().unregisterTopicSession(topic, client);
-						break;
-					case Constants.Command.Value.CALL:
-						MessageFromClient message = MessageFromClient.createFromJson(command.getMessage());
-						logger.debug("Receive call message '{}' for session '{}'", message.getId(), client.getId());
-						getCallServiceManager().sendMessageToClients(client, message);
-						break;
-					default:
-						break;
-				}
-			} catch (IOException ex) {
-			}
-		} else {
-			logger.warn("Receive unsupported message '{}' from client '{}'", command, client.getId());
-		}
+		MessageFromClient message = MessageFromClient.createFromJson(json);
+		logger.debug("Receive call message '{}' for session '{}'", message.getId(), client.getId());
+		getCallServiceManager().sendMessageToClients(client, message);
 	}
 
 	public SessionManager getSessionManager() {

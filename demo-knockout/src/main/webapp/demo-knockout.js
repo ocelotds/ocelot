@@ -10,14 +10,12 @@ function TicketsViewModel() {
 		alert(fault.message + "\n" + fault.classname + "\n" + fault.stacktrace.join('\n'));
 	};
 	model.loadTickets = function () {
-		var token = ticketServices.getTickets();
-		token.success = function (tickets) {
+		ticketServices.getTickets().then(function (tickets) {
 			model.tickets.remove(function(item) { return true;});
 			for (var key in tickets){
 				model.tickets.push(tickets[key]);
 			}
-		};
-		token.fail = onFault;
+		});
 	};
 	model.loadTickets();
 }

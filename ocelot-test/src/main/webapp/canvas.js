@@ -1,6 +1,6 @@
+'use strict';
 ocelotController.addOpenEventListener(function () {
 	var canvas, context, pencil, 
-	mdb = new TopicConsumer("eventCanvas"), 
 	drawing = false,
 	drawingServices = new DrawingServices();
 	// The drawing pencil.
@@ -48,10 +48,9 @@ ocelotController.addOpenEventListener(function () {
 		}
 	}, false);
 	// Subscribe MDB
-	mdb.onMessage = function (evt) {
+	new OcelotServices().subscribe("eventCanvas").message(function (evt) {
 		pencil[evt.type](evt);
-	};
-	mdb.subscribe();
+	});
 });
 
 

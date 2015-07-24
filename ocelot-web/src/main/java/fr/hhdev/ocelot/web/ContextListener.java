@@ -215,6 +215,7 @@ public final class ContextListener implements ServletContextListener {
 	 */
 	private void createLicenceComment(OutputStream out) {
 		try {
+			out.write("'use strict';\n".getBytes(Constants.UTF_8));
 			out.write("/* This Source Code Form is subject to the terms of the Mozilla Public\n".getBytes(Constants.UTF_8));
 			out.write(" * License, v. 2.0. If a copy of the MPL was not distributed with this\n".getBytes(Constants.UTF_8));
 			out.write(" * file, You can obtain one at http://mozilla.org/MPL/2.0/.\n".getBytes(Constants.UTF_8));

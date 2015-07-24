@@ -1,117 +1,99 @@
+'use strict';
 var nbMsgToBroadcast = 500;
 document.getElementById("nbMsgToBroadcast").innerHTML = nbMsgToBroadcast;
 OcelotCacheManager.clearCache();
 ocelotController.addOpenEventListener(function (event) {
 	var srv = new TestServices();
+	var ocelotsrv = new OcelotServices();
 	QUnit.module("TestServices");
 	QUnit.test(".getVoid()", function (assert) {
 		var done = assert.async();
-		var token = srv.getVoid();
-		token.success = function (msg) {
-			assert.equal(msg, undefined);
+		srv.getVoid().event(function (evt) {
+			assert.equal(evt.type, "RESULT");
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".getString()", function (assert) {
 		var done = assert.async();
-		var token = srv.getString();
-		token.success = function (msg) {
-			assert.equal(msg, "FOO");
+		srv.getString().event(function (evt) {
+			assert.equal(evt.result, "FOO");
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".getNum()", function (assert) {
 		var done = assert.async();
-		var token = srv.getNum();
-		token.success = function (msg) {
-			assert.equal(msg, 1);
+		srv.getNum().event(function (evt) {
+			assert.equal(evt.result, 1);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".getNumber()", function (assert) {
 		var done = assert.async();
-		var token = srv.getNumber();
-		token.success = function (msg) {
-			assert.equal(msg, 2);
+		srv.getNumber().event(function (evt) {
+			assert.equal(evt.result, 2);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".getBool()", function (assert) {
 		var done = assert.async();
-		var token = srv.getBool();
-		token.success = function (msg) {
-			assert.equal(msg, true);
+		srv.getBool().event(function (evt) {
+			assert.equal(evt.result, true);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".getBoolean()", function (assert) {
 		var done = assert.async();
-		var token = srv.getBoolean();
-		token.success = function (msg) {
-			assert.equal(msg, false);
+		srv.getBoolean().event(function (evt) {
+			assert.equal(evt.result, false);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".getDateBefore()", function (assert) {
 		var done = assert.async();
 		var before = new Date();
 		setTimeout(function() {
-			var token = srv.getDate();
-			token.success = function (msg) {
-				assert.ok(msg > before.getTime());
+			srv.getDate().event(function (evt) {
+				assert.ok(evt.result > before.getTime());
 				done();
-			};
-			token.fail = token.success;
-		}, 500);
+			});
+		}, 50);
 	});
 	QUnit.test(".getDateAfter()", function (assert) {
 		var done = assert.async();
-		var token = srv.getDate();
-		token.success = function (msg) {
-			var after = new Date();
-			assert.ok(msg < after.getTime());
-			done();
-		};
-		token.fail = token.success;
+		srv.getDate().event(function (evt) {
+			setTimeout(function() {
+				var after = new Date();
+				assert.ok(evt.result < after.getTime(), "receive "+evt.result+" - expected lesser than "+after.getTime());
+				done();
+			}, 50);
+		});
 	});
 	QUnit.test(".getResult()", function (assert) {
 		var done = assert.async();
-		var token = srv.getResult();
-		token.success = function (msg) {
-			assert.deepEqual(msg, {"integer": 5});
+		srv.getResult().event(function (evt) {
+			assert.deepEqual(evt.result, {"integer": 5});
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".getCollectionInteger()", function (assert) {
 		var i, expected = [], done = assert.async();
 		for (i = 1; i < 5; i++) {
 			expected.push(i);
 		}
-		var token = srv.getCollectionInteger();
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.getCollectionInteger().event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".getCollectionResult()", function (assert) {
 		var i, expected = [], done = assert.async();
 		for (i = 0; i < 4; i++) {
 			expected.push({"integer": 5});
 		}
-		var token = srv.getCollectionResult();
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.getCollectionResult().event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".getCollectionOfCollectionResult()", function (assert) {
 		var i, j, expected = [], done = assert.async();
@@ -122,128 +104,104 @@ ocelotController.addOpenEventListener(function (event) {
 				result.push({"integer": 5});
 			}
 		}
-		var token = srv.getCollectionOfCollectionResult();
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.getCollectionOfCollectionResult().event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".getMapResult()", function (assert) {
 		var i, expected = {}, done = assert.async();
 		for (i = 1; i < 5; i++) {
 			expected["" + i] = {"integer": 5};
 		}
-		var token = srv.getMapResult();
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.getMapResult().event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithNum(i)", function (assert) {
 		var expected, done = assert.async();
 		expected = "methodWithNum_1";
-		var token = srv.methodWithNum(1);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithNum(1).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithNumber(i)", function (assert) {
 		var expected, done = assert.async();
 		expected = "methodWithNumber_1";
-		var token = srv.methodWithNumber(1);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithNumber(1).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithBool(true)", function (assert) {
 		var expected, done = assert.async();
 		expected = "methodWithBool_true";
-		var token = srv.methodWithBool(true);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithBool(true).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithBool(false)", function (assert) {
 		var expected, done = assert.async();
 		expected = "methodWithBool_false";
-		var token = srv.methodWithBool(false);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithBool(false).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithBoolean(false)", function (assert) {
 		var expected, done = assert.async();
 		expected = "methodWithBoolean_false";
-		var token = srv.methodWithBoolean(false);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithBoolean(false).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithBoolean(true)", function (assert) {
 		var expected, done = assert.async();
 		expected = "methodWithBoolean_true";
-		var token = srv.methodWithBoolean(true);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithBoolean(true).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithDate(d)", function (assert) {
 		var expected, d, done = assert.async();
 		d = new Date();
 		expected = "methodWithDate_" + d.getTime();
-		var token = srv.methodWithDate(d.getTime());
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithDate(d.getTime()).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithResult(r)", function (assert) {
 		var expected, r, done = assert.async();
 		r = {"integer": 5};
 		expected = "methodWithResult_" + r.integer;
-		var token = srv.methodWithResult(r);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithResult(r).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithArrayInteger(a)", function (assert) {
 		var expected, r, done = assert.async();
 		r = [1, 2, 3, 4, 5];
 		expected = "methodWithArrayInteger_" + r.length;
-		var token = srv.methodWithArrayInteger(r);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithArrayInteger(r).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithCollectionInteger(c)", function (assert) {
 		var expected, r, done = assert.async();
 		r = [1, 2, 3, 4, 5];
 		expected = "methodWithCollectionInteger_" + r.length;
-		var token = srv.methodWithCollectionInteger(r);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithCollectionInteger(r).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithArrayResult(c)", function (assert) {
 		var i, expected, r = [], done = assert.async();
@@ -251,12 +209,10 @@ ocelotController.addOpenEventListener(function (event) {
 			r.push({"integer": 5});
 		}
 		expected = "methodWithArrayResult_" + r.length;
-		var token = srv.methodWithArrayResult(r);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithArrayResult(r).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithCollectionResult(c)", function (assert) {
 		var i, expected, r = [], done = assert.async();
@@ -264,12 +220,10 @@ ocelotController.addOpenEventListener(function (event) {
 			r.push({"integer": 5});
 		}
 		expected = "methodWithCollectionResult_" + r.length;
-		var token = srv.methodWithCollectionResult(r);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithCollectionResult(r).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithMapResult(m)", function (assert) {
 		var i, expected, r = {}, done = assert.async();
@@ -277,15 +231,13 @@ ocelotController.addOpenEventListener(function (event) {
 			r["" + i] = {"integer": 5};
 		}
 		expected = "methodWithMapResult_4";
-		var token = srv.methodWithMapResult(r);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithMapResult(r).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithCollectionOfCollectionResult(c)", function (assert) {
-		var i, expected, r = [], done = assert.async();
+		var i, j, expected, r = [], done = assert.async();
 		for (i = 0; i < 4; i++) {
 			var result = [];
 			r.push(result);
@@ -294,68 +246,115 @@ ocelotController.addOpenEventListener(function (event) {
 			}
 		}
 		expected = "methodWithCollectionOfCollectionResult_" + r.length;
-		var token = srv.methodWithCollectionOfCollectionResult(r);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithCollectionOfCollectionResult(r).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithManyParameters(a, b, c, d)", function (assert) {
 		var a, b, c, d, expected, done = assert.async();
 		a = "text", b = 5, c = {"integer": 5}, d = ["a", "b"];
 		expected = "methodWithManyParameters a=" + a + " - b=" + b + " - c=" + c.integer + " - d:" + d.length;
-		var token = srv.methodWithManyParameters(a, b, c, d);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithManyParameters(a, b, c, d).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithAlmostSameSignature(s)", function (assert) {
-		var a, expected, done = assert.async();
-		a = "text";
+		var expected, done = assert.async();
 		expected = "String";
-		var token = srv.methodWithAlmostSameSignature(a);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithAlmostSameSignature("text").event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodWithAlmostSameSignature(i)", function (assert) {
-		var a, expected, done = assert.async();
-		a = 5;
+		var expected, done = assert.async();
 		expected = "Integer";
-		var token = srv.methodWithAlmostSameSignature(a);
-		token.success = function (msg) {
-			assert.deepEqual(msg, expected);
+		srv.methodWithAlmostSameSignature(5).event(function (evt) {
+			assert.deepEqual(evt.result, expected);
 			done();
-		};
-		token.fail = token.success;
+		});
 	});
 	QUnit.test(".methodThatThrowException()", function (assert) {
 		var done = assert.async();
-		var token = srv.methodThatThrowException(a);
-		token.fail = function (msg) {
-			assert.equal(msg.classname, "fr.hhdev.ocelot.test.MethodException");
+		srv.methodThatThrowException().event(function (evt) {
+			assert.equal(evt.fault.classname, "fr.hhdev.ocelot.test.MethodException");
 			done();
-		};
-		token.success = token.fail;
+		});
+	});
+	QUnit.test(".methodCached()", function (assert) {
+		var expected, done = assert.async();
+		srv.methodCached().event(function (evt) {
+			assert.equal(evt.type, "RESULT", "Receive result : "+expected+" from server and put in cache.");
+			expected = evt.result.length;
+			srv.methodCached().event(function (evt) {
+				assert.equal(evt.result.length, expected, "Receive result from cache : "+evt.result.length);
+				done();
+			});
+		});
+	});
+	QUnit.test(".methodRemoveCache()", function (assert) {
+		OcelotCacheManager.clearCache();
+		var expected, done = assert.async();
+		srv.methodCached().event(function (evt) {
+			expected = evt.result.length;
+			assert.equal(evt.type, "RESULT", "Receive result : "+expected+" from server and put in cache.");
+			srv.methodCached().event(function (evt) {
+				assert.equal(evt.result.length, expected, "Receive result from cache : "+evt.result.length);
+				srv.methodRemoveCache().event(function (evt) {
+					assert.equal(evt.type, "RESULT", "Cache removed.");
+					srv.methodCached().event(function (evt) {
+						assert.notEqual(evt.result.length, expected, "Receive result : "+evt.result.length+" from server");
+						done();
+					});
+				});
+			});
+		});
+	});
+	QUnit.test(".methodRemoveAllCache()", function (assert) {
+		OcelotCacheManager.clearCache();
+		var expected, done = assert.async();
+		srv.methodCached().event(function (evt) {
+			expected = evt.result.length;
+			assert.equal(evt.type, "RESULT", "Receive result : "+expected+" from server and put in cache.");
+			srv.methodCached().event(function (evt) {
+				assert.equal(evt.result.length, expected, "Receive result from cache : "+evt.result.length);
+				srv.methodRemoveAllCache().event(function (evt) {
+					assert.equal(evt.type, "RESULT", "All Cache removed.");
+					srv.methodCached().event(function (evt) {
+						assert.notEqual(evt.result.length, expected, "Receive result "+evt.result.length+" from server");
+						done();
+					});
+				});
+			});
+		});
 	});
 	QUnit.test(".onMessage()", function (assert) {
-		var done = assert.async(),
-				  mdb = new TopicConsumer("mytopic");
-		mdb.onMessage = function (msg) {
-			assert.equal(msg, "Message From server 1");
-			done();
-			mdb.unsubscribe();
-		};
-		mdb.subscribe();
-		srv.publish("mytopic", 1);
+		var timer, done = assert.async();
+		ocelotsrv.subscribe("mytopic").event(function(evt) {
+			assert.equal(evt.type, "RESULT", "Subscription to 'mytopic' : ok.");
+			srv.publish("mytopic", 1).event(function(evt) {
+				assert.equal(evt.type, "RESULT", "Call publish method : ok.");
+			});
+		}).message(function(msg) {
+			assert.equal(msg, "Message From server 1", "Receive message in 'mytopic' : ok.");
+			ocelotsrv.unsubscribe("mytopic").event(function(evt) {
+				assert.equal(evt.type, "RESULT", "Unsubscription to 'mytopic' : ok.");
+				window.clearTimeout(timer);
+				done();
+			});
+		});
+		timer = setTimeout(function () {
+			assert.equal(0, 1, "Receive 0 messages");
+			ocelotsrv.unsubscribe("mytopic").event(function(evt) {
+				assert.equal(evt.type, "RESULT", "Unsubscription to 'mytopic' : ok.");
+				done();
+			});
+		}, 500);
 	});
 	QUnit.test(".onMessages()", function (assert) {
-		var result = 0, j, expected = nbMsgToBroadcast, timer, done, mdb, params, i, query;
+		var result = 0, expected = nbMsgToBroadcast, timer, done, params, i, query;
 		query = location.search;
 		params = query.split("&");
 		for (i = 0; i < params.length; i++) {
@@ -368,85 +367,29 @@ ocelotController.addOpenEventListener(function (event) {
 			}
 		}
 		done = assert.async();
-		mdb = new TopicConsumer("mytopic");
-		mdb.onMessage = function (msg) {
+		ocelotsrv.subscribe("mytopic").event(function(evt) {
+			assert.equal(evt.type, "RESULT", "Subscription to 'mytopic' : ok.");
+			srv.publish("mytopic", expected).event(function(evt) {
+				assert.equal(evt.type, "RESULT", "Call publish("+expected+") method : ok.");
+			});
+		}).message(function(msg) {
 			result++;
 			assert.ok(true, "" + msg + " : (" + result + ")");
-			if (result === expected) {
+			if(result===expected) {
+				assert.equal(result, expected, "Receive "+result+"/"+expected+" messages");
 				window.clearTimeout(timer);
-				assert.equal(result, expected, "receive " + expected + " messages");
-				mdb.unsubscribe();
-				done();
+				ocelotsrv.unsubscribe("mytopic").event(function(evt) {
+					assert.equal(evt.type, "RESULT", "Unsubscription to 'mytopic' : ok.");
+					done();
+				});
 			}
-		};
-		mdb.subscribe();
+		});
 		timer = setTimeout(function () {
-			assert.equal(result, expected, "receive " + expected + " messages");
-			mdb.unsubscribe();
-			done();
-		}, 5 * expected);
-		srv.publish("mytopic", expected);
-	});
-	QUnit.test(".methodCached()", function (assert) {
-		var expected, done = assert.async();
-		var token = srv.methodCached();
-		token.success = function (msg) {
-			expected = msg.length;
-			var token = srv.methodCached();
-			token.success = function (msg) {
-				assert.equal(msg.length, expected);
+			assert.equal(0, expected, "Receive 0/"+expected+" messages");
+			ocelotsrv.unsubscribe("mytopic").event(function(evt) {
+				assert.equal(evt.type, "RESULT", "Unsubscription to 'mytopic' : ok.");
 				done();
-			};
-			token.fail = token.success;
-		};
-		token.fail = token.success;
-	});
-	QUnit.test(".methodRemoveCache()", function (assert) {
-		OcelotCacheManager.clearCache();
-		var expected, done = assert.async();
-		var token = srv.methodCached();
-		token.success = function (msg) {
-			expected = msg.length;
-			var token = srv.methodCached();
-			token.success = function (msg) {
-				assert.equal(msg.length, expected);
-				var token = srv.methodRemoveCache();
-				token.success = function (msg) {
-					var token = srv.methodCached();
-					token.success = function (msg) {
-						assert.notEqual(msg.length, expected);
-						done();
-					};
-					token.fail = token.success;
-				};
-				token.fail = token.success;
-			};
-			token.fail = token.success;
-		};
-		token.fail = token.success;
-	});
-	QUnit.test(".methodRemoveAllCache()", function (assert) {
-		OcelotCacheManager.clearCache();
-		var expected, done = assert.async();
-		var token = srv.methodCached();
-		token.success = function (msg) {
-			expected = msg.length;
-			var token = srv.methodCached();
-			token.success = function (msg) {
-				assert.equal(msg.length, expected);
-				var token = srv.methodRemoveAllCache();
-				token.success = function (msg) {
-					var token = srv.methodCached();
-					token.success = function (msg) {
-						assert.notEqual(msg.length, expected);
-						done();
-					};
-					token.fail = token.success;
-				};
-				token.fail = token.success;
-			};
-			token.fail = token.success;
-		};
-		token.fail = token.success;
+			});
+		}, 50 * expected);
 	});
 });

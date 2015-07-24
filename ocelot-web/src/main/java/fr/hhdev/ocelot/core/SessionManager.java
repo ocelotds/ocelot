@@ -70,15 +70,24 @@ public class SessionManager {
 
 	/**
 	 * Unregister session for topic
+	 * topic 'ALL' remove session for all topics
 	 *
 	 * @param topic
 	 * @param session
 	 */
 	public void unregisterTopicSession(String topic, Session session) {
 		logger.debug("'{}' unsubscribe to '{}'", session.getId(), topic);
-		Collection<Session> sessions = sessionsByTopic.get(topic);
-		if (sessions != null && sessions.contains(session)) {
-			sessions.remove(session);
+		if("ALL".equals(topic)) {
+			for (Collection<Session> sessions : sessionsByTopic.values()) {
+				if (sessions != null && sessions.contains(session)) {
+					sessions.remove(session);
+				}
+			}
+		} else {
+			Collection<Session> sessions = sessionsByTopic.get(topic);
+			if (sessions != null && sessions.contains(session)) {
+				sessions.remove(session);
+			}
 		}
 	}
 

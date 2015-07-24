@@ -37,6 +37,11 @@ public class MessageToClient {
 	private static final long serialVersionUID = -834697863344344124L;
 
 	/**
+	 * Type of message
+	 */
+	protected MessageType type = null;
+
+	/**
 	 * Id of request, compute from hash of packageName, classname, methodName, arguments
 	 */
 	protected String id;
@@ -53,6 +58,14 @@ public class MessageToClient {
 	 */
 	protected long deadline = 0L;
 
+	public MessageType getType() {
+		return type;
+	}
+
+	public void setType(MessageType type) {
+		this.type = type;
+	}
+
 	public String getId() {
 		return id;
 	}
@@ -66,14 +79,16 @@ public class MessageToClient {
 	}
 
 	public void setResult(Object result) {
+		if(null==this.type) this.type = MessageType.RESULT;
 		this.result = result;
 	}
-
+	
 	public Fault getFault() {
 		return fault;
 	}
 
 	public void setFault(Fault fault) {
+		this.type = MessageType.FAULT;
 		this.fault = fault;
 	}
 
@@ -115,6 +130,7 @@ public class MessageToClient {
 			JsonObject root = reader.readObject();
 			MessageToClient message = new MessageToClient();
 			message.setId(root.getString(Constants.Message.ID));
+			message.setType(MessageType.valueOf(root.getString(Constants.Message.TYPE)));
 			message.setDeadline(root.getInt(Constants.Message.DEADLINE));
 			if (root.containsKey(Constants.Message.RESULT)) {
 				JsonValue result = root.get(Constants.Message.RESULT);
@@ -151,8 +167,8 @@ public class MessageToClient {
 			String faultFormat = ",\"%s\":%s";
 			res = String.format(faultFormat, Constants.Message.FAULT, this.getFault().toJson());
 		}
-		String json = String.format("{\"%s\":\"%s\",\"%s\":%s%s}",
-				  Constants.Message.ID, this.getId(), Constants.Message.DEADLINE, this.getDeadline(), res);
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s%s}",
+				  Constants.Message.TYPE, this.getType(), Constants.Message.ID, this.getId(), Constants.Message.DEADLINE, this.getDeadline(), res);
 		return json;
 	}
 

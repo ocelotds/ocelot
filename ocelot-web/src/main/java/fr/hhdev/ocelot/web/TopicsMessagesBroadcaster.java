@@ -7,11 +7,11 @@ package fr.hhdev.ocelot.web;
 import fr.hhdev.ocelot.core.SessionManager;
 import fr.hhdev.ocelot.messaging.MessageEvent;
 import fr.hhdev.ocelot.messaging.MessageToClient;
+import fr.hhdev.ocelot.messaging.MessageType;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 import javax.websocket.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
  *
  * @author hhfrancois
  */
-@Singleton
 public class TopicsMessagesBroadcaster {
 
 	private final static Logger logger = LoggerFactory.getLogger(TopicsMessagesBroadcaster.class);
@@ -35,12 +34,12 @@ public class TopicsMessagesBroadcaster {
 	 * @param msg
 	 */
 	public void sendMessageToTopic(@Observes @MessageEvent MessageToClient msg) {
+		msg.setType(MessageType.MESSAGE);
 		logger.debug("Sending message to topic {}...", msg.toJson());
 		if (sessionManager.existsSessionForTopic(msg.getId())) {
 			Collection<Session> sessions = sessionManager.getSessionsForTopic(msg.getId());
 			Collection<Session> closed = new ArrayList<>();
 			if (!sessions.isEmpty()) {
-				logger.debug("Send message to '{}' topic {} client(s) : {}", new Object[]{msg.getId(), sessions.size(), msg.toJson()});
 				for (Session session : sessions) {
 					if (session.isOpen()) {
 						session.getAsyncRemote().sendObject(msg);
@@ -48,6 +47,7 @@ public class TopicsMessagesBroadcaster {
 						closed.add(session);
 					}
 				}
+				logger.debug("Send message to '{}' topic {} client(s) : {}", new Object[]{msg.getId(), sessions.size()-closed.size(), msg.toJson()});
 				logger.debug("Session closed to remove '{}'", closed.size());
 				sessions.removeAll(closed);
 			} else {

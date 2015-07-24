@@ -14,10 +14,10 @@ import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.OcelotServices;
 import fr.hhdev.ocelot.i18n.Locale;
 import fr.hhdev.ocelot.messaging.Fault;
-import fr.hhdev.ocelot.messaging.Command;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import fr.hhdev.ocelot.messaging.MessageToClient;
 import fr.hhdev.ocelot.messaging.MessageEvent;
+import fr.hhdev.ocelot.messaging.MessageType;
 import fr.hhdev.ocelot.resolvers.CdiResolver;
 import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.IDataServiceResolver;
@@ -109,7 +109,7 @@ public class OcelotTest {
 	@Inject
 	@Any
 	private Instance<IDataServiceResolver> resolvers;
-	
+
 	@Inject
 	TestTopicAccessControl accessControl;
 
@@ -161,7 +161,8 @@ public class OcelotTest {
 
 	/**
 	 * Build ocelot-web.jar
-	 * @return 
+	 *
+	 * @return
 	 */
 	public static JavaArchive createLibArchive() {
 		File bean = new File("src/main/resources/META-INF/beans.xml");
@@ -182,9 +183,10 @@ public class OcelotTest {
 
 	/**
 	 * Add srv_xxxx.js and srv_xxxx.ServiceProvider.class
+	 *
 	 * @param root
 	 * @param resourceContainer
-	 * @param classContainer 
+	 * @param classContainer
 	 */
 	private static void addJSAndProvider(final String root, ResourceContainer resourceContainer, ClassContainer classContainer) {
 		File classes = new File(root);
@@ -312,7 +314,7 @@ public class OcelotTest {
 //			if ((id != null && id.equals(messageToClientIn.getId())) || (id == null && messageToClientIn.getId() != null)) {
 				messageToClient = messageToClientIn;
 //				synchronized (lock) {
-					lock.countDown();
+				lock.countDown();
 //				}
 			}
 		}
@@ -344,38 +346,30 @@ public class OcelotTest {
 	 */
 	private void checkMessageAfterSendInSession(Session session, String className, String operation, String... params) {
 		// contruction de l'objet command
-		Command cmd = new Command();
-		cmd.setCommand(Constants.Command.Value.CALL);
-		// construction de la commande
 		MessageFromClient messageFromClient = getMessageFromClient(className, operation, params);
-		cmd.setMessage(messageFromClient.toJson());
 		// on crée un handler client de reception de la réponse
 		// send
-		session.getAsyncRemote().sendText(cmd.toJson());
+		session.getAsyncRemote().sendText(messageFromClient.toJson());
 	}
 
 	private MessageToClient getMessageToClientAfterSendInSession(Session session, String classname, String operation, String... params) {
 		MessageToClient result = null;
 		try {
 			long t0 = System.currentTimeMillis();
-			// contruction de l'objet command
-			Command cmd = new Command();
-			cmd.setCommand(Constants.Command.Value.CALL);
-			// construction de lac commande
+			// construction de la commande
 			MessageFromClient messageFromClient = getMessageFromClient(classname, operation, params);
-			cmd.setMessage(messageFromClient.toJson());
 			// on pose un locker
 			CountDownLatch lock = new CountDownLatch(1);
 			// on crée un handler client de reception de la réponse
 			CountDownMessageHandler messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
 			session.addMessageHandler(messageHandler);
 			// send
-			session.getAsyncRemote().sendText(cmd.toJson());
+			session.getAsyncRemote().sendText(messageFromClient.toJson());
 			// wait le delock ou timeout
 			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			// lockCount doit être à  zero sinon, on a pas eu le resultat
 			long t1 = System.currentTimeMillis();
-			assertTrue("Timeout. waiting "+(t1 - t0)+" ms. Remain "+lock.getCount()+"/1 msgs", await);
+			assertTrue("Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/1 msgs", await);
 			// lecture du resultat dans le handler
 			result = messageHandler.getMessageToClient();
 			assertNotNull(result);
@@ -406,7 +400,7 @@ public class OcelotTest {
 	}
 
 	private static class CallRunnable implements Runnable {
-		
+
 		private final Class<? extends GetValue> clazz;
 		private final IDataServiceResolver resolver;
 
@@ -414,8 +408,7 @@ public class OcelotTest {
 			this.clazz = clazz;
 			this.resolver = resolver;
 		}
-		
-		
+
 		@Override
 		public void run() {
 			try {
@@ -591,7 +584,7 @@ public class OcelotTest {
 			connection2 = getConnectionForResource(resource, false);
 			int length = connection2.getContentLength();
 			traceFile(connection2.getInputStream(), resource, length, false);
-			assertTrue("Minification of "+resource+" didn't work, same size of file magnifier : " + length + " / minifer : " + minlength, minlength < length);
+			assertTrue("Minification of " + resource + " didn't work, same size of file magnifier : " + length + " / minifer : " + minlength, minlength < length);
 		} catch (Exception e) {
 			fail(e.getMessage());
 		} finally {
@@ -668,7 +661,7 @@ public class OcelotTest {
 	/**
 	 * Vérification de la minification des services
 	 */
-	@Test
+//	@Test
 	public void testJavascriptCoreMinification() {
 		System.out.println("testJavascriptCoreMinification");
 		javascriptMinification(Constants.OCELOT_CORE + Constants.JS);
@@ -889,11 +882,32 @@ public class OcelotTest {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
 		Object expectedResult = 1;
-		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
-				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.RESULT, expectedResult);
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.TYPE, MessageType.RESULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 5, Constants.Message.RESULT, expectedResult);
 		MessageToClient result = MessageToClient.createFromJson(json);
+		assertEquals(MessageType.RESULT, result.getType());
 		assertEquals(uuid, result.getId());
+		assertEquals(5, result.getDeadline());
 		assertEquals("" + expectedResult, result.getResult());
+		assertEquals(null, result.getFault());
+	}
+
+	/**
+	 * Vérifie la désérialisation de MessageToClient en tant que message pour un topic
+	 */
+	@Test
+	public void testMessageToTopicCreator() {
+		System.out.println("MessageToTopic.createFromJson");
+		String uuid = UUID.randomUUID().toString();
+		Object expectedResult = 1;
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.TYPE, MessageType.MESSAGE, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 5, Constants.Message.RESULT, expectedResult);
+		MessageToClient result = MessageToClient.createFromJson(json);
+		assertEquals(MessageType.MESSAGE, result.getType());
+		assertEquals(uuid, result.getId());
+		assertEquals(5, result.getDeadline());
+		assertEquals("" + expectedResult, result.getResult());
+		assertEquals(null, result.getFault());
 	}
 
 	/**
@@ -904,11 +918,14 @@ public class OcelotTest {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
 		String expectedResultJS = "\"foo\"";
-		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
-				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.RESULT, expectedResultJS);
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.TYPE, MessageType.RESULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 10, Constants.Message.RESULT, expectedResultJS);
 		MessageToClient result = MessageToClient.createFromJson(json);
+		assertEquals(MessageType.RESULT, result.getType());
 		assertEquals(uuid, result.getId());
+		assertEquals(10, result.getDeadline());
 		assertEquals(expectedResultJS, result.getResult());
+		assertEquals(null, result.getFault());
 	}
 
 	/**
@@ -919,11 +936,14 @@ public class OcelotTest {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
 		Object expectedResult = "{\"integer\":5,\"foo\":\"foo\"}";
-		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
-				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.RESULT, expectedResult);
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.TYPE, MessageType.RESULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 20, Constants.Message.RESULT, expectedResult);
 		MessageToClient result = MessageToClient.createFromJson(json);
+		assertEquals(MessageType.RESULT, result.getType());
 		assertEquals(uuid, result.getId());
+		assertEquals(20, result.getDeadline());
 		assertEquals(expectedResult, result.getResult());
+		assertEquals(null, result.getFault());
 	}
 
 	/**
@@ -934,10 +954,13 @@ public class OcelotTest {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
 		Fault f = new Fault(new NullPointerException("Message d'erreur"), 0);
-		String json = String.format("{\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
-				  Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.FAULT, f.toJson());
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.TYPE, MessageType.FAULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.FAULT, f.toJson());
 		MessageToClient result = MessageToClient.createFromJson(json);
+		assertEquals(MessageType.FAULT, result.getType());
 		assertEquals(uuid, result.getId());
+		assertEquals(0, result.getDeadline());
+		assertEquals(null, result.getResult());
 		assertEquals(f.getClassname(), result.getFault().getClassname());
 	}
 
@@ -1601,7 +1624,7 @@ public class OcelotTest {
 			}
 			boolean await = lock.await(20L * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
-			assertTrue("Timeout. waiting "+(t1 - t0)+" ms. Remain "+lock.getCount()+"/"+nb+" msgs", await);
+			assertTrue("Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nb + " msgs", await);
 		} catch (InterruptedException ex) {
 			fail(ex.getMessage());
 		} finally {
@@ -1635,7 +1658,7 @@ public class OcelotTest {
 			}
 			boolean await = lock.await(10L * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
-			assertTrue("Timeout. waiting "+(t1 - t0)+" ms. Remain "+lock.getCount()+" msgs", await);
+			assertTrue("Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + " msgs", await);
 		} catch (IOException | InterruptedException ex) {
 			fail(ex.getMessage());
 		} finally {
@@ -1667,36 +1690,31 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testSendRemoveCacheMessage() {
-		System.out.println("sendMessageToTopic");
+		System.out.println("sendRemoveCacheMessage");
 		final String topic = "ocelot-cleancache";
 		System.out.println("Enregistrement au Topic '" + topic + "'");
-		Command command = new Command();
-		command.setCommand(Constants.Command.Value.SUBSCRIBE);
-		command.setMessage("\"" + topic + "\"");
-		long t0 = System.currentTimeMillis();
+		Class clazz = OcelotServices.class;
+		String methodName = "subscribe";
+		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			wssession.getAsyncRemote().sendText(command.toJson());
-			String methodName = "generateCleanCacheMessage";
-			System.out.println(methodName);
-			// contruction de l'objet command
-			Command cmd = new Command();
-			cmd.setCommand(Constants.Command.Value.CALL);
-			// construction de lac commande
-			MessageFromClient messageFromClient = getMessageFromClient(EJBDataService.class, methodName, "\"a\",\"r\"", getJson(""), getJson(new Result(5)));
-			System.out.println("messageFromClient.toJson : " + messageFromClient.toJson());
-			cmd.setMessage(messageFromClient.toJson());
-			// on pose un locker 2 car on doit recevoir deux messages, un pour la reponse et un pour 
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(topic));
+			Object result = messageToClient.getResult();
+			assertEquals(null, result);
+			Fault fault = messageToClient.getFault();
+			assertEquals(null, fault);
+			long t0 = System.currentTimeMillis();
+			MessageFromClient messageFromClient = getMessageFromClient(EJBDataService.class, "generateCleanCacheMessage", "\"a\",\"r\"", getJson(""), getJson(new Result(5)));
 			CountDownLatch lock = new CountDownLatch(2);
 			// on crée un handler client de reception de la réponse
 			CountDownMessageHandler messageHandler = new CountDownMessageHandler(lock);
 			wssession.addMessageHandler(messageHandler);
 			// send
-			wssession.getAsyncRemote().sendText(cmd.toJson());
+			wssession.getAsyncRemote().sendText(messageFromClient.toJson());
 			// wait le delock ou timeout
 			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			// lockCount doit être à  zero sinon, on a pas eu le resultat
 			long t1 = System.currentTimeMillis();
-			assertTrue("Timeout. waiting "+(t1 - t0)+" ms. Remain "+lock.getCount()+"/2 msgs", await);
+			assertTrue("Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/2 msgs", await);
 			wssession.removeMessageHandler(messageHandler);
 		} catch (InterruptedException | IOException ex) {
 			fail(ex.getMessage());
@@ -1711,13 +1729,17 @@ public class OcelotTest {
 		System.out.println("sendMessageToTopic");
 		final String topic = "mytopic";
 		System.out.println("Enregistrement au Topic '" + topic + "'");
-		Command command = new Command();
-		command.setCommand(Constants.Command.Value.SUBSCRIBE);
-		command.setMessage("\"" + topic + "\"");
-		long t0 = System.currentTimeMillis();
+		Class clazz = OcelotServices.class;
+		String methodName = "subscribe";
+		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
-			wssession.getAsyncRemote().sendText(command.toJson());
-			Thread.sleep(TIMEOUT);
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(topic));
+			Object result = messageToClient.getResult();
+			assertEquals(null, result);
+			Fault fault = messageToClient.getFault();
+			assertEquals(null, fault);
+			long t0 = System.currentTimeMillis();
+//			Thread.sleep(TIMEOUT);
 			int nbMsg = 10;
 			CountDownLatch lock = new CountDownLatch(nbMsg);
 			CountDownMessageHandler messageHandler = new CountDownMessageHandler(topic, lock);
@@ -1732,7 +1754,7 @@ public class OcelotTest {
 			}
 			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
-			assertTrue("Timeout. waiting "+(t1 - t0)+" ms. Remain "+lock.getCount()+"/"+nbMsg+" msgs", await);
+			assertTrue("Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nbMsg + " msgs", await);
 			wssession.removeMessageHandler(messageHandler);
 		} catch (InterruptedException | IOException ex) {
 			fail(ex.getMessage());
