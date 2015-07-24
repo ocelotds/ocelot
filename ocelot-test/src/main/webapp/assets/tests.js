@@ -3,6 +3,14 @@ var nbMsgToBroadcast = 500;
 document.getElementById("nbMsgToBroadcast").innerHTML = nbMsgToBroadcast;
 ocelotController.cacheManager.clearCache();
 ocelotController.addOpenListener(function () {
+   new OcelotServices().subscribe("ocelot-status").message(function (msg) {
+      var status = document.getElementById("status");
+      if (msg === "OPEN") {
+         status.src="https://img.shields.io/badge/WebSocket-opened-green.svg";
+      } else {
+         status.src="https://img.shields.io/badge/WebSocket-closed-red.svg";
+      }
+   });
 	var srv = new TestServices();
 	var ocelotsrv = new OcelotServices();
 	QUnit.module("TestServices");
@@ -422,4 +430,28 @@ ocelotController.addOpenListener(function () {
 			});
 		}, 50 * expected);
 	});
+	QUnit.test(".closeAndOpen()", function (assert) {
+      ocelotController.close();
+		var timer, done = assert.async();
+		srv.getVoid().event(function (evt) {
+			assert.ok(false, "WebSocket is open");
+         window.clearTimeout(timer);
+			done();
+		});
+		timer = setTimeout(function () {
+         assert.ok(true, "WebSocket is close");
+         ocelotController.open();
+         ocelotController.addOpenListener(function () {
+            timer = setTimeout(function () {
+               assert.ok(false, "WebSocket is close");
+               done();
+            }, 500);
+            srv.getVoid().event(function (evt) {
+               assert.equal(evt.type, "RESULT");
+               window.clearTimeout(timer);
+               done();
+            });
+         });
+		}, 50);
+   });
 });
