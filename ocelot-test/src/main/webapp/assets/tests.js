@@ -16,35 +16,40 @@ ocelotController.addOpenListener(function () {
 	QUnit.test(".getString()", function (assert) {
 		var done = assert.async();
 		srv.getString().event(function (evt) {
-			assert.equal(evt.result, "FOO");
+			assert.equal(evt.type, "RESULT");
+			assert.equal(evt.response, "FOO");
 			done();
 		});
 	});
 	QUnit.test(".getNum()", function (assert) {
 		var done = assert.async();
 		srv.getNum().event(function (evt) {
-			assert.equal(evt.result, 1);
+			assert.equal(evt.type, "RESULT");
+			assert.equal(evt.response, 1);
 			done();
 		});
 	});
 	QUnit.test(".getNumber()", function (assert) {
 		var done = assert.async();
 		srv.getNumber().event(function (evt) {
-			assert.equal(evt.result, 2);
+			assert.equal(evt.type, "RESULT");
+			assert.equal(evt.response, 2);
 			done();
 		});
 	});
 	QUnit.test(".getBool()", function (assert) {
 		var done = assert.async();
 		srv.getBool().event(function (evt) {
-			assert.equal(evt.result, true);
+			assert.equal(evt.type, "RESULT");
+			assert.equal(evt.response, true);
 			done();
 		});
 	});
 	QUnit.test(".getBoolean()", function (assert) {
 		var done = assert.async();
 		srv.getBoolean().event(function (evt) {
-			assert.equal(evt.result, false);
+			assert.equal(evt.type, "RESULT");
+			assert.equal(evt.response, false);
 			done();
 		});
 	});
@@ -53,7 +58,8 @@ ocelotController.addOpenListener(function () {
 		var before = new Date();
 		setTimeout(function() {
 			srv.getDate().event(function (evt) {
-				assert.ok(evt.result > before.getTime());
+				assert.equal(evt.type, "RESULT");
+				assert.ok(evt.response > before.getTime());
 				done();
 			});
 		}, 50);
@@ -63,7 +69,8 @@ ocelotController.addOpenListener(function () {
 		srv.getDate().event(function (evt) {
 			setTimeout(function() {
 				var after = new Date();
-				assert.ok(evt.result < after.getTime(), "receive "+evt.result+" - expected lesser than "+after.getTime());
+				assert.equal(evt.type, "RESULT");
+				assert.ok(evt.response < after.getTime(), "receive "+evt.response+" - expected lesser than "+after.getTime());
 				done();
 			}, 50);
 		});
@@ -71,7 +78,8 @@ ocelotController.addOpenListener(function () {
 	QUnit.test(".getResult()", function (assert) {
 		var done = assert.async();
 		srv.getResult().event(function (evt) {
-			assert.deepEqual(evt.result, {"integer": 5});
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, {"integer": 5});
 			done();
 		});
 	});
@@ -81,7 +89,8 @@ ocelotController.addOpenListener(function () {
 			expected.push(i);
 		}
 		srv.getCollectionInteger().event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -91,7 +100,8 @@ ocelotController.addOpenListener(function () {
 			expected.push({"integer": 5});
 		}
 		srv.getCollectionResult().event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -105,7 +115,8 @@ ocelotController.addOpenListener(function () {
 			}
 		}
 		srv.getCollectionOfCollectionResult().event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -115,7 +126,8 @@ ocelotController.addOpenListener(function () {
 			expected["" + i] = {"integer": 5};
 		}
 		srv.getMapResult().event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -123,7 +135,8 @@ ocelotController.addOpenListener(function () {
 		var expected, done = assert.async();
 		expected = "methodWithNum_1";
 		srv.methodWithNum(1).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -131,7 +144,8 @@ ocelotController.addOpenListener(function () {
 		var expected, done = assert.async();
 		expected = "methodWithNumber_1";
 		srv.methodWithNumber(1).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -139,7 +153,8 @@ ocelotController.addOpenListener(function () {
 		var expected, done = assert.async();
 		expected = "methodWithBool_true";
 		srv.methodWithBool(true).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -147,7 +162,8 @@ ocelotController.addOpenListener(function () {
 		var expected, done = assert.async();
 		expected = "methodWithBool_false";
 		srv.methodWithBool(false).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -155,7 +171,8 @@ ocelotController.addOpenListener(function () {
 		var expected, done = assert.async();
 		expected = "methodWithBoolean_false";
 		srv.methodWithBoolean(false).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -163,7 +180,8 @@ ocelotController.addOpenListener(function () {
 		var expected, done = assert.async();
 		expected = "methodWithBoolean_true";
 		srv.methodWithBoolean(true).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -172,7 +190,8 @@ ocelotController.addOpenListener(function () {
 		d = new Date();
 		expected = "methodWithDate_" + d.getTime();
 		srv.methodWithDate(d.getTime()).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -181,7 +200,8 @@ ocelotController.addOpenListener(function () {
 		r = {"integer": 5};
 		expected = "methodWithResult_" + r.integer;
 		srv.methodWithResult(r).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -190,7 +210,8 @@ ocelotController.addOpenListener(function () {
 		r = [1, 2, 3, 4, 5];
 		expected = "methodWithArrayInteger_" + r.length;
 		srv.methodWithArrayInteger(r).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -199,7 +220,8 @@ ocelotController.addOpenListener(function () {
 		r = [1, 2, 3, 4, 5];
 		expected = "methodWithCollectionInteger_" + r.length;
 		srv.methodWithCollectionInteger(r).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -210,7 +232,8 @@ ocelotController.addOpenListener(function () {
 		}
 		expected = "methodWithArrayResult_" + r.length;
 		srv.methodWithArrayResult(r).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -221,7 +244,8 @@ ocelotController.addOpenListener(function () {
 		}
 		expected = "methodWithCollectionResult_" + r.length;
 		srv.methodWithCollectionResult(r).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -232,7 +256,8 @@ ocelotController.addOpenListener(function () {
 		}
 		expected = "methodWithMapResult_4";
 		srv.methodWithMapResult(r).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -247,7 +272,8 @@ ocelotController.addOpenListener(function () {
 		}
 		expected = "methodWithCollectionOfCollectionResult_" + r.length;
 		srv.methodWithCollectionOfCollectionResult(r).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -256,7 +282,8 @@ ocelotController.addOpenListener(function () {
 		a = "text", b = 5, c = {"integer": 5}, d = ["a", "b"];
 		expected = "methodWithManyParameters a=" + a + " - b=" + b + " - c=" + c.integer + " - d:" + d.length;
 		srv.methodWithManyParameters(a, b, c, d).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -264,7 +291,8 @@ ocelotController.addOpenListener(function () {
 		var expected, done = assert.async();
 		expected = "String";
 		srv.methodWithAlmostSameSignature("text").event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
@@ -272,14 +300,16 @@ ocelotController.addOpenListener(function () {
 		var expected, done = assert.async();
 		expected = "Integer";
 		srv.methodWithAlmostSameSignature(5).event(function (evt) {
-			assert.deepEqual(evt.result, expected);
+			assert.equal(evt.type, "RESULT");
+			assert.deepEqual(evt.response, expected);
 			done();
 		});
 	});
 	QUnit.test(".methodThatThrowException()", function (assert) {
 		var done = assert.async();
 		srv.methodThatThrowException().event(function (evt) {
-			assert.equal(evt.fault.classname, "fr.hhdev.ocelot.test.MethodException");
+			assert.equal(evt.type, "FAULT");
+			assert.equal(evt.response.classname, "fr.hhdev.ocelot.test.MethodException");
 			done();
 		});
 	});
@@ -287,9 +317,9 @@ ocelotController.addOpenListener(function () {
 		var expected, done = assert.async();
 		srv.methodCached().event(function (evt) {
 			assert.equal(evt.type, "RESULT", "Receive result : "+expected+" from server and put in cache.");
-			expected = evt.result.length;
+			expected = evt.response.length;
 			srv.methodCached().event(function (evt) {
-				assert.equal(evt.result.length, expected, "Receive result from cache : "+evt.result.length);
+				assert.equal(evt.response.length, expected, "Receive result from cache : "+evt.response.length);
 				done();
 			});
 		});
@@ -298,14 +328,14 @@ ocelotController.addOpenListener(function () {
 		ocelotController.cacheManager.clearCache();
 		var expected, done = assert.async();
 		srv.methodCached().event(function (evt) {
-			expected = evt.result.length;
+			expected = evt.response.length;
 			assert.equal(evt.type, "RESULT", "Receive result : "+expected+" from server and put in cache.");
 			srv.methodCached().event(function (evt) {
-				assert.equal(evt.result.length, expected, "Receive result from cache : "+evt.result.length);
+				assert.equal(evt.response.length, expected, "Receive result from cache : "+evt.response.length);
 				srv.methodRemoveCache().event(function (evt) {
 					assert.equal(evt.type, "RESULT", "Cache removed.");
 					srv.methodCached().event(function (evt) {
-						assert.notEqual(evt.result.length, expected, "Receive result : "+evt.result.length+" from server");
+						assert.notEqual(evt.response.length, expected, "Receive result : "+evt.response.length+" from server");
 						done();
 					});
 				});
@@ -316,14 +346,14 @@ ocelotController.addOpenListener(function () {
 		ocelotController.cacheManager.clearCache();
 		var expected, done = assert.async();
 		srv.methodCached().event(function (evt) {
-			expected = evt.result.length;
+			expected = evt.response.length;
 			assert.equal(evt.type, "RESULT", "Receive result : "+expected+" from server and put in cache.");
 			srv.methodCached().event(function (evt) {
-				assert.equal(evt.result.length, expected, "Receive result from cache : "+evt.result.length);
+				assert.equal(evt.response.length, expected, "Receive result from cache : "+evt.response.length);
 				srv.methodRemoveAllCache().event(function (evt) {
 					assert.equal(evt.type, "RESULT", "All Cache removed.");
 					srv.methodCached().event(function (evt) {
-						assert.notEqual(evt.result.length, expected, "Receive result "+evt.result.length+" from server");
+						assert.notEqual(evt.response.length, expected, "Receive result "+evt.response.length+" from server");
 						done();
 					});
 				});

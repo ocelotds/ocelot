@@ -182,7 +182,7 @@ public class TestServices {
 		for (int i = 1; i <= nb; i++) {
 			MessageToClient messageToClient = new MessageToClient();
 			messageToClient.setId(topic);
-			messageToClient.setResult("Message From server "+i);
+			messageToClient.setResponse("Message From server "+i);
 			wsEvent.fire(messageToClient);
 		}
 	}

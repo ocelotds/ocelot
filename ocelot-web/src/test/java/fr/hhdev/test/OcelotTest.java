@@ -333,7 +333,7 @@ public class OcelotTest {
 	 * @return
 	 */
 	private Object getResultAfterSendInSession(Session wsSession, Class clazz, String operation, String... params) {
-		return getMessageToClientAfterSendInSession(wsSession, clazz.getName(), operation, params).getResult();
+		return getMessageToClientAfterSendInSession(wsSession, clazz.getName(), operation, params).getResponse();
 	}
 
 	/**
@@ -883,13 +883,13 @@ public class OcelotTest {
 		String uuid = UUID.randomUUID().toString();
 		Object expectedResult = 1;
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
-				  Constants.Message.TYPE, MessageType.RESULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 5, Constants.Message.RESULT, expectedResult);
+				  Constants.Message.TYPE, MessageType.RESULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 5, Constants.Message.RESPONSE, expectedResult);
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(MessageType.RESULT, result.getType());
 		assertEquals(uuid, result.getId());
 		assertEquals(5, result.getDeadline());
-		assertEquals("" + expectedResult, result.getResult());
-		assertEquals(null, result.getFault());
+		assertEquals(MessageType.RESULT, result.getType());
+		assertEquals("" + expectedResult, result.getResponse());
 	}
 
 	/**
@@ -901,13 +901,12 @@ public class OcelotTest {
 		String uuid = UUID.randomUUID().toString();
 		Object expectedResult = 1;
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
-				  Constants.Message.TYPE, MessageType.MESSAGE, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 5, Constants.Message.RESULT, expectedResult);
+				  Constants.Message.TYPE, MessageType.MESSAGE, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 5, Constants.Message.RESPONSE, expectedResult);
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(MessageType.MESSAGE, result.getType());
 		assertEquals(uuid, result.getId());
 		assertEquals(5, result.getDeadline());
-		assertEquals("" + expectedResult, result.getResult());
-		assertEquals(null, result.getFault());
+		assertEquals("" + expectedResult, result.getResponse());
 	}
 
 	/**
@@ -919,13 +918,13 @@ public class OcelotTest {
 		String uuid = UUID.randomUUID().toString();
 		String expectedResultJS = "\"foo\"";
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
-				  Constants.Message.TYPE, MessageType.RESULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 10, Constants.Message.RESULT, expectedResultJS);
+				  Constants.Message.TYPE, MessageType.RESULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 10, Constants.Message.RESPONSE, expectedResultJS);
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(MessageType.RESULT, result.getType());
 		assertEquals(uuid, result.getId());
 		assertEquals(10, result.getDeadline());
-		assertEquals(expectedResultJS, result.getResult());
-		assertEquals(null, result.getFault());
+		assertEquals(MessageType.RESULT, result.getType());
+		assertEquals(expectedResultJS, result.getResponse());
 	}
 
 	/**
@@ -937,13 +936,13 @@ public class OcelotTest {
 		String uuid = UUID.randomUUID().toString();
 		Object expectedResult = "{\"integer\":5,\"foo\":\"foo\"}";
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
-				  Constants.Message.TYPE, MessageType.RESULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 20, Constants.Message.RESULT, expectedResult);
+				  Constants.Message.TYPE, MessageType.RESULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 20, Constants.Message.RESPONSE, expectedResult);
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(MessageType.RESULT, result.getType());
 		assertEquals(uuid, result.getId());
 		assertEquals(20, result.getDeadline());
-		assertEquals(expectedResult, result.getResult());
-		assertEquals(null, result.getFault());
+		assertEquals(MessageType.RESULT, result.getType());
+		assertEquals(expectedResult, result.getResponse());
 	}
 
 	/**
@@ -955,13 +954,13 @@ public class OcelotTest {
 		String uuid = UUID.randomUUID().toString();
 		Fault f = new Fault(new NullPointerException("Message d'erreur"), 0);
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
-				  Constants.Message.TYPE, MessageType.FAULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.FAULT, f.toJson());
+				  Constants.Message.TYPE, MessageType.FAULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.RESPONSE, f.toJson());
 		MessageToClient result = MessageToClient.createFromJson(json);
 		assertEquals(MessageType.FAULT, result.getType());
 		assertEquals(uuid, result.getId());
 		assertEquals(0, result.getDeadline());
-		assertEquals(null, result.getResult());
-		assertEquals(f.getClassname(), result.getFault().getClassname());
+		assertEquals(MessageType.FAULT, result.getType());
+		assertEquals(f.getClassname(), ((Fault) result.getResponse()).getClassname());
 	}
 
 	/**
@@ -997,19 +996,17 @@ public class OcelotTest {
 			String methodName = "getLocale";
 			System.out.println(methodName);
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals("{\"language\":\"en\",\"country\":\"US\"}", result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 
 			// Récup du message en us
 			methodName = "getLocaleHello";
 			System.out.println(methodName);
 			messageToClient = getMessageToClientAfterSendInSession(wssession, EJBDataService.class.getName(), methodName, getJson("hhfrancois"));
-			result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			result = messageToClient.getResponse();
 			assertEquals("\"Hello hhfrancois\"", result);
-			fault = messageToClient.getFault();
-			assertEquals(null, fault);
 
 			// On change pour le francais
 			methodName = "setLocale";
@@ -1018,28 +1015,23 @@ public class OcelotTest {
 			locale.setLanguage("fr");
 			locale.setCountry("FR");
 			messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(locale));
-			result = messageToClient.getResult();
-			assertEquals(null, result);
-			fault = messageToClient.getFault();
-			assertEquals(null, fault);
+			assertEquals(MessageType.RESULT, messageToClient.getType());
 
 			// Vérification
 			methodName = "getLocale";
 			System.out.println(methodName);
 			messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			result = messageToClient.getResponse();
 			assertEquals("{\"language\":\"fr\",\"country\":\"FR\"}", result);
-			fault = messageToClient.getFault();
-			assertEquals(null, fault);
 
 			//  Récup du message en francais
 			methodName = "getLocaleHello";
 			System.out.println(methodName);
 			messageToClient = getMessageToClientAfterSendInSession(wssession, EJBDataService.class.getName(), methodName, getJson("hhfrancois"));
-			result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			result = messageToClient.getResponse();
 			assertEquals("\"Bonjour hhfrancois\"", result);
-			fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 
@@ -1048,10 +1040,9 @@ public class OcelotTest {
 			String methodName = "getLocale";
 			System.out.println(methodName);
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals("{\"language\":\"en\",\"country\":\"US\"}", result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1066,9 +1057,8 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
-			assertEquals(null, result);
-			Fault fault = messageToClient.getFault();
+			assertEquals(MessageType.FAULT, messageToClient.getType());
+			Object fault = messageToClient.getResponse();
 			assertNotNull(fault);
 		} catch (IOException exception) {
 		}
@@ -1084,10 +1074,8 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
-			assertEquals(null, result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertEquals("null", messageToClient.getResponse());
 		} catch (IOException exception) {
 		}
 	}
@@ -1102,10 +1090,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.getString()), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1120,10 +1107,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.getNum()), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1138,10 +1124,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.getNumber()), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1156,10 +1141,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.getBool()), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1174,10 +1158,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.getBoolean()), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1193,7 +1176,8 @@ public class OcelotTest {
 		try (Session wssession = createAndGetSession()) {
 			Thread.sleep(1000);
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, PojoDataService.class.getName(), "getDate");
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertNotNull(result);
 			Date res = new Date(Long.parseLong(result.toString()));
 			System.out.println("RES = " + res.getTime());
@@ -1202,8 +1186,6 @@ public class OcelotTest {
 			Date after = new Date();
 			System.out.println("AFTER = " + after.getTime());
 			assertTrue(after.after(res));
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		} catch (InterruptedException ex) {
 			fail(ex.getMessage());
@@ -1220,10 +1202,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.getResult()), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1238,10 +1219,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.getCollectionInteger()), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1256,10 +1236,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.getCollectionResult()), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1274,10 +1253,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.getCollectionOfCollectionResult()), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1292,10 +1270,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.getMapResult()), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1310,10 +1287,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(1));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithNum(1)), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1328,10 +1304,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(2));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithNumber(2)), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1346,10 +1321,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(true));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithBool(true)), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1364,10 +1338,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(false));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithBoolean(false)), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1383,10 +1356,9 @@ public class OcelotTest {
 		Object arg = new Date();
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithDate((Date) arg)), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1402,10 +1374,9 @@ public class OcelotTest {
 		Object arg = new Result(6);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithResult((Result) arg)), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1421,10 +1392,9 @@ public class OcelotTest {
 		Object arg = new Integer[]{1, 2};
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithArrayInteger((Integer[]) arg)), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1440,10 +1410,9 @@ public class OcelotTest {
 		Object arg = destination.getCollectionInteger();
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithCollectionInteger((Collection<Integer>) arg)), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1459,10 +1428,9 @@ public class OcelotTest {
 		Object arg = new Result[]{new Result(1), new Result(2)};
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithArrayResult((Result[]) arg)), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1478,10 +1446,9 @@ public class OcelotTest {
 		Object arg = destination.getCollectionResult();
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithCollectionResult((Collection<Result>) arg)), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1497,10 +1464,9 @@ public class OcelotTest {
 		Object arg = destination.getMapResult();
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithMapResult((Map<String, Result>) arg)), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1516,10 +1482,9 @@ public class OcelotTest {
 		Object arg = destination.getCollectionOfCollectionResult();
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithCollectionOfCollectionResult((Collection<Collection<Result>>) arg)), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1537,10 +1502,9 @@ public class OcelotTest {
 		cl.add("foo");
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson("foo"), getJson(5), getJson(new Result(3)), getJson(cl));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithManyParameters("foo", 5, new Result(3), cl)), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1555,9 +1519,8 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			Object result = messageToClient.getResult();
-			assertEquals(null, result);
-			Fault fault = messageToClient.getFault();
+			assertEquals(MessageType.FAULT, messageToClient.getType());
+			Fault fault = (Fault) messageToClient.getResponse();
 			assertEquals(MethodException.class.getName(), fault.getClassname());
 		} catch (IOException exception) {
 		}
@@ -1573,10 +1536,9 @@ public class OcelotTest {
 		System.out.println(methodName + "(int)");
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(5));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithAlmostSameSignature(5)), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 	}
@@ -1591,10 +1553,9 @@ public class OcelotTest {
 		System.out.println(methodName + "(string)");
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson("foo"));
-			Object result = messageToClient.getResult();
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
 			assertEquals(getJson(destination.methodWithAlmostSameSignature("foo")), result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
 		} catch (IOException exception) {
 		}
 
@@ -1698,10 +1659,8 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(topic));
-			Object result = messageToClient.getResult();
-			assertEquals(null, result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertEquals("null", messageToClient.getResponse());
 			long t0 = System.currentTimeMillis();
 			MessageFromClient messageFromClient = getMessageFromClient(EJBDataService.class, "generateCleanCacheMessage", "\"a\",\"r\"", getJson(""), getJson(new Result(5)));
 			CountDownLatch lock = new CountDownLatch(2);
@@ -1734,10 +1693,7 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(topic));
-			Object result = messageToClient.getResult();
-			assertEquals(null, result);
-			Fault fault = messageToClient.getFault();
-			assertEquals(null, fault);
+			assertEquals(MessageType.RESULT, messageToClient.getType());
 			long t0 = System.currentTimeMillis();
 //			Thread.sleep(TIMEOUT);
 			int nbMsg = 10;
@@ -1749,7 +1705,7 @@ public class OcelotTest {
 			toTopic.setId(topic);
 			for (int i = 0; i < nbMsg; i++) {
 				System.out.println("Envois d'un message au Topic '" + topic + "'");
-				toTopic.setResult(new Result(i));
+				toTopic.setResponse(new Result(i));
 				wsEvent.fire(toTopic);
 			}
 			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);

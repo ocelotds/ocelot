@@ -51,8 +51,7 @@ public interface Constants {
 		String ARGUMENTS = "args";
 		String ARGUMENTNAMES = "argNames";
 		String DEADLINE = "deadline";
-		String RESULT = "result";
-		String FAULT = "fault";
+		String RESPONSE = "response";
 
 		interface Fault {
 

@@ -16,6 +16,7 @@ import fr.hhdev.ocelot.annotations.JsCacheResult;
 import fr.hhdev.ocelot.messaging.Fault;
 import fr.hhdev.ocelot.messaging.MessageFromClient;
 import fr.hhdev.ocelot.messaging.MessageToClient;
+import fr.hhdev.ocelot.messaging.MessageType;
 import fr.hhdev.ocelot.resolvers.DataServiceResolverIdLitteral;
 import fr.hhdev.ocelot.spi.DataServiceException;
 import fr.hhdev.ocelot.spi.IDataServiceResolver;

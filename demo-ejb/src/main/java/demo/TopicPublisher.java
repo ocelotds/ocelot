@@ -28,7 +28,7 @@ public class TopicPublisher {
 	public void publish() {
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId("mytopic");
-		messageToClient.setResult("Message From server "+(i++));
+		messageToClient.setResponse("Message From server "+(i++));
 		wsEvent.fire(messageToClient);
 	}
 }

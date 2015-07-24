@@ -7,6 +7,7 @@ import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.annotations.DataService;
 import fr.hhdev.ocelot.messaging.MessageEvent;
 import fr.hhdev.ocelot.messaging.MessageToClient;
+import fr.hhdev.ocelot.messaging.MessageType;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
@@ -23,7 +24,7 @@ public class DrawingServices {
 	public void pushCanvasEvent(int x, int y, String type) {
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId("eventCanvas");
-		messageToClient.setResult(new CanvasEvent(x, y, type));
+		messageToClient.setResponse(new CanvasEvent(x, y, type));
 		wsEvent.fire(messageToClient);
 	}
 }

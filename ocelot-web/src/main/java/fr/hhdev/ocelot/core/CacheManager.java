@@ -11,6 +11,7 @@ import fr.hhdev.ocelot.annotations.JsCacheResult;
 import fr.hhdev.ocelot.messaging.CacheEvent;
 import fr.hhdev.ocelot.messaging.MessageEvent;
 import fr.hhdev.ocelot.messaging.MessageToClient;
+import fr.hhdev.ocelot.messaging.MessageType;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
@@ -119,7 +120,7 @@ public class CacheManager {
 		logger.debug("Process JsCacheRemoveAll annotation : {}", jcra);
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
-		messageToClient.setResult("ALL");
+		messageToClient.setResponse("ALL");
 		wsEvent.fire(messageToClient);
 	}
 
@@ -187,7 +188,7 @@ public class CacheManager {
 		if (sb.length() > 0) {
 			cachekey += "_" + getMd5(sb.toString());
 		}
-		messageToClient.setResult(cachekey);
+		messageToClient.setResponse(cachekey);
 		logger.debug("CACHEID : {}.{}_{} = {}", jcr.cls().getName(), jcr.methodName(), sb.toString(), cachekey);
 		wsEvent.fire(messageToClient);
 		cacheEvent.fire(cachekey);

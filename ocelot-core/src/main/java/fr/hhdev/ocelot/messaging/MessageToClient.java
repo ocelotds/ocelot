@@ -21,19 +21,6 @@ import javax.json.JsonValue;
  * @author hhfrancois
  */
 public class MessageToClient {
-
-	public MessageToClient() {
-	}
-
-	public MessageToClient(String id) {
-		this.id = id;
-	}
-	
-	public MessageToClient(String id, Object result) {
-		this.id = id;
-		this.result = result;
-	}
-	
 	private static final long serialVersionUID = -834697863344344124L;
 
 	/**
@@ -48,11 +35,7 @@ public class MessageToClient {
 	/**
 	 * The result of request
 	 */
-	protected Object result = null;
-	/**
-	 * The request failed, fault
-	 */
-	protected Fault fault = null;
+	protected Object response = null;
 	/**
 	 * validity limit
 	 */
@@ -74,24 +57,28 @@ public class MessageToClient {
 		this.id = id;
 	}
 
-	public Object getResult() {
-		return result;
+	public Object getResponse() {
+		return response;
 	}
 
-	public void setResult(Object result) {
-		if(null==this.type) this.type = MessageType.RESULT;
-		this.result = result;
+	public void setResponse(Object response, MessageType type) {
+		this.response = response;
 	}
 	
-	public Fault getFault() {
-		return fault;
+	public void setResult(Object response) {
+		this.type = MessageType.RESULT;
+		this.response = response;
 	}
 
-	public void setFault(Fault fault) {
+	public void setFault(Object response) {
 		this.type = MessageType.FAULT;
-		this.fault = fault;
+		this.response = response;
 	}
 
+	public void setResponse(Object response) {
+		this.response = response;
+	}
+	
 	public long getDeadline() {
 		return deadline;
 	}
@@ -132,40 +119,32 @@ public class MessageToClient {
 			message.setId(root.getString(Constants.Message.ID));
 			message.setType(MessageType.valueOf(root.getString(Constants.Message.TYPE)));
 			message.setDeadline(root.getInt(Constants.Message.DEADLINE));
-			if (root.containsKey(Constants.Message.RESULT)) {
-				JsonValue result = root.get(Constants.Message.RESULT);
-				message.setResult("" + result);
-			} else {
-				if (root.containsKey(Constants.Message.FAULT)) {
-					JsonObject faultJs = root.getJsonObject(Constants.Message.FAULT);
-					try {
-						Fault f = Fault.createFromJson(faultJs.toString());
-						message.setFault(f);
-					} catch (IOException ex) {
-					}
+			if(MessageType.FAULT.equals(message.getType())) {
+				JsonObject faultJs = root.getJsonObject(Constants.Message.RESPONSE);
+				try {
+					Fault f = Fault.createFromJson(faultJs.toString());
+					message.setFault(f);
+				} catch (IOException ex) {
 				}
+			} else {
+				JsonValue result = root.get(Constants.Message.RESPONSE);
+				message.setResponse("" + result, message.getType());
 			}
 			return message;
 		}
 	}
 
 	public String toJson() {
-		String res = "";
-		if (null != this.getResult()) {
-			String resultFormat = ",\"%s\":%s";
-			ObjectMapper mapper = new ObjectMapper();
-			String jsonResult;
-			try {
-				jsonResult = mapper.writeValueAsString(this.getResult());
-				res = String.format(resultFormat, Constants.Message.RESULT, jsonResult);
-			} catch (JsonProcessingException ex) {
-				Fault f = new Fault(ex, 0);
-				res = String.format(resultFormat, Constants.Message.FAULT, f.toJson());
-			}
-		}
-		if (null != this.getFault()) {
-			String faultFormat = ",\"%s\":%s";
-			res = String.format(faultFormat, Constants.Message.FAULT, this.getFault().toJson());
+		String res;
+		String resultFormat = ",\"%s\":%s";
+		ObjectMapper mapper = new ObjectMapper();
+		String jsonResponse;
+		try {
+			jsonResponse = mapper.writeValueAsString(this.getResponse());
+			res = String.format(resultFormat, Constants.Message.RESPONSE, jsonResponse);
+		} catch (JsonProcessingException ex) {
+			Fault f = new Fault(ex, 0);
+			res = String.format(resultFormat, Constants.Message.RESPONSE, f.toJson());
 		}
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s%s}",
 				  Constants.Message.TYPE, this.getType(), Constants.Message.ID, this.getId(), Constants.Message.DEADLINE, this.getDeadline(), res);

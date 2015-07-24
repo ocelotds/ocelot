@@ -11,8 +11,8 @@ if ("WebSocket" in window) {
 				  stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], promises = {}, openHandlers = [], closeHandlers = [], errorHandlers = [], oCtrl, ocelotSrv;
 		ocelotSrv = new OcelotServices();
 		function showErrorSocketIsNotReady(msg) {
-			console.info('WebSocket is not ready : ' + msg + '\nCode : ' + stateLabels[ocelotController.readystate]);
-			alert('WebSocket is not ready : ' + msg + '\nCode : ' + stateLabels[ocelotController.readyState]);
+			console.info('WebSocket is not ready : ' + msg + '\nCode : ' + stateLabels[ocelotController.status]);
+			alert('WebSocket is not ready : ' + msg + '\nCode : ' + stateLabels[ocelotController.status]);
 		}
 		function createEventFromPromise(type, promise) {
 			var evt = document.createEvent(EVT);
@@ -22,27 +22,43 @@ if ("WebSocket" in window) {
 			evt.args = promise.args;
 			return evt;
 		}
-		function createMessageEventFromPromise(promise, result) {
+		function createMessageEventFromPromise(promise, response) {
 			var evt = createEventFromPromise(MSG, promise);
-			evt.message = result;
+			evt.response = response;
 			return evt;
 		}
-		function createResultEventFromPromise(promise, result) {
+		function createResultEventFromPromise(promise, response) {
 			var evt = createEventFromPromise(RES, promise);
-			evt.result = result;
+			evt.response = response;
 			return evt;
 		}
-		function createFaultEventFromPromise(promise, fault) {
+		function createFaultEventFromPromise(promise, response) {
 			var evt = createEventFromPromise(FAULT, promise);
-			evt.fault = fault;
+			evt.response = response;
 			return evt;
 		}
 		function stateUpdated() {
-			var result, promise = promises[STATUS];
+			var response, promise = promises[STATUS];
 			if (promise) {
-				result = createMessageEventFromPromise(promise, this.readyState);
-				promise.result = result;
+				response = createMessageEventFromPromise(promise, ocelotController.status);
+				promise.response = response;
 			}
+		}
+		function isTopicSubscription(promise, topic) {
+			if (promise.dataservice === OSRV && promise.operation === SUB) {
+				return isTopic(promise, topic);
+			}
+			return false;
+		}
+		function isTopicUnsubscription(promise, topic) {
+			if (promise.dataservice === OSRV && promise.operation === UNSUB) {
+				return isTopic(promise, topic);
+			}
+			return false;
+		}
+		function isTopic(promise, topic) {
+			if(!topic) return true;
+			return promise.args[0] === topic;
 		}
 		if (document.location.href.toString().indexOf(document.location.protocol + "//" + document.location.hostname + ":" + document.location.port + "%CTXPATH%") === 0) {
 			oCtrl = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "%CTXPATH%/ocelot-endpoint");
@@ -50,11 +66,20 @@ if ("WebSocket" in window) {
 			oCtrl = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/ocelot-endpoint");
 		}
 		oCtrl.addPromise = function (promise) {
+			if(isTopicSubscription(promise, STATUS)) {
+				promises[STATUS] = promise;
+				stateUpdated();
+				return;
+			}
+			if(isTopicUnsubscription(promise, STATUS)) {
+				delete promises[STATUS];
+				return;
+			}
 			// check entry cache
 			var msgToClient = this.cacheManager.getResultInCache(promise.id, promise.cacheIgnored);
 			if (msgToClient) {
-				// present and valid, return result without call
-				promise.result = createResultEventFromPromise(promise, msgToClient.result);
+				// present and valid, return response without call
+				promise.response = createResultEventFromPromise(promise, msgToClient.response);
 				return;
 			}
 			// else call
@@ -88,25 +113,23 @@ if ("WebSocket" in window) {
 			});
 		};
 		oCtrl.onmessage = function (evt) {
-			var result, msgToClient = JSON.parse(evt.data), promise = promises[msgToClient.id];
+			var response, msgToClient = JSON.parse(evt.data), promise = promises[msgToClient.id];
 			if (!promise) return;
 			if (msgToClient.type === FAULT) {
-				result = createFaultEventFromPromise(promise, msgToClient.fault);
+				response = createFaultEventFromPromise(promise, msgToClient.response);
 				delete promises[msgToClient.id];
 			} else if (msgToClient.type === RES) {
-				// if msg is result of subscribe request
-				if (promise.dataservice === OSRV) {
-					if (promise.operation === SUB) promises[promise.args[0]] = promises[msgToClient.id];
-					else if (promise.operation === UNSUB) delete promises[promise.args[0]];
-				}
+				// if msg is response of subscribe request
+				if(isTopicSubscription(promise)) promises[promise.args[0]] = promise;
+				else if (isTopicUnsubscription(promise)) delete promises[promise.args[0]];
 				// if msgToClient has dead line so we stock in cache
 				this.cacheManager.putResultInCache(msgToClient);
-				result = createResultEventFromPromise(promise, msgToClient.result);
+				response = createResultEventFromPromise(promise, msgToClient.response);
 				delete promises[msgToClient.id];
 			} else if (msgToClient.type === MSG) {
-				result = createMessageEventFromPromise(promise, msgToClient.result);
+				response = createMessageEventFromPromise(promise, msgToClient.response);
 			}
-			promise.result = result;
+			promise.response = response;
 		};
 		oCtrl.onopen = function (evt) {
 			var handler;
@@ -131,7 +154,7 @@ if ("WebSocket" in window) {
 		oCtrl.onerror = function (evt) {
 			var handler;
 			while (handler = errorHandlers.shift()) {
-				handler();
+				handler(evt);
 			}
 			stateUpdated();
 		};
@@ -276,6 +299,12 @@ if ("WebSocket" in window) {
 				}
 			};
 		})();
+		Object.defineProperty(oCtrl, "status", { 
+				get: function () {
+					return stateLabels[this.readyState];
+				}
+			}
+		);
 		return oCtrl;
 	})();
 
@@ -294,22 +323,22 @@ if ("WebSocket" in window) {
 							}
 							if (evt.type === RES) {
 								while (handler = thenHandlers.shift()) {
-									handler(evt.result);
+									handler(evt.response);
 								}
 							} else if (evt.type === FAULT) {
 								while (handler = catchHandlers.shift()) {
-									handler(evt.fault);
+									handler(evt.response);
 								}
 							}
 						} else {
 							messageHandlers.forEach(function (messageHandler, index, array) {
-								messageHandler(evt.message);
+								messageHandler(evt.response);
 							});
 						}
 					}
 					var promise = {
 						id: id, dataservice: ds, operation: op, args: args, argNames: argNames, cacheIgnored: false,
-						set result(evt) {
+						set response(evt) {
 							this.evt = evt;
 							process(evt);
 						},
