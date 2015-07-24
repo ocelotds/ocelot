@@ -8,7 +8,6 @@ import fr.hhdev.ocelot.Constants;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import javax.json.Json;
