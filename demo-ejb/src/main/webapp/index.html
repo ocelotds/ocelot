@@ -10,13 +10,13 @@
 	<body>
 		<script>
 			var ocelotServices = new OcelotServices();
-			ocelotController.addOpenEventListener(function(event) {
+			ocelotController.addOpenListener(function(event) {
 				ocelotServices.subscribe("ocelot-status").message(function (msg) {
 					var status = document.getElementById("status");
-					if (msg === 1) {
-						status.style.backgroundColor = '#0f0';
+					if (msg === "OPEN") {
+						status.src="https://img.shields.io/badge/WebSocket-opened-green.svg";
 					} else {
-						status.style.backgroundColor = '#f00';
+						status.src="https://img.shields.io/badge/WebSocket-closed-red.svg";
 					}
 				});
 			});
@@ -80,8 +80,12 @@
 					location.reload();
 				});
 			}
+			
+		function execCode() {
+			eval(document.getElementById("objectarea").value);
+		}
 		</script>
-		<div id="status" style="width:10px;height:10px;background-color:#f00">X</div>
+		<img id="status"/>
 		<input id="testobject" type="text" value="document.location"/>
 		<select id="localeSelector" onchange="changeLocale()">
 			<option value='{"language":"fr","country":"FR"}' selected>fr</option>
@@ -89,7 +93,10 @@
 		</select>
 		<button onclick="showObject()">SHOW OBJECT</button><br>
 		<textarea style="height:200px;width:100%" id="objectarea"></textarea><br>
-		<button onclick="ocelotController.dispose()">CLOSE WS</button><button onclick="myTopic(true);">SUBSCRIBE</button><button onclick="myTopic(false);">UNSUBSCRIBE</button><button onclick="localStorage.clear();sessionStorage.clear()">CLEARCACHE</button><br>
+		<button onclick="execCode()">EXEC</button><br>
+		<button onclick="ocelotController.close()">CLOSE WS</button>
+		<button onclick="ocelotController.open()">OPEN WS</button>
+		<button onclick="myTopic(true);">SUBSCRIBE</button><button onclick="myTopic(false);">UNSUBSCRIBE</button><button onclick="localStorage.clear();sessionStorage.clear()">CLEARCACHE</button><br>
 		<button onclick="getMessage(ejbService)">GET EJB MESSAGE(int)</button><button onclick="getMessage2(ejbService)">GET EJB MESSAGE(str)</button><br>
 		<button onclick="getMessageCached(ejbService)">GET EJB MESSAGE CACHED 1Mn</button><br>
 		<button onclick="getMessageCached2(ejbService)">GET EJB MESSAGE2 CACHED 1Mn</button><br>
