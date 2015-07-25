@@ -90,7 +90,18 @@ if ("WebSocket" in window) {
             promise.response = response;
          };
          ws.onopen = function (evt) {
-            var handler;
+            var handler, ps;
+            stateUpdated();
+            if(Object.keys(promises).length) { // its not open, but re-open, we redo the previous subscription
+               ps = promises;
+               promises = {};
+               Object.keys(ps).forEach(function (id, index, array) {
+                  if(id !== ps[id].id) {
+                     ocelotController.addPromise(ps[id]);
+                  }
+               });
+               return;
+            }
             // Controller subscribe to ocelot-cleancache topic
             ocelotSrv.subscribe(CLEANCACHE).message(function (id) {
                if (id === ALL) { ocelotController.cacheManager.clearCache(); }
@@ -107,7 +118,6 @@ if ("WebSocket" in window) {
             while (handler = openHandlers.shift()) {
                handler();
             }
-            stateUpdated();
          };
          ws.onerror = function (evt) {
             var handler;
