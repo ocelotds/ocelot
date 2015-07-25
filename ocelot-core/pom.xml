@@ -8,11 +8,26 @@
 	</parent>
 	<artifactId>ocelot-core</artifactId>
 	<packaging>jar</packaging>
+	<properties>
+		<deltaspike.version>1.4.1</deltaspike.version>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ocelot-processor</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.deltaspike.core</groupId>
+			<artifactId>deltaspike-core-api</artifactId>
+			<version>${deltaspike.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.deltaspike.core</groupId>
+			<artifactId>deltaspike-core-impl</artifactId>
+			<version>${deltaspike.version}</version>
+			<scope>runtime</scope>
 		</dependency>
 	</dependencies>
 </project>

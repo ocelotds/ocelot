@@ -4,7 +4,9 @@ import fr.hhdev.ocelot.Constants;
 import fr.hhdev.ocelot.annotations.DataService;
 import fr.hhdev.ocelot.annotations.JsCacheRemove;
 import fr.hhdev.ocelot.annotations.JsCacheResult;
+import java.util.Locale;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 
 /**
  * Classe de test sur l'ejbResolver
@@ -14,6 +16,9 @@ import javax.ejb.Stateless;
 @Stateless
 @DataService(resolver = Constants.Resolver.EJB)
 public class TestEJBService {
+	
+	@Inject
+	Locale locale;
 
 	public String getMessage(int i) {
 		return "Message from ejb service getMessage(int " + i + ")";
@@ -37,4 +42,9 @@ public class TestEJBService {
 	public String getMessageCachedAndCleanCache(User u, int i, long l, short s, boolean b) {
 		return "Cache entry clean";
 	}
+
+	public String getLanguageLocale() {
+		return locale.getLanguage();
+	}
+
 }
