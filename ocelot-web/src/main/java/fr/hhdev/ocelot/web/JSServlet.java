@@ -19,11 +19,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Servlet to serve ocelot-core.js and ocelot-services.js
+ * Servlet to serve ocelot.js
  *
  * @author hhfrancois
  */
-@WebServlet(urlPatterns = {Constants.SLASH_OCELOT_CORE_JS, Constants.SLASH_OCELOT_JS, Constants.SLASH_OCELOT_SERVICES_JS})
+@WebServlet(urlPatterns = {Constants.SLASH_OCELOT_JS})
 public class JSServlet extends HttpServlet {
 	
 	private static final long serialVersionUID = 1973549844535787671L;
@@ -41,18 +41,9 @@ public class JSServlet extends HttpServlet {
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType(Constants.JSTYPE);
 		String minify = request.getParameter(Constants.MINIFY_PARAMETER);
-		String resourceName = request.getServletPath();
-		String filename;
-		if (Constants.SLASH_OCELOT_SERVICES_JS.equals(resourceName)) {
-			filename = request.getServletContext().getInitParameter(Constants.OCELOT_SERVICES_MIN);
-			if (Constants.FALSE.equalsIgnoreCase(minify)) {
-				filename = request.getServletContext().getInitParameter(Constants.OCELOT_SERVICES);
-			}
-		} else {
-			filename = request.getServletContext().getInitParameter(Constants.OCELOT_CORE_MIN);
-			if (Constants.FALSE.equalsIgnoreCase(minify)) {
-				filename = request.getServletContext().getInitParameter(Constants.OCELOT_CORE);
-			}
+		String filename = request.getServletContext().getInitParameter(Constants.OCELOT_MIN);
+		if (Constants.FALSE.equalsIgnoreCase(minify)) {
+			filename = request.getServletContext().getInitParameter(Constants.OCELOT);
 		}
 		long lg = new File(filename).length();
 		logger.debug("Get resource {}({})", filename, lg);

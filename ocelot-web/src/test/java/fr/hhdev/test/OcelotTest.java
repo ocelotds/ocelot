@@ -564,10 +564,10 @@ public class OcelotTest {
 		try {
 			connection1 = getConnectionForResource(resource, true);
 			int minlength = connection1.getContentLength();
-//			traceFile(connection1.getInputStream(), resource, minlength, true);
+//			traceFile(connection1.getInputStream());
 			connection2 = getConnectionForResource(resource, false);
 			int length = connection2.getContentLength();
-//			traceFile(connection2.getInputStream(), resource, length, false);
+//			traceFile(connection2.getInputStream());
 			assertTrue("Minification of " + resource + " didn't work, same size of file magnifier : " + length + " / minifer : " + minlength, minlength < length);
 		} catch (Exception e) {
 			fail(e.getMessage());
@@ -581,7 +581,7 @@ public class OcelotTest {
 		}
 	}
 
-	private void traceFile(InputStream input, String filename, int size, boolean min) {
+	private void traceFile(InputStream input) {
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(input, Constants.UTF_8))) {
 			String inputLine;
 			while ((inputLine = in.readLine()) != null) {
@@ -593,40 +593,13 @@ public class OcelotTest {
 	}
 
 	/**
-	 * Vérification de la generation des services
-	 */
-	@Test
-	public void testJavascriptServicesGeneration() {
-		System.out.println("testJavascriptServicesGeneration");
-		HttpURLConnection connection = null;
-		try {
-			connection = getConnectionForResource(Constants.OCELOT_SERVICES + Constants.JS, false);
-		} catch (Exception e) {
-			fail(e.getMessage());
-		} finally {
-			if (connection != null) {
-				connection.disconnect();
-			}
-		}
-	}
-
-	/**
-	 * Vérification de la minification des services
-	 */
-	@Test
-	public void testJavascriptServicesMinification() {
-		System.out.println("testJavascriptServicesMinification");
-		javascriptMinification(Constants.OCELOT_SERVICES + Constants.JS);
-	}
-
-	/**
 	 * Vérification de la generation du core
 	 */
 	@Test
-	public void testJavascriptCoreGeneration() {
+	public void testJavascriptGeneration() {
 		System.out.println("testJavascriptCoreGeneration");
 		try {
-			HttpURLConnection connection = getConnectionForResource(Constants.OCELOT_CORE + Constants.JS, false);
+			HttpURLConnection connection = getConnectionForResource(Constants.OCELOT + Constants.JS, false);
 			boolean replaced;
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), Constants.UTF_8))) {
 				String inputLine;

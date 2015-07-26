@@ -9,12 +9,10 @@ import fr.hhdev.ocelot.IServicesProvider;
 import fr.hhdev.ocelot.configuration.OcelotConfiguration;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URL;
@@ -70,19 +68,11 @@ public final class ContextListener implements ServletContextListener {
 		logger.debug("Read stacktracedeep option in web.xml '{}' = {}.", Constants.Options.STACKTRACE, stacktracelenght);
 		configuration.setStacktracelength(stacktracelenght);
 		try {
-			// create tmp/ocelot-services.js
-			File file = createOcelotServicesJsFile();
-			setInitParameterAnMinifyJs(sc, file, Constants.OCELOT_SERVICES, Constants.OCELOT_SERVICES_MIN);
+			// create tmp/ocelot.js
+			File file = createOcelotJsFile(sc.getContextPath());
+			setInitParameterAnMinifyJs(sc, file, Constants.OCELOT, Constants.OCELOT_MIN);
 		} catch (IOException ex) {
-			logger.error("Fail to create ocelot-services.js.", ex);
-		}
-
-		try {
-			// create tmp/ocelot-core.js
-			File file = createOcelotCoreJsFile(sc.getContextPath());
-			setInitParameterAnMinifyJs(sc, file, Constants.OCELOT_CORE, Constants.OCELOT_CORE_MIN);
-		} catch (IOException ex) {
-			logger.error("Fail to create ocelot-core.js.", ex);
+			logger.error("Fail to create ocelot.js.", ex);
 		}
 	}
 
@@ -94,10 +84,8 @@ public final class ContextListener implements ServletContextListener {
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
 		ServletContext servletContext = sce.getServletContext();
-		deleteFile(servletContext.getInitParameter(Constants.OCELOT_SERVICES));
-		deleteFile(servletContext.getInitParameter(Constants.OCELOT_SERVICES_MIN));
-		deleteFile(servletContext.getInitParameter(Constants.OCELOT_CORE));
-		deleteFile(servletContext.getInitParameter(Constants.OCELOT_CORE_MIN));
+		deleteFile(servletContext.getInitParameter(Constants.OCELOT));
+		deleteFile(servletContext.getInitParameter(Constants.OCELOT_MIN));
 	}
 
 	/**
@@ -166,46 +154,43 @@ public final class ContextListener implements ServletContextListener {
 	}
 
 	/**
-	 * Create ocelot-core.js from original file and replace contextpath token
-	 *
-	 * @param ctxPath
-	 * @return
-	 * @throws IOException
-	 */
-	private File createOcelotCoreJsFile(String ctxPath) throws IOException {
-		URL js = this.getClass().getResource(Constants.SLASH + Constants.OCELOT_CORE + Constants.JS);
-		if (null != js) {
-			File file = File.createTempFile(Constants.OCELOT_CORE, Constants.JS);
-			try (Writer writer = new FileWriter(file)) {
-				try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream(), Constants.UTF_8))) {
-					String inputLine;
-					while ((inputLine = in.readLine()) != null) {
-						writer.write(inputLine.replaceAll(Constants.CTXPATH, ctxPath));
-						writer.write(Constants.BACKSLASH_N);
-					}
-				}
-			}
-			return file;
-		} 
-		throw new IOException("File " + Constants.SLASH + Constants.OCELOT_CORE + Constants.JS + " not found in classpath.");
-	}
-
-	/**
 	 * Create ocelot-services.js from the concatenation of all services available from all modules
 	 *
 	 * @return
 	 * @throws IOException
 	 */
-	private File createOcelotServicesJsFile() throws IOException {
-		File file = File.createTempFile(Constants.OCELOT_SERVICES, Constants.JS);
-		try (FileOutputStream out = new FileOutputStream(file)) {
-			createLicenceComment(out);
+	private File createOcelotJsFile(String ctxPath) throws IOException {
+		File file = File.createTempFile(Constants.OCELOT, Constants.JS);
+		try (Writer writer = new FileWriter(file)) {
+			createLicenceComment(writer);
 			for (IServicesProvider servicesProvider : servicesProviders) {
-				logger.debug("Find javascript services provider : '{}'", servicesProvider.getClass().getName());
-				servicesProvider.streamJavascriptServices(out);
+				servicesProvider.streamJavascriptServices(writer);
 			}
+			writeOcelotCoreJsFile(writer, ctxPath);
 		}
 		return file;
+	}
+
+	/**
+	 * Write ocelot.js from ocelot-core and x ocelot-services.js files and replace contextpath token
+	 *
+	 * @param writer
+	 * @param ctxPath
+	 * @return
+	 * @throws IOException
+	 */
+	private void writeOcelotCoreJsFile(Writer writer, String ctxPath) throws IOException {
+		URL js = this.getClass().getResource(Constants.SLASH + Constants.OCELOT_CORE + Constants.JS);
+		if(null==js) {
+			throw new IOException("File " + Constants.SLASH + Constants.OCELOT_CORE + Constants.JS + " not found in classpath.");
+		}
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream(), Constants.UTF_8))) {
+			String inputLine;
+			while ((inputLine = in.readLine()) != null) {
+				writer.write(inputLine.replaceAll(Constants.CTXPATH, ctxPath));
+				writer.write(Constants.BACKSLASH_N);
+			}
+		}
 	}
 
 	/**
@@ -213,16 +198,15 @@ public final class ContextListener implements ServletContextListener {
 	 *
 	 * @param out
 	 */
-	private void createLicenceComment(OutputStream out) {
+	private void createLicenceComment(Writer writer) {
 		try {
-			out.write("'use strict';\n".getBytes(Constants.UTF_8));
-			out.write("/* This Source Code Form is subject to the terms of the Mozilla Public\n".getBytes(Constants.UTF_8));
-			out.write(" * License, v. 2.0. If a copy of the MPL was not distributed with this\n".getBytes(Constants.UTF_8));
-			out.write(" * file, You can obtain one at http://mozilla.org/MPL/2.0/.\n".getBytes(Constants.UTF_8));
-			out.write(" * Classes generated by Ocelot Framework.\n".getBytes(Constants.UTF_8));
-			out.write(" */\n".getBytes(Constants.UTF_8));
+			writer.write("'use strict';\n");
+			writer.write("/* This Source Code Form is subject to the terms of the Mozilla Public\n");
+			writer.write(" * License, v. 2.0. If a copy of the MPL was not distributed with this\n");
+			writer.write(" * file, You can obtain one at http://mozilla.org/MPL/2.0/.\n");
+			writer.write(" * Classes generated by Ocelot Framework.\n");
+			writer.write(" */\n");
 		} catch (IOException ioe) {
 		}
 	}
-
 }

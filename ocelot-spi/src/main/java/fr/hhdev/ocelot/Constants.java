@@ -20,14 +20,8 @@ public interface Constants {
 
 	String OCELOT = "ocelot";
 	String OCELOT_CORE = OCELOT+"-core";
-	String OCELOT_SERVICES = OCELOT+"-services";
-
-	String OCELOT_CORE_MIN = OCELOT_CORE+MIN;
-	String OCELOT_SERVICES_MIN = OCELOT_SERVICES+MIN;
-
+	String OCELOT_MIN = OCELOT+MIN;
 	String SLASH_OCELOT_JS = SLASH+OCELOT+JS;
-	String SLASH_OCELOT_CORE_JS = SLASH+OCELOT_CORE+JS;
-	String SLASH_OCELOT_SERVICES_JS = SLASH+OCELOT_SERVICES+JS;
 	
 	String MINIFY_PARAMETER = "minify";
 	String JSTYPE = "text/javascript;charset=UTF-8";
@@ -78,19 +72,5 @@ public interface Constants {
 		String ALL = "ALL";
 		String USE_ALL_ARGUMENTS = "*";
 		String ARGS_NOT_CONSIDERATED = "-";
-	}
-
-	interface Command {
-
-		// Attention si on modifie ces deux varaibles, elles sont aussi dans ocelot-core.js en dur
-		String COMMAND = "cmd";
-		String MESSAGE = "msg";
-
-		interface Value {
-
-			String SUBSCRIBE = "subscribe";
-			String UNSUBSCRIBE = "unsubscribe";
-			String CALL = "call";
-		}
 	}
 }
