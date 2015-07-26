@@ -11,7 +11,7 @@ if ("WebSocket" in window) {
          stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], promises = {}, openHandlers = [], closeHandlers = [], errorHandlers = [], ws, ocelotSrv;
       ocelotSrv = new OcelotServices();
       function showErrorSocketIsNotReady(msg) {
-         alert('WebSocket is not ready : ' + msg + '\nCode : ' + stateLabels[ocelotController.status]);
+         alert('WebSocket is not ready : ' + msg + '\nCode : ' + ocelotController.status);
       }
       function createEventFromPromise(type, promise) {
          var evt = document.createEvent(EVT);
