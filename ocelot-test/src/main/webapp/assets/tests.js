@@ -434,24 +434,19 @@ ocelotController.addOpenListener(function () {
       ocelotController.close();
 		var timer, done = assert.async();
 		srv.getVoid().event(function (evt) {
-			assert.ok(false, "WebSocket is open");
-         window.clearTimeout(timer);
-			done();
+			assert.equal(evt.type, "FAULT", "WebSocket should be closed");
 		});
-		timer = setTimeout(function () {
-         assert.ok(true, "WebSocket is close");
-         ocelotController.open();
-         ocelotController.addOpenListener(function () {
-            timer = setTimeout(function () {
-               assert.ok(false, "WebSocket is close");
-               done();
-            }, 500);
-            srv.getVoid().event(function (evt) {
-               assert.equal(evt.type, "RESULT");
-               window.clearTimeout(timer);
-               done();
-            });
+      timer = setTimeout(function () {
+         assert.ok(false, "WebSocket doesn't open");
+         done();
+      }, 500);
+      ocelotController.addOpenListener(function () {
+         window.clearTimeout(timer);
+         srv.getVoid().event(function (evt) {
+            assert.equal(evt.type, "RESULT");
+            done();
          });
-		}, 50);
+      });
+      ocelotController.open();
    });
 });

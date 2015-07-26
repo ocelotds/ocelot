@@ -100,6 +100,9 @@ if ("WebSocket" in window) {
                      ocelotController.addPromise(ps[id]);
                   }
                });
+               while (handler = openHandlers.shift()) { // launch open handlers
+                  handler();
+               }
                return;
             }
             // Controller subscribe to ocelot-cleancache topic
@@ -115,7 +118,7 @@ if ("WebSocket" in window) {
             ocelotSrv.getOutDatedCache(ocelotController.cacheManager.getLastUpdateCache()).then(function (entries) {
                ocelotController.cacheManager.removeEntries(entries);
             });
-            while (handler = openHandlers.shift()) {
+            while (handler = openHandlers.shift()) { // launch open handlers
                handler();
             }
          };
