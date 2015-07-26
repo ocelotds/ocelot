@@ -35,7 +35,7 @@ public class EJBResolver implements IDataServiceResolver {
 	private InitialContext initialContext = null;
 
 	public EJBResolver() {
-		logger.info("Initializing context ...");
+		logger.debug("Initializing context ...");
 		try {
 			initialContext = new InitialContext();
 			jndiPath = JndiConstant.PREFIX + (String) initialContext.lookup(JndiConstant.APP_NAME);
