@@ -18,12 +18,14 @@ public interface Constants {
 	String BACKSLASH_N = "\n";
 	String LOCALE = "LOCALE";
 
-	String OCELOT_CORE = "ocelot-core";
-	String OCELOT_SERVICES = "ocelot-services";
+	String OCELOT = "ocelot";
+	String OCELOT_CORE = OCELOT+"-core";
+	String OCELOT_SERVICES = OCELOT+"-services";
 
 	String OCELOT_CORE_MIN = OCELOT_CORE+MIN;
 	String OCELOT_SERVICES_MIN = OCELOT_SERVICES+MIN;
 
+	String SLASH_OCELOT_JS = SLASH+OCELOT+JS;
 	String SLASH_OCELOT_CORE_JS = SLASH+OCELOT_CORE+JS;
 	String SLASH_OCELOT_SERVICES_JS = SLASH+OCELOT_SERVICES+JS;
 	
