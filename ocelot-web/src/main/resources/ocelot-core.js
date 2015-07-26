@@ -184,7 +184,7 @@ if ("WebSocket" in window) {
                promises[promise.id] = promise;
                ws.send(JSON.stringify(promise.json));
             } else {
-               showErrorSocketIsNotReady('Call ' + JSON.stringify(promise.json) + ' fail.');
+               promise.response = createMessageEventFromPromise(promise, {"classname":"none", "message":"Websocket is not ready : status "+status, "stacktrace":[]});
             }
          },
          cacheManager: (function () {
