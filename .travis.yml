@@ -10,8 +10,11 @@ env:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
    - secure: "OyBUeyJrxqKjWQD09Ez4MC2B7ccRiK2yXClwMIGhOAun76b0Iu6JqCTkBc0uDZBMU6pR22FURtaL4nzzlIh8IKKB3hmATsh5DLsxmWIagL9wTg1CJQGIAdh7Jegw6R3ynMO4Mf6oC1mvVKW1n7ITQ/YfFZaMZFz76VjJh9YEsjY="
+   # OSS_USERNAME
    - secure: "dcYhoyzhLyLGdtL69zBNgvndD8b/8WjjFpZJoBCy5Ew760INfNK19hDOE/8FpWNar4Lu9/KfgNnj2S5FsF0sFQzcaqjXOfkwYrUevmQqE3zTVtQzSo0VLeclTVEFaqgJSOre2oHZtZj4wWcA3H3oZ5tYRIr5pzq/hlRSOosZQCM="
+   # OSS_PASSWORD
    - secure: "DakTIC0o14UC0fEbU2zNsOYAzGShdj1JrmXrS7iJPtJKIkkMclhpnOBG0Hqg2LN11q12jmGO5xbcrfkSph7oE/JMgfobr8NDvUX6Mb3azt7ro5j8m1WUngx5W1FDoApDd4YatV7JNTyWBh8zoYovhJ3t/ACadLL5lyon8H6oM70="
+   # GPG_PASSPHRASE
    - secure: "IceZIWYE55lWayWU3yCcO0YOONsUdJdK4kywltTBNkt7m+KsgG0or5gl1feamR+dZSfHukWWw2ujrRXt3sWBBxeLtzi3BOXJCMoK0eRnR/FWTMrDtK7YWzCfy7BiYtq3cirRwXTwjECv9pROeQiS8YBMD2X0N4Ob2zZw+OEdJco="
 
 addons:
