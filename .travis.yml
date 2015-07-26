@@ -1,7 +1,7 @@
 language: java
 jdk: oraclejdk7
 install: mvn install -DskipTests=true -Dgpg.skip=true
-script: echo env.TEST
+script: echo $TEST
 
 branches:
   only:
