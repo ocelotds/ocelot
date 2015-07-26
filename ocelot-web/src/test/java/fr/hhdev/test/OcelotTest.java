@@ -220,11 +220,6 @@ public class OcelotTest {
 		System.out.println("---------------------------------------------------------------------------------------------------------------");
 	}
 
-	@After
-	public void tearDown() {
-		System.out.println("---------------------------------------------------------------------------------------------------------------");
-	}
-
 	/**
 	 * Créer une session localement au test
 	 *
@@ -233,7 +228,6 @@ public class OcelotTest {
 	public static Session createAndGetSession() {
 		WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 		try {
-			System.out.println("TRY TO CONNECT");
 			StringBuilder sb = new StringBuilder("ws://localhost:");
 			sb.append(PORT).append(Constants.SLASH).append(ctxpath).append(Constants.SLASH).append("ocelot-endpoint");
 			URI uri = new URI(sb.toString());
@@ -580,10 +574,10 @@ public class OcelotTest {
 		try {
 			connection1 = getConnectionForResource(resource, true);
 			int minlength = connection1.getContentLength();
-			traceFile(connection1.getInputStream(), resource, minlength, true);
+//			traceFile(connection1.getInputStream(), resource, minlength, true);
 			connection2 = getConnectionForResource(resource, false);
 			int length = connection2.getContentLength();
-			traceFile(connection2.getInputStream(), resource, length, false);
+//			traceFile(connection2.getInputStream(), resource, length, false);
 			assertTrue("Minification of " + resource + " didn't work, same size of file magnifier : " + length + " / minifer : " + minlength, minlength < length);
 		} catch (Exception e) {
 			fail(e.getMessage());
