@@ -1,3 +1,10 @@
+language: java
+install: mvn install -DskipTests=true -Dgpg.skip=true
+jdk: oraclejdk7
+
+branches:
+  only:
+    - master
 env:
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
@@ -16,6 +23,3 @@ addons:
 after_success:
   - mvn clean cobertura:cobertura coveralls:report
 
-language: java
-install: mvn install -DskipTests=true -Dgpg.skip=true
-jdk: oraclejdk7
