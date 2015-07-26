@@ -1,7 +1,7 @@
 language: java
 jdk: oraclejdk7
 install: mvn install -DskipTests=true -Dgpg.skip=true
-#deploy: mvn deploy --settings .travis-oss-settings.xml
+after_success: mvn deploy --settings .travis-oss-settings.xml
 branches:
   only:
     - master
