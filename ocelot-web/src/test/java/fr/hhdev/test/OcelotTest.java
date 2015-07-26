@@ -71,7 +71,6 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.weld.exceptions.UnsatisfiedResolutionException;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
@@ -79,7 +78,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -215,11 +213,6 @@ public class OcelotTest {
 		System.out.println("===============================================================================================================");
 	}
 
-	@Before
-	public void setUp() {
-		System.out.println("---------------------------------------------------------------------------------------------------------------");
-	}
-
 	/**
 	 * Créer une session localement au test
 	 *
@@ -305,11 +298,8 @@ public class OcelotTest {
 			logger.debug("RECEIVE RESPONSE FROM SERVER = {}", message);
 			MessageToClient messageToClientIn = MessageToClient.createFromJson(message);
 			if (id == null || id.equals(messageToClientIn.getId())) {
-//			if ((id != null && id.equals(messageToClientIn.getId())) || (id == null && messageToClientIn.getId() != null)) {
 				messageToClient = messageToClientIn;
-//				synchronized (lock) {
 				lock.countDown();
-//				}
 			}
 		}
 
