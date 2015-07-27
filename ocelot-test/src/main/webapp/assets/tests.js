@@ -61,27 +61,16 @@ ocelotController.addOpenListener(function () {
 			done();
 		});
 	});
-	QUnit.test(".getDateBefore()", function (assert) {
+	QUnit.test(".getDate()", function (assert) {
 		var done = assert.async();
-		var before = new Date();
+		var now = new Date();
 		setTimeout(function() {
 			srv.getDate().event(function (evt) {
 				assert.equal(evt.type, "RESULT");
-				assert.ok(evt.response > before.getTime());
+				assert.ok(new Date(evt.response).getDate() === now.getDate(), "Same day...");
 				done();
 			});
 		}, 50);
-	});
-	QUnit.test(".getDateAfter()", function (assert) {
-		var done = assert.async();
-		srv.getDate().event(function (evt) {
-			setTimeout(function() {
-				var after = new Date();
-				assert.equal(evt.type, "RESULT");
-				assert.ok(evt.response < after.getTime(), "receive "+evt.response+" - expected lesser than "+after.getTime());
-				done();
-			}, 50);
-		});
 	});
 	QUnit.test(".getResult()", function (assert) {
 		var done = assert.async();
