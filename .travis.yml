@@ -1,7 +1,7 @@
 language: java
 jdk: oraclejdk7
 #install: mvn install -DskipTests=true -Dgpg.skip=true
-install: mvn deploy --settings .travis-oss-settings.xml -Dgpg.skip=true
+install: mvn deploy --settings .travis-oss-settings.xml -Dgpg.skip=true cobertura:cobertura coveralls:report
 branches:
   only:
     - master
@@ -26,7 +26,3 @@ addons:
     build_command_prepend: "mvn clean"
     build_command:   "mvn -DskipTests=true compile"
     branch_pattern: coverity
-
-after_success:
-  - mvn clean test cobertura:cobertura coveralls:report
-
