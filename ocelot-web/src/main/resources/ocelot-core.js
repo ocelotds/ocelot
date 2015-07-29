@@ -54,10 +54,14 @@ if ("WebSocket" in window) {
          return topic ? (promise.args[0] === topic) : true;
       }
       function init() {
-         if (document.location.href.toString().indexOf(document.location.protocol + "//" + document.location.hostname + ":" + document.location.port + CTXPATH) === 0) {
-            ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + CTXPATH+"/ocelot-endpoint");
+         var host = document.location.hostname;
+         if (document.location.port && document.location.port !== "") {
+            host = host + ":" + document.location.port;
+         }
+         if (document.location.href.toString().indexOf(document.location.protocol + "//" + host + CTXPATH) === 0) {
+            ws = new WebSocket("ws://" + host + CTXPATH + "/ocelot-endpoint");
          } else {
-            ws = new WebSocket("ws://" + document.location.hostname + ":" + document.location.port + "/ocelot-endpoint");
+            ws = new WebSocket("ws://" + host + "/ocelot-endpoint");
          }
          ws.onmessage = function (evt) {
             var response, msgToClient = JSON.parse(evt.data), promise = promises[msgToClient.id];
@@ -87,11 +91,11 @@ if ("WebSocket" in window) {
          ws.onopen = function (evt) {
             var handler, ps;
             stateUpdated();
-            if(Object.keys(promises).length) { // its not open, but re-open, we redo the previous subscription
+            if (Object.keys(promises).length) { // its not open, but re-open, we redo the previous subscription
                ps = promises;
                promises = {};
                Object.keys(ps).forEach(function (id, index, array) {
-                  if(id !== ps[id].id) {
+                  if (id !== ps[id].id) {
                      ocelotController.addPromise(ps[id]);
                   }
                });
@@ -102,12 +106,18 @@ if ("WebSocket" in window) {
             }
             // Controller subscribe to ocelot-cleancache topic
             ocelotSrv.subscribe(CLEANCACHE).message(function (id) {
-               if (id === ALL) { ocelotController.cacheManager.clearCache(); }
-               else { ocelotController.cacheManager.removeEntryInCache(id); }
+               if (id === ALL) {
+                  ocelotController.cacheManager.clearCache();
+               }
+               else {
+                  ocelotController.cacheManager.removeEntryInCache(id);
+               }
             });
             // Get Locale from server or cache and re-set it
             ocelotSrv.getLocale().then(function (locale) {
-               if (locale) { ocelotSrv.setLocale(locale); }
+               if (locale) {
+                  ocelotSrv.setLocale(locale);
+               }
             });
             // send states or current objects in cache with lastupdate
             ocelotSrv.getOutDatedCache(ocelotController.cacheManager.getLastUpdateCache()).then(function (entries) {
@@ -182,7 +192,7 @@ if ("WebSocket" in window) {
                promises[promise.id] = promise;
                ws.send(JSON.stringify(promise.json));
             } else {
-               promise.response = createMessageEventFromPromise(promise, {"classname":"none", "message":"Websocket is not ready : status "+status, "stacktrace":[]});
+               promise.response = createMessageEventFromPromise(promise, {"classname": "none", "message": "Websocket is not ready : status " + status, "stacktrace": []});
             }
          },
          cacheManager: (function () {
@@ -251,7 +261,9 @@ if ("WebSocket" in window) {
                   ids = msgToClient.id.split("_");
                   json = localStorage.getItem(ids[0]);
                   obj = {};
-                  if (json) { obj = JSON.parse(json); }
+                  if (json) {
+                     obj = JSON.parse(json);
+                  }
                   obj[ids[1]] = msgToClient;
                   json = JSON.stringify(obj);
                   localStorage.setItem(ids[0], json);
@@ -264,7 +276,9 @@ if ("WebSocket" in window) {
                 */
                getResultInCache: function (compositeKey, ignoreCache) {
                   var ids, json, msgToClient, obj, now;
-                  if (ignoreCache) { return null; }
+                  if (ignoreCache) {
+                     return null;
+                  }
                   ids = compositeKey.split("_");
                   msgToClient = null;
                   json = localStorage.getItem(ids[0]);
@@ -329,7 +343,9 @@ if ("WebSocket" in window) {
             return (function (ds, id, op, argNames, args) {
                var handler, evt = null, thenHandlers = [], catchHandlers = [], eventHandlers = [], messageHandlers = [];
                function process(e) {
-                  if (!e) { return; }
+                  if (!e) {
+                     return;
+                  }
                   if (e.type !== MSG) {
                      while (handler = eventHandlers.shift()) {
                         handler(e);
@@ -360,24 +376,42 @@ if ("WebSocket" in window) {
                      return this;
                   },
                   then: function (onFulfilled, onRejected) {
-                     if (onFulfilled) { thenHandlers.push(onFulfilled); }
-                     if (onRejected) { catchHandlers.push(onRejected); }
-                     if (evt) { process(evt); }
+                     if (onFulfilled) {
+                        thenHandlers.push(onFulfilled);
+                     }
+                     if (onRejected) {
+                        catchHandlers.push(onRejected);
+                     }
+                     if (evt) {
+                        process(evt);
+                     }
                      return this;
                   },
                   catch : function (onRejected) {
-                     if (onRejected) { catchHandlers.push(onRejected); }
-                     if (evt) { process(evt); }
+                     if (onRejected) {
+                        catchHandlers.push(onRejected);
+                     }
+                     if (evt) {
+                        process(evt);
+                     }
                      return this;
                   },
                   event: function (onEvented) {
-                     if (onEvented) { eventHandlers.push(onEvented); }
-                     if (evt) { process(evt); }
+                     if (onEvented) {
+                        eventHandlers.push(onEvented);
+                     }
+                     if (evt) {
+                        process(evt);
+                     }
                      return this;
                   },
                   message: function (onMessaged) {
-                     if (onMessaged) { messageHandlers.push(onMessaged); }
-                     if (evt) { process(evt); }
+                     if (onMessaged) {
+                        messageHandlers.push(onMessaged);
+                     }
+                     if (evt) {
+                        process(evt);
+                     }
                      return this;
                   },
                   get json() {
