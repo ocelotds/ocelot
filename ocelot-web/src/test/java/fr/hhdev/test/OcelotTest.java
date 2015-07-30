@@ -1540,7 +1540,7 @@ public class OcelotTest {
 				session.addMessageHandler(new CountDownMessageHandler(lock));
 				executorService.execute(new TestThread(clazz, methodName, session));
 			}
-			boolean await = lock.await(20L * nb, TimeUnit.MILLISECONDS);
+			boolean await = lock.await(30L * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
 			assertTrue("Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nb + " msgs", await);
 		} catch (InterruptedException ex) {
