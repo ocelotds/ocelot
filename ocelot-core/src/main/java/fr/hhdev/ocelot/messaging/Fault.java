@@ -42,16 +42,17 @@ public class Fault {
 		return classname;
 	}
 
-	public StackTraceElement[] getStacktrace() {
+	private String[] getStacktrace() {
 		if (throwable != null && stacktracelength > 0) {
 			StackTraceElement[] stackTraces = throwable.getStackTrace();
-			return Arrays.copyOf(stackTraces, Math.min(stackTraces.length, stacktracelength));
+			int nb = Math.min(stackTraces.length, stacktracelength);
+			String[] result = new String[nb];
+			for (int i = 0; i < nb; i++) {
+				result[i] = stackTraces[i].toString();
+			}
+			return result;
 		}
-		return new StackTraceElement[]{};
-	}
-
-	public Throwable getThrowable() {
-		return throwable;
+		return new String[]{};
 	}
 
 	/**
@@ -72,12 +73,11 @@ public class Fault {
 	}
 
 	public String toJson() {
-		StackTraceElement[] stacktraceElt = getStacktrace();
-		String stacktrace = String.format(Arrays.toString(Collections.nCopies(stacktraceElt.length, "\"%s\"").toArray()), (Object[]) stacktraceElt);
+		String[] stacktraceElt = getStacktrace();
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s}",
 				  Constants.Message.Fault.CLASSNAME, this.classname,
 				  Constants.Message.Fault.MESSAGE, this.message,
-				  Constants.Message.Fault.STACKTRACE, stacktrace);
+				  Constants.Message.Fault.STACKTRACE, String.format(Arrays.toString(Collections.nCopies(stacktraceElt.length, "\"%s\"").toArray()), (Object[]) stacktraceElt));
 		return json;
 	}
 
