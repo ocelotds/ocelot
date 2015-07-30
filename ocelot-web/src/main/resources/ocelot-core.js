@@ -1,4 +1,13 @@
 var ocelotController, OcelotPromiseFactory, MD5Tools, CTXPATH = "%CTXPATH%";
+var Subscriber = (function(topic) {
+   var promise, ocelotSrv = new OcelotServices();
+   promise = ocelotSrv.subscribe(topic);
+   Object.defineProperty(promise, "topic", { get: function () { return topic; } });
+   promise.unsubscribe = function() {
+     return ocelotSrv.unsubscribe(topic);
+   };
+   return promise;
+});
 if ("WebSocket" in window) {
    ocelotController = (function () {
       var MSG = "MESSAGE", RES = "RESULT", FAULT = "FAULT", ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove",
