@@ -109,7 +109,7 @@ public class OcelotTest {
 	private Instance<IDataServiceResolver> resolvers;
 
 	@Inject
-	TestTopicAccessControl accessControl;
+	TestTopicAccessControler accessControl;
 
 	private IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();

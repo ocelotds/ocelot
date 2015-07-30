@@ -4,15 +4,16 @@
  */
 package fr.hhdev.ocelot.core;
 
-import fr.hhdev.ocelot.security.TopicAccessControl;
-import fr.hhdev.ocelot.security.TopicControl;
-import fr.hhdev.ocelot.security.TopicControlAnnotationLiteral;
+import fr.hhdev.ocelot.annotations.JsTopicAccessControl;
+import fr.hhdev.ocelot.security.JsTopicAccessController;
+import fr.hhdev.ocelot.security.JsTopicACAnnotationLiteral;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
 import javax.enterprise.util.AnnotationLiteral;
@@ -38,8 +39,36 @@ public class SessionManager {
 	};
 
 	@Inject
-	Instance<TopicAccessControl> allAccessControls;
+	@Any
+	Instance<JsTopicAccessController> topicAccessController;
 
+	/**
+	 * Process Access Topic Controller
+	 * 
+	 * @param session
+	 * @param topic
+	 * @throws IllegalAccessException 
+	 */
+	private void checkAccessTopic(Session session, String topic) throws IllegalAccessException {
+		JsTopicACAnnotationLiteral tcal = new JsTopicACAnnotationLiteral(topic);
+		Instance<JsTopicAccessController> accessControls = topicAccessController.select(DEFAULT_AT);
+		boolean tacPresent = false;
+		for (JsTopicAccessController accessControl : accessControls) {
+			accessControl.checkAccess(session, topic);
+			tacPresent = true;
+		}
+		accessControls = topicAccessController.select(tcal);
+		for (JsTopicAccessController accessControl : accessControls) {
+			accessControl.checkAccess(session, topic);
+			tacPresent = true;
+		}
+		if (!tacPresent) {
+			logger.info("No topic access control found in project, add {} implementation with optional Qualifier {} in your project for add topic security.", JsTopicAccessController.class, JsTopicAccessControl.class);
+		} else {
+			logger.info("Topic access control found in project.");
+		}
+	}
+	
 	/**
 	 * Register session for topic
 	 *
@@ -48,15 +77,7 @@ public class SessionManager {
 	 * @throws IllegalAccessException
 	 */
 	public void registerTopicSession(String topic, Session session) throws IllegalAccessException {
-		TopicControlAnnotationLiteral tcal = new TopicControlAnnotationLiteral(topic);
-		Instance<TopicAccessControl> accessControls = allAccessControls.select(tcal, DEFAULT_AT);
-		if (accessControls.isUnsatisfied()) {
-			logger.info("No topic access control found in project, add {} implementation with optional Qualifier {} in your project for add topic security.", TopicAccessControl.class, TopicControl.class);
-		} else {
-			for (TopicAccessControl accessControl : accessControls) {
-				accessControl.checkAccess(session, topic);
-			}
-		}
+		checkAccessTopic(session, topic);
 		Collection<Session> sessions;
 		if (sessionsByTopic.containsKey(topic)) {
 			sessions = sessionsByTopic.get(topic);

@@ -9,6 +9,6 @@ import javax.websocket.Session;
  *
  * @author hhfrancois
  */
-public interface TopicAccessControl {
+public interface JsTopicAccessController {
 	public void checkAccess(Session session, String topic) throws IllegalAccessException;
 }

@@ -3,18 +3,19 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package fr.hhdev.ocelot.security;
 
+import fr.hhdev.ocelot.annotations.JsTopicAccessControl;
 import javax.enterprise.util.AnnotationLiteral;
 
 /**
  *
  * @author hhfrancois
  */
-public class TopicControlAnnotationLiteral extends AnnotationLiteral<TopicControl> implements TopicControl {
+public class JsTopicACAnnotationLiteral extends AnnotationLiteral<JsTopicAccessControl> implements JsTopicAccessControl {
 	private static final long serialVersionUID = 1L;
 	
 	private final String value;
 
-	public TopicControlAnnotationLiteral(String value) {
+	public JsTopicACAnnotationLiteral(String value) {
 		this.value = value;
 	}
 	

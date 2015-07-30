@@ -3,8 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package fr.hhdev.test;
 
-import fr.hhdev.ocelot.security.TopicAccessControl;
-import fr.hhdev.ocelot.security.TopicControl;
+import fr.hhdev.ocelot.security.JsTopicAccessController;
 import javax.inject.Singleton;
 import javax.websocket.Session;
 import org.slf4j.Logger;
@@ -15,10 +14,9 @@ import org.slf4j.LoggerFactory;
  * @author hhfrancois
  */
 @Singleton
-@TopicControl("mytopic")
-public class TestMyTopicAccessControl implements TopicAccessControl {
+public class TestTopicAccessControler implements JsTopicAccessController {
 	
-	private final static Logger logger = LoggerFactory.getLogger(TestMyTopicAccessControl.class);
+	private final static Logger logger = LoggerFactory.getLogger(TestTopicAccessControler.class);
 
 	private boolean access = true; 
 
@@ -32,9 +30,9 @@ public class TestMyTopicAccessControl implements TopicAccessControl {
 
 	@Override
 	public void checkAccess(Session session, String topic) throws IllegalAccessException {
-		logger.debug("Check mytopic access to topic {} : access = {}", topic, access);
+		logger.debug("Check access to topic {} : access = {}", topic, access);
 		if(!access) {
-			throw new IllegalAccessException("mytopic access is set to false");
+			throw new IllegalAccessException("access is set to false");
 		}
 	}
 	
