@@ -56,7 +56,6 @@ public class JsTopicInterceptor implements Serializable {
 				idx++;
 			}
 		}
-		System.out.println("================== IN TOPIC INTERCEPTOR TOPIC : '"+topic+"'");
 		if(null==topic || topic.isEmpty()) {
 			throw new Exception("Topic name can't be empty.");
 		}
