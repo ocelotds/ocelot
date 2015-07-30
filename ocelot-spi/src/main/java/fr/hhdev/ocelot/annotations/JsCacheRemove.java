@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  * @author hhfrancois
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target({ElementType.METHOD})
 public @interface JsCacheRemove {
 	Class cls();
 	String methodName();

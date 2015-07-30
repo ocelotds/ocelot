@@ -9,10 +9,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation specify, that the method annotated remove all entry in cache
+ * Annotation for specify that the method annotated remove entry cache
  * @author hhfrancois
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
-public @interface JsCacheRemoveAll {
+@Target({ElementType.PARAMETER})
+public @interface JsTopicName {
 }
