@@ -42,7 +42,7 @@ public class Fault {
 		return classname;
 	}
 
-	private String[] getStacktrace() {
+	public String[] getStacktrace() {
 		if (throwable != null && stacktracelength > 0) {
 			StackTraceElement[] stackTraces = throwable.getStackTrace();
 			int nb = Math.min(stackTraces.length, stacktracelength);
@@ -53,6 +53,10 @@ public class Fault {
 			return result;
 		}
 		return new String[]{};
+	}
+
+	public Throwable getThrowable() {
+		return throwable;
 	}
 
 	/**

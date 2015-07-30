@@ -270,7 +270,7 @@ public class CallServiceManager {
 			if (InvocationTargetException.class.isInstance(ex)) {
 				cause = ex.getCause();
 			}
-			if (stacktracelength == 0) {
+			if (stacktracelength == 0 || logger.isDebugEnabled()) {
 				logger.error("Invocation failed", ex);
 			}
 			messageToClient.setFault(new Fault(cause, stacktracelength));
@@ -293,9 +293,5 @@ public class CallServiceManager {
 		} catch (SecurityException ex) {
 		}
 		throw new NoSuchMethodException(methodName);
-	}
-
-	private static class MethodWithSessionInjectionExeption extends Exception {
-		private static final long serialVersionUID = 5103504405002719013L;
 	}
 }
