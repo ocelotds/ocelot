@@ -11,7 +11,7 @@ var Subscriber = (function(topic) {
 if ("WebSocket" in window) {
    ocelotController = (function () {
       var MSG = "MESSAGE", RES = "RESULT", FAULT = "FAULT", ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove",
-         CLEANCACHE = "ocelot-cleancache", STATUS = "ocelot-status", OSRV = "fr.hhdev.ocelot.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe",
+         CLEANCACHE = "ocelot-cleancache", STATUS = "ocelot-status", OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe",
          stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], promises = {}, openHandlers = [], closeHandlers = [], errorHandlers = [], ws, ocelotSrv;
       ocelotSrv = new OcelotServices();
       function showErrorSocketIsNotReady(msg) {

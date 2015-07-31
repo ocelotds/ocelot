@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<artifactId>demo-ear</artifactId>
-		<groupId>fr.hhdev</groupId>
+		<groupId>org.ocelotds</groupId>
 		<version>1.0.0-SNAPSHOT</version>
 	</parent>
 
-	<groupId>fr.hhdev</groupId>
+	<groupId>org.ocelotds</groupId>
 	<artifactId>demo-ear-web</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>war</packaging>
@@ -21,7 +21,7 @@
     
 	<dependencies>
 		<dependency>
-			<groupId>fr.hhdev</groupId>
+			<groupId>org.ocelotds</groupId>
 			<artifactId>ocelot-web</artifactId>
 			<version>[2,)</version>
 		</dependency>

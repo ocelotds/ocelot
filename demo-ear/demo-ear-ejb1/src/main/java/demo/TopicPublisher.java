@@ -5,10 +5,10 @@
  */
 package demo;
 
-//import fr.hhdev.ocelot.messaging.MessageToClient;
-//import fr.hhdev.ocelot.messaging.MessageEvent;
-import fr.hhdev.ocelot.messaging.MessageEvent;
-import fr.hhdev.ocelot.messaging.MessageToClient;
+//import org.ocelotds.messaging.MessageToClient;
+//import org.ocelotds.messaging.MessageEvent;
+import org.ocelotds.messaging.MessageEvent;
+import org.ocelotds.messaging.MessageToClient;
 import javax.ejb.Schedule;
 import javax.ejb.Singleton;
 import javax.enterprise.event.Event;

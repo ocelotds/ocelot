@@ -16,8 +16,8 @@
 package demo.controller;
 
 import demo.dao.MessageDAO;
-import fr.hhdev.ocelot.Constants;
-import fr.hhdev.ocelot.annotations.DataService;
+import org.ocelotds.Constants;
+import org.ocelotds.annotations.DataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

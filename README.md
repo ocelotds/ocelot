@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/hhdevelopment/ocelot.svg?branch=master)](https://travis-ci.org/hhdevelopment/ocelot)
 [![Coverage Status](https://coveralls.io/repos/hhdevelopment/ocelot/badge.svg?branch=master&service=github)](https://coveralls.io/github/hhdevelopment/ocelot?branch=master)
 [![Maven](https://img.shields.io/badge/Maven central-2.0.2-blue.svg)](http://search.maven.org/#search|ga|1|ocelot)
-[![Maven](https://img.shields.io/badge/OSS Sonatype-2.0.3--SNAPSHOT-lightgrey.svg)](https://oss.sonatype.org/#nexus-search;gav~fr.hhdev~ocelot~~~)
+[![Maven](https://img.shields.io/badge/OSS Sonatype-2.0.3--SNAPSHOT-lightgrey.svg)](https://oss.sonatype.org/#nexus-search;gav~org.ocelotds~ocelot~~~)
 
 ## The best and easiest communication way between java 7 and javascript
 #### Forget REST, forget AJAX, forget http, forget protocol, Ocelot uses websocket and do everything for you.
@@ -17,7 +17,7 @@
 ### Dependencies WEB
 ```xml
 <dependency>
-  <groupId>fr.hhdev</groupId>
+  <groupId>org.ocelotds</groupId>
   <artifactId>ocelot-web</artifactId>
   <version>2.0.2</version>
 </dependency>
@@ -26,7 +26,7 @@
 ### Dependencies EJB
 ```xml
 <dependency>
-  <groupId>fr.hhdev</groupId>
+  <groupId>org.ocelotds</groupId>
   <artifactId>ocelot-core</artifactId>
   <version>2.0.2</version>
 </dependency>

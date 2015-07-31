@@ -1,8 +1,8 @@
 package demo;
 
-import fr.hhdev.ocelot.Constants;
-import fr.hhdev.ocelot.annotations.DataService;
-import fr.hhdev.ocelot.annotations.JsCacheResult;
+import org.ocelotds.Constants;
+import org.ocelotds.annotations.DataService;
+import org.ocelotds.annotations.JsCacheResult;
 import javax.ejb.Stateless;
 
 /**

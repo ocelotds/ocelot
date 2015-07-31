@@ -1,7 +1,7 @@
 package demo;
 
-import fr.hhdev.ocelot.Constants;
-import fr.hhdev.ocelot.annotations.DataService;
+import org.ocelotds.Constants;
+import org.ocelotds.annotations.DataService;
 
 /**
  * Classe de test sur le pojoResolver
