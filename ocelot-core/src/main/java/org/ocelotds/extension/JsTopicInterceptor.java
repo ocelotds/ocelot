@@ -30,7 +30,7 @@ public class JsTopicInterceptor implements Serializable {
 
 	@Inject
 	@MessageEvent
-	Event<MessageToClient> wsEvent;
+	transient Event<MessageToClient> wsEvent;
 
 	/**
 	 *
