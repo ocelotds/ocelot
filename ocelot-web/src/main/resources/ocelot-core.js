@@ -98,6 +98,7 @@ if ("WebSocket" in window) {
             promise.response = response;
          };
          ws.onopen = function (evt) {
+            console.info("Websocket opened");
             var handler, ps;
             stateUpdated();
             if (Object.keys(promises).length) { // its not open, but re-open, we redo the previous subscription
@@ -137,6 +138,7 @@ if ("WebSocket" in window) {
             }
          };
          ws.onerror = function (evt) {
+            console.info("Websocket error : "+evt.reason);
             var handler;
             while (handler = errorHandlers.shift()) {
                handler(evt);
@@ -144,9 +146,10 @@ if ("WebSocket" in window) {
             stateUpdated();
          };
          ws.onclose = function (evt) {
+            console.info("Websocket closed : "+evt.reason);
             var handler;
             while (handler = closeHandlers.shift()) {
-               handler();
+               handler(evt);
             }
             stateUpdated();
          };
@@ -176,8 +179,8 @@ if ("WebSocket" in window) {
          open: function () {
             init();
          },
-         close: function () {
-            ws.close();
+         close: function (reason) {
+            ws.close(1000, reason|"Normal closure; the connection successfully completed whatever purpose for which it was created.");
          },
          addPromise: function (promise) {
             if (isTopicSubscription(promise, STATUS)) {
@@ -260,10 +263,12 @@ if ("WebSocket" in window) {
                   }
                },
                /**
+                * If msgToClient has deadline so we stock in cache
                 * Add result in cache storage
                 * @param {MessageToClient} msgToClient
                 */
                putResultInCache: function (msgToClient) {
+                  if(!msgToClient.deadline) return;
                   var ids, json, obj;
                   lastUpdateManager.addEntry(msgToClient.id);
                   manageAddEvent(msgToClient);

@@ -11,8 +11,8 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 public class SessionManager {
 
 	private final static Logger logger = LoggerFactory.getLogger(SessionManager.class);
-	private final Map<String, Collection<Session>> sessionsByTopic = new HashMap<>();
+	private final Map<String, Collection<Session>> sessionsByTopic = new ConcurrentHashMap<>();
 
 	private static final Annotation DEFAULT_AT = new AnnotationLiteral<Default>() {
 		private static final long serialVersionUID = 1L;
@@ -44,10 +44,10 @@ public class SessionManager {
 
 	/**
 	 * Process Access Topic Controller
-	 * 
+	 *
 	 * @param session
 	 * @param topic
-	 * @throws IllegalAccessException 
+	 * @throws IllegalAccessException
 	 */
 	private void checkAccessTopic(Session session, String topic) throws IllegalAccessException {
 		JsTopicACAnnotationLiteral tcal = new JsTopicACAnnotationLiteral(topic);
@@ -68,7 +68,7 @@ public class SessionManager {
 			logger.info("Topic access control found in project.");
 		}
 	}
-	
+
 	/**
 	 * Register session for topic
 	 *
@@ -90,15 +90,14 @@ public class SessionManager {
 	}
 
 	/**
-	 * Unregister session for topic
-	 * topic 'ALL' remove session for all topics
+	 * Unregister session for topic topic 'ALL' remove session for all topics
 	 *
 	 * @param topic
 	 * @param session
 	 */
 	public void unregisterTopicSession(String topic, Session session) {
 		logger.debug("'{}' unsubscribe to '{}'", session.getId(), topic);
-		if("ALL".equals(topic)) {
+		if ("ALL".equals(topic)) {
 			for (Collection<Session> sessions : sessionsByTopic.values()) {
 				if (sessions != null && sessions.contains(session)) {
 					sessions.remove(session);
@@ -113,7 +112,18 @@ public class SessionManager {
 	}
 
 	/**
-	 * Remove session cause it's close by the endpoint
+	 * Remove sessions cause they are closed
+	 *
+	 * @param sessions
+	 */
+	public void removeSessionsToTopic(Collection<Session> sessions) {
+		for (Session session : sessions) {
+			removeSessionToTopic(session);
+		}
+	}
+
+	/**
+	 * Remove session cause it's closed by the endpoint
 	 *
 	 * @param session
 	 */
@@ -131,21 +141,11 @@ public class SessionManager {
 	 */
 	public Collection<Session> getSessionsForTopic(String topic) {
 		Collection<Session> result;
-		if (existsSessionForTopic(topic)) {
-			return sessionsByTopic.get(topic);
+		if (sessionsByTopic.containsKey(topic)) {
+			return Collections.unmodifiableCollection(sessionsByTopic.get(topic));
 		} else {
 			result = Collections.EMPTY_LIST;
 		}
 		return result;
-	}
-
-	/**
-	 * check if sessions exist for topic
-	 *
-	 * @param topic
-	 * @return
-	 */
-	public boolean existsSessionForTopic(String topic) {
-		return sessionsByTopic.containsKey(topic) && !sessionsByTopic.get(topic).isEmpty();
 	}
 }
