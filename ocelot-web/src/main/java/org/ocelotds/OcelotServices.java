@@ -78,21 +78,19 @@ public class OcelotServices {
 	public void unsubscribe(String topic) {
 	}
 
-	@TransientDataService
 	@JsTopic
-	public String subscribe(Session session, @JsTopicName(prefix=Constants.Topic.SUBSCRIPTION) String topic) throws IllegalAccessException {
-		sessionManager.registerTopicSession(topic, session);
-		return (session.getUserPrincipal()==null)?session.getId():session.getUserPrincipal().getName();
+	@TransientDataService
+	public Integer subscribe(Session session, @JsTopicName(prefix=Constants.Topic.SUBSCRIBERS) String topic) throws IllegalAccessException {
+		return sessionManager.registerTopicSession(topic, session);
 	}
 
-	@TransientDataService
 	@JsTopic
-	public String unsubscribe(Session session, @JsTopicName(prefix=Constants.Topic.UNSUBSCRIPTION) String topic) {
-		sessionManager.unregisterTopicSession(topic, session);
-		return (session.getUserPrincipal()==null)?session.getId():session.getUserPrincipal().getName();
+	@TransientDataService
+	public Integer unsubscribe(Session session, @JsTopicName(prefix=Constants.Topic.SUBSCRIBERS) String topic) {
+		return sessionManager.unregisterTopicSession(topic, session);
 	}
 
-	public int getNumberSubscribers(String topic) {
+	public Integer getNumberSubscribers(String topic) {
 		return sessionManager.getNumberSubscribers(topic);
 	}
 }
