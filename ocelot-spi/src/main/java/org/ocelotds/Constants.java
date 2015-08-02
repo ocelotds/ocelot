@@ -43,6 +43,7 @@ public interface Constants {
 		String SUBSCRIPTION = "subscription";
 		String UNSUBSCRIPTION = "unsubscription";
 		String COLON = ":";
+		String ALL = "ALL";
 	}
 
 	interface Message {
