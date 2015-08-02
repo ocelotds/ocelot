@@ -10,9 +10,11 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation for specify that the method annotated remove entry cache
+ * optional prefix allow to subscribe a sub topic
  * @author hhfrancois
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})
 public @interface JsTopicName {
+	String prefix() default "";
 }

@@ -48,6 +48,8 @@ public interface Constants {
 		String ARGUMENTNAMES = "argNames";
 		String DEADLINE = "deadline";
 		String RESPONSE = "response";
+		String SUBSCRIPTION = "subscription";
+		String UNSUBSCRIPTION = "unsubscription";
 
 		interface Fault {
 
