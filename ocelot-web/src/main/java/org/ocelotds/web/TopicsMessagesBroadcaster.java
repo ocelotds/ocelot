@@ -37,21 +37,23 @@ public class TopicsMessagesBroadcaster {
 		msg.setType(MessageType.MESSAGE);
 		logger.debug("Sending message to topic {}...", msg);
 		Collection<Session> sessions = sessionManager.getSessionsForTopic(msg.getId());
-		if (!sessions.isEmpty()) {
-			Collection<Session> closed = new ArrayList<>();
+		if (sessions != null && !sessions.isEmpty()) {
+			Collection<Session> sessionsClosed = new ArrayList<>();
 			for (Session session : sessions) {
-				if (session.isOpen()) {
-					session.getAsyncRemote().sendObject(msg);
-				} else {
-					closed.add(session);
+				if(session!=null) {
+					if (session.isOpen()) {
+						session.getAsyncRemote().sendObject(msg);
+					} else {
+						sessionsClosed.add(session);
+					}
 				}
 			}
-			if(logger.isDebugEnabled()){
-				logger.debug("Send message to '{}' topic {} client(s) : {}", new Object[]{msg.getId(), sessions.size()-closed.size(), msg});
+			if (logger.isDebugEnabled()) {
+				logger.debug("Send message to '{}' topic {} client(s) : {}", new Object[]{msg.getId(), sessions.size() - sessionsClosed.size(), msg});
 			}
-			if(!closed.isEmpty()) {
-				logger.debug("Session closed to remove '{}'", closed.size());
-				sessionManager.removeSessionsToTopic(sessions);
+			if (!sessionsClosed.isEmpty()) {
+				logger.debug("Session closed to remove '{}'", sessionsClosed.size());
+				sessionManager.removeSessionsToTopic(sessionsClosed);
 			}
 		} else {
 			logger.debug("No client for topic '{}'", msg.getId());
