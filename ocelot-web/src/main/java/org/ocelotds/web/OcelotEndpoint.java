@@ -111,7 +111,7 @@ public class OcelotEndpoint extends CdiBootstrap {
 		}
 		MessageFromClient message = MessageFromClient.createFromJson(json);
 		logger.debug("Receive call message '{}' for session '{}'", message.getId(), client.getId());
-		getCallServiceManager().sendMessageToClients(client, message);
+		getCallServiceManager().sendMessageToClient(message, client);
 	}
 
 	public SessionManager getSessionManager() {
