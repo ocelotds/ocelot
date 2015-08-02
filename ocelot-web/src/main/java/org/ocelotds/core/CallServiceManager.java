@@ -125,10 +125,10 @@ public class CallServiceManager {
 							}
 						}
 					}
-					logger.debug("Method {}.{} with good signature found.", dsClass, message.getOperation());
+					logger.debug("Method {}.{} with good signature with injected session found.", dsClass, message.getOperation());
 					return method;
 				} catch (IllegalArgumentException iae) {
-					logger.debug("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
+					logger.debug("Method {}.{} with injected not found. Arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
 				}
 			}
 		}
@@ -230,17 +230,16 @@ public class CallServiceManager {
 	/**
 	 * Build and send response messages after call request
 	 *
-	 * @param client
 	 * @param message
+	 * @param client
 	 */
-	public void sendMessageToClients(Session client, MessageFromClient message) {
+	public void sendMessageToClient(MessageFromClient message, Session client) {
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(message.getId());
 		try {
 			Class cls = Class.forName(message.getDataService());
 			Object dataService = getDataService(client, cls);
 			logger.debug("Process message {}", message);
-			logger.debug("Invocation of : {}", message.getOperation());
 			int nbParam = message.getParameters().size();
 			Object[] arguments = new Object[nbParam];
 			Method method = getMethodFromDataService(cls, message, arguments);
