@@ -1617,7 +1617,6 @@ public class OcelotTest {
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(topic));
 			assertEquals(MessageType.RESULT, messageToClient.getType());
-			assertEquals("null", messageToClient.getResponse());
 			long t0 = System.currentTimeMillis();
 			MessageFromClient messageFromClient = getMessageFromClient(EJBDataService.class, "generateCleanCacheMessage", "\"a\",\"r\"", getJson(""), getJson(new Result(5)));
 			CountDownLatch lock = new CountDownLatch(2);
