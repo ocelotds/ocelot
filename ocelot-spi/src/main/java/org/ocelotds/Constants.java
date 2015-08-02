@@ -19,23 +19,29 @@ public interface Constants {
 	String LOCALE = "LOCALE";
 
 	String OCELOT = "ocelot";
-	String OCELOT_CORE = OCELOT+"-core";
-	String OCELOT_MIN = OCELOT+MIN;
-	String SLASH_OCELOT_JS = SLASH+OCELOT+JS;
-	
+	String OCELOT_CORE = OCELOT + "-core";
+	String OCELOT_MIN = OCELOT + MIN;
+	String SLASH_OCELOT_JS = SLASH + OCELOT + JS;
+
 	String MINIFY_PARAMETER = "minify";
 	String JSTYPE = "text/javascript;charset=UTF-8";
 	String FALSE = "false";
 	String TRUE = "true";
-	
+
 	/**
 	 * This string will be replaced by the contextPath in ocelot-core.js
 	 */
 	String CTXPATH = "%CTXPATH%";
-	
+
 	interface Options {
 
 		String STACKTRACE = "ocelot.stacktrace.length";
+	}
+
+	interface Topic {
+
+		String SUBSCRIPTION = "subscription";
+		String UNSUBSCRIPTION = "unsubscription";
 	}
 
 	interface Message {
@@ -48,8 +54,6 @@ public interface Constants {
 		String ARGUMENTNAMES = "argNames";
 		String DEADLINE = "deadline";
 		String RESPONSE = "response";
-		String SUBSCRIPTION = "subscription";
-		String UNSUBSCRIPTION = "unsubscription";
 
 		interface Fault {
 
