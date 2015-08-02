@@ -40,8 +40,7 @@ public interface Constants {
 
 	interface Topic {
 
-		String SUBSCRIPTION = "subscription";
-		String UNSUBSCRIPTION = "unsubscription";
+		String SUBSCRIBERS = "subscribers";
 		String COLON = ":";
 		String ALL = "ALL";
 	}
