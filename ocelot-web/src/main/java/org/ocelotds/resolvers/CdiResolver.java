@@ -27,13 +27,13 @@ public class CdiResolver implements IDataServiceResolver {
 
 	@Inject
 	BeanManager beanManager;
-
+	
 	@Override
 	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
 		Set<Bean<?>> beans = beanManager.getBeans(clazz);
 		for (Bean<?> b : beans) {
-			final CreationalContext creationalContext = beanManager.createCreationalContext(b);
-			return clazz.cast(beanManager.getReference(b, b.getBeanClass(), creationalContext));
+			final CreationalContext context = beanManager.createCreationalContext(b);
+			return clazz.cast(beanManager.getReference(b, b.getBeanClass(), context));
 		}
 		throw new DataServiceException(clazz.getName());
 	}

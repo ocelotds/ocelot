@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
+import org.ocelotds.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +50,12 @@ public class JsTopicInterceptor implements Serializable {
 			for (Annotation[] parameterAnnotations : parametersAnnotations) {
 				for (Annotation parameterAnnotation : parameterAnnotations) {
 					if(parameterAnnotation.annotationType().equals(JsTopicName.class)) {
-						topic = (String) parameters[idx];
+						JsTopicName jsTopicName = (JsTopicName) parameterAnnotation;
+						if(!jsTopicName.prefix().isEmpty()) {
+							topic = jsTopicName.prefix()+Constants.Topic.COLON+parameters[idx];
+						} else {
+							topic = (String) parameters[idx];
+						}
 						break;
 					}
 				}

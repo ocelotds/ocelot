@@ -8,11 +8,13 @@ import org.ocelotds.annotations.JsTopicAccessControl;
 import org.ocelotds.security.JsTopicAccessController;
 import org.ocelotds.security.JsTopicACAnnotationLiteral;
 import java.lang.annotation.Annotation;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.enterprise.event.Event;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
@@ -20,6 +22,9 @@ import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.websocket.Session;
+import org.ocelotds.Constants;
+import org.ocelotds.messaging.MessageEvent;
+import org.ocelotds.messaging.MessageToClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +42,10 @@ public class SessionManager {
 	private static final Annotation DEFAULT_AT = new AnnotationLiteral<Default>() {
 		private static final long serialVersionUID = 1L;
 	};
+
+	@Inject
+	@MessageEvent
+	transient Event<MessageToClient> wsEvent;
 
 	@Inject
 	@Any
@@ -90,14 +99,14 @@ public class SessionManager {
 	}
 
 	/**
-	 * Unregister session for topic topic 'ALL' remove session for all topics
+	 * Unregister session for topic. topic 'ALL' remove session for all topics
 	 *
 	 * @param topic
 	 * @param session
 	 */
 	public void unregisterTopicSession(String topic, Session session) {
 		logger.debug("'{}' unsubscribe to '{}'", session.getId(), topic);
-		if ("ALL".equals(topic)) {
+		if (Constants.Topic.ALL.equals(topic)) {
 			for (Collection<Session> sessions : sessionsByTopic.values()) {
 				if (sessions != null && sessions.contains(session)) {
 					sessions.remove(session);
@@ -112,13 +121,29 @@ public class SessionManager {
 	}
 
 	/**
+	 * Unregister sessions for topic
+	 *
+	 * @param topic
+	 * @param sessions
+	 */
+	public void unregisterTopicSessions(String topic, Collection<Session> sessions) {
+		Collection<Session> all = sessionsByTopic.get(topic);
+		if (sessions != null) {
+			all.removeAll(sessions);
+		}
+	}
+
+	/**
 	 * Remove sessions cause they are closed
 	 *
 	 * @param sessions
 	 */
 	public void removeSessionsToTopic(Collection<Session> sessions) {
-		for (Session session : sessions) {
-			removeSessionToTopic(session);
+		for (String topic : sessionsByTopic.keySet()) {
+			unregisterTopicSessions(topic, sessions);
+			for (Session session : sessions) {
+				sendUnsubscriptionEvent(topic, session);
+			}
 		}
 	}
 
@@ -130,7 +155,26 @@ public class SessionManager {
 	public void removeSessionToTopic(Session session) {
 		for (String topic : sessionsByTopic.keySet()) {
 			unregisterTopicSession(topic, session);
+			sendUnsubscriptionEvent(topic, session);
 		}
+	}
+
+	/**
+	 * Send unsubscription event to all client
+	 *
+	 * @param topic
+	 * @param session
+	 */
+	private void sendUnsubscriptionEvent(String topic, Session session) {
+		MessageToClient messageToClient = new MessageToClient();
+		messageToClient.setId(Constants.Topic.UNSUBSCRIPTION + Constants.Topic.COLON + topic);
+		Principal p = session.getUserPrincipal();
+		if (p != null) {
+			messageToClient.setResponse(p.getName());
+		} else {
+			messageToClient.setResponse(session.getId());
+		}
+		wsEvent.fire(messageToClient);
 	}
 
 	/**
@@ -147,5 +191,18 @@ public class SessionManager {
 			result = Collections.EMPTY_LIST;
 		}
 		return result;
+	}
+
+	/**
+	 * Get Number Sessions for topics
+	 *
+	 * @param topic
+	 * @return
+	 */
+	public int getNumberSubscribers(String topic) {
+		if (sessionsByTopic.containsKey(topic)) {
+			return sessionsByTopic.get(topic).size();
+		}
+		return 0;
 	}
 }

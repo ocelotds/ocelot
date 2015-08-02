@@ -16,6 +16,8 @@ import java.util.Collection;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.websocket.Session;
+import org.ocelotds.annotations.JsTopic;
+import org.ocelotds.annotations.JsTopicName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +35,7 @@ public class OcelotServices {
 	
 	@Inject
 	private SessionManager sessionManager;
-
+	
 	@MethodWithSessionInjection
 	@JsCacheRemove(cls = OcelotServices.class, methodName = "getLocale")
 	public void setLocale(Locale locale) {
@@ -77,12 +79,20 @@ public class OcelotServices {
 	}
 
 	@TransientDataService
-	public void subscribe(Session session, String topic) throws IllegalAccessException {
+	@JsTopic
+	public String subscribe(Session session, @JsTopicName(prefix=Constants.Topic.SUBSCRIPTION) String topic) throws IllegalAccessException {
 		sessionManager.registerTopicSession(topic, session);
+		return (session.getUserPrincipal()==null)?session.getId():session.getUserPrincipal().getName();
 	}
 
 	@TransientDataService
-	public void unsubscribe(Session session, String topic) {
+	@JsTopic
+	public String unsubscribe(Session session, @JsTopicName(prefix=Constants.Topic.UNSUBSCRIPTION) String topic) {
 		sessionManager.unregisterTopicSession(topic, session);
+		return (session.getUserPrincipal()==null)?session.getId():session.getUserPrincipal().getName();
+	}
+
+	public int getNumberSubscribers(String topic) {
+		return sessionManager.getNumberSubscribers(topic);
 	}
 }

@@ -4,7 +4,6 @@
  */
 package org.ocelotds.web;
 
-import java.io.IOException;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
@@ -13,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import javax.websocket.EncodeException;
 import javax.websocket.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
