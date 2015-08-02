@@ -8,13 +8,13 @@ import org.ocelotds.annotations.JsTopicAccessControl;
 import org.ocelotds.security.JsTopicAccessController;
 import org.ocelotds.security.JsTopicACAnnotationLiteral;
 import java.lang.annotation.Annotation;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.enterprise.event.Event;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
@@ -23,8 +23,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.websocket.Session;
 import org.ocelotds.Constants;
-import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
+import org.ocelotds.messaging.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,15 +37,11 @@ import org.slf4j.LoggerFactory;
 public class SessionManager {
 
 	private final static Logger logger = LoggerFactory.getLogger(SessionManager.class);
-	private final Map<String, Collection<Session>> sessionsByTopic = new ConcurrentHashMap<>();
+	private final Map<String, Set<Session>> sessionsByTopic = new ConcurrentHashMap<>();
 
 	private static final Annotation DEFAULT_AT = new AnnotationLiteral<Default>() {
 		private static final long serialVersionUID = 1L;
 	};
-
-	@Inject
-	@MessageEvent
-	transient Event<MessageToClient> wsEvent;
 
 	@Inject
 	@Any
@@ -83,19 +79,24 @@ public class SessionManager {
 	 *
 	 * @param topic
 	 * @param session
+	 * @return int : number subscribers
 	 * @throws IllegalAccessException
 	 */
-	public void registerTopicSession(String topic, Session session) throws IllegalAccessException {
+	public int registerTopicSession(String topic, Session session) throws IllegalAccessException {
 		checkAccessTopic(session, topic);
-		Collection<Session> sessions;
+		Set<Session> sessions;
 		if (sessionsByTopic.containsKey(topic)) {
 			sessions = sessionsByTopic.get(topic);
 		} else {
-			sessions = Collections.synchronizedCollection(new ArrayList<Session>());
+			sessions = Collections.synchronizedSet(new HashSet<Session>());
 			sessionsByTopic.put(topic, sessions);
 		}
 		logger.info("'{}' subscribe to '{}'", session.getId(), topic);
+		if (sessions.contains(session)) {
+			sessions.remove(session);
+		}
 		sessions.add(session);
+		return getNumberSubscribers(topic);
 	}
 
 	/**
@@ -103,8 +104,9 @@ public class SessionManager {
 	 *
 	 * @param topic
 	 * @param session
+	 * @return int : number subscribers remaining
 	 */
-	public void unregisterTopicSession(String topic, Session session) {
+	public int unregisterTopicSession(String topic, Session session) {
 		logger.debug("'{}' unsubscribe to '{}'", session.getId(), topic);
 		if (Constants.Topic.ALL.equals(topic)) {
 			for (Collection<Session> sessions : sessionsByTopic.values()) {
@@ -118,6 +120,7 @@ public class SessionManager {
 				sessions.remove(session);
 			}
 		}
+		return getNumberSubscribers(topic);
 	}
 
 	/**
@@ -141,9 +144,7 @@ public class SessionManager {
 	public void removeSessionsToTopic(Collection<Session> sessions) {
 		for (String topic : sessionsByTopic.keySet()) {
 			unregisterTopicSessions(topic, sessions);
-			for (Session session : sessions) {
-				sendUnsubscriptionEvent(topic, session);
-			}
+			sendSubscriptionEvent(Constants.Topic.SUBSCRIBERS + Constants.Topic.COLON + topic, getNumberSubscribers(topic));
 		}
 	}
 
@@ -154,27 +155,29 @@ public class SessionManager {
 	 */
 	public void removeSessionToTopic(Session session) {
 		for (String topic : sessionsByTopic.keySet()) {
-			unregisterTopicSession(topic, session);
-			sendUnsubscriptionEvent(topic, session);
+			sendSubscriptionEvent(Constants.Topic.SUBSCRIBERS + Constants.Topic.COLON + topic, unregisterTopicSession(topic, session));
 		}
 	}
 
 	/**
-	 * Send unsubscription event to all client
+	 * Send subscription event to all client
 	 *
 	 * @param topic
 	 * @param session
 	 */
-	private void sendUnsubscriptionEvent(String topic, Session session) {
+	private void sendSubscriptionEvent(String topic, int nb) {
 		MessageToClient messageToClient = new MessageToClient();
-		messageToClient.setId(Constants.Topic.UNSUBSCRIPTION + Constants.Topic.COLON + topic);
-		Principal p = session.getUserPrincipal();
-		if (p != null) {
-			messageToClient.setResponse(p.getName());
-		} else {
-			messageToClient.setResponse(session.getId());
+		messageToClient.setId(topic);
+		messageToClient.setType(MessageType.MESSAGE);
+		messageToClient.setResponse(nb);
+		Collection<Session> sessions = getSessionsForTopic(topic);
+		if (!sessions.isEmpty()) {
+			for (Session session : sessions) {
+				if (session.isOpen()) {
+					session.getAsyncRemote().sendObject(messageToClient);
+				}
+			}
 		}
-		wsEvent.fire(messageToClient);
 	}
 
 	/**
@@ -186,7 +189,7 @@ public class SessionManager {
 	public Collection<Session> getSessionsForTopic(String topic) {
 		Collection<Session> result;
 		if (sessionsByTopic.containsKey(topic)) {
-			return Collections.unmodifiableCollection(sessionsByTopic.get(topic));
+			return Collections.unmodifiableSet(sessionsByTopic.get(topic));
 		} else {
 			result = Collections.EMPTY_LIST;
 		}
