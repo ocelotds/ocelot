@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 @Interceptor
 @JsTopic
 public class JsTopicInterceptor implements Serializable {
+
 	private static final long serialVersionUID = -849762977471230875L;
 
 	private final static Logger logger = LoggerFactory.getLogger(JsTopicInterceptor.class);
@@ -43,16 +44,16 @@ public class JsTopicInterceptor implements Serializable {
 	public Object processJsTopic(InvocationContext ctx) throws Exception {
 		JsTopic jsTopic = ctx.getMethod().getAnnotation(JsTopic.class);
 		String topic = jsTopic.value();
-		if(null==topic || topic.isEmpty()) {
+		if (null == topic || topic.isEmpty()) {
 			Object[] parameters = ctx.getParameters();
 			int idx = 0;
 			Annotation[][] parametersAnnotations = ctx.getMethod().getParameterAnnotations();
 			for (Annotation[] parameterAnnotations : parametersAnnotations) {
 				for (Annotation parameterAnnotation : parameterAnnotations) {
-					if(parameterAnnotation.annotationType().equals(JsTopicName.class)) {
+					if (parameterAnnotation.annotationType().equals(JsTopicName.class)) {
 						JsTopicName jsTopicName = (JsTopicName) parameterAnnotation;
-						if(!jsTopicName.prefix().isEmpty()) {
-							topic = jsTopicName.prefix()+Constants.Topic.COLON+parameters[idx];
+						if (!jsTopicName.prefix().isEmpty()) {
+							topic = jsTopicName.prefix() + Constants.Topic.COLON + parameters[idx];
 						} else {
 							topic = (String) parameters[idx];
 						}
@@ -62,13 +63,14 @@ public class JsTopicInterceptor implements Serializable {
 				idx++;
 			}
 		}
-		if(null==topic || topic.isEmpty()) {
+		if (null == topic || topic.isEmpty()) {
 			throw new Exception("Topic name can't be empty.");
 		}
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(topic);
-		messageToClient.setResponse(ctx.proceed());
+		Object result = ctx.proceed();
+		messageToClient.setResponse(result);
 		wsEvent.fire(messageToClient);
-		return null;
+		return result;
 	}
 }
