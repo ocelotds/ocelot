@@ -70,7 +70,7 @@ public class SessionManager {
 		if (!tacPresent) {
 			logger.info("No topic access control found in project, add {} implementation with optional Qualifier {} in your project for add topic security.", JsTopicAccessController.class, JsTopicAccessControl.class);
 		} else {
-			logger.info("Topic access control found in project.");
+			logger.debug("Topic access control found in project.");
 		}
 	}
 
@@ -91,7 +91,7 @@ public class SessionManager {
 			sessions = Collections.synchronizedSet(new HashSet<Session>());
 			sessionsByTopic.put(topic, sessions);
 		}
-		logger.info("'{}' subscribe to '{}'", session.getId(), topic);
+		logger.debug("'{}' subscribe to '{}'", session.getId(), topic);
 		if (sessions.contains(session)) {
 			sessions.remove(session);
 		}

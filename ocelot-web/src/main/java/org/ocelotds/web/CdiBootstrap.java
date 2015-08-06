@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 public abstract class CdiBootstrap {
 
 	private final static Logger logger = LoggerFactory.getLogger(CdiBootstrap.class);
+	
+	private final static String BEANMANAGER = "java:comp/env/BeanManager";
 
 	private static BeanManager beanManager = null;
 
@@ -29,7 +31,7 @@ public abstract class CdiBootstrap {
 		if (null == beanManager) {
 			try {
 				InitialContext initialContext = new InitialContext();
-				beanManager = (BeanManager) initialContext.lookup("java:comp/env/BeanManager");
+				beanManager = (BeanManager) initialContext.lookup(BEANMANAGER);
 			} catch (NamingException e) {
 			}
 		}
@@ -37,8 +39,8 @@ public abstract class CdiBootstrap {
 	}
 
 	public <T> T getBean(Class<T> cls) {
+		logger.info("Generate bean {}, from {}, cause native injection doesn't work.", cls, BEANMANAGER);
 		BeanManager bm = getBeanManager();
-		logger.info("Generate bean from {}, cause native injection doesn't work.");
 		Set<Bean<?>> beans = bm.getBeans(cls, DEFAULT_AT);
 		Bean<?> b = beans.iterator().next();
 		final CreationalContext context = bm.createCreationalContext(b);
