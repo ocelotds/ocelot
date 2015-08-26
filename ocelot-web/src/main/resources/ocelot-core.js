@@ -14,9 +14,6 @@ if ("WebSocket" in window) {
          CLEANCACHE = "ocelot-cleancache", STATUS = "ocelot-status", OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe",
          stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], promises = {}, openHandlers = [], closeHandlers = [], errorHandlers = [], ws, ocelotSrv;
       ocelotSrv = new OcelotServices();
-      function showErrorSocketIsNotReady(msg) {
-         alert('WebSocket is not ready : ' + msg + '\nCode : ' + ocelotController.status);
-      }
       function createEventFromPromise(type, promise) {
          var evt = document.createEvent(EVT);
          evt.initEvent(type, true, false);
