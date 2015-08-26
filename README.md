@@ -2,8 +2,8 @@
 [![Coverity Status](https://scan.coverity.com/projects/5757/badge.svg)](https://scan.coverity.com/projects/5757)
 [![Build Status](https://travis-ci.org/hhdevelopment/ocelot.svg?branch=master)](https://travis-ci.org/hhdevelopment/ocelot)
 [![Coverage Status](https://coveralls.io/repos/hhdevelopment/ocelot/badge.svg?branch=master&service=github)](https://coveralls.io/github/hhdevelopment/ocelot?branch=master)
-[![Maven](https://img.shields.io/badge/Maven central-2.1.0-blue.svg)](http://search.maven.org/#search|ga|1|ocelot)
-[![Maven](https://img.shields.io/badge/OSS Sonatype-2.1.1--SNAPSHOT-lightgrey.svg)](https://oss.sonatype.org/#nexus-search;gav~org.ocelotds~ocelot~~~)
+[![Maven](https://img.shields.io/badge/Maven central-2.1.1-blue.svg)](http://search.maven.org/#search|ga|1|ocelot)
+[![Maven](https://img.shields.io/badge/OSS Sonatype-2.1.2--SNAPSHOT-lightgrey.svg)](https://oss.sonatype.org/#nexus-search;gav~org.ocelotds~ocelot~~~)
 
 ## The best and easiest communication way between java 7 and javascript
 #### Forget REST, forget AJAX, forget http, forget protocol, Ocelot uses websocket and do everything for you.
