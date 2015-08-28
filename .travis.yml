@@ -24,8 +24,9 @@ env:
    # COVERITY_SCAN_TOKEN
    - secure: "Rq+vTWVD/r/v3rFYo7zcETqHVI/AlSYXCVfB/66AOn5/g2raCyvuIleIHgclXyKsJijjDEkIxzDifIEdUYvsGWPurrN/V0HY5IaOImwJ6XduLC8iT5xYP+dEOB1+KTv3c3hlRv77TqfdwWdq7abNDjhs3ehiHQzPRquWn2ECJ84="
 
-addons:
-   coverity_scan.project.name: "hhdevelopment/ocelot"
+  coverity_scan:
+   project:
+      name: "hhdevelopment/ocelot"
    notification_email: francois.achache@gmail.com
-   branch_pattern: coverity
+   branch_pattern: coverity_scan
 
