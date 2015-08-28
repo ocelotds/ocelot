@@ -3,11 +3,13 @@ language: java
 jdk: oraclejdk7
 #install: mvn install -DskipTests=true -Dgpg.skip=true
 #before_install: mvn clean test cobertura:cobertura coveralls:report
-install: mvn deploy --settings .travis-oss-settings.xml -Dgpg.skip=true
+after_success: 
+   - mvn clean cobertura:cobertura coveralls:report
+   - mvn deploy --settings .travis-oss-settings.xml -Dgpg.skip=true
 branches:
   only:
-    - master
-    - coverity
+   - master
+   - coverity
 env:
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
@@ -21,9 +23,7 @@ env:
    - secure: "IceZIWYE55lWayWU3yCcO0YOONsUdJdK4kywltTBNkt7m+KsgG0or5gl1feamR+dZSfHukWWw2ujrRXt3sWBBxeLtzi3BOXJCMoK0eRnR/FWTMrDtK7YWzCfy7BiYtq3cirRwXTwjECv9pROeQiS8YBMD2X0N4Ob2zZw+OEdJco="
 
 addons:
-  coverity_scan:
-    project:
-      name: "hhdevelopment/ocelot"
-    notification_email: francois.achache@gmail.com
-    branch_pattern: coverity
+   coverity_scan.project.name: "hhdevelopment/ocelot"
+   notification_email: francois.achache@gmail.com
+   branch_pattern: coverity
 
