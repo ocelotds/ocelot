@@ -1,3 +1,4 @@
+sudo: false
 language: java
 jdk: oraclejdk7
 #install: mvn install -DskipTests=true -Dgpg.skip=true
@@ -25,7 +26,4 @@ addons:
       name: "hhdevelopment/ocelot"
     notification_email: francois.achache@gmail.com
     branch_pattern: coverity
-
-#    build_command_prepend: "mvn clean"
-#    build_command:   "mvn -DskipTests=true compile"
 
