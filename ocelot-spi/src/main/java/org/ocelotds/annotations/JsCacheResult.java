@@ -25,10 +25,11 @@ public @interface JsCacheResult {
 	/**
 	 * Rules for parameters about key for cache, separate by coma<br>
 	 * The order is important mostly if you want use JsCacheRemove<br>
-	 * use json notation.<br>
-	 * '*' : use all arguments in calculating cache key<br>
-	 * 'obj.id' : mean that for compute the key the value of id from argument named obj will be used.<br>
-	 * Exemple {"i", "u.id", "f.name"}
+	 * Use json notation.<br>
+	 * {'*'} : use all arguments in calculating cache key<br>
+	 * 'obj.id' : means that for compute the key the value of id from argument named obj will be used.<br>
+	 * Exemple {"i", "u.id", "f.name"}<br>
+	 * {} Empty argument means that any argmuent is used for cache key<br>
 	 * @return set of used keys ordered
 	 */
 	String[] keys() default {"*"};
