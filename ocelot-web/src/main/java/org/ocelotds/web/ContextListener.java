@@ -55,13 +55,7 @@ public final class ContextListener implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent sce) {
 		logger.debug("Context initialisation...");
 		ServletContext sc = sce.getServletContext();
-		String stacktrace = sc.getInitParameter(Constants.Options.STACKTRACE);
-		if (stacktrace == null) {
-			stacktrace = DEFAULTSTACKTRACE;
-		}
-		int stacktracelenght = Integer.parseInt(stacktrace);
-		logger.debug("Read stacktracedeep option in web.xml '{}' = {}.", Constants.Options.STACKTRACE, stacktracelenght);
-		configuration.setStacktracelength(stacktracelenght);
+		defineStacktraceConfig(sc);
 		try {
 			// create tmp/ocelot.js
 			File file = createOcelotJsFile(sc.getContextPath());
@@ -71,6 +65,22 @@ public final class ContextListener implements ServletContextListener {
 		}
 	}
 
+	/**
+	 * Read in web.xml the optional STACKTRACE_LENGTH config and set it in OcelotConfiguration
+	 * @param sc 
+	 */
+	private void defineStacktraceConfig(ServletContext sc) {
+		String stacktrace = sc.getInitParameter(Constants.Options.STACKTRACE_LENGTH);
+		if (stacktrace == null) {
+			stacktrace = DEFAULTSTACKTRACE;
+		} else {
+			logger.debug("Read '{}' option in web.xml : '{}'.", Constants.Options.STACKTRACE_LENGTH, stacktrace);
+		}
+		int stacktracelenght = Integer.parseInt(stacktrace);
+		logger.debug("'{}' value : '{}'.", Constants.Options.STACKTRACE_LENGTH, stacktracelenght);
+		configuration.setStacktracelength(stacktracelenght);
+	}
+	
 	/**
 	 * Event context destroyed
 	 *
