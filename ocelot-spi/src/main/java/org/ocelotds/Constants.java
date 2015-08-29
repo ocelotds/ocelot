@@ -35,7 +35,7 @@ public interface Constants {
 
 	interface Options {
 
-		String STACKTRACE = "ocelot.stacktrace.length";
+		String STACKTRACE_LENGTH = "ocelot.stacktrace.length";
 	}
 
 	interface Topic {
