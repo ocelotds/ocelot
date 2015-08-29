@@ -5,11 +5,8 @@
 package org.ocelotds.processors;
 
 import org.ocelotds.annotations.DataService;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.io.Writer;
-import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -35,9 +32,8 @@ import javax.tools.StandardLocation;
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class OcelotProcessor extends AbstractProcessor {
 
-	private final static Random random = new Random();
+	private final static Random RANDOM = new Random();
 
-	private boolean disabled = false;
 	/**
 	 * Tools for access filesystem
 	 */
@@ -58,23 +54,13 @@ public class OcelotProcessor extends AbstractProcessor {
 	public void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
 		messager = processingEnv.getMessager();
-		Properties options = new Properties();
-		try(Reader reader = new FileReader("ocelot.properties")) {
-			options.load(reader);
-			Object value = options.get("disabled");
-			disabled = false;
-			if(null!=value) {
-				disabled = Boolean.parseBoolean((String) value);
-			}
-		} catch(IOException e) {
-		}
 		filer = processingEnv.getFiler();
 	}
 
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 		// check if process was done on previous round
-		if (roundEnv.processingOver() || disabled) {
+		if (roundEnv.processingOver()) {
 			return true; // Si c'est le cas on s'arrete la
 		}
 		// Create provider of ocelot-services.js
@@ -92,7 +78,6 @@ public class OcelotProcessor extends AbstractProcessor {
 		} catch (IOException e) {
 			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
 		}
-		disabled = true;
 		return true;
 	}
 	
@@ -103,7 +88,7 @@ public class OcelotProcessor extends AbstractProcessor {
 	 */
 	private String createJSServicesProvider() {
 		// Creation du provider de ocelot-services.js
-		String prefix = "srv_" + random.nextInt(100_000_000);
+		String prefix = "srv_" + RANDOM.nextInt(100_000_000);
 		try {
 			String servicesName = "ServiceProvider";
 			FileObject servicesProvider = filer.createSourceFile(prefix+"." + servicesName);
