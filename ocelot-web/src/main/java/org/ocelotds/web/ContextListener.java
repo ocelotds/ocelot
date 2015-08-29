@@ -142,6 +142,7 @@ public final class ContextListener implements ServletContextListener {
 			String line;
 			StringBuilder buffer = new StringBuilder();
 			while((line = reader.readLine())!=null) {
+				// on pourrait supprimer les espaces supperflus, mais il faut tenir compte de : function_, return_, var_, _in_, _new_, else_if, delete_, get_, set_
 				line = line.replaceAll("^\\s*", "").replaceAll("^//.*", "").replaceAll("\\s+", " ").replaceAll("([;{])\\s*//.*", "$1");
 				if(line.isEmpty()) {
 				} else {
