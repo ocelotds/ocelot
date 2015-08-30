@@ -11,7 +11,6 @@ import org.ocelotds.annotations.JsCacheResult;
 import org.ocelotds.messaging.CacheEvent;
 import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
-import org.ocelotds.messaging.MessageType;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
@@ -116,7 +115,7 @@ public class CacheManager {
 	 *
 	 * @param jcra : the annotation
 	 */
-	public void processJsCacheRemoveAll(JsCacheRemoveAll jcra) {
+	private void processJsCacheRemoveAll(JsCacheRemoveAll jcra) {
 		logger.debug("Process JsCacheRemoveAll annotation : {}", jcra);
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
@@ -131,7 +130,7 @@ public class CacheManager {
 	 * @param paramNames : name of parameters
 	 * @param jsonArgs : method arguments json format
 	 */
-	public void processJsCacheRemove(JsCacheRemove jcr, List<String> paramNames, List<String> jsonArgs) {
+	private void processJsCacheRemove(JsCacheRemove jcr, List<String> paramNames, List<String> jsonArgs) {
 		logger.debug("Process JsCacheRemove annotation : {}", jcr);
 		StringBuilder sb;
 		MessageToClient messageToClient = new MessageToClient();
