@@ -9,6 +9,8 @@ import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
+import java.lang.annotation.AnnotationTypeMismatchException;
+import java.lang.reflect.Method;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
@@ -19,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * This class transform a sipmle method to chanel for topic
  * @author hhfrancois
  */
 @Interceptor
@@ -42,12 +44,16 @@ public class JsTopicInterceptor implements Serializable {
 	 */
 	@AroundInvoke
 	public Object processJsTopic(InvocationContext ctx) throws Exception {
-		JsTopic jsTopic = ctx.getMethod().getAnnotation(JsTopic.class);
+		Method method = ctx.getMethod();
+		JsTopic jsTopic = method.getAnnotation(JsTopic.class);
+		if (null == jsTopic) {
+			throw new AnnotationTypeMismatchException(method, null);
+		}
 		String topic = jsTopic.value();
 		if (null == topic || topic.isEmpty()) {
 			Object[] parameters = ctx.getParameters();
 			int idx = 0;
-			Annotation[][] parametersAnnotations = ctx.getMethod().getParameterAnnotations();
+			Annotation[][] parametersAnnotations = method.getParameterAnnotations();
 			for (Annotation[] parameterAnnotations : parametersAnnotations) {
 				for (Annotation parameterAnnotation : parameterAnnotations) {
 					if (parameterAnnotation.annotationType().equals(JsTopicName.class)) {
