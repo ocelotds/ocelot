@@ -138,9 +138,9 @@ public class MessageFromClient {
 
 	public String toJson() {
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
-				  Constants.Message.ID, this.getId(),
-				  Constants.Message.DATASERVICE, this.getDataService(),
-				  Constants.Message.OPERATION, this.getOperation(),
+				  Constants.Message.ID, id,
+				  Constants.Message.DATASERVICE, dataService,
+				  Constants.Message.OPERATION, operation,
 				  Constants.Message.ARGUMENTNAMES, Arrays.toString(parameterNames.toArray(new String[parameterNames.size()])),
 				  Constants.Message.ARGUMENTS, Arrays.toString(parameters.toArray(new String[parameters.size()])));
 		return json;
