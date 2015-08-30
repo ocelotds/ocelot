@@ -46,9 +46,6 @@ public class JsTopicInterceptor implements Serializable {
 	public Object processJsTopic(InvocationContext ctx) throws Exception {
 		Method method = ctx.getMethod();
 		JsTopic jsTopic = method.getAnnotation(JsTopic.class);
-		if (null == jsTopic) {
-			throw new AnnotationTypeMismatchException(method, null);
-		}
 		String topic = jsTopic.value();
 		if (null == topic || topic.isEmpty()) {
 			Object[] parameters = ctx.getParameters();
@@ -70,7 +67,7 @@ public class JsTopicInterceptor implements Serializable {
 			}
 		}
 		if (null == topic || topic.isEmpty()) {
-			throw new Exception("Topic name can't be empty.");
+			throw new IllegalArgumentException("Topic name can't be empty.");
 		}
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(topic);
