@@ -6,8 +6,8 @@
 	<version>2.1.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Ocelot</name>
-	<description>Framework  for communication way between java and javascript</description>	
-	<url>https://github.com/hhdevelopment</url>
+	<description>Framework for communication way between java and javascript</description>	
+	<url>http://ocelotds.org</url>
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
