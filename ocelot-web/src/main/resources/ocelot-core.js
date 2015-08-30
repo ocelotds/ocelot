@@ -352,7 +352,7 @@ if ("WebSocket" in window) {
       return {
          createPromise: function (ds, id, op, argNames, args) {
             return (function (ds, id, op, argNames, args) {
-               var handler, evt = null, thenHandlers = [], catchHandlers = [], eventHandlers = [], messageHandlers = [];
+               var fault, handler, evt = null, thenHandlers = [], catchHandlers = [], eventHandlers = [], messageHandlers = [];
                function process(e) {
                   if (!e) {
                      return;
@@ -366,8 +366,11 @@ if ("WebSocket" in window) {
                            handler(e.response);
                         }
                      } else if (e.type === FAULT) {
+                        fault = e.response;
+                        console.error(fault.classname+"("+fault.message+")");
+                        console.table(fault.stacktrace);
                         while (handler = catchHandlers.shift()) {
-                           handler(e.response);
+                           handler(fault);
                         }
                      }
                   } else {
