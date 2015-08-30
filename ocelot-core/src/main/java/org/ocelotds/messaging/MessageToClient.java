@@ -61,18 +61,17 @@ public class MessageToClient {
 		return response;
 	}
 
-	public void setResponse(Object response, MessageType type) {
+	private void setResponse(Object response, MessageType type) {
+		this.type = type;
 		this.response = response;
 	}
 	
 	public void setResult(Object response) {
-		this.type = MessageType.RESULT;
-		this.response = response;
+		setResponse(response, MessageType.RESULT);
 	}
 
 	public void setFault(Object response) {
-		this.type = MessageType.FAULT;
-		this.response = response;
+		setResponse(response, MessageType.FAULT);
 	}
 
 	public void setResponse(Object response) {
@@ -144,7 +143,12 @@ public class MessageToClient {
 			res = String.format(resultFormat, Constants.Message.RESPONSE, jsonResponse);
 		} catch (JsonProcessingException ex) {
 			Fault f = new Fault(ex, 0);
-			res = String.format(resultFormat, Constants.Message.RESPONSE, f.toJson());
+			try {
+				jsonResponse = mapper.writeValueAsString(f);
+				res = String.format(resultFormat, Constants.Message.RESPONSE, jsonResponse);
+			} catch (JsonProcessingException ex1) {
+				res = String.format(resultFormat, Constants.Message.RESPONSE, "");
+			}
 		}
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s%s}",
 				  Constants.Message.TYPE, this.getType(), Constants.Message.ID, this.getId(), Constants.Message.DEADLINE, this.getDeadline(), res);
