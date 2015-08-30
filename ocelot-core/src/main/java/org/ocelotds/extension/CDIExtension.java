@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * This extension add JsTopicInterceptor at runtime without configuration in beans.xml
  * @author hhfrancois
  */
 public class CDIExtension implements Extension {
