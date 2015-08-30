@@ -9,7 +9,6 @@ import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
-import java.lang.annotation.AnnotationTypeMismatchException;
 import java.lang.reflect.Method;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
