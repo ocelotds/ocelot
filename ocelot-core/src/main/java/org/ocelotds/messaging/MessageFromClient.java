@@ -137,22 +137,6 @@ public class MessageFromClient {
 	}
 
 	public String toJson() {
-//		StringBuilder args = new StringBuilder("");
-//		Iterator<String> iterator = parameters.iterator();
-//		while (iterator.hasNext()) {
-//			args.append(iterator.next());
-//			if (iterator.hasNext()) {
-//				args.append(args);
-//			}
-//		}
-//		StringBuilder argnames = new StringBuilder("");
-//		iterator = parameterNames.iterator();
-//		while (iterator.hasNext()) {
-//			argnames.append(iterator.next());
-//			if (iterator.hasNext()) {
-//				argnames.append(",");
-//			}
-//		}
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
 				  Constants.Message.ID, this.getId(),
 				  Constants.Message.DATASERVICE, this.getDataService(),
