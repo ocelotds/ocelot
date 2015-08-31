@@ -28,7 +28,6 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import javax.el.MethodNotFoundException;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -58,7 +57,7 @@ public class CallServiceManager {
 	@Inject
 	private CacheManager cacheManager;
 
-	protected IDataServiceResolver getResolver(String type) {
+	IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
 	}
 
@@ -69,8 +68,9 @@ public class CallServiceManager {
 	 * @param message
 	 * @param arguments
 	 * @return
+	 * @throws java.lang.NoSuchMethodException 
 	 */
-	protected Method getMethodFromDataService(final Class dsClass, final MessageFromClient message, Object[] arguments) throws MethodNotFoundException {
+	Method getMethodFromDataService(final Class dsClass, final MessageFromClient message, Object[] arguments) throws NoSuchMethodException {
 		logger.debug("Try to find method {} on class {}", message.getOperation(), dsClass);
 		List<String> parameters = message.getParameters();
 		for (Method method : dsClass.getMethods()) {
@@ -91,7 +91,7 @@ public class CallServiceManager {
 				}
 			}
 		}
-		throw new MethodNotFoundException(dsClass + "." + message.getOperation());
+		throw new NoSuchMethodException(dsClass + "." + message.getOperation());
 	}
 
 	/**
@@ -102,8 +102,9 @@ public class CallServiceManager {
 	 * @param message
 	 * @param arguments
 	 * @return
+	 * @throws java.lang.NoSuchMethodException 
 	 */
-	protected Method getMethodFromDataServiceWithSessionInjection(final Session session, final Class dsClass, final MessageFromClient message, Object[] arguments) throws MethodNotFoundException {
+	Method getMethodFromDataServiceWithSessionInjection(final Session session, final Class dsClass, final MessageFromClient message, Object[] arguments) throws NoSuchMethodException {
 		logger.debug("Try to find method with session {} on class {}", message.getOperation(), dsClass);
 		List<String> parameters = message.getParameters();
 		for (Method method : dsClass.getMethods()) {
@@ -132,10 +133,10 @@ public class CallServiceManager {
 				}
 			}
 		}
-		throw new MethodNotFoundException(dsClass + "." + message.getOperation());
+		throw new NoSuchMethodException(dsClass + "." + message.getOperation());
 	}
 
-	private Object convertArgument(String arg, Type param) throws IllegalArgumentException {
+	Object convertArgument(String arg, Type param) throws IllegalArgumentException {
 		Object result = null;
 		logger.debug("Try to convert {} : param = {} : {}", new Object[]{arg, param, param.getClass()});
 		try {
@@ -197,14 +198,14 @@ public class CallServiceManager {
 	}
 
 	/**
-	 * Get Dataservice, maybe in session if session scope and stored J'aimerais bien faire cela avec un interceptor/decorator, mais comment passer la session Ã  celui ci ?
-	 *
+	 * Get Dataservice, store dataservice in session if session scope.<br>
+	 * TODO I would like to do that from an interceptor, but how give the session to it ?
 	 * @param client
 	 * @param cls
 	 * @return
 	 * @throws DataServiceException
 	 */
-	protected Object getDataService(Session client, Class cls) throws DataServiceException {
+	Object getDataService(Session client, Class cls) throws DataServiceException {
 		String dataServiceClassName = cls.getName();
 		logger.debug("Looking for dataservice : {}", dataServiceClassName);
 		if (cls.isAnnotationPresent(DataService.class)) {
@@ -238,20 +239,20 @@ public class CallServiceManager {
 		messageToClient.setId(message.getId());
 		try {
 			Class cls = Class.forName(message.getDataService());
-			Object dataService = getDataService(client, cls);
+			Object dataService = this.getDataService(client, cls);
 			logger.debug("Process message {}", message);
 			int nbParam = message.getParameters().size();
 			Object[] arguments = new Object[nbParam];
-			Method method = getMethodFromDataService(cls, message, arguments);
+			Method method = this.getMethodFromDataService(cls, message, arguments);
 			if (!method.isAnnotationPresent(MethodWithSessionInjection.class)) {
 				messageToClient.setResult(method.invoke(dataService, arguments));
 			} else {
 				arguments = new Object[nbParam + 1];
-				Method methodWithInjection = getMethodFromDataServiceWithSessionInjection(client, cls, message, arguments);
+				Method methodWithInjection = this.getMethodFromDataServiceWithSessionInjection(client, cls, message, arguments);
 				messageToClient.setResult(methodWithInjection.invoke(dataService, arguments));
 			}
 			try {
-				Method nonProxiedMethod = getNonProxiedMethod(cls, method.getName(), method.getParameterTypes());
+				Method nonProxiedMethod = this.getNonProxiedMethod(cls, method.getName(), method.getParameterTypes());
 				if (cacheManager.isJsCached(nonProxiedMethod)) {
 					JsCacheResult jcr = nonProxiedMethod.getAnnotation(JsCacheResult.class);
 					messageToClient.setDeadline(cacheManager.getJsCacheResultDeadline(jcr));
@@ -263,7 +264,7 @@ public class CallServiceManager {
 			} catch (NoSuchMethodException ex) {
 				logger.error("Fail to process extra annotations (JsCacheResult, JsCacheRemove) for method : " + method.getName(), ex);
 			}
-		} catch (MethodNotFoundException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException | DataServiceException ex) {
+		} catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException | DataServiceException ex) {
 			int stacktracelength = configuration.getStacktracelength();
 			Throwable cause = ex;
 			if (InvocationTargetException.class.isInstance(ex)) {
@@ -286,11 +287,7 @@ public class CallServiceManager {
 	 * @throws NoSuchMethodException
 	 * @return
 	 */
-	private Method getNonProxiedMethod(Class cls, String methodName, Class<?>[] parameterTypes) throws NoSuchMethodException {
-		try {
-			return cls.getMethod(methodName, parameterTypes);
-		} catch (SecurityException ex) {
-		}
-		throw new NoSuchMethodException(methodName);
+	Method getNonProxiedMethod(Class cls, String methodName, Class<?>... parameterTypes) throws NoSuchMethodException {
+		return cls.getMethod(methodName, parameterTypes);
 	}
 }
