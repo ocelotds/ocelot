@@ -9,7 +9,7 @@ import org.ocelotds.Constants;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheResult;
 import org.ocelotds.test.MethodException;
-import org.ocelotds.test.Result;
+import org.ocelotds.objects.Result;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
