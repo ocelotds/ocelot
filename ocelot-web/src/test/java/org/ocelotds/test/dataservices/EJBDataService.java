@@ -9,7 +9,7 @@ import org.ocelotds.Constants;
 import org.ocelotds.OcelotI18nServices;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheRemove;
-import org.ocelotds.test.Result;
+import org.ocelotds.objects.Result;
 import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
