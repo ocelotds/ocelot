@@ -5,6 +5,7 @@
  */
 package org.ocelotds.test;
 
+import org.ocelotds.objects.Result;
 import org.ocelotds.test.dataservices.EJBDataService;
 import org.ocelotds.test.dataservices.CDIDataService;
 import org.ocelotds.test.dataservices.SingletonCDIDataService;
