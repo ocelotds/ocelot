@@ -19,7 +19,6 @@ import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import javax.ws.rs.core.GenericType;
 import org.ocelotds.messaging.MessageFromClient;
-import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.Condition;
 import org.assertj.core.data.Index;
 import org.assertj.core.data.Offset;
@@ -31,7 +30,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import static org.mockito.Mockito.*;
 import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -46,6 +44,8 @@ import org.ocelotds.resolvers.EJBResolver;
 import org.ocelotds.spi.DataServiceException;
 import org.ocelotds.spi.IDataServiceResolver;
 import org.ocelotds.spi.Scope;
+import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  *
