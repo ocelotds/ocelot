@@ -14,7 +14,7 @@
 			<dependency>
 				<groupId>org.jboss.arquillian</groupId>
 				<artifactId>arquillian-bom</artifactId>
-				<version>1.1.7.Final</version>
+				<version>1.1.8.Final</version>
 				<scope>import</scope>
 				<type>pom</type>
 			</dependency>
@@ -51,6 +51,18 @@
 			<version>4.1</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- ARQUILLIAN QUNIT -->
+<!--		<dependency>
+			<groupId>org.jboss.arquillian.extension</groupId>
+			<artifactId>arquillian-qunit</artifactId>
+			<version>1.0.0.Alpha4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			 <groupId>org.jboss.arquillian.junit</groupId>
+			 <artifactId>arquillian-junit-container</artifactId>
+			<scope>test</scope>
+		</dependency>-->
 	</dependencies>
 	<build>
 		<plugins>
@@ -60,6 +72,7 @@
 				<version>2.18.1</version>
 				<configuration>
 					<excludes>
+<!--						<exclude>**/QunitRunnerTestCase.java</exclude>-->
 						<exclude>**/OcelotTest.java</exclude>
 					</excludes>      
 				</configuration>
