@@ -88,7 +88,7 @@ public class CallServiceManagerTest {
 	@Test
 	public void testGetResolver() {
 		Instance<IDataServiceResolver> instance = mock(Instance.class);
-		when(resolvers.select(any(DataServiceResolverIdLitteral.class))).thenReturn(instance);
+		when(resolvers.select(eq(new DataServiceResolverIdLitteral("EJB")))).thenReturn(instance);
 		when(instance.get()).thenReturn(new EJBResolver());
 		IDataServiceResolver result = callServiceManager.getResolver("EJB");
 		assertThat(result).isInstanceOf(EJBResolver.class);
@@ -310,7 +310,7 @@ public class CallServiceManagerTest {
 		assertThat(result.get(2).getResponse()).isEqualTo(new ClassAsDataService().methodReturnCachedString("e"));
 		Calendar deadline = Calendar.getInstance();
 		deadline.add(Calendar.YEAR, 1);
-		assertThat(result.get(2).getDeadline()).isCloseTo(deadline.getTime().getTime(), Offset.offset(50L));
+		assertThat(result.get(2).getDeadline()).isCloseTo(deadline.getTime().getTime(), Offset.offset(100L));
 		Fault fault;
 		try {
 			throw new NoSuchMethodException("class org.ocelotds.core.CallServiceManagerTest$ClassAsDataService.methodUnknown");
