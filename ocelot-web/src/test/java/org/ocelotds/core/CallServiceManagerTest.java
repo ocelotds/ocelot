@@ -40,12 +40,12 @@ import org.ocelotds.messaging.Fault;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.objects.Result;
 import org.ocelotds.resolvers.DataServiceResolverIdLitteral;
-import org.ocelotds.resolvers.EJBResolver;
 import org.ocelotds.spi.DataServiceException;
 import org.ocelotds.spi.IDataServiceResolver;
 import org.ocelotds.spi.Scope;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
+import org.ocelotds.resolvers.PojoResolver;
 
 /**
  *
@@ -88,10 +88,10 @@ public class CallServiceManagerTest {
 	@Test
 	public void testGetResolver() {
 		Instance<IDataServiceResolver> instance = mock(Instance.class);
-		when(resolvers.select(eq(new DataServiceResolverIdLitteral("EJB")))).thenReturn(instance);
-		when(instance.get()).thenReturn(new EJBResolver());
-		IDataServiceResolver result = callServiceManager.getResolver("EJB");
-		assertThat(result).isInstanceOf(EJBResolver.class);
+		when(resolvers.select(eq(new DataServiceResolverIdLitteral("pojo")))).thenReturn(instance);
+		when(instance.get()).thenReturn(new PojoResolver());
+		IDataServiceResolver result = callServiceManager.getResolver("pojo");
+		assertThat(result).isInstanceOf(PojoResolver.class);
 	}
 	/**
 	 * Test of getMethodFromDataService method, of class CallServiceManager.
