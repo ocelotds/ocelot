@@ -9,26 +9,27 @@ import java.util.Collection;
 import java.util.Iterator;
 import javax.enterprise.inject.Instance;
 import javax.enterprise.util.TypeLiteral;
+import org.ocelotds.security.JsTopicAccessController;
 
 /**
  *
  * @author hhfrancois
  */
-public class FakeCDI implements Instance {
-	private final Collection instances = new ArrayList<>();
+public class FakeCDI implements Instance<JsTopicAccessController> {
+	private final Collection<JsTopicAccessController> instances = new ArrayList<>();
 
 	@Override
-	public Instance select(Annotation... qualifiers) {
+	public Instance<JsTopicAccessController> select(Annotation... qualifiers) {
 		return null;
 	}
 
 	@Override
-	public Instance select(Class subtype, Annotation... qualifiers) {
+	public Instance<JsTopicAccessController> select(Class subtype, Annotation... qualifiers) {
 		return null;
 	}
 
 	@Override
-	public Instance select(TypeLiteral subtype, Annotation... qualifiers) {
+	public Instance<JsTopicAccessController> select(TypeLiteral subtype, Annotation... qualifiers) {
 		return null;
 	}
 
@@ -43,7 +44,7 @@ public class FakeCDI implements Instance {
 	}
 
 	@Override
-	public void destroy(Object instance) {
+	public void destroy(JsTopicAccessController instance) {
 	}
 
 	@Override
@@ -52,11 +53,11 @@ public class FakeCDI implements Instance {
 	}
 
 	@Override
-	public Object get() {
-		return null;
+	public JsTopicAccessController get() {
+		return instances.iterator().next();
 	}
 
-	public void add(Object o) {
+	public void add(JsTopicAccessController o) {
 		instances.add(o);
 	}
 	
