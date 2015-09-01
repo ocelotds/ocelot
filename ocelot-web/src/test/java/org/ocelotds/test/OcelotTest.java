@@ -31,7 +31,6 @@ import org.ocelotds.test.dataservices.SessionEJBDataService;
 import org.ocelotds.test.dataservices.SingletonEJBDataService;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -46,7 +45,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -66,9 +64,6 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.FileAsset;
-import org.jboss.shrinkwrap.api.container.ClassContainer;
-import org.jboss.shrinkwrap.api.container.ResourceContainer;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.weld.exceptions.UnsatisfiedResolutionException;
@@ -82,6 +77,7 @@ import static org.junit.Assert.fail;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.ocelotds.ArquillianTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,9 +86,7 @@ import org.slf4j.LoggerFactory;
  * @author hhfrancois
  */
 @RunWith(Arquillian.class)
-public class OcelotTest {
-
-	private final static Random random = new Random();
+public class OcelotTest extends ArquillianTestCase {
 
 	private final static Logger logger = LoggerFactory.getLogger(OcelotTest.class);
 
@@ -140,7 +134,7 @@ public class OcelotTest {
 		File localeUs = new File("src/test/resources/test_en_US.properties");
 		WebArchive webArchive = ShrinkWrap.create(WebArchive.class, ctxpath + ".war")
 				  .addAsLibraries(libs)
-				  .addAsLibraries(createLibArchive())
+				  .addAsLibraries(createOcelotWebJar())
 				  .addPackages(true, OcelotTest.class.getPackage())
 				  .addAsResource(new FileAsset(logback), "logback.xml")
 				  .addAsResource(new FileAsset(localeUs), "test_en_US.properties")
@@ -148,52 +142,6 @@ public class OcelotTest {
 				  .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
 		addJSAndProvider("target/test-classes", webArchive, webArchive);
 		return webArchive;
-	}
-
-	/**
-	 * Build ocelot-web.jar
-	 *
-	 * @return
-	 */
-	public static JavaArchive createLibArchive() {
-		File bean = new File("src/main/resources/META-INF/beans.xml");
-		File core = new File("src/main/resources/ocelot-core.js");
-		JavaArchive javaArchive = ShrinkWrap.create(JavaArchive.class, String.format("ocelot-web-%s.jar", random.nextInt(10)))
-				  .addClass(OcelotServices.class)
-				  .addPackages(true, "org.ocelotds.encoders")
-				  .addPackages(true, "org.ocelotds.exceptions")
-				  .addPackages(true, "org.ocelotds.resolvers")
-				  .addPackages(true, "org.ocelotds.web")
-				  .addPackages(true, "org.ocelotds.core")
-				  .addPackages(true, "org.ocelotds.configuration")
-				  .addAsManifestResource(new FileAsset(bean), "beans.xml")
-				  .addAsResource(new FileAsset(core), "ocelot-core2.js");
-		addJSAndProvider("target/classes", javaArchive, javaArchive);
-		return javaArchive;
-	}
-
-	/**
-	 * Add srv_xxxx.js and srv_xxxx.ServiceProvider.class
-	 *
-	 * @param root
-	 * @param resourceContainer
-	 * @param classContainer
-	 */
-	private static void addJSAndProvider(final String root, ResourceContainer resourceContainer, ClassContainer classContainer) {
-		File classes = new File(root);
-		File[] jsFiles = classes.listFiles(new FileFilter() {
-			@Override
-			public boolean accept(File file) {
-				String name = file.getName();
-				return file.isFile() && name.startsWith("srv_") && name.endsWith(".js");
-			}
-		});
-		for (File file : jsFiles) {
-			String jsName = file.getName();
-			String providerPackage = jsName.replaceAll(".js$", "");
-			classContainer.addPackage(providerPackage);
-			resourceContainer.addAsResource(new FileAsset(file), file.getName());
-		}
 	}
 
 	@BeforeClass
