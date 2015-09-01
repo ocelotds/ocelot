@@ -123,7 +123,7 @@ public class OcelotTest {
 	 *
 	 * @return
 	 */
-	@Deployment(name = "glassfish")
+	@Deployment
 	public static WebArchive createWarGlassfishArchive() {
 		return createWarArchive();
 	}
@@ -133,14 +133,6 @@ public class OcelotTest {
 	 *
 	 * @return
 	 */
-//	@Deployment(name = "tomcat")
-//	public static WebArchive createWarTomcatArchive() {
-//		File web = new File("src/test/resources/tomcat/web.xml");
-//		File context = new File("src/test/resources/tomcat/context.xml");
-//		return createWarArchive()
-//				  .addAsManifestResource(new FileAsset(context), "context.xml")
-//				  .addAsWebInfResource(new FileAsset(web), "web.xml");
-//	}
 	public static WebArchive createWarArchive() {
 		File[] libs = Maven.resolver().loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
 		File logback = new File("src/test/resources/logback.xml");
