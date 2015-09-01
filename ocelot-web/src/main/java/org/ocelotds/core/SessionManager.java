@@ -8,7 +8,6 @@ import org.ocelotds.annotations.JsTopicAccessControl;
 import org.ocelotds.security.JsTopicAccessController;
 import org.ocelotds.security.JsTopicACAnnotationLiteral;
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -54,18 +53,22 @@ public class SessionManager {
 	 * @param topic
 	 * @throws IllegalAccessException
 	 */
-	private void checkAccessTopic(Session session, String topic) throws IllegalAccessException {
+	void checkAccessTopic(Session session, String topic) throws IllegalAccessException {
 		JsTopicACAnnotationLiteral tcal = new JsTopicACAnnotationLiteral(topic);
 		Instance<JsTopicAccessController> accessControls = topicAccessController.select(DEFAULT_AT);
 		boolean tacPresent = false;
-		for (JsTopicAccessController accessControl : accessControls) {
-			accessControl.checkAccess(session, topic);
-			tacPresent = true;
+		if (null != accessControls) {
+			for (JsTopicAccessController accessControl : accessControls) {
+				accessControl.checkAccess(session, topic);
+				tacPresent = true;
+			}
 		}
 		accessControls = topicAccessController.select(tcal);
-		for (JsTopicAccessController accessControl : accessControls) {
-			accessControl.checkAccess(session, topic);
-			tacPresent = true;
+		if (null != accessControls) {
+			for (JsTopicAccessController accessControl : accessControls) {
+				accessControl.checkAccess(session, topic);
+				tacPresent = true;
+			}
 		}
 		if (!tacPresent) {
 			logger.info("No topic access control found in project, add {} implementation with optional Qualifier {} in your project for add topic security.", JsTopicAccessController.class, JsTopicAccessControl.class);
@@ -83,7 +86,6 @@ public class SessionManager {
 	 * @throws IllegalAccessException
 	 */
 	public int registerTopicSession(String topic, Session session) throws IllegalAccessException {
-		checkAccessTopic(session, topic);
 		Set<Session> sessions;
 		if (sessionsByTopic.containsKey(topic)) {
 			sessions = sessionsByTopic.get(topic);
@@ -91,11 +93,14 @@ public class SessionManager {
 			sessions = Collections.synchronizedSet(new HashSet<Session>());
 			sessionsByTopic.put(topic, sessions);
 		}
-		logger.debug("'{}' subscribe to '{}'", session.getId(), topic);
 		if (sessions.contains(session)) {
 			sessions.remove(session);
 		}
-		sessions.add(session);
+		checkAccessTopic(session, topic);
+		logger.debug("'{}' subscribe to '{}'", session.getId(), topic);
+		if(session.isOpen()) {
+			sessions.add(session);
+		}
 		return getNumberSubscribers(topic);
 	}
 
@@ -153,7 +158,7 @@ public class SessionManager {
 	 *
 	 * @param session
 	 */
-	public void removeSessionToTopic(Session session) {
+	public void removeSessionToTopics(Session session) {
 		for (String topic : sessionsByTopic.keySet()) {
 			sendSubscriptionEvent(Constants.Topic.SUBSCRIBERS + Constants.Topic.COLON + topic, unregisterTopicSession(topic, session));
 		}
@@ -166,12 +171,12 @@ public class SessionManager {
 	 * @param session
 	 */
 	private void sendSubscriptionEvent(String topic, int nb) {
-		MessageToClient messageToClient = new MessageToClient();
-		messageToClient.setId(topic);
-		messageToClient.setType(MessageType.MESSAGE);
-		messageToClient.setResponse(nb);
 		Collection<Session> sessions = getSessionsForTopic(topic);
 		if (!sessions.isEmpty()) {
+			MessageToClient messageToClient = new MessageToClient();
+			messageToClient.setId(topic);
+			messageToClient.setType(MessageType.MESSAGE);
+			messageToClient.setResponse(nb);
 			for (Session session : sessions) {
 				if (session.isOpen()) {
 					session.getAsyncRemote().sendObject(messageToClient);
