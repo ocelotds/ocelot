@@ -92,7 +92,7 @@ public class OcelotEndpoint extends CdiBootstrap {
 				session.close();
 			} catch (IllegalStateException | IOException ex) {
 			}
-			getSessionManager().removeSessionToTopic(session);
+			getSessionManager().removeSessionToTopics(session);
 		}
 	}
 
