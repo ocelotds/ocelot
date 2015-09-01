@@ -14,4 +14,7 @@
 			<property name="bindHttpPort">8282</property>			
 		</configuration>
 	</container>
+	<extension qualifier="webdriver">
+		<property name="browser">firefox</property>
+	</extension>
 </arquillian>
