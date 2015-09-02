@@ -45,7 +45,6 @@ public class JSServlet extends HttpServlet {
 		if (Constants.FALSE.equalsIgnoreCase(minify)) {
 			filename = request.getServletContext().getInitParameter(Constants.OCELOT);
 		}
-		System.out.println("============ "+new File(filename).getAbsolutePath());
 		long lg = new File(filename).length();
 		logger.debug("Get resource {}({})", filename, lg);
 		response.setContentLength((int) lg);
