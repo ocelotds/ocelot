@@ -490,16 +490,18 @@ public class OcelotTest extends ArquillianTestCase {
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("GET");
 		connection.connect();
-		assertEquals(200, connection.getResponseCode());
+		assertEquals("'"+sb.toString()+"' is unreachable", 200, connection.getResponseCode());
 		return connection;
 	}
 
 	/**
 	 * Vérification de la minification des javascripts
 	 *
-	 * @param resource : nom de la ressource sans slash
 	 */
-	public void javascriptMinification(final String resource) {
+	@Test
+	public void testJavascriptCoreMinification() {
+		System.out.println("testJavascriptCoreMinification");
+		String resource = Constants.OCELOT + Constants.JS;
 		HttpURLConnection connection1 = null;
 		HttpURLConnection connection2 = null;
 		try {
@@ -554,15 +556,6 @@ public class OcelotTest extends ArquillianTestCase {
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}
-	}
-
-	/**
-	 * Vérification de la minification des services
-	 */
-//	@Test
-	public void testJavascriptCoreMinification() {
-		System.out.println("testJavascriptCoreMinification");
-		javascriptMinification(Constants.OCELOT_CORE + Constants.JS);
 	}
 
 	/**
