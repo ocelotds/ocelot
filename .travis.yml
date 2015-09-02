@@ -7,6 +7,7 @@ install: mvn install -DskipTests=true -Dgpg.skip=true
 after_success: 
    - mvn clean cobertura:cobertura coveralls:report
    - mvn deploy --settings .travis-oss-settings.xml -Dgpg.skip=true
+   - bash <(curl -s https://codecov.io/bash)
 branches:
   only:
    - master
