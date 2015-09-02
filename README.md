@@ -55,4 +55,4 @@ Ocelot can work in servlet container like tomcat without EJB features of course.
 
 See documentation for [details](http://ocelotds.org).
 
-
+![codecov.io](http://codecov.io/github/hhdevelopment/ocelot/branch.svg?branch=master)
