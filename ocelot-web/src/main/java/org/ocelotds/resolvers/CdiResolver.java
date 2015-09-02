@@ -27,7 +27,7 @@ public class CdiResolver implements IDataServiceResolver {
 
 	@Inject
 	BeanManager beanManager;
-	
+
 	@Override
 	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
 		Set<Bean<?>> beans = beanManager.getBeans(clazz);
@@ -41,8 +41,8 @@ public class CdiResolver implements IDataServiceResolver {
 	@Override
 	public Scope getScope(Class clazz) {
 		for (Annotation anno : clazz.getAnnotations()) {
-			if(!anno.annotationType().equals(DataService.class)) {
-				String annoName =anno.annotationType().getName();
+			if (!anno.annotationType().equals(DataService.class)) {
+				String annoName = anno.annotationType().getName();
 				switch (annoName) {
 					case "javax.enterprise.context.Dependent":
 						return Scope.SESSION;
