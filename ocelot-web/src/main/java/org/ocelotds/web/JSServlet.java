@@ -95,7 +95,7 @@ public class JSServlet extends HttpServlet {
 	 */
 	@Override
 	public String getServletInfo() {
-		return "Short description";
+		return "ocelot.js";
 	}// </editor-fold>
 
 }
