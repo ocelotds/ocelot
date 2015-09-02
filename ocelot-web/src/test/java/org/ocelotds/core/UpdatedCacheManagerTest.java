@@ -17,19 +17,37 @@ import static org.assertj.core.api.Assertions.*;
  */
 public class UpdatedCacheManagerTest {
 	
+	private static long DELAY = 1000;
+	
 	/**
 	 * Test of receiveCacheRemoveEvent method, of class UpdatedCacheManager.
 	 */
 	@Test
-	public void testReceiveCacheRemoveEvent() {
-		System.out.println("receiveCacheRemoveEvent");
+	public void testGetOutDatedCache() {
+		System.out.println("getOutDatedCache");
 		String cachekey = UUID.randomUUID().toString();
 		Map<String, Long> map = new HashMap<>();
 		Date now = new Date();
-		map.put(cachekey, now.getTime());
+		map.put(cachekey, now.getTime()-DELAY);
 		UpdatedCacheManager instance = new UpdatedCacheManager();
 		instance.receiveCacheRemoveEvent(cachekey);
 		Collection<String> result = instance.getOutDatedCache(map);
 		assertThat(result).contains(cachekey);
+	}
+
+	/**
+	 * Test of receiveCacheRemoveEvent method, of class UpdatedCacheManager.
+	 */
+	@Test
+	public void testGetNoOutDatedCache() {
+		System.out.println("getNoOutDatedCache");
+		String cachekey = UUID.randomUUID().toString();
+		Map<String, Long> map = new HashMap<>();
+		Date now = new Date();
+		map.put(cachekey, now.getTime()+DELAY);
+		UpdatedCacheManager instance = new UpdatedCacheManager();
+		instance.receiveCacheRemoveEvent(cachekey);
+		Collection<String> result = instance.getOutDatedCache(map);
+		assertThat(result).doesNotContain(cachekey);
 	}
 }
