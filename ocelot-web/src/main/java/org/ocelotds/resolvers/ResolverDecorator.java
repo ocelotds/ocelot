@@ -35,7 +35,7 @@ public abstract class ResolverDecorator implements IDataServiceResolver {
 	 * @param cls
 	 * @throws DataServiceException
 	 */
-	protected void checkDataService(Class cls) throws DataServiceException {
+	private void checkDataService(Class cls) throws DataServiceException {
 		if (!cls.isAnnotationPresent(DataService.class)) {
 			throw new DataServiceException("Unreachable DataService : "+cls.getSimpleName());
 		}
