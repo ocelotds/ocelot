@@ -18,7 +18,7 @@ import javax.enterprise.inject.spi.BeanManager;
 import javax.inject.Inject;
 
 /**
- * Resolver of POJO
+ * Resolver of CDI
  *
  * @author hhfrancois
  */
