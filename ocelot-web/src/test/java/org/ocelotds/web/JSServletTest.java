@@ -52,7 +52,19 @@ public class JSServletTest {
 	public void testDoGet() throws  IOException, ServletException  {
 		System.out.println("doGet");
 		String expected = "line1;\nline2;\nline3;";
-		testProcessRequest(expected, false);
+		File file = File.createTempFile("ocelot", ".js");
+		try(FileWriter writer = new FileWriter(file)) {
+			writer.write(expected);
+		}
+		StringWriter result = setUp(Constants.FALSE, file.getAbsolutePath(), "none");
+		jsServlet.doGet(request, response);
+		ArgumentCaptor<String> captureType = ArgumentCaptor.forClass(String.class);
+		ArgumentCaptor<Integer> captureLength = ArgumentCaptor.forClass(Integer.class);
+		verify(response).setContentType(captureType.capture());
+		verify(response).setContentLength(captureLength.capture());
+		assertThat(captureType.getValue()).isEqualTo(Constants.JSTYPE);
+		assertThat(captureLength.getValue()).isEqualTo((int)file.length());
+		assertThat(result.toString()).isEqualTo(expected);
 	}
 
 	/**
@@ -64,7 +76,19 @@ public class JSServletTest {
 	public void testDoPost() throws  IOException, ServletException  {
 		System.out.println("doPost");
 		String expected = "line1;line2;line3;";
-		testProcessRequest(expected, true);
+		File file = File.createTempFile("ocelot", ".js");
+		try(FileWriter writer = new FileWriter(file)) {
+			writer.write(expected);
+		}
+		StringWriter result = setUp(Constants.TRUE, "none", file.getAbsolutePath());
+		jsServlet.doPost(request, response);
+		ArgumentCaptor<String> captureType = ArgumentCaptor.forClass(String.class);
+		ArgumentCaptor<Integer> captureLength = ArgumentCaptor.forClass(Integer.class);
+		verify(response).setContentType(captureType.capture());
+		verify(response).setContentLength(captureLength.capture());
+		assertThat(captureType.getValue()).isEqualTo(Constants.JSTYPE);
+		assertThat(captureLength.getValue()).isEqualTo((int)file.length());
+		assertThat(result.toString()).isEqualTo(expected);
 	}
 
 	/**
@@ -73,30 +97,7 @@ public class JSServletTest {
 	@Test
 	public void testGetServletInfo() {
 		System.out.println("getServletInfo");
-		String expResult = "ocelot.js";
 		String result = jsServlet.getServletInfo();
-		assertThat(result).isEqualTo(expResult);
-	}
-
-	private void testProcessRequest(String expected, boolean minify) throws IOException, ServletException {
-		System.out.println("processRequest");
-		File file = File.createTempFile("ocelot", ".js");
-		try(FileWriter writer = new FileWriter(file)) {
-			writer.write(expected);
-		}
-		StringWriter result;
-		if(minify) {
-			result = setUp(Constants.TRUE, "none", file.getAbsolutePath());
-		}else {
-			result = setUp(Constants.FALSE, file.getAbsolutePath(), "none");
-		}
-		jsServlet.processRequest(request, response);
-		ArgumentCaptor<String> captureType = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<Integer> captureLength = ArgumentCaptor.forClass(Integer.class);
-		verify(response).setContentType(captureType.capture());
-		verify(response).setContentLength(captureLength.capture());
-		assertThat(captureType.getValue()).isEqualTo(Constants.JSTYPE);
-		assertThat(captureLength.getValue()).isEqualTo((int)file.length());
-		assertThat(result.toString()).isEqualTo(expected);
+		assertThat(result).isEqualTo("ocelot.js");
 	}
 }
