@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.*;
  */
 public class UpdatedCacheManagerTest {
 	
-	private static long DELAY = 1000;
+	private static final long DELAY = 1000;
 	
 	/**
 	 * Test of receiveCacheRemoveEvent method, of class UpdatedCacheManager.
