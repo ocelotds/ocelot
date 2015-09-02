@@ -4,7 +4,6 @@
 package org.ocelotds.i18n;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
 import org.junit.Before;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
@@ -24,12 +23,23 @@ public class ThreadLocalContextHolderTest {
 	}
 	
 	/**
-	 * Test of put method, of class ThreadLocalContextHolder.
+	 * Test constructor is private
+	 * @throws java.lang.InstantiationException
+	 * @throws java.lang.IllegalAccessException
+	 */
+	@Test
+	public void testPrivateConstructor() throws InstantiationException, IllegalAccessException  {
+		Constructor<?>[] constructors = ThreadLocalContextHolder.class.getConstructors();
+		assertThat(constructors.length).isEqualTo(0);
+	}
+
+	/**
+	 * Test constructor is private
 	 * @throws java.lang.InstantiationException
 	 * @throws java.lang.IllegalAccessException
 	 */
 	@Test(expected = IllegalAccessException.class)
-	public void testPrivateConstructor() throws InstantiationException, IllegalAccessException  {
+	public void testPrivateConstructor1() throws InstantiationException, IllegalAccessException  {
 	   ThreadLocalContextHolder.class.newInstance();
 	}
 
