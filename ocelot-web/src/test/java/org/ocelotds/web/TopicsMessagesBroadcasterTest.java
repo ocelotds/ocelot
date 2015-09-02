@@ -37,8 +37,8 @@ public class TopicsMessagesBroadcasterTest {
 	 * Test of sendMessageToTopic method, of class TopicsMessagesBroadcaster.
 	 */
 	@Test
-	public void testSendMessageToTopic() {
-		System.out.println("sendMessageToTopic");
+	public void testSendMessageToTopicFor1Session() {
+		System.out.println("sendMessageToTopicFor1Session");
 		Collection<Session> sessions = new ArrayList<>();
 		Session session1 = mock(Session.class);
 		RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
@@ -62,7 +62,42 @@ public class TopicsMessagesBroadcasterTest {
 		assertThat(captureMsg.getValue().getId()).isEqualTo(id);
 		assertThat(captureMsg.getValue().getType()).isEqualTo(MessageType.MESSAGE);
 		assertThat(captureMsg.getValue().getDeadline()).isEqualTo(0L);
-
 	}
 	
+	/**
+	 * Test of sendMessageToTopic method, of class TopicsMessagesBroadcaster.
+	 */
+	@Test
+	public void testSendMessageToTopicFor0Session() {
+		System.out.println("sendMessageToTopicFor0Session");
+		Collection<Session> sessions = new ArrayList<>();
+		sessions.add(null);
+		when(sessionManager.getSessionsForTopic(anyString())).thenReturn(sessions);
+
+		MessageToClient msg = new MessageToClient();
+		String id = UUID.randomUUID().toString();
+		msg.setId(id);
+		String expResult = "RESULT";
+		msg.setResult(expResult);
+		messagesBroadcaster.sendMessageToTopic(msg);
+		assertThat(msg.getType()).isEqualTo(MessageType.MESSAGE);
+	}
+
+	/**
+	 * Test of sendMessageToTopic method, of class TopicsMessagesBroadcaster.
+	 */
+	@Test
+	public void testSendMessageToTopicForNullSession() {
+		System.out.println("sendMessageToTopicForNullSession");
+		Collection<Session> sessions = new ArrayList<>();
+		when(sessionManager.getSessionsForTopic(anyString())).thenReturn(sessions);
+
+		MessageToClient msg = new MessageToClient();
+		String id = UUID.randomUUID().toString();
+		msg.setId(id);
+		String expResult = "RESULT";
+		msg.setResult(expResult);
+		messagesBroadcaster.sendMessageToTopic(msg);
+		assertThat(msg.getType()).isEqualTo(MessageType.MESSAGE);
+	}
 }
