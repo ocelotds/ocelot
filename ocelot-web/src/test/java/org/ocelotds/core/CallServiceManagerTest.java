@@ -310,7 +310,7 @@ public class CallServiceManagerTest {
 		assertThat(result.get(2).getResponse()).isEqualTo(new ClassAsDataService().methodReturnCachedString("e"));
 		Calendar deadline = Calendar.getInstance();
 		deadline.add(Calendar.YEAR, 1);
-		assertThat(result.get(2).getDeadline()).isCloseTo(deadline.getTime().getTime(), Offset.offset(100L));
+		assertThat(result.get(2).getDeadline()).isCloseTo(deadline.getTime().getTime(), Offset.offset(1000L));
 		Fault fault;
 		try {
 			throw new NoSuchMethodException("class org.ocelotds.core.CallServiceManagerTest$ClassAsDataService.methodUnknown");
