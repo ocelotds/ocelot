@@ -28,7 +28,6 @@ import org.ocelotds.core.CallServiceManager;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.i18n.ThreadLocalContextHolder;
 import org.ocelotds.messaging.MessageFromClient;
-import org.ocelotds.messaging.MessageType;
 
 /**
  *
