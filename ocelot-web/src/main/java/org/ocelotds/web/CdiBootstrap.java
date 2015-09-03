@@ -30,8 +30,7 @@ public abstract class CdiBootstrap {
 	public BeanManager getBeanManager() {
 		if (null == beanManager) {
 			try {
-				InitialContext initialContext = new InitialContext();
-				beanManager = (BeanManager) initialContext.lookup(BEANMANAGER);
+				beanManager = (BeanManager) getInitialContext().lookup(BEANMANAGER);
 			} catch (NamingException e) {
 			}
 		}
@@ -45,6 +44,10 @@ public abstract class CdiBootstrap {
 		Bean<?> b = beans.iterator().next();
 		final CreationalContext context = bm.createCreationalContext(b);
 		return cls.cast(bm.getReference(b, b.getBeanClass(), context));
+	}
+
+	InitialContext getInitialContext() throws NamingException {
+		return new InitialContext();
 	}
 
 	private static final Annotation DEFAULT_AT = new AnnotationLiteral<Default>() {
