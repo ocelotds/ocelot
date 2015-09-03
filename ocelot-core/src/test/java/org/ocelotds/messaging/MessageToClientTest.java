@@ -15,6 +15,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.ocelotds.Constants;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 /**
  *
@@ -165,7 +168,7 @@ public class MessageToClientTest {
 	@Test
 	public void testJsonAndToString() throws JsonProcessingException {
 		System.out.println("testJsonAndToString");
-		MessageToClient msg = new MessageToClient();
+		MessageToClient msg = spy(MessageToClient.class);
 		long deadline = new Random().nextInt(200);
 		msg.setDeadline(deadline);
 		Fault fault = null;
@@ -194,6 +197,14 @@ public class MessageToClientTest {
 				  Constants.Message.DEADLINE, msg.getDeadline(), Constants.Message.RESPONSE, jsonResponse);
 		assertThat(msg.toJson()).isEqualTo(json);
 		assertThat(msg.toString()).isEqualTo(json);
+
+		ObjectMapper mapperThrowException = mock(ObjectMapper.class);
+		when(mapperThrowException.writeValueAsString(anyString())).thenThrow(JsonProcessingException.class);
+		when(msg.getObjectMapper()).thenReturn(mapperThrowException);
+		json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.TYPE, msg.getType(), Constants.Message.ID, msg.getId(), 
+				  Constants.Message.DEADLINE, msg.getDeadline(), Constants.Message.RESPONSE, "");
+		assertThat(msg.toJson()).isEqualTo(json);
 	}
 	
 	@Test

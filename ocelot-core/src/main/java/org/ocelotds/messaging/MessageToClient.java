@@ -136,7 +136,7 @@ public class MessageToClient {
 	public String toJson() {
 		String res;
 		String resultFormat = ",\"%s\":%s";
-		ObjectMapper mapper = new ObjectMapper();
+		ObjectMapper mapper = getObjectMapper();
 		String jsonResponse;
 		try {
 			jsonResponse = mapper.writeValueAsString(this.getResponse());
@@ -155,6 +155,10 @@ public class MessageToClient {
 		return json;
 	}
 
+	ObjectMapper getObjectMapper() {
+		return new ObjectMapper();
+	}
+	
 	@Override
 	public String toString() {
 		return toJson();
