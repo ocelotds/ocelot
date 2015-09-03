@@ -57,11 +57,6 @@
 			<artifactId>arquillian-qunit</artifactId>
 			<version>1.0.0.Alpha4</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			 <groupId>org.jboss.arquillian.junit</groupId>
-			 <artifactId>arquillian-junit-container</artifactId>
-			<scope>test</scope>
 		</dependency>-->
 	</dependencies>
 	<build>
@@ -71,9 +66,10 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.18.1</version>
 				<configuration>
+					<argLine>-Dfile.encoding=UTF-8</argLine>					
 					<excludes>
 <!--						<exclude>**/QunitRunnerTestCase.java</exclude>-->
-						<exclude>**/OcelotTest.java</exclude>
+<!--						<exclude>**/OcelotTest.java</exclude>-->
 					</excludes>      
 				</configuration>
 			</plugin>
