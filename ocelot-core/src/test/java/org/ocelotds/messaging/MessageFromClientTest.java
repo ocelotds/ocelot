@@ -5,7 +5,6 @@ package org.ocelotds.messaging;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
