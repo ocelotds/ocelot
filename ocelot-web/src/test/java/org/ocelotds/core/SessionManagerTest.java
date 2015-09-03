@@ -60,7 +60,7 @@ public class SessionManagerTest {
 	 */
 	@Test(expected = IllegalAccessException.class)
 	public void testCheckAccessGlobalTopic() throws IllegalAccessException {
-		FakeCDI globalTAC = new FakeCDI();
+		FakeCDI<JsTopicAccessController> globalTAC = new FakeCDI();
 		JsTopicAccessController jtac = mock(JsTopicAccessController.class);
 		globalTAC.add(jtac);
 		doThrow(IllegalAccessException.class).when(jtac).checkAccess(any(Session.class), anyString());
@@ -75,7 +75,7 @@ public class SessionManagerTest {
 	 */
 	@Test
 	public void testCheckAccessOkGlobalTopic() throws IllegalAccessException {
-		FakeCDI globalTAC = new FakeCDI();
+		FakeCDI<JsTopicAccessController> globalTAC = new FakeCDI();
 		JsTopicAccessController jtac = mock(JsTopicAccessController.class);
 		globalTAC.add(jtac);
 		doNothing().when(jtac).checkAccess(any(Session.class), anyString());
@@ -90,7 +90,7 @@ public class SessionManagerTest {
 	 */
 	@Test(expected = IllegalAccessException.class)
 	public void testCheckAccessSpecificTopic() throws IllegalAccessException {
-		FakeCDI topic1TAC = new FakeCDI();
+		FakeCDI<JsTopicAccessController> topic1TAC = new FakeCDI();
 		JsTopicAccessController jtac = mock(JsTopicAccessController.class);
 		topic1TAC.add(jtac);
 		doThrow(IllegalAccessException.class).when(jtac).checkAccess(any(Session.class), eq(TOPIC1));
@@ -110,7 +110,7 @@ public class SessionManagerTest {
 	 */
 	@Test
 	public void testCheckAccessOkSpecificTopic() throws IllegalAccessException {
-		FakeCDI topic1TAC = new FakeCDI();
+		FakeCDI<JsTopicAccessController> topic1TAC = new FakeCDI();
 		JsTopicAccessController jtac = mock(JsTopicAccessController.class);
 		topic1TAC.add(jtac);
 		doNothing().when(jtac).checkAccess(any(Session.class), eq(TOPIC1));
