@@ -11,6 +11,7 @@ import org.jboss.shrinkwrap.api.asset.FileAsset;
 import org.jboss.shrinkwrap.api.container.ClassContainer;
 import org.jboss.shrinkwrap.api.container.ResourceContainer;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.ocelotds.resolvers.ResolverDecoratorTest;
 
 /**
  *
@@ -30,11 +31,12 @@ public abstract class ArquillianTestCase {
 				  .addPackages(true, "org.ocelotds.encoders")
 				  .addPackages(true, "org.ocelotds.exceptions")
 				  .addPackages(true, "org.ocelotds.resolvers")
+				  .deleteClass(ResolverDecoratorTest.class) // this class test decorator, it's conflict with CDI
 				  .addPackages(true, "org.ocelotds.web")
 				  .addPackages(true, "org.ocelotds.core")
 				  .addPackages(true, "org.ocelotds.configuration")
 				  .addAsManifestResource(new FileAsset(bean), "beans.xml")
-				  .addAsResource(new FileAsset(core), "ocelot-core2.js");
+				  .addAsResource(new FileAsset(core), "ocelot-core.js");
 		addJSAndProvider("target/classes", javaArchive, javaArchive);
 		return javaArchive;
 	}
