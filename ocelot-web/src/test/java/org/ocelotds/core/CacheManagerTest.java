@@ -3,7 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.core;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -183,6 +185,25 @@ public class CacheManagerTest {
 		MessageToClient msg = captureMTC.getValue();
 		assertThat(msg.getId()).isEqualTo(Constants.Cache.CLEANCACHE_TOPIC);
 		assertThat(msg.getResponse()).isEqualTo("ALL");
+	}
+
+	/**
+	 * Test of getMd5 method, of class CacheManager.
+	 * @throws java.security.NoSuchAlgorithmException
+	 * @throws java.io.UnsupportedEncodingException
+	 */
+	@Test
+	public void testGetMd5InError() throws NoSuchAlgorithmException, UnsupportedEncodingException {
+		System.out.println("getMd5");
+		CacheManager cm = spy(CacheManager.class);
+		when(cm.getMessageDigest()).thenThrow(NoSuchAlgorithmException.class);
+		String result = cm.getMd5("");
+		assertThat(result).isNull();
+
+		cm = spy(CacheManager.class);
+		when(cm.getMessageDigest()).thenThrow(UnsupportedEncodingException.class);
+		result = cm.getMd5("");
+		assertThat(result).isNull();
 	}
 
 	@JsCacheResult

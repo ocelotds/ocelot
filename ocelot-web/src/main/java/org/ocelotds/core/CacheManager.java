@@ -199,10 +199,10 @@ public class CacheManager {
 	 * @param msg
 	 * @return
 	 */
-	private String getMd5(String msg) {
+	String getMd5(String msg) {
 		MessageDigest md;
 		try {
-			md = MessageDigest.getInstance("MD5");
+			md = getMessageDigest();
 			byte[] hash = md.digest(msg.getBytes(Constants.UTF_8));
 			//converting byte array to Hexadecimal String
 			StringBuilder sb = new StringBuilder(2 * hash.length);
@@ -214,5 +214,9 @@ public class CacheManager {
 			logger.error("Fail to get MD5 of String "+msg, ex);
 		}
 		return null;
+	}
+	
+	MessageDigest getMessageDigest() throws NoSuchAlgorithmException {
+		return MessageDigest.getInstance("MD5");
 	}
 }
