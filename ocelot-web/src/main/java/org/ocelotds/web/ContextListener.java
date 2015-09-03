@@ -69,7 +69,7 @@ public final class ContextListener implements ServletContextListener {
 	 * Read in web.xml the optional STACKTRACE_LENGTH config and set it in OcelotConfiguration
 	 * @param sc 
 	 */
-	private void defineStacktraceConfig(ServletContext sc) {
+	void defineStacktraceConfig(ServletContext sc) {
 		String stacktrace = sc.getInitParameter(Constants.Options.STACKTRACE_LENGTH);
 		if (stacktrace == null) {
 			stacktrace = DEFAULTSTACKTRACE;
