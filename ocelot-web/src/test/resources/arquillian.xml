@@ -15,6 +15,6 @@
 		</configuration>
 	</container>
 	<extension qualifier="webdriver">
-		<property name="browser">firefox</property>
+		<property name="browser">phantomjs</property>
 	</extension>
 </arquillian>
