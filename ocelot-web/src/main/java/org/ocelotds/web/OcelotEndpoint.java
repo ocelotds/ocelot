@@ -114,14 +114,14 @@ public class OcelotEndpoint extends CdiBootstrap {
 		getCallServiceManager().sendMessageToClient(message, client);
 	}
 
-	public SessionManager getSessionManager() {
+	private SessionManager getSessionManager() {
 		if (null == sessionManager) {
 			sessionManager = getBean(SessionManager.class);
 		}
 		return sessionManager;
 	}
 
-	public CallServiceManager getCallServiceManager() {
+	private CallServiceManager getCallServiceManager() {
 		if (null == callServiceManager) {
 			callServiceManager = getBean(CallServiceManager.class);
 		}
