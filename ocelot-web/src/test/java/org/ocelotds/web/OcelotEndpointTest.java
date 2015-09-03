@@ -47,7 +47,7 @@ public class OcelotEndpointTest {
 	 * @throws java.io.IOException
 	 */
 	@Test
-	public void testHandleOpenConnexion() throws IOException  {
+	public void testHandleOpenConnexionFirst() throws IOException  {
 		System.out.println("handleOpenConnexion");
 		Session session = mock(Session.class);
 		Map<String, Object> result = new HashMap<>();
@@ -69,6 +69,25 @@ public class OcelotEndpointTest {
 	}
 
 	/**
+	 * Test of handleOpenConnexion method, of class OcelotEndpoint.
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testHandleOpenConnexionSecond() throws IOException  {
+		System.out.println("handleOpenConnexion");
+		Session session = mock(Session.class);
+		Map<String, Object> result = new HashMap<>();
+		when(session.getUserProperties()).thenReturn(result);
+		result.put(Constants.LOCALE, new Locale("fr", "FR"));
+		EndpointConfig config = mock(EndpointConfig.class);
+		ocelotEndpoint.handleOpenConnexion(session, config);
+		
+		Locale locale = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
+		assertThat(locale.getCountry()).isEqualTo("FR");
+		assertThat(locale.getLanguage()).isEqualTo("fr");
+	}
+
+	/**
 	 * Test of onError method, of class OcelotEndpoint.
 	 */
 	@Test
@@ -82,15 +101,22 @@ public class OcelotEndpointTest {
 
 	/**
 	 * Test of handleClosedConnection method, of class OcelotEndpoint.
+	 * @throws java.io.IOException
 	 */
 	@Test
-	public void testHandleClosedConnection() {
+	public void testHandleClosedConnection() throws IOException {
 		System.out.println("handleClosedConnection");
 		Session session = mock(Session.class);
 		when(session.getId()).thenReturn(UUID.randomUUID().toString());
 		when(session.isOpen()).thenReturn(true);
 		CloseReason closeReason = mock(CloseReason.class);
 		when(closeReason.getCloseCode()).thenReturn(CloseReason.CloseCodes.TOO_BIG);
+		ocelotEndpoint.handleClosedConnection(session, closeReason);
+		doThrow(IOException.class).when(session).close();
+		ocelotEndpoint.handleClosedConnection(session, closeReason);
+		doThrow(IllegalStateException.class).when(session).close();
+		ocelotEndpoint.handleClosedConnection(session, closeReason);
+		when(session.isOpen()).thenReturn(false);
 		ocelotEndpoint.handleClosedConnection(session, closeReason);
 	}
 
