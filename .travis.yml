@@ -8,7 +8,6 @@ after_success:
 branches:
   only:
    - master
-   - coverity_scan
 env:
   global:
    # OSS_USERNAME
@@ -23,8 +22,8 @@ env:
   coverity_scan:
    project:
       name: "hhdevelopment/ocelot"
-   notification_email: francois.achache@gmail.com
+   notification_email: "francois.achache@gmail.com"
    build_command_prepend: "mvn clean"
-   build_command:   "mvn compile -DskipTests=true -Dgpg.skip=true"
-   branch_pattern: coverity_scan
+   build_command: "mvn compile -DskipTests=true -Dgpg.skip=true"
+   branch_pattern: master
 
