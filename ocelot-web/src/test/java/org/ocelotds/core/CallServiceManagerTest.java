@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.core;
 
+import ch.qos.logback.classic.Level;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -46,6 +47,8 @@ import org.ocelotds.spi.Scope;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.ocelotds.resolvers.PojoResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -268,6 +271,8 @@ public class CallServiceManagerTest {
 	@Test
 	public void testSendMessageToClient() throws DataServiceException, NoSuchMethodException {
 		System.out.println("sendMessageToClient");
+		ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(CallServiceManager.class);
+		logger.setLevel(Level.DEBUG);
 		Class cls = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
 		message.setDataService(cls.getName());
