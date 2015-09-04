@@ -36,7 +36,7 @@ public class EJBResolver implements IDataServiceResolver {
 
 	private String jndiPath = "";
 
-	public String getJndiPath() {
+	String getJndiPath() {
 		return jndiPath;
 	}
 	
