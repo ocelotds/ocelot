@@ -7,6 +7,7 @@ package demo;
 
 //import org.ocelotds.messaging.MessageToClient;
 //import org.ocelotds.messaging.MessageEvent;
+import javax.ejb.LocalBean;
 import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
 import javax.ejb.Schedule;
@@ -19,6 +20,7 @@ import javax.inject.Inject;
  * @author hhfrancois
  */
 @Singleton
+@LocalBean
 public class TopicPublisher {
 	
 	private int i = 0;

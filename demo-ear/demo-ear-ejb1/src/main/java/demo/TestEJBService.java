@@ -1,5 +1,6 @@
 package demo;
 
+import javax.ejb.LocalBean;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheResult;
@@ -10,6 +11,7 @@ import javax.ejb.Stateless;
  * @author hhfrancois
  */
 @Stateless
+@LocalBean
 @DataService(resolver = Constants.Resolver.EJB)
 public class TestEJBService {
 
