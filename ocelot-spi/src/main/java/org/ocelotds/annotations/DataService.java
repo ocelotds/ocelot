@@ -11,6 +11,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation permettant d'identifier les classes à exposer aux clients
+ *
  * @author hhfrancois
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -18,4 +19,6 @@ import java.lang.annotation.Target;
 public @interface DataService {
 
 	String resolver();
+
+	String name() default "";
 }

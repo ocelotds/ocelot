@@ -32,6 +32,7 @@ import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
+import org.ocelotds.annotations.DataService;
 
 /**
  * Visitor of class annoted org.ocelotds.annotations.DataService<br>
@@ -56,11 +57,12 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	public String visitType(TypeElement typeElement, Writer writer) {
 		try {
 			createClassComment(typeElement, writer);
-			writer.append("function ").append(typeElement.getSimpleName()).append("() {\n");
+			String jsclsname = getJsClassname(typeElement);
+			writer.append("function ").append(jsclsname).append("() {\n");
 			String classname = typeElement.getQualifiedName().toString();
 			writer.append("\tthis.ds = \"").append(classname).append("\";\n");
 			writer.append("}\n");
-			writer.append(typeElement.getSimpleName()).append(".prototype = {\n");
+			writer.append(jsclsname).append(".prototype = {\n");
 			List<ExecutableElement> methodElements = ElementFilter.methodsIn(typeElement.getEnclosedElements());
 			Iterator<ExecutableElement> iterator = methodElements.iterator();
 			Collection<String> methodProceeds = new ArrayList<>();
@@ -76,7 +78,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 
 					writer.append("\t").append(methodName).append(" : function (");
 					if (arguments.size() != argumentsType.size()) {
-						messager.printMessage(Diagnostic.Kind.ERROR, (new StringBuilder()).append("Cannot Create service : ").append(typeElement.getSimpleName()).append(" cause method ").append(methodElement.getSimpleName()).append(" arguments inconsistent - argNames : ").append(arguments.size()).append(" / args : ").append(argumentsType.size()).toString(), typeElement);
+						messager.printMessage(Diagnostic.Kind.ERROR, (new StringBuilder()).append("Cannot Create service : ").append(jsclsname).append(" cause method ").append(methodElement.getSimpleName()).append(" arguments inconsistent - argNames : ").append(arguments.size()).append(" / args : ").append(argumentsType.size()).toString(), typeElement);
 						return null;
 					}
 					int i = 0;
@@ -101,6 +103,20 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 		} catch (IOException ex) {
 		}
 		return null;
+	}
+
+	/**
+	 * Compute the name of javascript class
+	 * @param typeElement
+	 * @return 
+	 */
+	private String getJsClassname(TypeElement typeElement) {
+		DataService dsAnno = typeElement.getAnnotation(DataService.class);
+		String name = dsAnno.name();
+		if (name.isEmpty()) {
+			name = typeElement.getSimpleName().toString();
+		}
+		return name;
 	}
 
 	/**
@@ -250,12 +266,12 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 				JsCacheResult jcr = methodElement.getAnnotation(JsCacheResult.class);
 				boolean allArgs = true;
 				// if there is a jcr annotation with value diferrent of *, so we dont use all arguments
-				if (null != jcr && null!=jcr.keys() && (jcr.keys().length == 0 || (jcr.keys().length > 0 && !"*".equals(jcr.keys()[0])))) {
+				if (null != jcr && null != jcr.keys() && (jcr.keys().length == 0 || (jcr.keys().length > 0 && !"*".equals(jcr.keys()[0])))) {
 					allArgs = false;
 					for (int i = 0; i < jcr.keys().length; i++) {
 						String arg = jcr.keys()[i];
 						keys.append(arg);
-						if(i<jcr.keys().length-1) {
+						if (i < jcr.keys().length - 1) {
 							keys.append(",");
 						}
 					}
