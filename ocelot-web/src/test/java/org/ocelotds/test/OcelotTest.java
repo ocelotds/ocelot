@@ -744,18 +744,6 @@ public class OcelotTest extends ArquillianTestCase {
 	}
 
 	/**
-	 * Vérifie qu'un service n'existant pas remonte bien une exception
-	 *
-	 * @throws org.ocelotds.spi.DataServiceException
-	 */
-	@Test(expected = DataServiceException.class)
-	public void testDataServiceExceptionOnResolveDataService() throws DataServiceException {
-		System.out.println("failResolveDataService");
-		IDataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
-		resolver.resolveDataService(String.class);
-	}
-
-	/**
 	 * Vérifie que le pojo-resolver remonte le bien PojoDataService
 	 */
 	@Test
