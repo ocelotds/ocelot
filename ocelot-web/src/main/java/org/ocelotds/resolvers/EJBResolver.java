@@ -33,21 +33,26 @@ public class EJBResolver implements IDataServiceResolver {
 	private static final Logger logger = LoggerFactory.getLogger(EJBResolver.class);
 
 	private static final Map<String, String> jndiMap = new HashMap<>();
+
 	private String jndiPath = "";
+
+	public String getJndiPath() {
+		return jndiPath;
+	}
+	
 	@Inject
 	private InitialContext initialContext;
 
 	@PostConstruct
-	String initJNDIPath() {
+	void initJNDIPath() {
 		logger.debug("Initializing context ...");
 		try {
 			jndiPath = JndiConstant.PREFIX + (String) initialContext.lookup(JndiConstant.APP_NAME);
 		} catch (NamingException ex) {
 			logger.error("InitialContext initialisation Failed ", ex);
 		}
-		return jndiPath;
 	}
-	
+
 	@Override
 	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
 		return clazz.cast(resolveDataService(clazz.getName()));
