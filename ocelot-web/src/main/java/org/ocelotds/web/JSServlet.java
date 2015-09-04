@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Writer;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -46,11 +47,10 @@ public class JSServlet extends HttpServlet {
 		if (Constants.FALSE.equalsIgnoreCase(minify)) {
 			filename = request.getServletContext().getInitParameter(Constants.OCELOT);
 		}
-		long lg = new File(filename).length();
-		logger.debug("Get resource {}({})", filename, lg);
+		File source = new File(filename);
 		OutputStream out = response.getOutputStream();
 		int count = 0;
-		try (InputStream in = new FileInputStream(filename)) {
+		try (InputStream in = new FileInputStream(source)) {
 			byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
 			int n = 0;
 			while (-1 != (n = in.read(buffer))) {

@@ -3,15 +3,19 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.web;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.catalina.ssi.ByteArrayServletOutputStream;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
@@ -29,18 +33,17 @@ public class JSServletTest {
 	HttpServletRequest request;
 	HttpServletResponse response;
 	
-	public StringWriter setUp(String minify, final String ocelotjs, final String ocelotjsmin) throws IOException {
+	public ByteArrayServletOutputStream setUp(String minify, final String ocelotjs, final String ocelotjsmin) throws IOException {
 		request = mock(HttpServletRequest.class);
 		ServletContext servletContext = mock(ServletContext.class);
 		response = mock(HttpServletResponse.class);
 		when(request.getParameter(Constants.MINIFY_PARAMETER)).thenReturn(minify);
-		StringWriter result = new StringWriter();
-		PrintWriter writer = new PrintWriter(result);
-		when(response.getWriter()).thenReturn(writer);
+		ByteArrayServletOutputStream out = new ByteArrayServletOutputStream();
+		when(response.getOutputStream()).thenReturn(out);
 		when(request.getServletContext()).thenReturn(servletContext);
 		when(servletContext.getInitParameter(eq(Constants.OCELOT_MIN))).thenReturn(ocelotjsmin);
 		when(servletContext.getInitParameter(eq(Constants.OCELOT))).thenReturn(ocelotjs);
-		return result;
+		return out;
 	}
 
 	/**
@@ -56,7 +59,7 @@ public class JSServletTest {
 		try(FileWriter writer = new FileWriter(file)) {
 			writer.write(expected);
 		}
-		StringWriter result = setUp(Constants.FALSE, file.getAbsolutePath(), "none");
+		ByteArrayServletOutputStream result = setUp(Constants.FALSE, file.getAbsolutePath(), "none");
 		jsServlet.doGet(request, response);
 		ArgumentCaptor<String> captureType = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Integer> captureLength = ArgumentCaptor.forClass(Integer.class);
@@ -64,7 +67,7 @@ public class JSServletTest {
 		verify(response).setContentLength(captureLength.capture());
 		assertThat(captureType.getValue()).isEqualTo(Constants.JSTYPE);
 		assertThat(captureLength.getValue()).isEqualTo((int)file.length());
-		assertThat(result.toString()).isEqualTo(expected);
+		assertThat(new String(result.toByteArray())).isEqualTo(expected);
 	}
 
 	/**
@@ -80,7 +83,7 @@ public class JSServletTest {
 		try(FileWriter writer = new FileWriter(file)) {
 			writer.write(expected);
 		}
-		StringWriter result = setUp(Constants.TRUE, "none", file.getAbsolutePath());
+		ByteArrayServletOutputStream result = setUp(Constants.TRUE, "none", file.getAbsolutePath());
 		jsServlet.doPost(request, response);
 		ArgumentCaptor<String> captureType = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Integer> captureLength = ArgumentCaptor.forClass(Integer.class);
@@ -88,7 +91,7 @@ public class JSServletTest {
 		verify(response).setContentLength(captureLength.capture());
 		assertThat(captureType.getValue()).isEqualTo(Constants.JSTYPE);
 		assertThat(captureLength.getValue()).isEqualTo((int)file.length());
-		assertThat(result.toString()).isEqualTo(expected);
+		assertThat(new String(result.toByteArray())).isEqualTo(expected);
 	}
 
 	/**

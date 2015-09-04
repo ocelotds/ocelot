@@ -31,6 +31,7 @@ import org.ocelotds.test.dataservices.SessionEJBDataService;
 import org.ocelotds.test.dataservices.SingletonEJBDataService;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -487,11 +488,17 @@ public class OcelotTest extends ArquillianTestCase {
 			sb.append("?").append(Constants.MINIFY_PARAMETER).append("=false");
 		}
 		URL url = new URL(sb.toString());
-		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-		connection.setRequestMethod("GET");
-		connection.connect();
-		assertEquals("'"+sb.toString()+"' is unreachable", 200, connection.getResponseCode());
-		return connection;
+		HttpURLConnection uc = (HttpURLConnection) url.openConnection();
+		System.out.println("Content-type: " + uc.getContentType());
+		System.out.println("Content-encoding: " + uc.getContentEncoding());
+		System.out.println("Date: " + new Date(uc.getDate()));
+		System.out.println("Last modified: " + new Date(uc.getLastModified()));
+		System.out.println("Expiration date: " + new Date(uc.getExpiration()));
+		System.out.println("Content-length: " + uc.getContentLength());
+//		connection.setRequestMethod("GET");
+//		connection.connect();
+		assertEquals("'" + sb.toString() + "' is unreachable", 200, uc.getResponseCode());
+		return uc;
 	}
 
 	/**
@@ -506,10 +513,10 @@ public class OcelotTest extends ArquillianTestCase {
 		HttpURLConnection connection2 = null;
 		try {
 			connection1 = getConnectionForResource(resource, true);
-			int minlength = connection1.getContentLength();
+			int minlength = connection1.getInputStream().available();
 //			traceFile(connection1.getInputStream());
 			connection2 = getConnectionForResource(resource, false);
-			int length = connection2.getContentLength();
+			int length = connection2.getInputStream().available();
 //			traceFile(connection2.getInputStream());
 			assertTrue("Minification of " + resource + " didn't work, same size of file magnifier : " + length + " / minifer : " + minlength, minlength < length);
 		} catch (Exception e) {
