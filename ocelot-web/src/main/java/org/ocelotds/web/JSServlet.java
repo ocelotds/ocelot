@@ -5,11 +5,11 @@
 package org.ocelotds.web;
 
 import org.ocelotds.Constants;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.OutputStream;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -25,9 +25,10 @@ import org.slf4j.LoggerFactory;
  */
 @WebServlet(urlPatterns = {Constants.SLASH_OCELOT_JS})
 public class JSServlet extends HttpServlet {
-	
+
 	private static final long serialVersionUID = 1973549844535787671L;
 
+	private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
 	private final static Logger logger = LoggerFactory.getLogger(JSServlet.class);
 
 	/**
@@ -47,16 +48,17 @@ public class JSServlet extends HttpServlet {
 		}
 		long lg = new File(filename).length();
 		logger.debug("Get resource {}({})", filename, lg);
-		response.setContentLength((int) lg);
-		try (Writer out = response.getWriter()) {
-			try (BufferedReader in = new BufferedReader(new FileReader(filename))) {
-				String inputLine;
-				while ((inputLine = in.readLine()) != null) {
-					out.write(inputLine);
-					if(in.ready())	out.write(Constants.BACKSLASH_N);
-				}
+		OutputStream out = response.getOutputStream();
+		int count = 0;
+		try (InputStream in = new FileInputStream(filename)) {
+			byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+			int n = 0;
+			while (-1 != (n = in.read(buffer))) {
+				out.write(buffer, 0, n);
+				count += n;
 			}
 		}
+		response.setContentLength(count);
 	}
 
 	// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
