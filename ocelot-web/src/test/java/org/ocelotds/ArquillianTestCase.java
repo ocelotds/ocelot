@@ -11,6 +11,7 @@ import org.jboss.shrinkwrap.api.asset.FileAsset;
 import org.jboss.shrinkwrap.api.container.ClassContainer;
 import org.jboss.shrinkwrap.api.container.ResourceContainer;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.ocelotds.objects.FakeCDI;
 
 /**
  *
@@ -27,12 +28,14 @@ public abstract class ArquillianTestCase {
 		File core = new File("src/main/resources/ocelot-core.js");
 		JavaArchive javaArchive = ShrinkWrap.create(JavaArchive.class, String.format("ocelot-web-%s.jar", new Random().nextInt(10)))
 				  .addClass(OcelotServices.class)
+				  .addPackages(true, "org.ocelotds.configuration")
+				  .addPackages(true, "org.ocelotds.core")
 				  .addPackages(true, "org.ocelotds.encoders")
 				  .addPackages(true, "org.ocelotds.exceptions")
 				  .addPackages(true, "org.ocelotds.resolvers")
 				  .addPackages(true, "org.ocelotds.web")
-				  .addPackages(true, "org.ocelotds.core")
-				  .addPackages(true, "org.ocelotds.configuration")
+				  .addPackages(true, "org.ocelotds.objects")
+				  .deleteClass(FakeCDI.class)
 				  .addAsManifestResource(new FileAsset(bean), "beans.xml")
 				  .addAsResource(new FileAsset(core), "ocelot-core.js");
 		addJSAndProvider("target/classes", javaArchive, javaArchive);
