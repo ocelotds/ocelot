@@ -44,7 +44,8 @@ public class EJBResolverTest {
 		System.out.println("initJNDIPath");
 		when(initialContext.lookup(APP_NAME)).thenReturn("application-name");
 		String expResult = PREFIX + "application-name";
-		String result = ejbResolver.initJNDIPath();
+		ejbResolver.initJNDIPath();
+		String result = ejbResolver.getJndiPath();
 		assertThat(result).isEqualTo(expResult);
 	}
 
@@ -56,7 +57,8 @@ public class EJBResolverTest {
 	public void testInitJNDIPathFail() throws NamingException {
 		System.out.println("initJNDIPathFail");
 		when(initialContext.lookup(APP_NAME)).thenThrow(NamingException.class);
-		String result = ejbResolver.initJNDIPath();
+		ejbResolver.initJNDIPath();
+		String result = ejbResolver.getJndiPath();
 		assertThat(result).isEqualTo("");
 	}
 
