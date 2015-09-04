@@ -13,6 +13,8 @@ import org.ocelotds.spi.Scope;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import javax.naming.Binding;
 import javax.naming.InitialContext;
 import javax.naming.NamingEnumeration;
@@ -32,18 +34,20 @@ public class EJBResolver implements IDataServiceResolver {
 
 	private static final Map<String, String> jndiMap = new HashMap<>();
 	private String jndiPath = "";
-	private InitialContext initialContext = null;
+	@Inject
+	private InitialContext initialContext;
 
-	public EJBResolver() {
+	@PostConstruct
+	String initJNDIPath() {
 		logger.debug("Initializing context ...");
 		try {
-			initialContext = new InitialContext();
 			jndiPath = JndiConstant.PREFIX + (String) initialContext.lookup(JndiConstant.APP_NAME);
 		} catch (NamingException ex) {
 			logger.error("InitialContext initialisation Failed ", ex);
 		}
+		return jndiPath;
 	}
-
+	
 	@Override
 	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
 		return clazz.cast(resolveDataService(clazz.getName()));
@@ -51,11 +55,10 @@ public class EJBResolver implements IDataServiceResolver {
 
 	private Object resolveDataService(String name) throws DataServiceException {
 		Object obj;
-		InitialContext ic = getInitialContext();
 		if (jndiMap.containsKey(name)) {
 			String jndi = jndiMap.get(name);
 			try {
-				obj = ic.lookup(jndi);
+				obj = initialContext.lookup(jndi);
 			} catch (NamingException ex) {
 				throw new DataServiceException(name, ex);
 			}
@@ -70,16 +73,15 @@ public class EJBResolver implements IDataServiceResolver {
 
 	private Object findEJB(String jndi, String name) {
 		Object result;
-		InitialContext ic = getInitialContext();
 		try {
-			NamingEnumeration<Binding> list = ic.listBindings(jndi);
+			NamingEnumeration<Binding> list = initialContext.listBindings(jndi);
 			while (list != null && list.hasMore()) {
 				try {
 					Binding item = list.next();
 					String itemName = item.getName();
 					if (itemName.endsWith(name)) {
 						try {
-							result = ic.lookup(jndi + JndiConstant.PATH_SEPARATOR + itemName);
+							result = initialContext.lookup(jndi + JndiConstant.PATH_SEPARATOR + itemName);
 							if (result != null) {
 								jndiMap.put(name, jndi + JndiConstant.PATH_SEPARATOR + itemName);
 							}
@@ -121,9 +123,5 @@ public class EJBResolver implements IDataServiceResolver {
 		String PREFIX = "java:global/";
 		String APP_NAME = "java:app/AppName";
 		String PATH_SEPARATOR = "/";
-	}
-
-	private InitialContext getInitialContext() {
-		return initialContext;
 	}
 }
