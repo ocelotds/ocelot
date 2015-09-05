@@ -58,6 +58,23 @@ public class JsTopicInterceptorTest {
 	 *
 	 * @throws Exception
 	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void testProcessMethodWithJsTopicAndWithBadTopicName() throws Exception {
+		System.out.println("testProcessMethodWithJsTopicAndWithBadTopicName");
+		// Given
+		Method method = this.getClass().getMethod("methodWithJsTopicAndWithBadTopicName");
+		InvocationContext ctx = mock(InvocationContext.class);
+		when(ctx.getMethod()).thenReturn(method);
+
+		// When
+		jsTopicInterceptor.processJsTopic(ctx);
+	}
+
+	/**
+	 * If JsTopic is Present with value, so message id fired equals value
+	 *
+	 * @throws Exception
+	 */
 	@Test
 	public void testProcessMethodWithJsTopicAndJsTopicName() throws Exception {
 		System.out.println("testProcessMethodWithJsTopicAndValue");
@@ -130,6 +147,11 @@ public class JsTopicInterceptorTest {
 
 	@JsTopic("TOPICNAME")
 	public void methodWithJsTopicAndWithTopicName() {
+
+	}
+
+	@JsTopic("")
+	public void methodWithJsTopicAndWithBadTopicName() {
 
 	}
 
