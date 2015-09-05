@@ -7,15 +7,18 @@ import org.ocelotds.i18n.ThreadLocalContextHolder;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import javax.inject.Inject;
+import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author hhfrancois
  */
 public class OcelotI18nServices {
-	private static final Logger logger = LoggerFactory.getLogger(OcelotI18nServices.class);
+	@Inject
+	@OcelotLogger
+	private Logger logger;
 	
 	public Locale getUserLocale() {
 		logger.debug("Get locale from OcelotServices");

@@ -16,8 +16,8 @@ import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 import org.ocelotds.Constants;
+import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class transform a sipmle method to chanel for topic
@@ -29,7 +29,9 @@ public class JsTopicInterceptor implements Serializable {
 
 	private static final long serialVersionUID = -849762977471230875L;
 
-	private final static Logger logger = LoggerFactory.getLogger(JsTopicInterceptor.class);
+	@Inject
+	@OcelotLogger
+	private Logger logger;
 
 	@Inject
 	@MessageEvent
