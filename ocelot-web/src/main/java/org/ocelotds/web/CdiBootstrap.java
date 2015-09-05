@@ -10,10 +10,11 @@ import javax.enterprise.inject.Default;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.util.AnnotationLiteral;
+import javax.inject.Inject;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -21,7 +22,9 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class CdiBootstrap {
 
-	private final static Logger logger = LoggerFactory.getLogger(CdiBootstrap.class);
+	@Inject
+	@OcelotLogger
+	private Logger logger;
 	
 	private final static String BEANMANAGER = "java:comp/env/BeanManager";
 

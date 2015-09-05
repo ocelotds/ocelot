@@ -13,8 +13,8 @@ import java.util.Collection;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.websocket.Session;
+import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Singleton that send push messages
@@ -23,7 +23,9 @@ import org.slf4j.LoggerFactory;
  */
 public class TopicsMessagesBroadcaster {
 
-	private final static Logger logger = LoggerFactory.getLogger(TopicsMessagesBroadcaster.class);
+	@Inject
+	@OcelotLogger
+	private Logger logger;
 
 	@Inject
 	private SessionManager sessionManager;

@@ -26,8 +26,8 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
 import javax.json.stream.JsonParsingException;
+import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Class managing frond-end ccache
@@ -36,7 +36,9 @@ import org.slf4j.LoggerFactory;
  */
 public class CacheManager {
 
-	private static final Logger logger = LoggerFactory.getLogger(CacheManager.class);
+	@Inject
+	@OcelotLogger
+	private Logger logger;
 
 	@Inject
 	@MessageEvent

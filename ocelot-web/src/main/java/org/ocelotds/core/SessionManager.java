@@ -22,10 +22,10 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.websocket.Session;
 import org.ocelotds.Constants;
+import org.ocelotds.logger.OcelotLogger;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Singleton sessions manager
@@ -35,7 +35,10 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class SessionManager {
 
-	private final static Logger logger = LoggerFactory.getLogger(SessionManager.class);
+	@Inject
+	@OcelotLogger
+	private Logger logger;
+
 	private final Map<String, Set<Session>> sessionsByTopic = new ConcurrentHashMap<>();
 
 	private static final Annotation DEFAULT_AT = new AnnotationLiteral<Default>() {

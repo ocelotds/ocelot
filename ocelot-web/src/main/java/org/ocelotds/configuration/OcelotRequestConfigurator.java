@@ -6,12 +6,13 @@ package org.ocelotds.configuration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import javax.inject.Inject;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.core.HttpHeaders;
+import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class extract info in request, and expose them to userProperties ServerEnpoint
@@ -20,7 +21,9 @@ import org.slf4j.LoggerFactory;
  */
 public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator {
 
-	private final static Logger logger = LoggerFactory.getLogger(OcelotRequestConfigurator.class);
+	@Inject
+	@OcelotLogger
+	private Logger logger;
 
 	@Override
 	public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {

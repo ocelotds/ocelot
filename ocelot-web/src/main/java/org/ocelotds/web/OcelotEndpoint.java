@@ -26,8 +26,8 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import javax.ws.rs.core.HttpHeaders;
+import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * WebSocket endpoint
@@ -37,7 +37,9 @@ import org.slf4j.LoggerFactory;
 @ServerEndpoint(value = "/ocelot-endpoint", encoders = {MessageToClientEncoder.class}, configurator = OcelotRequestConfigurator.class)
 public class OcelotEndpoint extends CdiBootstrap {
 
-	private final static Logger logger = LoggerFactory.getLogger(OcelotEndpoint.class);
+	@Inject
+	@OcelotLogger
+	private Logger logger;
 
 	@Inject
 	private SessionManager sessionManager;

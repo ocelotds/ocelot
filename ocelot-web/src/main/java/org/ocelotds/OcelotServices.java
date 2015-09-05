@@ -18,8 +18,8 @@ import javax.inject.Inject;
 import javax.websocket.Session;
 import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
+import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -28,7 +28,9 @@ import org.slf4j.LoggerFactory;
 @DataService(resolver = Constants.Resolver.CDI)
 public class OcelotServices {
 
-	private static final Logger logger = LoggerFactory.getLogger(OcelotServices.class);
+	@Inject
+	@OcelotLogger
+	private Logger logger;
 
 	@Inject
 	private UpdatedCacheManager updatedCacheManager;

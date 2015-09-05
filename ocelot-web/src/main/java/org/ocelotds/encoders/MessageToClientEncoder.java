@@ -8,8 +8,6 @@ import org.ocelotds.messaging.MessageToClient;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Decoder for class MessageClient for webSocket endpoint
@@ -17,8 +15,6 @@ import org.slf4j.LoggerFactory;
  * @author hhfrancois
  */
 public class MessageToClientEncoder implements Encoder.Text<MessageToClient> {
-
-	private static final Logger logger = LoggerFactory.getLogger(MessageToClientEncoder.class);
 
 	@Override
 	public String encode(MessageToClient object) throws EncodeException {

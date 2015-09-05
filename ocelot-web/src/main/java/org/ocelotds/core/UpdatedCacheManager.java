@@ -10,9 +10,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import javax.enterprise.event.Observes;
+import javax.inject.Inject;
 import javax.inject.Singleton;
+import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -21,7 +22,9 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class UpdatedCacheManager {
 
-	private final static Logger logger = LoggerFactory.getLogger(UpdatedCacheManager.class);
+	@Inject
+	@OcelotLogger
+	private Logger logger;
 
 	private final Map<String, Long> lastupdateTime = new HashMap<>();
 

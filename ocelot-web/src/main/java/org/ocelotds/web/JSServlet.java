@@ -10,14 +10,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Writer;
+import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Servlet to serve ocelot.js
@@ -30,8 +30,11 @@ public class JSServlet extends HttpServlet {
 	private static final long serialVersionUID = 1973549844535787671L;
 
 	private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
-	private final static Logger logger = LoggerFactory.getLogger(JSServlet.class);
 
+	@Inject
+	@OcelotLogger
+	private Logger logger;
+	
 	/**
 	 * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
 	 *

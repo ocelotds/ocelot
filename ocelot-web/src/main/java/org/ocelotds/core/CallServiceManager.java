@@ -32,8 +32,8 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.websocket.Session;
+import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Abstract class of OcelotDataService
@@ -42,7 +42,9 @@ import org.slf4j.LoggerFactory;
  */
 public class CallServiceManager {
 
-	private static final Logger logger = LoggerFactory.getLogger(CallServiceManager.class);
+	@Inject
+	@OcelotLogger
+	private Logger logger;
 
 	@Inject
 	private Cleaner cleaner;

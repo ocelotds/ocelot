@@ -22,8 +22,8 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
+import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Web application lifecycle listener.
@@ -33,7 +33,9 @@ import org.slf4j.LoggerFactory;
 @WebListener
 public final class ContextListener implements ServletContextListener {
 
-	private final static Logger logger = LoggerFactory.getLogger(ContextListener.class);
+	@Inject
+	@OcelotLogger
+	private Logger logger;
 	/**
 	 * Default size of stacktrace include in messageToClient fault
 	 */
@@ -119,7 +121,7 @@ public final class ContextListener implements ServletContextListener {
 	 * @param normalName
 	 * @param minifyName
 	 */
-	private void setInitParameterAnMinifyJs(ServletContext sc, File file, String normalName, String minifyName) {
+	void setInitParameterAnMinifyJs(ServletContext sc, File file, String normalName, String minifyName) {
 		// create tmp/ocelot-xxx.js
 		String filePath = file.getAbsolutePath();
 		sc.setInitParameter(normalName, filePath);
@@ -172,7 +174,7 @@ public final class ContextListener implements ServletContextListener {
 	 * @return
 	 * @throws IOException
 	 */
-	private File createOcelotJsFile(String ctxPath) throws IOException {
+	File createOcelotJsFile(String ctxPath) throws IOException {
 		File file = File.createTempFile(Constants.OCELOT, Constants.JS);
 		try (Writer writer = new FileWriter(file)) {
 			createLicenceComment(writer);

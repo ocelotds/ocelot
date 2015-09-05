@@ -8,16 +8,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import javax.inject.Inject;
+import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author hhfrancois
  */
 public abstract class AbstractServiceProvider implements IServicesProvider {
-	
-	private static final Logger logger = LoggerFactory.getLogger(AbstractServiceProvider.class);
+
+	@Inject
+	@OcelotLogger
+	private Logger logger;
 
 	protected abstract String getJsFilename();
 	

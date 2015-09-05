@@ -19,8 +19,8 @@ import javax.naming.Binding;
 import javax.naming.InitialContext;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Resolver of EJB
@@ -30,7 +30,9 @@ import org.slf4j.LoggerFactory;
 @DataServiceResolver(Constants.Resolver.EJB)
 public class EJBResolver implements IDataServiceResolver {
 
-	private static final Logger logger = LoggerFactory.getLogger(EJBResolver.class);
+	@Inject
+	@OcelotLogger
+	private Logger logger;
 
 	private static final Map<String, String> jndiMap = new HashMap<>();
 
