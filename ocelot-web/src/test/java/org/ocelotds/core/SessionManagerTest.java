@@ -27,6 +27,7 @@ import org.mockito.ArgumentCaptor;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import org.ocelotds.security.JsTopicACAnnotationLiteral;
+import org.slf4j.Logger;
 /**
  *
  * @author hhfrancois
@@ -40,10 +41,13 @@ public class SessionManagerTest {
 	private static final String SUBTOPIC2 = "subscribers:TOPIC_2";
 	
 	@Mock
+	private Logger logger;
+
+	@Mock
 	Instance<JsTopicAccessController> topicAccessController;
 
 	@InjectMocks
-	private final SessionManager sessionManager = new SessionManager();
+	private SessionManager sessionManager;
 
 	@Before
 	public void init() {

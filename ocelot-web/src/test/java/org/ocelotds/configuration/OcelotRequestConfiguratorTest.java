@@ -13,14 +13,26 @@ import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.core.HttpHeaders;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import static org.mockito.Mockito.*;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.slf4j.Logger;
 
 
 /**
  *
  * @author hhfrancois
  */
+@RunWith(MockitoJUnitRunner.class)
 public class OcelotRequestConfiguratorTest {
+	
+	@Mock
+	private Logger logger;
+
+	@InjectMocks
+	private OcelotRequestConfigurator ocelotRequestConfigurator;
 	
 	/**
 	 * Test of modifyHandshake method, of class OcelotRequestConfigurator.
@@ -38,8 +50,7 @@ public class OcelotRequestConfiguratorTest {
 		
 		HandshakeResponse response = mock(HandshakeResponse.class);
 
-		OcelotRequestConfigurator instance = new OcelotRequestConfigurator();
-		instance.modifyHandshake(sec, request, response);
+		ocelotRequestConfigurator.modifyHandshake(sec, request, response);
 		List<String> result = (List) sec.getUserProperties().get(HttpHeaders.ACCEPT_LANGUAGE);
 		assertThat(result).hasSize(1);
 		assertThat(result).contains("en-US;q=1");
@@ -63,8 +74,7 @@ public class OcelotRequestConfiguratorTest {
 		
 		HandshakeResponse response = mock(HandshakeResponse.class);
 
-		OcelotRequestConfigurator instance = new OcelotRequestConfigurator();
-		instance.modifyHandshake(sec, request, response);
+		ocelotRequestConfigurator.modifyHandshake(sec, request, response);
 		List<String> result = (List) sec.getUserProperties().get(HttpHeaders.ACCEPT_LANGUAGE);
 		assertThat(result).hasSize(1);
 		assertThat(result).contains("fr-FR;q=1");

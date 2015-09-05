@@ -14,16 +14,26 @@ import org.apache.catalina.ssi.ByteArrayServletOutputStream;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
+import org.slf4j.Logger;
 
 /**
  *
  * @author hhfrancois
  */
+@RunWith(MockitoJUnitRunner.class)
 public class JSServletTest {
 
-	private final JSServlet jsServlet = new JSServlet();
+	@Mock
+	private Logger logger;
+
+	@InjectMocks
+	private JSServlet jsServlet;
 	
 	HttpServletRequest request;
 	HttpServletResponse response;

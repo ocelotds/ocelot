@@ -17,6 +17,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.objects.Result;
 import org.ocelotds.spi.DataServiceException;
 import org.ocelotds.spi.Scope;
+import org.slf4j.Logger;
 
 /**
  *
@@ -30,10 +31,13 @@ public class EJBResolverTest {
 	String PATH_SEPARATOR = "/";
 
 	@Mock
+	private Logger logger;
+
+	@Mock
 	private InitialContext initialContext;
 
 	@InjectMocks
-	private EJBResolver ejbResolver = new EJBResolver();
+	private EJBResolver ejbResolver;
 
 	/**
 	 * Test of initJNDIPath method, of class EJBResolver.

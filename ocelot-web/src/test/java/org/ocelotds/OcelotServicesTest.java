@@ -17,6 +17,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.core.UpdatedCacheManager;
 import org.ocelotds.i18n.ThreadLocalContextHolder;
+import org.slf4j.Logger;
 
 /**
  *
@@ -26,6 +27,9 @@ import org.ocelotds.i18n.ThreadLocalContextHolder;
 public class OcelotServicesTest {
 	
 	private final Map<String, Object> userProperties = new HashMap<>();
+
+	@Mock
+	private Logger logger;
 	
 	@Mock
 	private UpdatedCacheManager updatedCacheManager;
@@ -34,7 +38,7 @@ public class OcelotServicesTest {
 	private SessionManager sessionManager;
 
 	@InjectMocks
-	private final OcelotServices ocelotServices = new OcelotServices();
+	private OcelotServices ocelotServices;
 
 	/**
 	 * Test of setLocale method, of class OcelotServices.

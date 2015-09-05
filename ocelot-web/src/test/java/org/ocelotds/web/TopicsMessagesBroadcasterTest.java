@@ -20,6 +20,7 @@ import org.ocelotds.messaging.MessageToClient;
 import static org.mockito.Mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.messaging.MessageType;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -30,10 +31,13 @@ import org.slf4j.LoggerFactory;
 public class TopicsMessagesBroadcasterTest {
 	
 	@Mock
+	private Logger logger;
+
+	@Mock
 	private SessionManager sessionManager;
 
 	@InjectMocks
-	private TopicsMessagesBroadcaster messagesBroadcaster = new TopicsMessagesBroadcaster();
+	private TopicsMessagesBroadcaster messagesBroadcaster;
 	
 	/**
 	 * Test of sendMessageToTopic method, of class TopicsMessagesBroadcaster.

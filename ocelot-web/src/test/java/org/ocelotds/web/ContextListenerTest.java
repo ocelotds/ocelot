@@ -21,6 +21,7 @@ import org.ocelotds.Constants;
 import org.ocelotds.IServicesProvider;
 import org.ocelotds.configuration.OcelotConfiguration;
 import org.ocelotds.objects.FakeCDI;
+import org.slf4j.Logger;
 
 /**
  *
@@ -32,8 +33,11 @@ public class ContextListenerTest {
 	private String ocelotjspath = null;
 	private String ocelotminjspath = null;
 
+	@Mock
+	private Logger logger;
+
 	@InjectMocks
-	private ContextListener contextListener = new ContextListener();
+	private ContextListener contextListener;
 
 	@Mock
 	private OcelotConfiguration configuration;

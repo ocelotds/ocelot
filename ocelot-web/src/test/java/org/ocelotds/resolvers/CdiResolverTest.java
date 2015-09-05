@@ -28,10 +28,10 @@ import org.ocelotds.spi.DataServiceException;
 public class CdiResolverTest {
 	
 	@Mock
-	BeanManager beanManager;
+	private BeanManager beanManager;
 
 	@InjectMocks
-	CdiResolver cdiResolver = new CdiResolver();
+	private CdiResolver cdiResolver;
 
 	/**
 	 * Test of resolveDataService method, of class CdiResolver.

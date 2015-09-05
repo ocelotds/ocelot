@@ -10,15 +10,26 @@ import java.util.Map;
 import java.util.UUID;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.slf4j.Logger;
 
 /**
  *
  * @author hhfrancois
  */
+@RunWith(MockitoJUnitRunner.class)
 public class UpdatedCacheManagerTest {
 	
 	private static final long DELAY = 1000;
 	
+	@Mock
+	private Logger logger;
+
+	@InjectMocks
+	private UpdatedCacheManager updatedCacheManager;
 	/**
 	 * Test of receiveCacheRemoveEvent method, of class UpdatedCacheManager.
 	 */
@@ -29,9 +40,8 @@ public class UpdatedCacheManagerTest {
 		Map<String, Long> map = new HashMap<>();
 		Date now = new Date();
 		map.put(cachekey, now.getTime()-DELAY);
-		UpdatedCacheManager instance = new UpdatedCacheManager();
-		instance.receiveCacheRemoveEvent(cachekey);
-		Collection<String> result = instance.getOutDatedCache(map);
+		updatedCacheManager.receiveCacheRemoveEvent(cachekey);
+		Collection<String> result = updatedCacheManager.getOutDatedCache(map);
 		assertThat(result).contains(cachekey);
 	}
 
@@ -45,9 +55,8 @@ public class UpdatedCacheManagerTest {
 		Map<String, Long> map = new HashMap<>();
 		Date now = new Date();
 		map.put(cachekey, now.getTime()+DELAY);
-		UpdatedCacheManager instance = new UpdatedCacheManager();
-		instance.receiveCacheRemoveEvent(cachekey);
-		Collection<String> result = instance.getOutDatedCache(map);
+		updatedCacheManager.receiveCacheRemoveEvent(cachekey);
+		Collection<String> result = updatedCacheManager.getOutDatedCache(map);
 		assertThat(result).doesNotContain(cachekey);
 	}
 }

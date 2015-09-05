@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.core;
 
-import ch.qos.logback.classic.Level;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
@@ -26,8 +25,8 @@ import org.ocelotds.annotations.JsCacheRemoves;
 import org.ocelotds.messaging.MessageToClient;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import org.ocelotds.web.TopicsMessagesBroadcaster;
-import org.slf4j.LoggerFactory;
+import org.mockito.Spy;
+import org.slf4j.Logger;
 
 /**
  *
@@ -40,9 +39,12 @@ public class CacheManagerTest {
 	private Event<MessageToClient> wsEvent;
 	@Mock
 	private Event<String> cacheEvent;
+	@Mock
+	private Logger logger;
 	
+	@Spy
 	@InjectMocks
-	private final CacheManager cacheManager = new CacheManager();
+	private CacheManager cacheManager;
 
 	/**
 	 * Test of isJsCached method, of class CacheManager.
@@ -109,9 +111,7 @@ public class CacheManagerTest {
 	 */
 	@Test
 	public void testProcessCleanCacheAnnotationsWithAllArg() throws NoSuchMethodException {
-		ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(CacheManager.class);
-		Level old = logger.getLevel();
-		logger.setLevel(Level.DEBUG);
+		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
 		System.out.println("testProcessCleanCacheAnnotationsWithAllArg");
 		Method method = this.getClass().getMethod("jsCacheRemoveAnnotatedMethodWithAllArgs", new Class<?>[] {Integer.TYPE, String.class});
 		List<String> paramNames = Arrays.asList("\"a\"", "\"b\"");
@@ -126,7 +126,6 @@ public class CacheManagerTest {
 		MessageToClient msg = captureMTC.getValue();
 		assertThat(msg.getId()).isEqualTo(Constants.Cache.CLEANCACHE_TOPIC);
 		assertThat(msg.getResponse()).isEqualTo(cacheKey);
-		logger.setLevel(old);
 	}
 
 	/**
@@ -201,15 +200,22 @@ public class CacheManagerTest {
 	 */
 	@Test
 	public void testGetMd5InError() throws NoSuchAlgorithmException, UnsupportedEncodingException {
-		System.out.println("getMd5");
-		CacheManager cm = spy(CacheManager.class);
-		when(cm.getMessageDigest()).thenThrow(NoSuchAlgorithmException.class);
-		String result = cm.getMd5("");
+		System.out.println("getMd5InError");
+		when(cacheManager.getMessageDigest()).thenThrow(UnsupportedEncodingException.class);
+		String result = cacheManager.getMd5("");
 		assertThat(result).isNull();
+	}
 
-		cm = spy(CacheManager.class);
-		when(cm.getMessageDigest()).thenThrow(UnsupportedEncodingException.class);
-		result = cm.getMd5("");
+	/**
+	 * Test of getMd5 method, of class CacheManager.
+	 * @throws java.security.NoSuchAlgorithmException
+	 * @throws java.io.UnsupportedEncodingException
+	 */
+	@Test
+	public void testGetMd5InError2() throws NoSuchAlgorithmException, UnsupportedEncodingException {
+		System.out.println("getMd5InError2");
+		when(cacheManager.getMessageDigest()).thenThrow(NoSuchAlgorithmException.class);
+		String result = cacheManager.getMd5("");
 		assertThat(result).isNull();
 	}
 

@@ -15,8 +15,12 @@ import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.objects.Result;
+import org.slf4j.Logger;
 
 /**
  *
@@ -27,6 +31,13 @@ public class CdiBootstrapTest {
 	
 	private final static String BEANMANAGER = "java:comp/env/BeanManager";
 
+	@Mock
+	private Logger logger;
+
+	@InjectMocks
+	@Spy
+	private CdiBootstrapImpl cdiBootstrap;
+
 	/**
 	 * Test of getBeanManager method, of class CdiBootstrap.
 	 * @throws javax.naming.NamingException
@@ -34,7 +45,6 @@ public class CdiBootstrapTest {
 	@Test
 	public void testGetBeanManager() throws NamingException {
 		System.out.println("getBeanManager");
-		CdiBootstrap cdiBootstrap = spy(CdiBootstrapImpl.class);
 		// First time NamingException so null
 		when(cdiBootstrap.getInitialContext()).thenThrow(NamingException.class);
 		BeanManager result = cdiBootstrap.getBeanManager();
@@ -62,7 +72,6 @@ public class CdiBootstrapTest {
 	@Test
 	public void testGetBean() throws NamingException {
 		System.out.println("getBean");
-		CdiBootstrap cdiBootstrap = spy(CdiBootstrapImpl.class);
 		Bean b = mock(Bean.class);
 		when(b.getBeanClass()).thenReturn(Result.class);
 		

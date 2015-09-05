@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.core;
 
-import ch.qos.logback.classic.Level;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -48,7 +47,6 @@ import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.ocelotds.resolvers.PojoResolver;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -67,11 +65,15 @@ public class CallServiceManagerTest {
 	private OcelotConfiguration configuration;
 
 	@Spy
+	@InjectMocks
 	private CacheManager cacheManager = new CacheManager();
+
+	@Mock
+	private Logger logger;
 
 	@Spy
 	@InjectMocks
-	private final CallServiceManager callServiceManager = new CallServiceManager();
+	private CallServiceManager callServiceManager;
 
 	@Before
 	public void init() {
@@ -271,9 +273,7 @@ public class CallServiceManagerTest {
 	@Test
 	public void testSendMessageToClient() throws DataServiceException, NoSuchMethodException {
 		System.out.println("sendMessageToClient");
-		ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(CallServiceManager.class);
-		Level old = logger.getLevel();
-		logger.setLevel(Level.DEBUG);
+		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
 		Class cls = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
 		message.setDataService(cls.getName());
@@ -331,7 +331,6 @@ public class CallServiceManagerTest {
 		}
 		assertThat(result.get(4).getResponse()).isEqualTo(fault);
 		assertThat(result.get(5).getResponse()).isEqualTo(new ClassAsDataService().methodReturnString("e"));
-		logger.setLevel(old);
 	}
 
 	@DataService(resolver = "TEST")

@@ -28,6 +28,7 @@ import org.ocelotds.core.CallServiceManager;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.i18n.ThreadLocalContextHolder;
 import org.ocelotds.messaging.MessageFromClient;
+import org.slf4j.Logger;
 
 /**
  *
@@ -35,6 +36,9 @@ import org.ocelotds.messaging.MessageFromClient;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class OcelotEndpointTest {
+
+	@Mock
+	private Logger logger;
 
 	@Mock
 	private SessionManager sessionManager;

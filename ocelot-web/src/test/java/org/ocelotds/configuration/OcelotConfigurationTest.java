@@ -12,19 +12,20 @@ import static org.assertj.core.api.Assertions.*;
  */
 public class OcelotConfigurationTest {
 	
+	private OcelotConfiguration ocelotConfiguration = new OcelotConfiguration();
+	
 	/**
 	 * Test of getStacktracelength method, of class OcelotConfiguration.
 	 */
 	@Test
 	public void testGetSetStacktracelength() {
 		System.out.println("testGetSetStacktracelength");
-		OcelotConfiguration instance = new OcelotConfiguration();
 		int expResult = 50;
-		int result = instance.getStacktracelength();
+		int result = ocelotConfiguration.getStacktracelength();
 		assertThat(result).isEqualTo(expResult);
 		expResult = 10;
-		instance.setStacktracelength(expResult);
-		result = instance.getStacktracelength();
+		ocelotConfiguration.setStacktracelength(expResult);
+		result = ocelotConfiguration.getStacktracelength();
 		assertThat(result).isEqualTo(expResult);
 	}
 }
