@@ -19,7 +19,6 @@ import org.mockito.Mock;
 import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
