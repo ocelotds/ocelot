@@ -44,7 +44,7 @@ public class OcelotEndpointTest {
 
 	@InjectMocks
 	private OcelotEndpoint ocelotEndpoint;
-
+	
 	/**
 	 * Test of handleOpenConnexion method, of class OcelotEndpoint.
 	 *

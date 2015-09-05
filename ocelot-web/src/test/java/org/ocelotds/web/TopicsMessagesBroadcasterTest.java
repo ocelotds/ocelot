@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.web;
 
+import ch.qos.logback.classic.Level;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
@@ -19,6 +20,7 @@ import org.ocelotds.messaging.MessageToClient;
 import static org.mockito.Mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.messaging.MessageType;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -38,6 +40,9 @@ public class TopicsMessagesBroadcasterTest {
 	 */
 	@Test
 	public void testSendMessageToTopicFor1Session() {
+		ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(TopicsMessagesBroadcaster.class);
+		Level old = logger.getLevel();
+		logger.setLevel(Level.DEBUG);
 		System.out.println("sendMessageToTopicFor1Session");
 		Collection<Session> sessions = new ArrayList<>();
 		Session session1 = mock(Session.class);
@@ -62,6 +67,7 @@ public class TopicsMessagesBroadcasterTest {
 		assertThat(captureMsg.getValue().getId()).isEqualTo(id);
 		assertThat(captureMsg.getValue().getType()).isEqualTo(MessageType.MESSAGE);
 		assertThat(captureMsg.getValue().getDeadline()).isEqualTo(0L);
+		logger.setLevel(old);
 	}
 	
 	/**

@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.core;
 
+import ch.qos.logback.classic.Level;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
@@ -25,6 +26,8 @@ import org.ocelotds.annotations.JsCacheRemoves;
 import org.ocelotds.messaging.MessageToClient;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import org.ocelotds.web.TopicsMessagesBroadcaster;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -106,6 +109,9 @@ public class CacheManagerTest {
 	 */
 	@Test
 	public void testProcessCleanCacheAnnotationsWithAllArg() throws NoSuchMethodException {
+		ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(CacheManager.class);
+		Level old = logger.getLevel();
+		logger.setLevel(Level.DEBUG);
 		System.out.println("testProcessCleanCacheAnnotationsWithAllArg");
 		Method method = this.getClass().getMethod("jsCacheRemoveAnnotatedMethodWithAllArgs", new Class<?>[] {Integer.TYPE, String.class});
 		List<String> paramNames = Arrays.asList("\"a\"", "\"b\"");
@@ -120,6 +126,7 @@ public class CacheManagerTest {
 		MessageToClient msg = captureMTC.getValue();
 		assertThat(msg.getId()).isEqualTo(Constants.Cache.CLEANCACHE_TOPIC);
 		assertThat(msg.getResponse()).isEqualTo(cacheKey);
+		logger.setLevel(old);
 	}
 
 	/**

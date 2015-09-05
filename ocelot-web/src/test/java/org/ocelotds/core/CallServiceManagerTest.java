@@ -272,6 +272,7 @@ public class CallServiceManagerTest {
 	public void testSendMessageToClient() throws DataServiceException, NoSuchMethodException {
 		System.out.println("sendMessageToClient");
 		ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(CallServiceManager.class);
+		Level old = logger.getLevel();
 		logger.setLevel(Level.DEBUG);
 		Class cls = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
@@ -330,6 +331,7 @@ public class CallServiceManagerTest {
 		}
 		assertThat(result.get(4).getResponse()).isEqualTo(fault);
 		assertThat(result.get(5).getResponse()).isEqualTo(new ClassAsDataService().methodReturnString("e"));
+		logger.setLevel(old);
 	}
 
 	@DataService(resolver = "TEST")

@@ -84,6 +84,19 @@ public class EJBResolverTest {
 	}
 
 	/**
+	 * Test of resolveDataService method, of class EJBResolver.
+	 * @throws org.ocelotds.spi.DataServiceException
+	 * @throws javax.naming.NamingException
+	 */
+	@Test(expected = DataServiceException.class)
+	public void testResolveDataServiceFail() throws DataServiceException, NamingException {
+		testResolveDataService();
+		System.out.println("resolveDataService");
+		when(initialContext.lookup(PREFIX+"application-name"+PATH_SEPARATOR+Result.class.getName())).thenThrow(DataServiceException.class);
+		ejbResolver.resolveDataService(Result.class);
+	}
+
+	/**
 	 * Test of getScope method, of class EJBResolver.
 	 */
 	@Test
