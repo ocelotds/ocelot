@@ -10,14 +10,16 @@ import javax.interceptor.InvocationContext;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.ocelotds.messaging.MessageToClient;
 import org.junit.runner.RunWith;
 import static org.mockito.Mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 import static org.assertj.core.api.Assertions.*;
+import org.mockito.Mock;
 import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -25,11 +27,15 @@ import org.ocelotds.annotations.JsTopicName;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JsTopicInterceptorTest {
+	
+	@Mock
+	private Logger logger;
 
 	@Mock
 	private Event<MessageToClient> wsEvent;
+
 	@InjectMocks
-	private final JsTopicInterceptor jsTopicInterceptor = new JsTopicInterceptor();
+	private JsTopicInterceptor jsTopicInterceptor;
 
 	/**
 	 * If JsTopic is Present with value, so message id fired equals value

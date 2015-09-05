@@ -8,16 +8,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.UUID;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.ocelotds.Constants;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 /**
  *
@@ -25,25 +19,6 @@ import org.mockito.stubbing.Answer;
  */
 public class MessageToClientTest {
 	
-	public MessageToClientTest() {
-	}
-	
-	@BeforeClass
-	public static void setUpClass() {
-	}
-	
-	@AfterClass
-	public static void tearDownClass() {
-	}
-	
-	@Before
-	public void setUp() {
-	}
-	
-	@After
-	public void tearDown() {
-	}
-
 	/**
 	 * Test of getType method, of class MessageToClient.
 	 */
