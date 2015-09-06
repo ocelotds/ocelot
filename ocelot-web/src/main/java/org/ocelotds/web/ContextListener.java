@@ -14,6 +14,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URL;
@@ -205,11 +206,11 @@ public final class ContextListener implements ServletContextListener {
 		if (null == js) {
 			throw new IOException("File " + Constants.SLASH + Constants.OCELOT_CORE + Constants.JS + " not found in classpath.");
 		}
-		try (InputStream in = js.openStream()) {
-			byte[] buffer = new byte[Constants.DEFAULT_BUFFER_SIZE];
-			int n = 0;
-			while (-1 != (n = in.read(buffer))) {
-				out.write(buffer, 0, n);
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream(), Constants.UTF_8))) {
+			String inputLine;
+			while ((inputLine = in.readLine()) != null) {
+				out.write(inputLine.replaceAll(Constants.CTXPATH, ctxPath).getBytes(Constants.UTF_8));
+				out.write(Constants.BACKSLASH_N.getBytes(Constants.UTF_8));
 			}
 		}
 	}
