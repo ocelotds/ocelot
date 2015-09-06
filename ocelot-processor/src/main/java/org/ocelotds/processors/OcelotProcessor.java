@@ -97,7 +97,7 @@ public class OcelotProcessor extends AbstractProcessor {
 	 * 
 	 * @return 
 	 */
-	private String createJSServicesProvider() {
+	String createJSServicesProvider() {
 		// Creation du provider de ocelot-services.js
 		String prefix = "srv_" + RANDOM.nextInt(100_000_000);
 		try {
