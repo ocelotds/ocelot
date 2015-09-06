@@ -3,9 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.core;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -26,6 +24,7 @@ import org.ocelotds.messaging.MessageToClient;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import org.mockito.Spy;
+import org.ocelotds.KeyMaker;
 import org.slf4j.Logger;
 
 /**
@@ -42,6 +41,9 @@ public class CacheManagerTest {
 	@Mock
 	private Logger logger;
 	
+	@Mock
+	private KeyMaker keyMaker;
+
 	@Spy
 	@InjectMocks
 	private CacheManager cacheManager;
@@ -191,32 +193,6 @@ public class CacheManagerTest {
 		MessageToClient msg = captureMTC.getValue();
 		assertThat(msg.getId()).isEqualTo(Constants.Cache.CLEANCACHE_TOPIC);
 		assertThat(msg.getResponse()).isEqualTo("ALL");
-	}
-
-	/**
-	 * Test of getMd5 method, of class CacheManager.
-	 * @throws java.security.NoSuchAlgorithmException
-	 * @throws java.io.UnsupportedEncodingException
-	 */
-	@Test
-	public void testGetMd5InError() throws NoSuchAlgorithmException, UnsupportedEncodingException {
-		System.out.println("getMd5InError");
-		when(cacheManager.getMessageDigest()).thenThrow(UnsupportedEncodingException.class);
-		String result = cacheManager.getMd5("");
-		assertThat(result).isNull();
-	}
-
-	/**
-	 * Test of getMd5 method, of class CacheManager.
-	 * @throws java.security.NoSuchAlgorithmException
-	 * @throws java.io.UnsupportedEncodingException
-	 */
-	@Test
-	public void testGetMd5InError2() throws NoSuchAlgorithmException, UnsupportedEncodingException {
-		System.out.println("getMd5InError2");
-		when(cacheManager.getMessageDigest()).thenThrow(NoSuchAlgorithmException.class);
-		String result = cacheManager.getMd5("");
-		assertThat(result).isNull();
 	}
 
 	@JsCacheResult

@@ -12,10 +12,7 @@ import org.ocelotds.messaging.CacheEvent;
 import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
 import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -26,6 +23,7 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
 import javax.json.stream.JsonParsingException;
+import org.ocelotds.KeyMaker;
 import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
 
@@ -47,6 +45,9 @@ public class CacheManager {
 	@Inject
 	@CacheEvent
 	Event<String> cacheEvent;
+	
+	@Inject
+	KeyMaker keyMaker;
 
 	/**
 	 * Check if resultshould be cached in front-end
@@ -185,9 +186,9 @@ public class CacheManager {
 			}
 		}
 		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
-		String cachekey = getMd5(jcr.cls().getName() + "." + jcr.methodName());
+		String cachekey = keyMaker.getMd5(jcr.cls().getName() + "." + jcr.methodName());
 		if (sb.length() > 0) {
-			cachekey += "_" + getMd5(sb.toString());
+			cachekey += "_" + keyMaker.getMd5(sb.toString());
 		}
 		messageToClient.setResponse(cachekey);
 		logger.debug("CACHEID : {}.{}_{} = {}", jcr.cls().getName(), jcr.methodName(), sb.toString(), cachekey);
@@ -195,30 +196,30 @@ public class CacheManager {
 		cacheEvent.fire(cachekey);
 	}
 
-	/**
-	 * Create a md5 from string
-	 *
-	 * @param msg
-	 * @return
-	 */
-	String getMd5(String msg) {
-		MessageDigest md;
-		try {
-			md = getMessageDigest();
-			byte[] hash = md.digest(msg.getBytes(Constants.UTF_8));
-			//converting byte array to Hexadecimal String
-			StringBuilder sb = new StringBuilder(2 * hash.length);
-			for (byte b : hash) {
-				sb.append(String.format("%02x", b & 0xff));
-			}
-			return sb.toString();
-		} catch (NoSuchAlgorithmException | UnsupportedEncodingException ex) {
-			logger.error("Fail to get MD5 of String "+msg, ex);
-		}
-		return null;
-	}
-	
-	MessageDigest getMessageDigest() throws NoSuchAlgorithmException {
-		return MessageDigest.getInstance("MD5");
-	}
+//	/**
+//	 * Create a md5 from string
+//	 *
+//	 * @param msg
+//	 * @return
+//	 */
+//	String getMd5(String msg) {
+//		MessageDigest md;
+//		try {
+//			md = getMessageDigest();
+//			byte[] hash = md.digest(msg.getBytes(Constants.UTF_8));
+//			//converting byte array to Hexadecimal String
+//			StringBuilder sb = new StringBuilder(2 * hash.length);
+//			for (byte b : hash) {
+//				sb.append(String.format("%02x", b & 0xff));
+//			}
+//			return sb.toString();
+//		} catch (NoSuchAlgorithmException | UnsupportedEncodingException ex) {
+//			logger.error("Fail to get MD5 of String "+msg, ex);
+//		}
+//		return null;
+//	}
+//	
+//	MessageDigest getMessageDigest() throws NoSuchAlgorithmException {
+//		return MessageDigest.getInstance("MD5");
+//	}
 }
