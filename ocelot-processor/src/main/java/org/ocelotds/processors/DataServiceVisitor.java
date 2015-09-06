@@ -4,15 +4,10 @@
  */
 package org.ocelotds.processors;
 
-import org.ocelotds.Constants;
 import org.ocelotds.annotations.JsCacheResult;
 import org.ocelotds.annotations.TransientDataService;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -32,6 +27,7 @@ import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
+import org.ocelotds.KeyMaker;
 import org.ocelotds.annotations.DataService;
 
 /**
@@ -48,9 +44,12 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	 */
 	private final Messager messager;
 
+	private final KeyMaker keyMaker;
+
 	public DataServiceVisitor(ProcessingEnvironment environment) {
 		this.environment = environment;
 		this.messager = environment.getMessager();
+		this.keyMaker = new KeyMaker();
 	}
 
 	@Override
@@ -66,51 +65,59 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 			List<ExecutableElement> methodElements = ElementFilter.methodsIn(typeElement.getEnclosedElements());
 			Iterator<ExecutableElement> iterator = methodElements.iterator();
 			Collection<String> methodProceeds = new ArrayList<>();
+			boolean first = true;
 			while (iterator.hasNext()) {
 				ExecutableElement methodElement = iterator.next();
 				if (isConsiderateMethod(methodProceeds, methodElement)) {
-					String methodName = methodElement.getSimpleName().toString();
-					List<String> argumentsType = getArgumentsType(methodElement);
-					List<String> arguments = getArguments(methodElement);
-					TypeMirror returnType = methodElement.getReturnType();
-					writer.append("\n");
-					createMethodComment(methodElement, arguments, argumentsType, returnType, writer);
-
-					writer.append("\t").append(methodName).append(" : function (");
-					if (arguments.size() != argumentsType.size()) {
-						messager.printMessage(Diagnostic.Kind.ERROR, (new StringBuilder()).append("Cannot Create service : ").append(jsclsname).append(" cause method ").append(methodElement.getSimpleName()).append(" arguments inconsistent - argNames : ").append(arguments.size()).append(" / args : ").append(argumentsType.size()).toString(), typeElement);
-						return null;
-					}
-					int i = 0;
-					while (i < argumentsType.size()) {
-						writer.append((String) arguments.get(i));
-						if ((++i) < arguments.size()) {
-							writer.append(", ");
-						}
-					}
-					writer.append(") {\n");
-
-					createMethodBody(classname, methodElement, arguments.iterator(), writer);
-
-					writer.append("\t}");
-					if (iterator.hasNext()) {
-						writer.append(",");
-					}
-					writer.append("\n");
+					visitMethodElement(first, methodProceeds, classname, jsclsname, methodElement, writer);
+					first = false;
 				}
 			}
-			writer.append("};\n");
+			writer.append("\n};\n");
 		} catch (IOException ex) {
 		}
 		return null;
 	}
 
+	void visitMethodElement(boolean first, Collection<String> methodProceeds, String classname, String jsclsname, ExecutableElement methodElement, Writer writer) throws IOException {
+		if (!first) { // previous method exist
+			writer.append(",\n");
+		}
+		String methodName = methodElement.getSimpleName().toString();
+		List<String> argumentsType = getArgumentsType(methodElement);
+		List<String> arguments = getArguments(methodElement);
+		TypeMirror returnType = methodElement.getReturnType();
+		createMethodComment(methodElement, arguments, argumentsType, returnType, writer);
+
+		writer.append("\t").append(methodName).append(" : function (");
+		if (arguments.size() != argumentsType.size()) {
+			messager.printMessage(Diagnostic.Kind.ERROR, (new StringBuilder())
+					  .append("Cannot Create service : ").append(jsclsname).append(" cause method ")
+					  .append(methodElement.getSimpleName()).append(" arguments inconsistent - argNames : ")
+					  .append(arguments.size()).append(" / args : ").append(argumentsType.size()).toString());
+			return;
+		}
+		int i = 0;
+		while (i < argumentsType.size()) {
+			writer.append((String) arguments.get(i));
+			if ((++i) < arguments.size()) {
+				writer.append(", ");
+			}
+		}
+		writer.append(") {\n");
+
+		createMethodBody(classname, methodElement, arguments.iterator(), writer);
+
+		writer.append("\t}");
+	}
+
 	/**
 	 * Compute the name of javascript class
+	 *
 	 * @param typeElement
-	 * @return 
+	 * @return
 	 */
-	private String getJsClassname(TypeElement typeElement) {
+	String getJsClassname(TypeElement typeElement) {
 		DataService dsAnno = typeElement.getAnnotation(DataService.class);
 		String name = dsAnno.name();
 		if (name.isEmpty()) {
@@ -125,7 +132,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	 * @param typeElement
 	 * @param writer
 	 */
-	protected void createClassComment(TypeElement typeElement, Writer writer) {
+	void createClassComment(TypeElement typeElement, Writer writer) {
 		try {
 			String comment = environment.getElementUtils().getDocComment(typeElement);
 			if (comment == null) {
@@ -134,14 +141,24 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 					TypeElement element = (TypeElement) environment.getTypeUtils().asElement(typeMirror);
 					comment = environment.getElementUtils().getDocComment(element);
 					if (comment != null) {
-						writer.append("/**\n *").append(comment.replaceAll("\n", "\n *")).append("/\n");
+						writer.append("/**\n *").append(computeComment(comment)).append("/\n");
 					}
 				}
 			} else {
-				writer.append("/**\n *").append(comment.replaceAll("\n", "\n *")).append("/\n");
+				writer.append("/**\n *").append(computeComment(comment)).append("/\n");
 			}
 		} catch (IOException ioe) {
 		}
+	}
+
+	/**
+	 * Transform raw multilines comment in prefixed comment
+	 *
+	 * @param comment
+	 * @return
+	 */
+	String computeComment(String comment) {
+		return comment.replaceAll("\n", "\n *");
 	}
 
 	/**
@@ -154,7 +171,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	 * @param methodElement
 	 * @return
 	 */
-	public boolean isConsiderateMethod(Collection<String> methodProceeds, ExecutableElement methodElement) {
+	boolean isConsiderateMethod(Collection<String> methodProceeds, ExecutableElement methodElement) {
 		int argNum = methodElement.getParameters().size();
 		String signature = methodElement.getSimpleName().toString() + "(" + argNum + ")";
 		// Check if method ith same signature has been already proceed.
@@ -187,7 +204,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	 * @param methodElement
 	 * @return
 	 */
-	public List<String> getArgumentsType(ExecutableElement methodElement) {
+	List<String> getArgumentsType(ExecutableElement methodElement) {
 		ExecutableType methodType = (ExecutableType) methodElement.asType();
 		List<String> argumentsType = new ArrayList<>();
 		for (TypeMirror argumentType : methodType.getParameterTypes()) {
@@ -202,7 +219,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	 * @param methodElement
 	 * @return
 	 */
-	public List<String> getArguments(ExecutableElement methodElement) {
+	List<String> getArguments(ExecutableElement methodElement) {
 		List<String> arguments = new ArrayList<>();
 		for (VariableElement variableElement : methodElement.getParameters()) {
 			arguments.add(variableElement.toString());
@@ -219,10 +236,10 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	 * @param returnType
 	 * @param writer
 	 */
-	protected void createMethodComment(ExecutableElement methodElement, List<String> argumentsName, List<String> argumentsType, TypeMirror returnType, Writer writer) {
+	void createMethodComment(ExecutableElement methodElement, List<String> argumentsName, List<String> argumentsType, TypeMirror returnType, Writer writer) {
 		try {
 			String methodComment = environment.getElementUtils().getDocComment(methodElement);
-			writer.write("\t/**\n");
+			writer.append("\t/**\n");
 			// The javadoc comment
 			if (methodComment != null) {
 				methodComment = methodComment.split("@")[0];
@@ -255,7 +272,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	 * @param arguments
 	 * @param writer
 	 */
-	protected void createMethodBody(String classname, ExecutableElement methodElement, Iterator<String> arguments, Writer writer) {
+	void createMethodBody(String classname, ExecutableElement methodElement, Iterator<String> arguments, Writer writer) {
 		try {
 			String methodName = methodElement.getSimpleName().toString();
 			writer.append("\t\tvar op = \"").append(methodName).append("\";\n");
@@ -292,30 +309,11 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 					}
 				}
 			}
-			String md5 = "\"" + getMd5(classname + "." + methodName);
+			String md5 = "\"" + keyMaker.getMd5(classname + "." + methodName);
 			writer.append("\t\tvar id = " + md5 + "_\" + JSON.stringify([").append(keys.toString()).append("]).md5();\n");
 			writer.append("\t\treturn OcelotPromiseFactory.createPromise(this.ds, id, op, [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");\n");
 		} catch (IOException ex) {
 		}
-	}
-
-	/**
-	 * Create a md5 from string
-	 *
-	 * @param msg
-	 * @return
-	 */
-	private String getMd5(String msg) {
-		MessageDigest md;
-		try {
-			md = MessageDigest.getInstance("MD5");
-			byte[] bytes = msg.getBytes(Constants.UTF_8);
-			md.update(bytes, 0, bytes.length);
-			return new BigInteger(1, md.digest()).toString(16);
-		} catch (NoSuchAlgorithmException | UnsupportedEncodingException ex) {
-			messager.printMessage(Diagnostic.Kind.ERROR, (new StringBuilder()).append("Cannot build MD5 : ").append(msg));
-		}
-		return null;
 	}
 
 	@Override
