@@ -4,12 +4,12 @@
 package org.ocelotds;
 
 
-import java.io.Writer;
+import java.io.OutputStream;
 
 /**
  *
  * @author hhfrancois
  */
 public interface IServicesProvider {
-	void streamJavascriptServices(Writer writer);
+	void streamJavascriptServices(OutputStream out);
 }
