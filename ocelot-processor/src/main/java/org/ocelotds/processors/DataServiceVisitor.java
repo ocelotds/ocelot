@@ -79,6 +79,16 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 		return null;
 	}
 
+	/**
+	 * 
+	 * @param first
+	 * @param methodProceeds
+	 * @param classname
+	 * @param jsclsname
+	 * @param methodElement
+	 * @param writer
+	 * @throws IOException 
+	 */
 	void visitMethodElement(boolean first, Collection<String> methodProceeds, String classname, String jsclsname, ExecutableElement methodElement, Writer writer) throws IOException {
 		if (!first) { // previous method exist
 			writer.append(",\n");
@@ -93,7 +103,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 		if (arguments.size() != argumentsType.size()) {
 			messager.printMessage(Diagnostic.Kind.ERROR, (new StringBuilder())
 					  .append("Cannot Create service : ").append(jsclsname).append(" cause method ")
-					  .append(methodElement.getSimpleName()).append(" arguments inconsistent - argNames : ")
+					  .append(methodName).append(" arguments inconsistent - argNames : ")
 					  .append(arguments.size()).append(" / args : ").append(argumentsType.size()).toString());
 			return;
 		}
