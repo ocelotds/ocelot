@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.web;
 
-//import com.google.javascript.jscomp.CommandLineRunner;
 import org.ocelotds.Constants;
 import org.ocelotds.IServicesProvider;
 import org.ocelotds.configuration.OcelotConfiguration;
@@ -13,7 +12,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -103,14 +101,11 @@ public final class ContextListener implements ServletContextListener {
 	 *
 	 * @param filename
 	 */
-	private void deleteFile(String filename) {
+	void deleteFile(String filename) {
 		if (null != filename && !filename.isEmpty()) {
 			File file = new File(filename);
 			if (file.exists()) {
-				boolean deleted = file.delete();
-				if (!deleted) {
-					logger.warn("Fail to delete " + filename);
-				}
+				file.delete();
 			}
 		}
 	}

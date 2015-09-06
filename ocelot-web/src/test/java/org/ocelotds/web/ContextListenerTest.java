@@ -4,6 +4,7 @@
 package org.ocelotds.web;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import javax.enterprise.inject.Instance;
 import javax.servlet.ServletContext;
@@ -117,6 +118,19 @@ public class ContextListenerTest {
 		File ocelotminjs = new File(ocelotminjspath);
 		assertThat(ocelotminjs).doesNotExist();
 
+	}
+
+	@Test
+	public void testDeleteFile() throws IOException {
+		String filename = null;
+		contextListener.deleteFile(filename);
+		filename = "";
+		contextListener.deleteFile(filename);
+		filename = "file.js";
+		contextListener.deleteFile(filename);
+		File f = File.createTempFile("file", ".js");
+		filename = f.getAbsolutePath();
+		contextListener.deleteFile(filename);
 	}
 
 }
