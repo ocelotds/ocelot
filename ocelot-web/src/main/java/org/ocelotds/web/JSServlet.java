@@ -29,8 +29,6 @@ public class JSServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1973549844535787671L;
 
-	private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
-
 	@Inject
 	@OcelotLogger
 	private Logger logger;
@@ -54,7 +52,7 @@ public class JSServlet extends HttpServlet {
 		OutputStream out = response.getOutputStream();
 		int count = 0;
 		try (InputStream in = new FileInputStream(source)) {
-			byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+			byte[] buffer = new byte[Constants.DEFAULT_BUFFER_SIZE];
 			int n = 0;
 			while (-1 != (n = in.read(buffer))) {
 				out.write(buffer, 0, n);
