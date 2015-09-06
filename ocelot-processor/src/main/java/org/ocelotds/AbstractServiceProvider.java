@@ -3,11 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Writer;
+import java.io.OutputStream;
 import javax.inject.Inject;
 import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
@@ -25,13 +23,12 @@ public abstract class AbstractServiceProvider implements IServicesProvider {
 	protected abstract String getJsFilename();
 	
 	@Override
-	public void streamJavascriptServices(Writer writer) {
-		InputStream injs = this.getClass().getClassLoader().getResourceAsStream(getJsFilename());
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(injs, Constants.UTF_8))) {
-			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
-				writer.write(inputLine);
-				writer.write(Constants.BACKSLASH_N);
+	public void streamJavascriptServices(OutputStream out) {
+		try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(getJsFilename())) {
+			byte[] buffer = new byte[Constants.DEFAULT_BUFFER_SIZE];
+			int n = 0;
+			while (-1 != (n = in.read(buffer))) {
+				out.write(buffer, 0, n);
 			}
 		} catch(IOException ex) {
 			logger.error("Generation of '"+getJsFilename()+"' failed.", ex);
