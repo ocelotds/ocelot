@@ -33,6 +33,8 @@ public interface Constants {
 	 */
 	String CTXPATH = "%CTXPATH%";
 
+	int DEFAULT_BUFFER_SIZE = 1024 * 4;
+
 	interface Options {
 
 		String STACKTRACE_LENGTH = "ocelot.stacktrace.length";
