@@ -128,12 +128,12 @@ public class OcelotTest extends ArquillianTestCase {
 	 * @return
 	 */
 	public static WebArchive createWarArchive() {
-		File[] libs = Maven.resolver().loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile();
+		File[] core = Maven.resolver().resolve("org.ocelotds:ocelot-core:[2,)").withTransitivity().asFile();
 		File logback = new File("src/test/resources/logback.xml");
 		File localeFr = new File("src/test/resources/test_fr_FR.properties");
 		File localeUs = new File("src/test/resources/test_en_US.properties");
 		WebArchive webArchive = ShrinkWrap.create(WebArchive.class, ctxpath + ".war")
-				  .addAsLibraries(libs)
+				  .addAsLibraries(core)
 				  .addAsLibraries(createOcelotWebJar())
 				  .addPackages(true, OcelotTest.class.getPackage())
 				  .addAsResource(new FileAsset(logback), "logback.xml")
