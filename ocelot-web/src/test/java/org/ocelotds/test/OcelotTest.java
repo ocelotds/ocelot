@@ -85,7 +85,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author hhfrancois
  */
-@RunWith(Arquillian.class)
+//@RunWith(Arquillian.class)
 public class OcelotTest extends ArquillianTestCase {
 
 	private final static Logger logger = LoggerFactory.getLogger(OcelotTest.class);
@@ -504,7 +504,7 @@ public class OcelotTest extends ArquillianTestCase {
 	 * Vérification de la minification des javascripts
 	 *
 	 */
-	@Test
+	//@Test
 	public void testJavascriptCoreMinification() {
 		System.out.println("testJavascriptCoreMinification");
 		String resource = Constants.OCELOT + Constants.JS;
@@ -544,7 +544,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Vérification de la generation du core
 	 */
-	@Test
+	//@Test
 	public void testJavascriptGeneration() {
 		System.out.println("testJavascriptCoreGeneration");
 		try {
@@ -567,7 +567,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Vérification qu'un resolver inconnu remonte bien une exception
 	 */
-	@Test(expected = UnsatisfiedResolutionException.class)
+	//@Test(expected = UnsatisfiedResolutionException.class)
 	public void testDataServiceExceptionOnUnknownResolver() {
 		System.out.println("failResolveDataService");
 		getResolver("foo");
@@ -576,7 +576,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste de récupération du resolver d'EJB
 	 */
-	@Test
+	//@Test
 	public void testGetResolverEjb() {
 		System.out.println("getResolverEjb");
 		IDataServiceResolver resolver = getResolver(Constants.Resolver.EJB);
@@ -587,7 +587,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste de la récupération d'EJBs par default les EJB on un scope REQUEST
 	 */
-	@Test
+	//@Test
 	public void testGetEjbs() {
 		System.out.println("getEjbs");
 		String resolverId = Constants.Resolver.EJB;
@@ -597,7 +597,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste de la récupération d'EJBs statefull les EJBs statefull on un scope REQUEST hors session il doivent etre donc distinct
 	 */
-	@Test
+	//@Test
 	public void testGetEJBStatefull() {
 		System.out.println("getEJBSession");
 		String resolverId = Constants.Resolver.EJB;
@@ -609,7 +609,7 @@ public class OcelotTest extends ArquillianTestCase {
 	 * Teste de la récupération d'un ejb session (stateful), on le récupere deux fois et on check que le resultat soit identique pour une meme session, puis on crée une new session cela doit donner un
 	 * resultat different les EJBs stateful on un scope SESSION
 	 */
-	@Test
+	//@Test
 	public void testGetResultEJBSession() {
 		System.out.println("getResultEJBSession");
 		testResultSessionScope(SessionEJBDataService.class);
@@ -618,7 +618,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste de la récupération d'EJBs singleton les EJBs singleton on un scope APPLICATION
 	 */
-	@Test
+	//@Test
 	public void testGetEJBSingleton() {
 		System.out.println("getEJBSingleton");
 		testInstanceSingletonScope(SingletonEJBDataService.class, Constants.Resolver.EJB);
@@ -627,7 +627,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste de la récupération d'un EJB Singleton les EJBs Singleton on un scope APPLICATION
 	 */
-	@Test
+	//@Test
 	public void testGetResultEjbSingleton() {
 		System.out.println("getResultEjbSingleton");
 		testResultSingletonScope(SingletonEJBDataService.class);
@@ -636,7 +636,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste de récupération du resolver de POJO
 	 */
-	@Test
+	//@Test
 	public void testGetResolverPojo() {
 		System.out.println("getResolverPojo");
 		IDataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
@@ -647,7 +647,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste de la récupération d'un Pojo
 	 */
-	@Test
+	//@Test
 	public void testGetPojo() {
 		System.out.println("getPojo");
 		IDataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
@@ -663,7 +663,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste de récupération du resolver de CDI
 	 */
-	@Test
+	//@Test
 	public void testGetResolverCdi() {
 		System.out.println("getResolverCdi");
 		IDataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
@@ -674,7 +674,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste de la récupération de cdi beans par default les EJB on un scope REQUEST
 	 */
-	@Test
+	//@Test
 	public void testGetCdiBeans() {
 		System.out.println("getCdiBeans");
 		testInstanceRequestScope(CDIDataService.class, Constants.Resolver.CDI);
@@ -683,7 +683,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste de la récupération de cdi beans et test les resultats par default les EJB on un scope REQUEST
 	 */
-	@Test
+	//@Test
 	public void testGetResultCdiBeans() {
 		System.out.println("getResultCdiBeans");
 		testResultRequestScope(CDIDataService.class);
@@ -692,7 +692,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste de la récupération d'un cdi bean et verify que la classe est bien managé en controllant la presence d'un injection à  l'interieur
 	 */
-	@Test
+	//@Test
 	public void testGetCdiBeanIsManaged() {
 		System.out.println("getCdiBeanIsManaged");
 		IDataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
@@ -709,7 +709,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste de la récupération de cdi beans annoté Dependent effectivement il depend du scope de l'objet le gérant donc hors session c'est comme un scope REQUEST
 	 */
-	@Test
+	//@Test
 	public void testGetCdiBeanSession() {
 		System.out.println("getCdiBeanSession");
 		testInstanceSessionScope(SessionCDIDataService.class, Constants.Resolver.CDI);
@@ -719,7 +719,7 @@ public class OcelotTest extends ArquillianTestCase {
 	 * Teste de la récupération d'un cdi bean session, on le récupere deux fois et on check que le resultat soit identique pour une meme session, puis on crée une new session cela doit donner un
 	 * resultat different
 	 */
-	@Test
+	//@Test
 	public void testGetResultCdiBeanSession() {
 		System.out.println("getResultCdiBeanSession");
 		testResultSessionScope(SessionCDIDataService.class);
@@ -728,7 +728,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste de la récupération d'un bean CDI singleton les singleton on un scope APPLICATION
 	 */
-	@Test
+	//@Test
 	public void testGetCdiBeanSingleton() {
 		System.out.println("getCdiBeanSingleton");
 		testInstanceSingletonScope(SingletonCDIDataService.class, Constants.Resolver.CDI);
@@ -737,7 +737,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste de la récupération d'un cdi bean singleton, on le récupere deux fois et on check que c'est la meme classe
 	 */
-	@Test
+	//@Test
 	public void testGetResultCdiBeanSingleton() {
 		System.out.println("getResultCdiBeanSingleton");
 		testResultSingletonScope(SingletonCDIDataService.class);
@@ -746,7 +746,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Vérifie que le pojo-resolver remonte le bien PojoDataService
 	 */
-	@Test
+	//@Test
 	public void testResolvePojoDataService() {
 		System.out.println("resolveDataService");
 		try {
@@ -762,7 +762,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Vérifie la désérialisation de MessageToClient result = 1
 	 */
-	@Test
+	//@Test
 	public void testMessageIntResultToClientCreator() {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
@@ -780,7 +780,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Vérifie la désérialisation de MessageToClient en tant que message pour un topic
 	 */
-	@Test
+	//@Test
 	public void testMessageToTopicCreator() {
 		System.out.println("MessageToTopic.createFromJson");
 		String uuid = UUID.randomUUID().toString();
@@ -797,7 +797,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Vérifie la désérialisation de MessageToClient result = "foo"
 	 */
-	@Test
+	//@Test
 	public void testMessageStringResultToClientCreator() {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
@@ -815,7 +815,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Vérifie la désérialisation de MessageToClient result = {"integer": 5, "foo": "foo"}
 	 */
-	@Test
+	//@Test
 	public void testMessageObjectResultToClientCreator() {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
@@ -833,7 +833,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Vérifie la désérialisation de MessageToClient fault = "java.lang.NullPointerException"
 	 */
-	@Test
+	//@Test
 	public void testMessageFaultToClientCreator() {
 		System.out.println("MessageToClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
@@ -851,7 +851,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Vérifie la désérialisation de MessageFromClient arg = "java.lang.NullPointerException"
 	 */
-	@Test
+	//@Test
 	public void testMessageFromClientCreator() {
 		System.out.println("MessageFromClient.createFromJson");
 		String uuid = UUID.randomUUID().toString();
@@ -873,7 +873,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Vérifie l'acces à  la locale
 	 */
-	@Test
+	//@Test
 	public void testLocale() {
 		Class clazz = OcelotServices.class;
 		try (Session wssession = createAndGetSession()) {
@@ -935,7 +935,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Vérifie que l'appel à  une methode inconue remonte bien une erreur adéquate
 	 */
-	@Test
+	//@Test
 	public void testMethodUnknow() {
 		Class clazz = PojoDataService.class;
 		String methodName = "getUnknownMethod";
@@ -952,7 +952,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel à  une méthode retournant void (sans resultat)
 	 */
-	@Test
+	//@Test
 	public void testMethodNoResult() {
 		Class clazz = PojoDataService.class;
 		String methodName = "getVoid";
@@ -968,7 +968,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel à  une méthode retournant une String Attention la string retourné est sous la forme "foo" avec les double cà´tes
 	 */
-	@Test
+	//@Test
 	public void testGetString() {
 		Class clazz = PojoDataService.class;
 		String methodName = "getString";
@@ -985,7 +985,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel à  une méthode retournant un int
 	 */
-	@Test
+	//@Test
 	public void testGetNum() {
 		Class clazz = PojoDataService.class;
 		String methodName = "getNum";
@@ -1002,7 +1002,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel à  une méthode retournant un Integer
 	 */
-	@Test
+	//@Test
 	public void testGetNumber() {
 		Class clazz = PojoDataService.class;
 		String methodName = "getNumber";
@@ -1019,7 +1019,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel à  une méthode retournant un boolean
 	 */
-	@Test
+	//@Test
 	public void testGetBool() {
 		Class clazz = PojoDataService.class;
 		String methodName = "getBool";
@@ -1036,7 +1036,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel à  une méthode retournant un Boolean
 	 */
-	@Test
+	//@Test
 	public void testGetBoolean() {
 		Class clazz = PojoDataService.class;
 		String methodName = "getBoolean";
@@ -1053,7 +1053,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel à  une méthode retournant une date
 	 */
-	@Test
+	//@Test
 	public void testGetDate() {
 		System.out.println("getDate");
 		final Date before = new Date();
@@ -1080,7 +1080,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel à  une méthode retournant un objet de type Result
 	 */
-	@Test
+	//@Test
 	public void testGetResult() {
 		Class clazz = PojoDataService.class;
 		String methodName = "getResult";
@@ -1097,7 +1097,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel à  une méthode retournant une Collection&lt;Integer&gt;
 	 */
-	@Test
+	//@Test
 	public void testGetCollectionInteger() {
 		Class clazz = PojoDataService.class;
 		String methodName = "getCollectionInteger";
@@ -1114,7 +1114,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel à  une méthode retournant une Collection&lt;Result&gt;
 	 */
-	@Test
+	//@Test
 	public void testGetCollectionResult() {
 		Class clazz = PojoDataService.class;
 		String methodName = "getCollectionResult";
@@ -1131,7 +1131,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel à  une méthode retournant une Collection&lt;Collection&lt;Result&gt;&gt;
 	 */
-	@Test
+	//@Test
 	public void testGetCollectionOfCollectionResult() {
 		Class clazz = PojoDataService.class;
 		String methodName = "getCollectionOfCollectionResult";
@@ -1148,7 +1148,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel à  une méthode retournant une Map&lt;Result&gt;
 	 */
-	@Test
+	//@Test
 	public void testGetMapResult() {
 		Class clazz = PojoDataService.class;
 		String methodName = "getMapResult";
@@ -1165,7 +1165,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel d'une méthode prenant en argument un int
 	 */
-	@Test
+	//@Test
 	public void testMethodWithNum() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithNum";
@@ -1182,7 +1182,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel d'une méthode prenant en argument un Integer
 	 */
-	@Test
+	//@Test
 	public void testMethodWithNumber() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithNumber";
@@ -1199,7 +1199,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel d'une méthode prenant en argument un boolean
 	 */
-	@Test
+	//@Test
 	public void testMethodWithBool() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithBool";
@@ -1216,7 +1216,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel d'une méthode prenant en argument un Boolean
 	 */
-	@Test
+	//@Test
 	public void testMethodWithBoolean() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithBoolean";
@@ -1233,7 +1233,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel d'une méthode prenant en argument une Date
 	 */
-	@Test
+	//@Test
 	public void testMethodWithDate() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithDate";
@@ -1251,7 +1251,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel d'une méthode prenant en argument un objet Result
 	 */
-	@Test
+	//@Test
 	public void testMethodWithResult() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithResult";
@@ -1269,7 +1269,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel d'une méthode prenant en argument un Integer[]
 	 */
-	@Test
+	//@Test
 	public void testMethodWithArrayInteger() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithArrayInteger";
@@ -1287,7 +1287,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel d'une méthode prenant en argument une Collection&lt;Integer&gt;
 	 */
-	@Test
+	//@Test
 	public void testMethodWithCollectionInteger() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithCollectionInteger";
@@ -1305,7 +1305,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel d'une méthode prenant en argument un Result[]
 	 */
-	@Test
+	//@Test
 	public void testMethodWithArrayResult() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithArrayResult";
@@ -1323,7 +1323,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel d'une méthode prenant en argument une Collection&lt;Result&gt;
 	 */
-	@Test
+	//@Test
 	public void testMethodWithCollectionResult() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithCollectionResult";
@@ -1341,7 +1341,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel d'une méthode prenant en argument une Map&lt;Result&gt;
 	 */
-	@Test
+	//@Test
 	public void testMethodWithMapResult() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithMapResult";
@@ -1359,7 +1359,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel d'une méthode prenant en argument une Collection&lt;Collection&lt;Result&gt;&gt;
 	 */
-	@Test
+	//@Test
 	public void testMethodWithCollectionOfCollectionResult() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithCollectionOfCollectionResult";
@@ -1377,7 +1377,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel d'une méthode prenant en arguments plusieurs objets un objet REsultet une Collection&lt;Result&gt;
 	 */
-	@Test
+	//@Test
 	public void testMethodWithManyParameters() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithManyParameters";
@@ -1397,7 +1397,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel d'une méthode levant une exception MethodException
 	 */
-	@Test
+	//@Test
 	public void testMethodThatThrowException() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodThatThrowException";
@@ -1414,7 +1414,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel de methode avec la même signature, sauf les arguments
 	 */
-	@Test
+	//@Test
 	public void testMethodWithAlmostSameSignature1() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithAlmostSameSignature";
@@ -1431,7 +1431,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel de methode avec la même signature, sauf les arguments
 	 */
-	@Test
+	//@Test
 	public void testMethodWithAlmostSameSignature2() {
 		Class clazz = PojoDataService.class;
 		String methodName = "methodWithAlmostSameSignature";
@@ -1451,7 +1451,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel simultané de methodes sur autant de session differentes<br>
 	 */
-	@Test
+	//@Test
 	public void testCallMultiMethodsMultiSessions() {
 		int nb = NB_SIMUL_METHODS;
 		System.out.println("call" + nb + "MethodsMultiSession");
@@ -1487,7 +1487,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Teste l'appel simultané de methodes sur une seule session<br>
 	 */
-	@Test
+	//@Test
 	public void testCallMultiMethodsMonoSessions() {
 		int nb = NB_SIMUL_METHODS;
 		System.out.println("call" + nb + "MethodsMonoSession");
@@ -1534,7 +1534,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Test d'envoi d'un message generant un message de suppression de cache
 	 */
-	@Test
+	//@Test
 	public void testSendRemoveCacheMessage() {
 		System.out.println("sendRemoveCacheMessage");
 		final String topic = "ocelot-cleancache";
@@ -1567,7 +1567,7 @@ public class OcelotTest extends ArquillianTestCase {
 	/**
 	 * Test d'envoi d'un message à  un topic
 	 */
-	@Test
+	//@Test
 	public void testSendMessageToTopic() {
 		System.out.println("sendMessageToTopic");
 		final String topic = "mytopic";
