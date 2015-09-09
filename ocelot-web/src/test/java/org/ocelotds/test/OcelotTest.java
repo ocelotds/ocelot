@@ -129,7 +129,7 @@ public class OcelotTest extends ArquillianTestCase {
 	 * @return
 	 */
 	public static WebArchive createWarArchive() {
-		File[] core = Maven.resolver().resolve("org.ocelotds:ocelot-core:[2,)").withTransitivity().asFile();
+		File[] core = Maven.resolver().resolve("org.ocelotds:ocelot-core:2.2.1-SNAPSHOT").withTransitivity().asFile();
 		File logback = new File("src/test/resources/logback.xml");
 		File localeFr = new File("src/test/resources/test_fr_FR.properties");
 		File localeUs = new File("src/test/resources/test_en_US.properties");
