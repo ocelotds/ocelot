@@ -21,6 +21,7 @@ import org.ocelotds.spi.DataServiceException;
 import org.ocelotds.spi.IDataServiceResolver;
 import org.ocelotds.spi.Scope;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -33,6 +34,10 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import org.ocelotds.logger.OcelotLogger;
+import org.ocelotds.marshalling.annotations.JsonMarshaller;
+import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
+import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
+import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.slf4j.Logger;
 
 /**
@@ -70,7 +75,7 @@ public class CallServiceManager {
 	 * @param message
 	 * @param arguments
 	 * @return
-	 * @throws java.lang.NoSuchMethodException 
+	 * @throws java.lang.NoSuchMethodException
 	 */
 	Method getMethodFromDataService(final Class dsClass, final MessageFromClient message, Object[] arguments) throws NoSuchMethodException {
 		logger.debug("Try to find method {} on class {}", message.getOperation(), dsClass);
@@ -79,16 +84,26 @@ public class CallServiceManager {
 			if (method.getName().equals(message.getOperation()) && method.getParameterTypes().length == parameters.size()) {
 				logger.debug("Process method {}", method.getName());
 				try {
-					Type[] params = method.getGenericParameterTypes();
+					Type[] paramTypes = method.getGenericParameterTypes();
+					Annotation[][] parametersAnnotations = method.getParameterAnnotations();
 					int idx = 0;
-					for (Type param : params) {
-						String arg = cleaner.cleanArg(parameters.get(idx));
-						logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, param.toString(), arg});
-						arguments[idx++] = convertArgument(arg, param);
+					for (Type paramType : paramTypes) {
+						String jsonArg = cleaner.cleanArg(parameters.get(idx));
+						Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> unmarshaller = getUnMarshallerAnnotation(parametersAnnotations[idx]);
+						if (null != unmarshaller) {
+							try {
+								org.ocelotds.marshalling.JsonUnmarshaller newInstance = unmarshaller.newInstance();
+								arguments[idx++] = newInstance.toJava(jsonArg);
+							} catch (InstantiationException | IllegalAccessException ex) {
+							}
+						} else {
+							logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, paramType.toString(), jsonArg});
+							arguments[idx++] = convertArgument(jsonArg, paramType);
+						}
 					}
 					logger.debug("Method {}.{} with good signature found.", dsClass, message.getOperation());
 					return method;
-				} catch (IllegalArgumentException iae) {
+				} catch (JsonUnmarshallingException | IllegalArgumentException iae) {
 					logger.debug("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
 				}
 			}
@@ -104,7 +119,7 @@ public class CallServiceManager {
 	 * @param message
 	 * @param arguments
 	 * @return
-	 * @throws java.lang.NoSuchMethodException 
+	 * @throws java.lang.NoSuchMethodException
 	 */
 	Method getMethodFromDataServiceWithSessionInjection(final Session session, final Class dsClass, final MessageFromClient message, Object[] arguments) throws NoSuchMethodException {
 		logger.debug("Try to find method with session {} on class {}", message.getOperation(), dsClass);
@@ -114,23 +129,33 @@ public class CallServiceManager {
 			if (method.getName().equals(message.getOperation()) && method.getParameterTypes().length == nbParamater) {
 				logger.debug("Process method {}", method.getName());
 				try {
-					Type[] params = method.getGenericParameterTypes();
+					Type[] paramTypes = method.getGenericParameterTypes();
+					Annotation[][] parametersAnnotations = method.getParameterAnnotations();
 					int idx = 0, pidx = 0;
-					for (Type param : params) {
+					for (Type paramType : paramTypes) {
 						if (idx < nbParamater) {
-							if(Session.class.equals(param)) {
+							if (Session.class.equals(paramType)) {
 								arguments[idx++] = session;
 							} else {
 								String jsonArg = parameters.get(pidx++);
 								String arg = cleaner.cleanArg(jsonArg);
-								logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, param.toString(), arg});
-								arguments[idx++] = convertArgument(arg, param);
+								Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> unmarshaller = getUnMarshallerAnnotation(parametersAnnotations[idx]);
+								if (null != unmarshaller) {
+									try {
+										org.ocelotds.marshalling.JsonUnmarshaller newInstance = unmarshaller.newInstance();
+										arguments[idx++] = newInstance.toJava(jsonArg);
+									} catch (InstantiationException | IllegalAccessException ex) {
+									}
+								} else {
+									logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, paramType.toString(), arg});
+									arguments[idx++] = convertArgument(arg, paramType);
+								}
 							}
 						}
 					}
 					logger.debug("Method {}.{} with good signature with injected session found.", dsClass, message.getOperation());
 					return method;
-				} catch (IllegalArgumentException iae) {
+				} catch (JsonUnmarshallingException | IllegalArgumentException iae) {
 					logger.debug("Method {}.{} with injected not found. Arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
 				}
 			}
@@ -138,19 +163,44 @@ public class CallServiceManager {
 		throw new NoSuchMethodException(dsClass + "." + message.getOperation());
 	}
 
-	Object convertArgument(String arg, Type param) throws IllegalArgumentException {
+	/**
+	 * If argument is annotated with JsonUnmarshaller annotation, get the JsonUnmarshaller class
+	 *
+	 * @param annotations
+	 * @param paramType
+	 * @return
+	 */
+	Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> getUnMarshallerAnnotation(Annotation[] annotations) {
+		for (Annotation annotation : annotations) {
+			if (JsonUnmarshaller.class.isInstance(annotation)) {
+				JsonUnmarshaller unmarshallerAnnotation = (JsonUnmarshaller) annotation;
+				return unmarshallerAnnotation.value();
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * try to convert json argument in java type
+	 *
+	 * @param arg
+	 * @param paramType
+	 * @return
+	 * @throws IllegalArgumentException
+	 */
+	Object convertArgument(String arg, Type paramType) throws IllegalArgumentException {
 		Object result = null;
-		logger.debug("Try to convert {} : param = {} : {}", new Object[]{arg, param, param.getClass()});
+		logger.debug("Try to convert {} : param = {} : {}", new Object[]{arg, paramType, paramType.getClass()});
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			if (ParameterizedType.class.isInstance(param)) {
-				JavaType javaType = getJavaType(param);
-				logger.debug("Try to convert '{}' to JavaType : '{}'", arg, param);
+			if (ParameterizedType.class.isInstance(paramType)) {
+				JavaType javaType = getJavaType(paramType);
+				logger.debug("Try to convert '{}' to JavaType : '{}'", arg, paramType);
 				result = mapper.readValue(arg, javaType);
-				logger.debug("Conversion of '{}' to '{}' : OK", arg, param);
-			} else if (Class.class.isInstance(param)) {
-				Class cls = (Class) param;
-				logger.debug("Try to convert '{}' to Class '{}'", arg, param);
+				logger.debug("Conversion of '{}' to '{}' : OK", arg, paramType);
+			} else if (Class.class.isInstance(paramType)) {
+				Class cls = (Class) paramType;
+				logger.debug("Try to convert '{}' to Class '{}'", arg, paramType);
 				if (cls.equals(String.class) && (!arg.startsWith("\"") || !arg.endsWith("\""))) { // on cherche une string
 					throw new IOException();
 				}
@@ -158,11 +208,11 @@ public class CallServiceManager {
 					throw new IOException();
 				}
 				result = mapper.readValue(arg, cls);
-				logger.debug("Conversion of '{}' to '{}' : OK", arg, param);
+				logger.debug("Conversion of '{}' to '{}' : OK", arg, paramType);
 			}
 		} catch (IOException ex) {
-			logger.debug("Conversion of '{}' to '{}' failed", arg, param);
-			throw new IllegalArgumentException(param.toString());
+			logger.debug("Conversion of '{}' to '{}' failed", arg, paramType);
+			throw new IllegalArgumentException(paramType.toString());
 		}
 		return result;
 	}
@@ -202,6 +252,7 @@ public class CallServiceManager {
 	/**
 	 * Get Dataservice, store dataservice in session if session scope.<br>
 	 * TODO I would like to do that from an interceptor, but how give the session to it ?
+	 *
 	 * @param client
 	 * @param cls
 	 * @return
@@ -250,8 +301,15 @@ public class CallServiceManager {
 				messageToClient.setResult(method.invoke(dataService, arguments));
 			} else {
 				arguments = new Object[nbParam + 1];
-				Method methodWithInjection = this.getMethodFromDataServiceWithSessionInjection(client, cls, message, arguments);
-				messageToClient.setResult(methodWithInjection.invoke(dataService, arguments));
+				method = this.getMethodFromDataServiceWithSessionInjection(client, cls, message, arguments);
+				messageToClient.setResult(method.invoke(dataService, arguments));
+			}
+			if (method.isAnnotationPresent(JsonMarshaller.class)) {
+				JsonMarshaller jm = method.getAnnotation(JsonMarshaller.class);
+				Class<? extends org.ocelotds.marshalling.JsonMarshaller> marshallerCls = jm.value();
+				org.ocelotds.marshalling.JsonMarshaller marshaller = marshallerCls.newInstance();
+				String json = marshaller.toJson(messageToClient.getResponse());
+				messageToClient.setJson(json);
 			}
 			try {
 				Method nonProxiedMethod = this.getNonProxiedMethod(cls, method.getName(), method.getParameterTypes());
@@ -266,7 +324,7 @@ public class CallServiceManager {
 			} catch (NoSuchMethodException ex) {
 				logger.error("Fail to process extra annotations (JsCacheResult, JsCacheRemove) for method : " + method.getName(), ex);
 			}
-		} catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException | DataServiceException ex) {
+		} catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException | DataServiceException | JsonMarshallingException | InstantiationException ex) {
 			int stacktracelength = configuration.getStacktracelength();
 			Throwable cause = ex;
 			if (InvocationTargetException.class.isInstance(ex)) {
