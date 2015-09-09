@@ -10,15 +10,19 @@ import org.ocelotds.annotations.TransientDataService;
 import org.ocelotds.core.MethodWithSessionInjection;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.core.UpdatedCacheManager;
-import org.ocelotds.i18n.Locale;
 import org.ocelotds.i18n.ThreadLocalContextHolder;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
 import org.ocelotds.logger.OcelotLogger;
+import org.ocelotds.marshallers.LocaleMarshaller;
+import org.ocelotds.marshallers.LocaleUnmarshaller;
+import org.ocelotds.marshalling.annotations.JsonMarshaller;
+import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.slf4j.Logger;
 
 /**
@@ -39,33 +43,28 @@ public class OcelotServices {
 	private SessionManager sessionManager;
 	
 	@MethodWithSessionInjection
-	@JsCacheRemove(cls = OcelotServices.class, methodName = "getLocale")
-	public void setLocale(Locale locale) {
+	public void setLocale(@JsonUnmarshaller(LocaleUnmarshaller.class) Locale locale) {
 	}
 
 	@TransientDataService
-	public void setLocale(Locale l, Session session) {
-		java.util.Locale locale = new java.util.Locale(l.getLanguage(), l.getCountry());
+	@JsCacheRemove(cls = OcelotServices.class, methodName = "getLocale", keys = {})
+	public void setLocale(@JsonUnmarshaller(LocaleUnmarshaller.class) Locale locale, Session session) {
 		logger.debug("Receive setLocale({}) call from client.", locale);
 		session.getUserProperties().put(Constants.LOCALE, locale);
 		ThreadLocalContextHolder.put(Constants.LOCALE, locale);
 	}
 
 	@MethodWithSessionInjection
-	@JsCacheResult(year = 1)
 	public Locale getLocale() {
 		return null;
 	}
 
 	@TransientDataService
+	@JsCacheResult(year = 1)
+	@JsonMarshaller(LocaleMarshaller.class)
 	public Locale getLocale(Session session) {
 		logger.debug("Receive getLocale call from client.");
-		java.util.Locale locale = (java.util.Locale) session.getUserProperties().get(Constants.LOCALE);
-		Locale l = new Locale();
-		l.setLanguage(locale.getLanguage());
-		l.setCountry(locale.getCountry());
-		logger.debug("getLocale() = {}", l);
-		return l;
+		return (Locale) session.getUserProperties().get(Constants.LOCALE);
 	}
 	
 	public Collection<String> getOutDatedCache(Map<String, Long> states) {
