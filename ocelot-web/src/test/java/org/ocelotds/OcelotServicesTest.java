@@ -4,11 +4,11 @@
 package org.ocelotds;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import javax.websocket.Session;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.ocelotds.i18n.Locale;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
@@ -62,14 +62,12 @@ public class OcelotServicesTest {
 	@Test
 	public void testSetLocale_Locale_Session() {
 		System.out.println("setLocale");
-		Locale l = new Locale();
-		l.setCountry("FR");
-		l.setLanguage("fr");
+		Locale l = new Locale("fr", "FR");
 		setLocale(l);
-		java.util.Locale result = (java.util.Locale) userProperties.get(Constants.LOCALE);
+		Locale result = (Locale) userProperties.get(Constants.LOCALE);
 		assertThat(result.getLanguage()).isEqualTo(l.getLanguage());
 		assertThat(result.getCountry()).isEqualTo(l.getCountry());
-		result = (java.util.Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
+		result = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
 		assertThat(result.getLanguage()).isEqualTo(l.getLanguage());
 		assertThat(result.getCountry()).isEqualTo(l.getCountry());
 	}
@@ -90,9 +88,7 @@ public class OcelotServicesTest {
 	@Test
 	public void testGetLocale_Session() {
 		System.out.println("getLocale");
-		Locale l = new Locale();
-		l.setLanguage("en");
-		l.setCountry("US");
+		Locale l = new Locale("en", "US");
 		
 		Session session = setLocale(l);
 
