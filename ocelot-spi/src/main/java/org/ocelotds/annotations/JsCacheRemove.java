@@ -21,10 +21,11 @@ public @interface JsCacheRemove {
 	 * Rules for parameters about key for cache, separate by coma<br>
 	 * The order is important<br>
 	 * use json notation.<br>
-	 * '*' : use all arguments in calculating cache key<br>
-	 * 'obj.id' : mean that for compute the key the value of id from argument named obj will be used.<br>
+	 * {} no values : use no arguments in calculating cache key<br>
+	 * {'*'} : use all arguments in calculating cache key (default value)<br>
+	 * {'obj.id'} : mean that for compute the key the value of id from argument named obj will be used.<br>
 	 * Exemple {"i", "u.id", "f.name"}
-	 * finally if you set nothing that means that you want to remove all result of this method without considering arguments
+	 * If the cacheResultKey includes arguments and cacheRemoveKey not, that means that you want to remove all results of this method without considering arguments.
 	 * @return set of used keys ordered
 	 */
 	String[] keys() default {"*"};
