@@ -13,7 +13,6 @@ import org.ocelotds.test.dataservices.PojoDataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ocelotds.Constants;
 import org.ocelotds.OcelotServices;
-import org.ocelotds.i18n.Locale;
 import org.ocelotds.messaging.Fault;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageToClient;
@@ -44,6 +43,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -59,6 +59,7 @@ import javax.websocket.DeploymentException;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
+import static org.assertj.core.api.Assertions.*;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -881,42 +882,39 @@ public class OcelotTest extends ArquillianTestCase {
 			String methodName = "getLocale";
 			System.out.println(methodName);
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals("{\"language\":\"en\",\"country\":\"US\"}", result);
+			assertThat(result).isEqualTo("{\"country\":\"US\",\"language\":\"en\"}");
 
 			// Récup du message en us
 			methodName = "getLocaleHello";
 			System.out.println(methodName);
 			messageToClient = getMessageToClientAfterSendInSession(wssession, EJBDataService.class.getName(), methodName, getJson("hhfrancois"));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			result = messageToClient.getResponse();
-			assertEquals("\"Hello hhfrancois\"", result);
+			assertThat(result).isEqualTo("\"Hello hhfrancois\"");
 
 			// On change pour le francais
 			methodName = "setLocale";
 			System.out.println(methodName);
-			Locale locale = new Locale();
-			locale.setLanguage("fr");
-			locale.setCountry("FR");
-			messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(locale));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, "{\"country\":\"FR\",\"language\":\"fr\"}");
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 
 			// Vérification
 			methodName = "getLocale";
 			System.out.println(methodName);
 			messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			result = messageToClient.getResponse();
-			assertEquals("{\"language\":\"fr\",\"country\":\"FR\"}", result);
+			assertThat(result).isEqualTo("{\"country\":\"FR\",\"language\":\"fr\"}");
 
 			//  Récup du message en francais
 			methodName = "getLocaleHello";
 			System.out.println(methodName);
 			messageToClient = getMessageToClientAfterSendInSession(wssession, EJBDataService.class.getName(), methodName, getJson("hhfrancois"));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			result = messageToClient.getResponse();
-			assertEquals("\"Bonjour hhfrancois\"", result);
+			assertThat(result).isEqualTo("\"Bonjour hhfrancois\"");
 		} catch (IOException exception) {
 		}
 
@@ -925,9 +923,9 @@ public class OcelotTest extends ArquillianTestCase {
 			String methodName = "getLocale";
 			System.out.println(methodName);
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals("{\"language\":\"en\",\"country\":\"US\"}", result);
+			assertThat(result).isEqualTo("{\"country\":\"US\",\"language\":\"en\"}");
 		} catch (IOException exception) {
 		}
 	}
