@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.core;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -12,6 +13,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import javax.enterprise.inject.Instance;
@@ -45,6 +47,11 @@ import org.ocelotds.spi.IDataServiceResolver;
 import org.ocelotds.spi.Scope;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
+import org.ocelotds.OcelotServices;
+import org.ocelotds.marshallers.LocaleMarshaller;
+import org.ocelotds.marshallers.LocaleUnmarshaller;
+import org.ocelotds.marshalling.annotations.JsonMarshaller;
+import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.resolvers.PojoResolver;
 import org.slf4j.Logger;
 
@@ -87,6 +94,17 @@ public class CallServiceManagerTest {
 		when(configuration.getStacktracelength()).thenReturn(0);
 	}
 
+	/**
+	 * Test of getUnMarshallerAnnotation method, of class CallServiceManager.
+	 */
+	@Test
+	public void testGetUnMarshallerAnnotation() throws NoSuchMethodException {
+		Method method = OcelotServices.class.getMethod("setLocale", Locale.class, Session.class);
+		Annotation[][] parametersAnnotations = method.getParameterAnnotations();
+		Annotation[] parameterAnnotations = parametersAnnotations[0];
+		Class result = callServiceManager.getUnMarshallerAnnotation(parameterAnnotations);
+		assertThat(result).isEqualTo(LocaleUnmarshaller.class);
+	}
 	/**
 	 * Test of getResolver method, of class CallServiceManager.
 	 */
@@ -269,9 +287,10 @@ public class CallServiceManagerTest {
 	/**
 	 * Test of sendMessageToClient method, of class CallServiceManager.
 	 * @throws org.ocelotds.spi.DataServiceException
+	 * @throws java.lang.NoSuchMethodException
 	 */
 	@Test
-	public void testSendMessageToClient() throws DataServiceException, NoSuchMethodException {
+	public void testSendMessageToClient() throws DataServiceException, NoSuchMethodException, JsonMarshallingException {
 		System.out.println("sendMessageToClient");
 		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
 		Class cls = ClassAsDataService.class;
@@ -308,8 +327,11 @@ public class CallServiceManagerTest {
 		message.setOperation("methodReturnString");
 		callServiceManager.sendMessageToClient(message, client);
 
+		message.setOperation("methodWithMarshaller");
+		callServiceManager.sendMessageToClient(message, client);
+
 		ArgumentCaptor<MessageToClient> captureMsg = ArgumentCaptor.forClass(MessageToClient.class);
-		verify(async, times(6)).sendObject(captureMsg.capture());
+		verify(async, times(7)).sendObject(captureMsg.capture());
 		List<MessageToClient> result = captureMsg.getAllValues();
 		assertThat(result.get(0).getResponse()).isEqualTo(new ClassAsDataService().methodReturnString("e"));
 		assertThat(result.get(1).getResponse()).isEqualTo(new ClassAsDataService().methodReturnString2(client, "e"));
@@ -331,6 +353,7 @@ public class CallServiceManagerTest {
 		}
 		assertThat(result.get(4).getResponse()).isEqualTo(fault);
 		assertThat(result.get(5).getResponse()).isEqualTo(new ClassAsDataService().methodReturnString("e"));
+		assertThat(result.get(6).getJson()).isEqualTo(new LocaleMarshaller().toJson(new Locale("fr", "FR")));
 	}
 
 	@DataService(resolver = "TEST")
@@ -351,6 +374,10 @@ public class CallServiceManagerTest {
 		@JsCacheResult
 		public String methodReturnCachedString(String a) {
 			return "r5";
+		}
+		@JsonMarshaller(LocaleMarshaller.class)
+		public Locale methodWithMarshaller(String a) {
+			return new Locale("fr", "FR");
 		}
 	}
 }
