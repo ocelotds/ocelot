@@ -260,6 +260,25 @@ if ("WebSocket" in window) {
                   }
                },
                /**
+                * Remove listener for receive cache event
+                * @param {String} type event : add, remove
+                * @param {Function} listener
+                */
+               removeEventListener: function (type, listener) {
+                  var idx = -1;
+                  if (type === ADD) {
+                     idx = addHandlers.indexOf(listener);
+                     if(idx !== -1) {
+                        addHandlers.splice(idx, 1);
+                     }
+                  } else if (type === RM) {
+                     idx = removeHandlers.indexOf(listener);
+                     if(idx !== -1) {
+                        removeHandlers.splice(idx, 1);
+                     }
+                  }
+               },
+               /**
                 * If msgToClient has deadline so we stock in cache
                 * Add result in cache storage
                 * @param {MessageToClient} msgToClient
