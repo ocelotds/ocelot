@@ -36,10 +36,24 @@ public class MessageToClient {
 	 * The result of request
 	 */
 	protected Object response = null;
+	
+	/**
+	 * The result of request in json format
+	 */
+	protected String json = null;
+
 	/**
 	 * validity limit
 	 */
 	protected long deadline = 0L;
+
+	public String getJson() {
+		return json;
+	}
+
+	public void setJson(String json) {
+		this.json = json;
+	}
 
 	public MessageType getType() {
 		return type;
@@ -139,7 +153,10 @@ public class MessageToClient {
 		ObjectMapper mapper = getObjectMapper();
 		String jsonResponse;
 		try {
-			jsonResponse = mapper.writeValueAsString(this.getResponse());
+			jsonResponse = this.json;
+			if(null==this.json) {
+				jsonResponse = mapper.writeValueAsString(this.getResponse());
+			}
 			res = String.format(resultFormat, Constants.Message.RESPONSE, jsonResponse);
 		} catch (JsonProcessingException ex) {
 			Fault f = new Fault(ex, 0);
@@ -150,9 +167,8 @@ public class MessageToClient {
 				res = String.format(resultFormat, Constants.Message.RESPONSE, "");
 			}
 		}
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s%s}",
+		return String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s%s}",
 				  Constants.Message.TYPE, this.getType(), Constants.Message.ID, this.getId(), Constants.Message.DEADLINE, this.getDeadline(), res);
-		return json;
 	}
 
 	ObjectMapper getObjectMapper() {

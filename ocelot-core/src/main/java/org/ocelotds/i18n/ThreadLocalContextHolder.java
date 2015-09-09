@@ -14,7 +14,7 @@ public class ThreadLocalContextHolder {
 
 	private static final ThreadLocal<Map<String, Object>> THREAD_WITH_CONTEXT = new ThreadLocal<>();
 
-	private ThreadLocalContextHolder() {
+	ThreadLocalContextHolder() {
 	}
 
 	public static void put(String key, Object payload) {

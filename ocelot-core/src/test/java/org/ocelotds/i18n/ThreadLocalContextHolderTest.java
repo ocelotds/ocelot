@@ -26,11 +26,15 @@ public class ThreadLocalContextHolderTest {
 	 * Test constructor is private
 	 * @throws java.lang.InstantiationException
 	 * @throws java.lang.IllegalAccessException
+	 * @throws java.lang.NoSuchMethodException
 	 */
 	@Test
-	public void testPrivateConstructor() throws InstantiationException, IllegalAccessException  {
+	public void testPrivateConstructor() throws InstantiationException, IllegalAccessException, NoSuchMethodException  {
 		Constructor<?>[] constructors = ThreadLocalContextHolder.class.getConstructors();
 		assertThat(constructors.length).isEqualTo(0);
+		Constructor<ThreadLocalContextHolder> constructor = ThreadLocalContextHolder.class.getDeclaredConstructor();
+		assertThat(constructor.getModifiers()).isEqualTo(0);
+	   ThreadLocalContextHolder.class.newInstance();
 	}
 
 	/**
@@ -38,9 +42,8 @@ public class ThreadLocalContextHolderTest {
 	 * @throws java.lang.InstantiationException
 	 * @throws java.lang.IllegalAccessException
 	 */
-	@Test(expected = IllegalAccessException.class)
+	@Test
 	public void testPrivateConstructor1() throws InstantiationException, IllegalAccessException  {
-	   ThreadLocalContextHolder.class.newInstance();
 	}
 
 	/**

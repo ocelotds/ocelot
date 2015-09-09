@@ -44,6 +44,16 @@ public class MessageToClientTest {
 		String result = instance.getId();
 		assertThat(result).isEqualTo(expResult);
 	}
+	
+	@Test
+	public void testGetSetJson() {
+		System.out.println("testGetSetJson");
+		MessageToClient instance = new MessageToClient();
+		String expResult = UUID.randomUUID().toString();
+		instance.setJson(expResult);
+		String result = instance.getJson();
+		assertThat(result).isEqualTo(expResult);
+	}
 
 	/**
 	 * Test of getResponse method, of class MessageToClient.
