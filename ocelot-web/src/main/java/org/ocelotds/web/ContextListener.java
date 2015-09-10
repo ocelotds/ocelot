@@ -10,8 +10,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -61,9 +59,14 @@ public final class ContextListener implements ServletContextListener {
 		logger.debug("Context initialisation...");
 		ServletContext sc = sce.getServletContext();
 		defineStacktraceConfig(sc);
+		String secure = sc.getInitParameter(Constants.Options.SECURE);
+		String protocol = Constants.WS;
+		if (Constants.TRUE.equals(secure)) {
+			protocol = Constants.WSS;
+		}
 		try {
 			// create tmp/ocelot.js
-			File file = createOcelotJsFile(sc.getContextPath());
+			File file = createOcelotJsFile(sc.getContextPath(), protocol);
 			setInitParameterAnMinifyJs(sc, file, Constants.OCELOT, Constants.OCELOT_MIN);
 		} catch (IOException ex) {
 			logger.error("Fail to create ocelot.js.", ex);
@@ -179,14 +182,14 @@ public final class ContextListener implements ServletContextListener {
 	 * @return
 	 * @throws IOException
 	 */
-	File createOcelotJsFile(String ctxPath) throws IOException {
+	File createOcelotJsFile(String ctxPath, String protocol) throws IOException {
 		File file = File.createTempFile(Constants.OCELOT, Constants.JS);
 		try (OutputStream out = new FileOutputStream(file)) {
 			createLicenceComment(out);
 			for (IServicesProvider servicesProvider : servicesProviders) {
 				servicesProvider.streamJavascriptServices(out);
 			}
-			writeOcelotCoreJsFile(out, ctxPath);
+			writeOcelotCoreJsFile(out, ctxPath, protocol);
 		}
 		return file;
 	}
@@ -199,7 +202,7 @@ public final class ContextListener implements ServletContextListener {
 	 * @return
 	 * @throws IOException
 	 */
-	private void writeOcelotCoreJsFile(OutputStream out, String ctxPath) throws IOException {
+	private void writeOcelotCoreJsFile(OutputStream out, String ctxPath, String protocol) throws IOException {
 		URL js = this.getClass().getResource(Constants.SLASH + Constants.OCELOT_CORE + Constants.JS);
 		if (null == js) {
 			throw new IOException("File " + Constants.SLASH + Constants.OCELOT_CORE + Constants.JS + " not found in classpath.");
@@ -207,7 +210,7 @@ public final class ContextListener implements ServletContextListener {
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream(), Constants.UTF_8))) {
 			String inputLine;
 			while ((inputLine = in.readLine()) != null) {
-				out.write(inputLine.replaceAll(Constants.CTXPATH, ctxPath).getBytes(Constants.UTF_8));
+				out.write(inputLine.replaceAll(Constants.CTXPATH, ctxPath).replaceAll(Constants.PROTOCOL, protocol).getBytes(Constants.UTF_8));
 				out.write(Constants.BACKSLASH_N.getBytes(Constants.UTF_8));
 			}
 		}

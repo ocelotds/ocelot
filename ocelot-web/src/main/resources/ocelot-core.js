@@ -1,4 +1,4 @@
-var ocelotController, OcelotPromiseFactory, MD5Tools, CTXPATH = "%CTXPATH%";
+var ocelotController, OcelotPromiseFactory, MD5Tools;
 var Subscriber = (function(topic) {
    var promise, ocelotSrv = new OcelotServices();
    promise = ocelotSrv.subscribe(topic);
@@ -64,10 +64,10 @@ if ("WebSocket" in window) {
          if (document.location.port && document.location.port !== "") {
             host = host + ":" + document.location.port;
          }
-         if (document.location.href.toString().indexOf(document.location.protocol + "//" + host + CTXPATH) === 0) {
-            ws = new WebSocket("ws://" + host + CTXPATH + "/ocelot-endpoint");
+         if (document.location.href.toString().indexOf(document.location.protocol + "//" + host + "%CTXPATH%") === 0) {
+            ws = new WebSocket("%WSS%://" + host + "%CTXPATH%/ocelot-endpoint");
          } else {
-            ws = new WebSocket("ws://" + host + "/ocelot-endpoint");
+            ws = new WebSocket("%WSS%://" + host + "/ocelot-endpoint");
          }
          ws.onmessage = function (evt) {
             var response, msgToClient = JSON.parse(evt.data), promise = promises[msgToClient.id];
