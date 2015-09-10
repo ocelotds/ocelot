@@ -13,6 +13,7 @@ import org.ocelotds.spi.Scope;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.naming.Binding;
@@ -72,7 +73,7 @@ public class EJBResolver implements IDataServiceResolver {
 		} else {
 			obj = findEJB(jndiPath, name);
 		}
-		if (null == obj) {
+		if (Objects.isNull(obj)) {
 			throw new DataServiceException(name);
 		}
 		return obj;
@@ -82,14 +83,14 @@ public class EJBResolver implements IDataServiceResolver {
 		Object result;
 		try {
 			NamingEnumeration<Binding> list = initialContext.listBindings(jndi);
-			while (list != null && list.hasMore()) {
+			while (Objects.nonNull(list) && list.hasMore()) {
 				try {
 					Binding item = list.next();
 					String itemName = item.getName();
 					if (itemName.endsWith(name)) {
 						try {
 							result = initialContext.lookup(jndi + JndiConstant.PATH_SEPARATOR + itemName);
-							if (result != null) {
+							if (Objects.nonNull(result)) {
 								jndiMap.put(name, jndi + JndiConstant.PATH_SEPARATOR + itemName);
 							}
 							return result;
@@ -98,7 +99,7 @@ public class EJBResolver implements IDataServiceResolver {
 						}
 					}
 					result = findEJB(jndi + JndiConstant.PATH_SEPARATOR + itemName, name);
-					if (result != null) {
+					if (Objects.nonNull(result)) {
 						return result;
 					}
 				} catch (NamingException e) {

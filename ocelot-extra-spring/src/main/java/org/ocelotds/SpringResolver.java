@@ -11,6 +11,7 @@ import org.ocelotds.spi.IDataServiceResolver;
 import org.ocelotds.spi.Scope;
 import java.lang.annotation.Annotation;
 import java.util.Map;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -27,10 +28,10 @@ public class SpringResolver implements IDataServiceResolver {
 	private static final Logger logger = LoggerFactory.getLogger(SpringResolver.class);
 
 //	@Inject
-	private ApplicationContext applicationContext;
+	private ApplicationContext applicationContext = null;
 
 	public SpringResolver() {
-		if (applicationContext == null)  {
+		if (Objects.isNull(applicationContext)) {
 			applicationContext = ApplicationContextProvider.getApplicationContext();
 		}
 	}
@@ -41,7 +42,7 @@ public class SpringResolver implements IDataServiceResolver {
 		System.out.println("Je passe la");
 
 		Map<String, ?> beansOfType = applicationContext.getBeansOfType(clazz);
-		if (beansOfType == null || beansOfType.isEmpty()) {
+		if (Objects.isNull(beansOfType) || beansOfType.isEmpty()) {
 			throw new DataServiceException("Unable to find any Spring bean of type : " + clazz.getName());
 		}
 		if (beansOfType.size() > 1) {

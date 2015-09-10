@@ -10,6 +10,7 @@ import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.websocket.Session;
@@ -39,10 +40,10 @@ public class TopicsMessagesBroadcaster {
 		msg.setType(MessageType.MESSAGE);
 		logger.debug("Sending message to topic {}...", msg);
 		Collection<Session> sessions = sessionManager.getSessionsForTopic(msg.getId());
-		if (sessions != null && !sessions.isEmpty()) {
+		if (Objects.nonNull(sessions) && !sessions.isEmpty()) {
 			Collection<Session> sessionsClosed = new ArrayList<>();
 			for (Session session : sessions) {
-				if(session!=null) {
+				if(Objects.nonNull(session)) {
 					if (session.isOpen()) {
 						session.getAsyncRemote().sendObject(msg);
 					} else {

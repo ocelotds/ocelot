@@ -16,6 +16,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URL;
+import java.util.Objects;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -74,7 +75,7 @@ public final class ContextListener implements ServletContextListener {
 	 */
 	void defineStacktraceConfig(ServletContext sc) {
 		String stacktrace = sc.getInitParameter(Constants.Options.STACKTRACE_LENGTH);
-		if (stacktrace == null) {
+		if (Objects.isNull(stacktrace)) {
 			stacktrace = DEFAULTSTACKTRACE;
 		} else {
 			logger.debug("Read '{}' option in web.xml : '{}'.", Constants.Options.STACKTRACE_LENGTH, stacktrace);
@@ -101,13 +102,14 @@ public final class ContextListener implements ServletContextListener {
 	 *
 	 * @param filename
 	 */
-	void deleteFile(String filename) {
-		if (null != filename && !filename.isEmpty()) {
+	boolean deleteFile(String filename) {
+		if (Objects.nonNull(filename) && !filename.isEmpty()) {
 			File file = new File(filename);
 			if (file.exists()) {
-				file.delete();
+				return file.delete();
 			}
 		}
+		return false;
 	}
 
 	/**
@@ -131,7 +133,7 @@ public final class ContextListener implements ServletContextListener {
 		} catch (Exception ex) {
 			logger.error("Minification from " + normalName + " to " + minifyName + " failed. minify version will be equals to normal version.");
 		}
-		if (filePath != null) {
+		if (Objects.nonNull(filePath)) {
 			sc.setInitParameter(minifyName, filePath);
 			logger.debug("Generate '{}' : '{}'.", minifyName, filePath);
 		}
@@ -151,7 +153,7 @@ public final class ContextListener implements ServletContextListener {
 		try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
 			String line;
 			StringBuilder buffer = new StringBuilder();
-			while((line = reader.readLine())!=null) {
+			while(Objects.nonNull(line = reader.readLine())) {
 				// on pourrait supprimer les espaces supperflus, mais il faut tenir compte de : function_, return_, var_, _in_, _new_, else_if, delete_, get_, set_
 				line = line.replaceAll("^\\s*", "") // remplace tous les espace en debut de ligne
 						  .replaceAll("^//.*", "") // supprime les lignes en commentaire
@@ -198,12 +200,12 @@ public final class ContextListener implements ServletContextListener {
 	 */
 	private void writeOcelotCoreJsFile(OutputStream out, String ctxPath) throws IOException {
 		URL js = this.getClass().getResource(Constants.SLASH + Constants.OCELOT_CORE + Constants.JS);
-		if (null == js) {
+		if (Objects.isNull(js)) {
 			throw new IOException("File " + Constants.SLASH + Constants.OCELOT_CORE + Constants.JS + " not found in classpath.");
 		}
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream(), Constants.UTF_8))) {
 			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
+			while (Objects.nonNull(inputLine = in.readLine())) {
 				out.write(inputLine.replaceAll(Constants.CTXPATH, ctxPath).getBytes(Constants.UTF_8));
 				out.write(Constants.BACKSLASH_N.getBytes(Constants.UTF_8));
 			}

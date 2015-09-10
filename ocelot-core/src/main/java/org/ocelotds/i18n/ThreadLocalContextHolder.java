@@ -5,6 +5,7 @@ package org.ocelotds.i18n;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  *
@@ -18,7 +19,7 @@ public class ThreadLocalContextHolder {
 	}
 
 	public static void put(String key, Object payload) {
-		if (THREAD_WITH_CONTEXT.get() == null) {
+		if (Objects.isNull(THREAD_WITH_CONTEXT.get())) {
 			THREAD_WITH_CONTEXT.set(new HashMap<String, Object>());
 		}
 		THREAD_WITH_CONTEXT.get().put(key, payload);

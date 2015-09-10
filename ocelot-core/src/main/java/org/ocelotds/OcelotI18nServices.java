@@ -6,6 +6,7 @@ package org.ocelotds;
 import org.ocelotds.i18n.ThreadLocalContextHolder;
 import java.text.MessageFormat;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.ResourceBundle;
 import javax.inject.Inject;
 import org.ocelotds.logger.OcelotLogger;
@@ -23,7 +24,7 @@ public class OcelotI18nServices {
 	public Locale getUserLocale() {
 		logger.debug("Get locale from OcelotServices");
 		Locale locale = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
-		if(null==locale) {
+		if(Objects.isNull(locale)) {
 			logger.debug("Get locale from OcelotServices : default");
 			locale =  new Locale("en", "US");
 		}

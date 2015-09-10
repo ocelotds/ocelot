@@ -4,6 +4,7 @@
 package org.ocelotds.web;
 
 import java.lang.annotation.Annotation;
+import java.util.Objects;
 import java.util.Set;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.Default;
@@ -31,7 +32,7 @@ public abstract class CdiBootstrap {
 	private static BeanManager beanManager = null;
 
 	public BeanManager getBeanManager() {
-		if (null == beanManager) {
+		if (Objects.isNull(beanManager)) {
 			try {
 				beanManager = (BeanManager) getInitialContext().lookup(BEANMANAGER);
 			} catch (NamingException e) {

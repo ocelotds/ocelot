@@ -6,6 +6,7 @@ package org.ocelotds.configuration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
@@ -26,7 +27,7 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 	public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
 		Map<String, List<String>> headers = request.getHeaders();
 		List<String> accept = headers.get(HttpHeaders.ACCEPT_LANGUAGE);
-		if (accept == null || accept.isEmpty()) {
+		if (Objects.isNull(accept) || accept.isEmpty()) {
 			accept = Arrays.asList(new String[]{"en-US;q=1"});
 		}
 		logger.debug("Get accept-language from client headers : {}", accept);

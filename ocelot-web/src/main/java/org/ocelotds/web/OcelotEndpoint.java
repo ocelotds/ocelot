@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.List;
 import org.ocelotds.messaging.MessageFromClient;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
@@ -57,7 +58,7 @@ public class OcelotEndpoint extends CdiBootstrap {
 	@OnOpen
 	public void handleOpenConnexion(Session session, EndpointConfig config) throws IOException {
 		Locale locale = (Locale) session.getUserProperties().get(Constants.LOCALE);
-		if (null == locale) {
+		if (Objects.isNull(locale)) {
 			logger.debug("Locale is not set in session, get from config...");
 			List<String> accepts = (List<String>) config.getUserProperties().get(HttpHeaders.ACCEPT_LANGUAGE);
 			locale = new Locale("en", "US");
@@ -107,7 +108,7 @@ public class OcelotEndpoint extends CdiBootstrap {
 	@OnMessage
 	public void receiveCommandMessage(Session client, String json) {
 		Locale locale = (Locale) client.getUserProperties().get(Constants.LOCALE);
-		if (null != locale) {
+		if (Objects.nonNull(locale)) {
 			logger.debug("Locale is set in session : {}", locale);
 			ThreadLocalContextHolder.put(Constants.LOCALE, locale);
 		}
@@ -117,14 +118,14 @@ public class OcelotEndpoint extends CdiBootstrap {
 	}
 
 	private SessionManager getSessionManager() {
-		if (null == sessionManager) {
+		if (Objects.isNull(sessionManager)) {
 			sessionManager = getBean(SessionManager.class);
 		}
 		return sessionManager;
 	}
 
 	private CallServiceManager getCallServiceManager() {
-		if (null == callServiceManager) {
+		if (Objects.isNull(callServiceManager)) {
 			callServiceManager = getBean(CallServiceManager.class);
 		}
 		return callServiceManager;

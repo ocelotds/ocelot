@@ -109,7 +109,7 @@ public class MessageToClient {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (Objects.isNull(obj)) {
 			return false;
 		}
 		if (getClass() != obj.getClass()) {
@@ -154,7 +154,7 @@ public class MessageToClient {
 		String jsonResponse;
 		try {
 			jsonResponse = this.json;
-			if(null==this.json) {
+			if(Objects.isNull(this.json)) {
 				jsonResponse = mapper.writeValueAsString(this.getResponse());
 			}
 			res = String.format(resultFormat, Constants.Message.RESPONSE, jsonResponse);
