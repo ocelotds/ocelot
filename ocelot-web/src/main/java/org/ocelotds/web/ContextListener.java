@@ -8,12 +8,14 @@ import org.ocelotds.IServicesProvider;
 import org.ocelotds.configuration.OcelotConfiguration;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
 import javax.enterprise.inject.Any;
@@ -149,7 +151,7 @@ public final class ContextListener implements ServletContextListener {
 	 */
 	private File minifyJs(String filename, String prefix) throws IOException {
 		File minifiedFile = File.createTempFile(prefix, Constants.JS);
-		try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename), Constants.UTF_8))) {
 			String line;
 			StringBuilder buffer = new StringBuilder();
 			while((line = reader.readLine())!=null) {
@@ -164,7 +166,7 @@ public final class ContextListener implements ServletContextListener {
 					buffer.append(line);
 				}
 			}
-			try (Writer writer = new FileWriter(minifiedFile)) {
+			try (Writer writer = new OutputStreamWriter(new FileOutputStream(minifiedFile), Constants.UTF_8)) {
 				writer.write(buffer.toString().replaceAll("/\\*(?:.|[\\n\\r])*?\\*/", ""));
 			}
 		}
