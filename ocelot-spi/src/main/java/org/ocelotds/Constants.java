@@ -28,15 +28,19 @@ public interface Constants {
 	String FALSE = "false";
 	String TRUE = "true";
 
+	String WSS = "wss";
+	String WS = "ws";
+
 	/**
 	 * This string will be replaced by the contextPath in ocelot-core.js
 	 */
 	String CTXPATH = "%CTXPATH%";
+	String PROTOCOL = "%WSS%";
 
 	int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
 	interface Options {
-
+		String SECURE = "ocelot.websocket.secure";
 		String STACKTRACE_LENGTH = "ocelot.stacktrace.length";
 	}
 
