@@ -19,12 +19,13 @@ env:
    # COVERITY_SCAN_TOKEN
    - secure: "Rq+vTWVD/r/v3rFYo7zcETqHVI/AlSYXCVfB/66AOn5/g2raCyvuIleIHgclXyKsJijjDEkIxzDifIEdUYvsGWPurrN/V0HY5IaOImwJ6XduLC8iT5xYP+dEOB1+KTv3c3hlRv77TqfdwWdq7abNDjhs3ehiHQzPRquWn2ECJ84="
 
-coverity_scan:
-   - project:
-      - name: "hhdevelopment/ocelot"
-      - description: "Build submitted via Travis CI"
-   - notification_email: "francois.achache@gmail.com"
-   - build_command_prepend: "mvn clean"
-   - build_command: "mvn compile -DskipTests=true -Dgpg.skip=true"
-   - branch_pattern: master
+addons:
+   coverity_scan:
+      - project:
+         - name: "hhdevelopment/ocelot"
+         - description: "Build submitted via Travis CI"
+      - notification_email: "francois.achache@gmail.com"
+      - build_command_prepend: "mvn clean"
+      - build_command: "mvn compile -DskipTests=true -Dgpg.skip=true"
+      - branch_pattern: master
 
