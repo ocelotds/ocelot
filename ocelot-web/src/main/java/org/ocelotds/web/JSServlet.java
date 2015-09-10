@@ -52,11 +52,13 @@ public class JSServlet extends HttpServlet {
 		OutputStream out = response.getOutputStream();
 		int count = 0;
 		try (InputStream in = new FileInputStream(source)) {
-			byte[] buffer = new byte[Constants.DEFAULT_BUFFER_SIZE];
-			int n = 0;
-			while (-1 != (n = in.read(buffer))) {
-				out.write(buffer, 0, n);
-				count += n;
+			if(null != in) {
+				byte[] buffer = new byte[Constants.DEFAULT_BUFFER_SIZE];
+				int n = 0;
+				while (-1 != (n = in.read(buffer))) {
+					out.write(buffer, 0, n);
+					count += n;
+				}
 			}
 		}
 		response.setContentLength(count);
