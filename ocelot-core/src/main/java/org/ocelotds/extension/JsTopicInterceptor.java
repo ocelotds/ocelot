@@ -32,7 +32,7 @@ public class JsTopicInterceptor implements Serializable {
 
 	@Inject
 	@OcelotLogger
-	private Logger logger;
+	private transient Logger logger;
 
 	@Inject
 	@MessageEvent

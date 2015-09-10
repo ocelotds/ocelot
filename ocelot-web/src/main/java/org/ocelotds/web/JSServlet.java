@@ -31,7 +31,7 @@ public class JSServlet extends HttpServlet {
 
 	@Inject
 	@OcelotLogger
-	private Logger logger;
+	private transient Logger logger;
 	
 	/**
 	 * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
