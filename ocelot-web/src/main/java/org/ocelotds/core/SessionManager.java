@@ -12,7 +12,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.enterprise.inject.Any;
@@ -61,14 +60,14 @@ public class SessionManager {
 		JsTopicACAnnotationLiteral tcal = new JsTopicACAnnotationLiteral(topic);
 		Instance<JsTopicAccessController> accessControls = topicAccessController.select(DEFAULT_AT);
 		boolean tacPresent = false;
-		if (Objects.nonNull(accessControls)) {
+		if (null != accessControls) {
 			for (JsTopicAccessController accessControl : accessControls) {
 				accessControl.checkAccess(session, topic);
 				tacPresent = true;
 			}
 		}
 		accessControls = topicAccessController.select(tcal);
-		if (Objects.nonNull(accessControls)) {
+		if (null != accessControls) {
 			for (JsTopicAccessController accessControl : accessControls) {
 				accessControl.checkAccess(session, topic);
 				tacPresent = true;
@@ -119,13 +118,13 @@ public class SessionManager {
 		logger.debug("'{}' unsubscribe to '{}'", session.getId(), topic);
 		if (Constants.Topic.ALL.equals(topic)) {
 			for (Collection<Session> sessions : sessionsByTopic.values()) {
-				if (Objects.nonNull(sessions) && sessions.contains(session)) {
+				if (sessions != null && sessions.contains(session)) {
 					sessions.remove(session);
 				}
 			}
 		} else {
 			Collection<Session> sessions = sessionsByTopic.get(topic);
-			if (Objects.nonNull(sessions) && sessions.contains(session)) {
+			if (sessions != null && sessions.contains(session)) {
 				sessions.remove(session);
 			}
 		}
@@ -140,7 +139,7 @@ public class SessionManager {
 	 */
 	public void unregisterTopicSessions(String topic, Collection<Session> sessions) {
 		Collection<Session> all = sessionsByTopic.get(topic);
-		if (Objects.nonNull(sessions)) {
+		if (sessions != null) {
 			all.removeAll(sessions);
 		}
 	}

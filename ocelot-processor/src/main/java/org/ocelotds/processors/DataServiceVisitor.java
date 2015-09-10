@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -146,12 +145,12 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 	void createClassComment(TypeElement typeElement, Writer writer) {
 		try {
 			String comment = environment.getElementUtils().getDocComment(typeElement);
-			if (Objects.isNull(comment)) {
+			if (comment == null) {
 				List<? extends TypeMirror> interfaces = typeElement.getInterfaces();
 				for (TypeMirror typeMirror : interfaces) {
 					TypeElement element = (TypeElement) environment.getTypeUtils().asElement(typeMirror);
 					comment = environment.getElementUtils().getDocComment(element);
-					if (Objects.nonNull(comment)) {
+					if (comment != null) {
 						writer.append("/**\n *").append(computeComment(comment)).append("/\n");
 					}
 				}
@@ -252,7 +251,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 			String methodComment = environment.getElementUtils().getDocComment(methodElement);
 			writer.append("\t/**\n");
 			// The javadoc comment
-			if (Objects.nonNull(methodComment)) {
+			if (methodComment != null) {
 				methodComment = methodComment.split("@")[0];
 				int lastIndexOf = methodComment.lastIndexOf('\n');
 				if (lastIndexOf >= 0) {
@@ -290,11 +289,11 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 			StringBuilder args = new StringBuilder("");
 			StringBuilder paramNames = new StringBuilder("");
 			StringBuilder keys = new StringBuilder("");
-			if (Objects.nonNull(arguments) && arguments.hasNext()) {
+			if (arguments != null && arguments.hasNext()) {
 				JsCacheResult jcr = methodElement.getAnnotation(JsCacheResult.class);
 				boolean allArgs = true;
 				// if there is a jcr annotation with value diferrent of *, so we dont use all arguments
-				if (Objects.nonNull(jcr) && Objects.nonNull(jcr.keys()) && (jcr.keys().length == 0 || (jcr.keys().length > 0 && !"*".equals(jcr.keys()[0])))) {
+				if (null != jcr && null != jcr.keys() && (jcr.keys().length == 0 || (jcr.keys().length > 0 && !"*".equals(jcr.keys()[0])))) {
 					allArgs = false;
 					for (int i = 0; i < jcr.keys().length; i++) {
 						String arg = jcr.keys()[i];

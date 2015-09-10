@@ -44,7 +44,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -186,7 +185,7 @@ public class OcelotTest extends ArquillianTestCase {
 		messageFromClient.setId(UUID.randomUUID().toString());
 		messageFromClient.setDataService(classname);
 		messageFromClient.setOperation(operation);
-		if (Objects.nonNull(params)) {
+		if (params != null) {
 			messageFromClient.getParameters().addAll(Arrays.asList(params));
 		}
 		return messageFromClient;
@@ -239,7 +238,7 @@ public class OcelotTest extends ArquillianTestCase {
 		public void onMessage(String message) {
 			logger.debug("RECEIVE RESPONSE FROM SERVER = {}", message);
 			MessageToClient messageToClientIn = MessageToClient.createFromJson(message);
-			if (Objects.isNull(id) || id.equals(messageToClientIn.getId())) {
+			if (id == null || id.equals(messageToClientIn.getId())) {
 				messageToClient = messageToClientIn;
 				lock.countDown();
 			}
@@ -522,10 +521,10 @@ public class OcelotTest extends ArquillianTestCase {
 		} catch (Exception e) {
 			fail(e.getMessage());
 		} finally {
-			if (Objects.nonNull(connection1)) {
+			if (connection1 != null) {
 				connection1.disconnect();
 			}
-			if (Objects.nonNull(connection2)) {
+			if (connection2 != null) {
 				connection2.disconnect();
 			}
 		}
@@ -534,7 +533,7 @@ public class OcelotTest extends ArquillianTestCase {
 	private void traceFile(InputStream input) {
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(input, Constants.UTF_8))) {
 			String inputLine;
-			while (Objects.nonNull(inputLine = in.readLine())) {
+			while ((inputLine = in.readLine()) != null) {
 				System.out.write(inputLine.getBytes(Constants.UTF_8));
 				System.out.write(Constants.BACKSLASH_N.getBytes(Constants.UTF_8));
 			}
@@ -554,7 +553,7 @@ public class OcelotTest extends ArquillianTestCase {
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), Constants.UTF_8))) {
 				String inputLine;
 				replaced = false;
-				while (Objects.nonNull(inputLine = in.readLine())) {
+				while ((inputLine = in.readLine()) != null) {
 					assertFalse("Dynamic replacement of " + Constants.CTXPATH + " doen't work", inputLine.contains(Constants.CTXPATH));
 					replaced |= inputLine.contains(ctxpath);
 				}

@@ -6,7 +6,6 @@ package org.ocelotds;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Objects;
 import javax.inject.Inject;
 import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
@@ -26,12 +25,10 @@ public abstract class AbstractServiceProvider implements IServicesProvider {
 	@Override
 	public void streamJavascriptServices(OutputStream out) {
 		try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(getJsFilename())) {
-			if(Objects.nonNull(in)) {
-				byte[] buffer = new byte[Constants.DEFAULT_BUFFER_SIZE];
-				int n = 0;
-				while (-1 != (n = in.read(buffer))) {
-					out.write(buffer, 0, n);
-				}
+			byte[] buffer = new byte[Constants.DEFAULT_BUFFER_SIZE];
+			int n = 0;
+			while (-1 != (n = in.read(buffer))) {
+				out.write(buffer, 0, n);
 			}
 		} catch(IOException ex) {
 			logger.error("Generation of '"+getJsFilename()+"' failed.", ex);

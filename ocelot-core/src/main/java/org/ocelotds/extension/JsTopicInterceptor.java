@@ -10,7 +10,6 @@ import org.ocelotds.messaging.MessageToClient;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Objects;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
@@ -49,7 +48,7 @@ public class JsTopicInterceptor implements Serializable {
 		Method method = ctx.getMethod();
 		JsTopic jsTopic = method.getAnnotation(JsTopic.class);
 		String topic = jsTopic.value();
-		if (Objects.isNull(topic) || topic.isEmpty()) {
+		if (null == topic || topic.isEmpty()) {
 			Object[] parameters = ctx.getParameters();
 			int idx = 0;
 			Annotation[][] parametersAnnotations = method.getParameterAnnotations();
@@ -68,7 +67,7 @@ public class JsTopicInterceptor implements Serializable {
 				idx++;
 			}
 		}
-		if (Objects.isNull(topic) || topic.isEmpty()) {
+		if (null == topic || topic.isEmpty()) {
 			throw new IllegalArgumentException("Topic name can't be empty.");
 		}
 		MessageToClient messageToClient = new MessageToClient();

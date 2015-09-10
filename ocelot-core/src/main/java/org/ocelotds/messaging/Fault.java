@@ -27,7 +27,7 @@ public class Fault {
 
 	public Fault(Throwable t, int stacktracelength) {
 		this.throwable = t;
-		if(Objects.nonNull(t)) {
+		if (t != null) {
 			this.message = t.getMessage();
 			this.classname = t.getClass().getName();
 		}
@@ -43,7 +43,7 @@ public class Fault {
 	}
 
 	public String[] getStacktrace() {
-		if (Objects.nonNull(throwable) && stacktracelength > 0) {
+		if (throwable != null && stacktracelength > 0) {
 			StackTraceElement[] stackTraces = throwable.getStackTrace();
 			int nb = Math.min(stackTraces.length, stacktracelength);
 			String[] result = new String[nb];
@@ -100,7 +100,7 @@ public class Fault {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (Objects.isNull(obj)) {
+		if (obj == null) {
 			return false;
 		}
 		if (getClass() != obj.getClass()) {

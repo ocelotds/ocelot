@@ -29,7 +29,6 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -91,7 +90,7 @@ public class CallServiceManager {
 					for (Type paramType : paramTypes) {
 						String jsonArg = cleaner.cleanArg(parameters.get(idx));
 						Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> unmarshaller = getUnMarshallerAnnotation(parametersAnnotations[idx]);
-						if (Objects.nonNull(unmarshaller)) {
+						if (null != unmarshaller) {
 							try {
 								org.ocelotds.marshalling.JsonUnmarshaller newInstance = unmarshaller.newInstance();
 								arguments[idx++] = newInstance.toJava(jsonArg);
@@ -141,7 +140,7 @@ public class CallServiceManager {
 								String jsonArg = parameters.get(pidx++);
 								String arg = cleaner.cleanArg(jsonArg);
 								Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> unmarshaller = getUnMarshallerAnnotation(parametersAnnotations[idx]);
-								if (Objects.nonNull(unmarshaller)) {
+								if (null != unmarshaller) {
 									try {
 										org.ocelotds.marshalling.JsonUnmarshaller newInstance = unmarshaller.newInstance();
 										arguments[idx++] = newInstance.toJava(jsonArg);
@@ -270,7 +269,7 @@ public class CallServiceManager {
 			if (scope.equals(Scope.SESSION)) {
 				dataService = client.getUserProperties().get(dataServiceClassName);
 			}
-			if (Objects.isNull(dataService)) {
+			if (dataService == null) {
 				dataService = resolver.resolveDataService(cls);
 				if (scope.equals(Scope.SESSION)) {
 					client.getUserProperties().put(dataServiceClassName, dataService);

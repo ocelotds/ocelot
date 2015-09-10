@@ -9,7 +9,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -42,7 +41,7 @@ public class UpdatedCacheManager {
 	 */
 	public Collection<String> getOutDatedCache(Map<String, Long> map) {
 		Collection<String> result = new ArrayList<>();
-		if (Objects.nonNull(map)) {
+		if (null != map) {
 			for (Map.Entry<String, Long> entry : map.entrySet()) {
 				String key = entry.getKey();
 				if (lastupdateTime.containsKey(key)) {
