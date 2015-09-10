@@ -21,11 +21,11 @@ env:
 
 addons:
    coverity_scan:
-      - project:
-         - name: "hhdevelopment/ocelot"
-         - description: "Build submitted via Travis CI"
-      - notification_email: "francois.achache@gmail.com"
-      - build_command_prepend: "mvn clean"
-      - build_command: "mvn compile -DskipTests=true -Dgpg.skip=true"
-      - branch_pattern: master
+      project:
+         name: "hhdevelopment/ocelot"
+         description: "Build submitted via Travis CI"
+      notification_email: "francois.achache@gmail.com"
+      build_command_prepend: "mvn clean"
+      build_command: "mvn compile -DskipTests=true -Dgpg.skip=true"
+      branch_pattern: master
 
