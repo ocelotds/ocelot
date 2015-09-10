@@ -101,13 +101,14 @@ public final class ContextListener implements ServletContextListener {
 	 *
 	 * @param filename
 	 */
-	void deleteFile(String filename) {
+	boolean deleteFile(String filename) {
 		if (null != filename && !filename.isEmpty()) {
 			File file = new File(filename);
 			if (file.exists()) {
-				file.delete();
+				return file.delete();
 			}
 		}
+		return false;
 	}
 
 	/**
