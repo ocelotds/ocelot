@@ -24,14 +24,19 @@ public abstract class AbstractServiceProvider implements IServicesProvider {
 	
 	@Override
 	public void streamJavascriptServices(OutputStream out) {
-		try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(getJsFilename())) {
-			byte[] buffer = new byte[Constants.DEFAULT_BUFFER_SIZE];
-			int n = 0;
-			while (-1 != (n = in.read(buffer))) {
-				out.write(buffer, 0, n);
+		String jsname = getJsFilename();
+		try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(jsname)) {
+			if(null != in) {
+				byte[] buffer = new byte[Constants.DEFAULT_BUFFER_SIZE];
+				int n = 0;
+				while (-1 != (n = in.read(buffer))) {
+					out.write(buffer, 0, n);
+				}
+			} else {
+				logger.warn("Generation of '{}' failed. File not found", jsname);
 			}
 		} catch(IOException ex) {
-			logger.error("Generation of '"+getJsFilename()+"' failed.", ex);
+			logger.error("Generation of '"+jsname+"' failed.", ex);
 		}
 	}
 	
