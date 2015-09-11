@@ -30,6 +30,7 @@ public class CdiResolver implements IDataServiceResolver {
 
 	@Override
 	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
+//		return CDI.current().select(clazz).get(); // equivalent, but no testable
 		Set<Bean<?>> beans = beanManager.getBeans(clazz);
 		for (Bean<?> b : beans) {
 			final CreationalContext context = beanManager.createCreationalContext(b);
