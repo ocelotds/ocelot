@@ -67,6 +67,17 @@ public class OcelotServices {
 		return (Locale) session.getUserProperties().get(Constants.LOCALE);
 	}
 	
+	@MethodWithSessionInjection
+	public String getUsername() {
+		return null;
+	}
+
+	@TransientDataService
+	public String getUSername(Session session) {
+		logger.debug("Receive getUsername call from client.");
+		return (String) session.getUserPrincipal().getName();
+	}
+
 	public Collection<String> getOutDatedCache(Map<String, Long> states) {
 		return updatedCacheManager.getOutDatedCache(states);
 	}
