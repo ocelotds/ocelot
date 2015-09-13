@@ -64,7 +64,7 @@ public class OcelotServices {
 	}
 
 	/**
-	 * @See getUSername(Session session)
+	 * get current user locale 
 	 * @return 
 	 */
 	@MethodWithSessionInjection
