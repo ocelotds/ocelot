@@ -40,6 +40,7 @@ public class OcelotContextTest {
 	@Test
 	public void testGetLocale() {
 		System.out.println("getLocale");
+		ThreadLocalContextHolder.put(Constants.LOCALE, null);
 		Locale expResult = new Locale("en", "US");
 		Locale result = instance.getLocale();
 		assertThat(result).isEqualTo(expResult);
