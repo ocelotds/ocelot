@@ -50,10 +50,10 @@ public class CacheManager {
 	KeyMaker keyMaker;
 
 	/**
-	 * Check if resultshould be cached in front-end
+	 * Check if result should be cached in front-end
 	 *
-	 * @param nonProxiedMethod
-	 * @return
+	 * @param nonProxiedMethod : method non proxified
+	 * @return boolean
 	 */
 	public boolean isJsCached(Method nonProxiedMethod) {
 		boolean cached = nonProxiedMethod.isAnnotationPresent(JsCacheResult.class);
@@ -64,8 +64,8 @@ public class CacheManager {
 	/**
 	 * Get deadline for cache if 0 : is 1 year cache
 	 *
-	 * @param jcr
-	 * @return
+	 * @param jcr : the annotation
+	 * @return long
 	 */
 	public long getJsCacheResultDeadline(JsCacheResult jcr) {
 		Calendar deadline = Calendar.getInstance();
