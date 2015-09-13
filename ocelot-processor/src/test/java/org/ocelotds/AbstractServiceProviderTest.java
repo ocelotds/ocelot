@@ -5,6 +5,8 @@ package org.ocelotds;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
@@ -12,11 +14,10 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.*;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ocelotds.objects.AbstractServiceProviderImpl;
 import org.slf4j.Logger;
 
 /**
@@ -58,12 +59,13 @@ public class AbstractServiceProviderTest {
 
 	/**
 	 * Test of streamJavascriptServices method, of class AbstractServiceProvider.
+	 * @throws java.io.IOException
 	 */
 	@Test
-	public void testStreamJavascriptServicesFail() {
-		when(instance.getJsFilename()).thenThrow(IOException.class).thenCallRealMethod();
+	public void testStreamJavascriptServicesIOException() throws IOException {
 		System.out.println("streamJavascriptServices");
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		OutputStream out = mock(OutputStream.class);
+		doThrow(IOException.class).when(out).write(any(byte[].class), anyInt(), anyInt());
 		instance.streamJavascriptServices(out);
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Throwable> captureError = ArgumentCaptor.forClass(Throwable.class);
@@ -71,5 +73,31 @@ public class AbstractServiceProviderTest {
 		assertThat(captureString.getValue()).isEqualTo("Generation of '"+AbstractServiceProviderImpl.FILENAME+"' failed.");
 	}
 
+	/**
+	 * Test of streamJavascriptServices method, of class AbstractServiceProvider.
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testStreamJavascriptServicesUnknownFile() throws IOException {
+		System.out.println("streamJavascriptServices");
+		when(instance.getJsFilename()).thenReturn("unknowfile.js");
+		OutputStream out = new ByteArrayOutputStream();
+		instance.streamJavascriptServices(out);
+		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
+		verify(logger).warn(anyString(), captureString.capture());
+		assertThat(captureString.getValue()).isEqualTo("unknowfile.js");
+	}
+
+	/**
+	 * Test of getJsStream method, of class AbstractServiceProvider.
+	 */
+	@Test
+	public void testGetJsStream() {
+		System.out.println("getJsStream");
+		InputStream in = instance.getJsStream(AbstractServiceProviderImpl.FILENAME);
+		assertThat(in).isNotNull();
+		in = instance.getJsStream("unknowfile.js");
+		assertThat(in).isNull();
+	}
 
 }

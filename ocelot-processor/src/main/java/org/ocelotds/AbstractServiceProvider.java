@@ -25,7 +25,7 @@ public abstract class AbstractServiceProvider implements IServicesProvider {
 	@Override
 	public void streamJavascriptServices(OutputStream out) {
 		String jsname = getJsFilename();
-		try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(jsname)) {
+		try (InputStream in = getJsStream(jsname)) {
 			if(null != in) {
 				byte[] buffer = new byte[Constants.DEFAULT_BUFFER_SIZE];
 				int n = 0;
@@ -38,6 +38,10 @@ public abstract class AbstractServiceProvider implements IServicesProvider {
 		} catch(IOException ex) {
 			logger.error("Generation of '"+jsname+"' failed.", ex);
 		}
+	}
+	
+	InputStream getJsStream(String jsname) {
+		return this.getClass().getClassLoader().getResourceAsStream(jsname);
 	}
 	
 }
