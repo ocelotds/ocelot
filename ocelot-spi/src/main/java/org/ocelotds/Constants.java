@@ -17,6 +17,9 @@ public interface Constants {
 	String SLASH = "/";
 	String BACKSLASH_N = "\n";
 	String LOCALE = "LOCALE";
+	String REQUEST = "REQUEST";
+	String PRINCIPAL = "PRINCIPAL";
+	String ANONYMOUS = "ANONYMOUS";
 
 	String OCELOT = "ocelot";
 	String OCELOT_CORE = OCELOT + "-core";
