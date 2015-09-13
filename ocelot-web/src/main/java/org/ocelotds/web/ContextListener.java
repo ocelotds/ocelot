@@ -59,18 +59,28 @@ public final class ContextListener implements ServletContextListener {
 		logger.debug("Context initialisation...");
 		ServletContext sc = sce.getServletContext();
 		defineStacktraceConfig(sc);
+		try {
+			// create tmp/ocelot.js
+			File file = createOcelotJsFile(sc.getContextPath(), getWSProtocol(sc));
+			setInitParameterAnMinifyJs(sc, file, Constants.OCELOT, Constants.OCELOT_MIN);
+		} catch (IOException ex) {
+			logger.error("Fail to create ocelot.js.", ex);
+		}
+	}
+	
+	/**
+	 * Return protocol for webscoket, ws(default) or wss
+	 * setting ocelot.websocket.secure option in web.xml for change protocol 
+	 * @param sc
+	 * @return 
+	 */
+	String getWSProtocol(ServletContext sc) {
 		String secure = sc.getInitParameter(Constants.Options.SECURE);
 		String protocol = Constants.WS;
 		if (Constants.TRUE.equals(secure)) {
 			protocol = Constants.WSS;
 		}
-		try {
-			// create tmp/ocelot.js
-			File file = createOcelotJsFile(sc.getContextPath(), protocol);
-			setInitParameterAnMinifyJs(sc, file, Constants.OCELOT, Constants.OCELOT_MIN);
-		} catch (IOException ex) {
-			logger.error("Fail to create ocelot.js.", ex);
-		}
+		return protocol;
 	}
 
 	/**

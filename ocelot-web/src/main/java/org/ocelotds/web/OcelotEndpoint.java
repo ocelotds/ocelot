@@ -9,8 +9,9 @@ import org.ocelotds.Constants;
 import org.ocelotds.configuration.OcelotRequestConfigurator;
 import org.ocelotds.core.CallServiceManager;
 import org.ocelotds.encoders.MessageToClientEncoder;
-import org.ocelotds.i18n.ThreadLocalContextHolder;
+import org.ocelotds.context.ThreadLocalContextHolder;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import org.ocelotds.messaging.MessageFromClient;
 import java.util.Locale;
@@ -56,22 +57,23 @@ public class OcelotEndpoint extends CdiBootstrap {
 	 */
 	@OnOpen
 	public void handleOpenConnexion(Session session, EndpointConfig config) throws IOException {
-		Locale locale = (Locale) session.getUserProperties().get(Constants.LOCALE);
-		if (null == locale) {
-			logger.debug("Locale is not set in session, get from config...");
-			List<String> accepts = (List<String>) config.getUserProperties().get(HttpHeaders.ACCEPT_LANGUAGE);
-			locale = new Locale("en", "US");
-			for (String accept : accepts) {
+		logger.debug("Locale is not set in session, get from config...");
+		Locale locale = new Locale("en", "US");
+		List<String> accepts = (List<String>) config.getUserProperties().get(HttpHeaders.ACCEPT_LANGUAGE);
+		if (null != accepts) {
+			Iterator<String> iterator = accepts.iterator();
+			if(iterator.hasNext()) {
+				String accept = iterator.next();
 				Pattern pattern = Pattern.compile("(\\w\\w)-(\\w\\w).*");
 				Matcher matcher = pattern.matcher(accept);
 				if (matcher.matches() && matcher.groupCount() == 2) {
 					locale = new Locale(matcher.group(1), matcher.group(2));
-					break;
 				}
 			}
-			session.getUserProperties().put(Constants.LOCALE, locale);
 		}
 		ThreadLocalContextHolder.put(Constants.LOCALE, locale);
+		ThreadLocalContextHolder.put(Constants.REQUEST, config.getUserProperties().get(Constants.REQUEST));
+		ThreadLocalContextHolder.put(Constants.PRINCIPAL, session.getUserPrincipal());
 		logger.debug("Open connexion for session '{}' LOCALE : {}", session.getId(), locale);
 	}
 
@@ -106,11 +108,6 @@ public class OcelotEndpoint extends CdiBootstrap {
 	 */
 	@OnMessage
 	public void receiveCommandMessage(Session client, String json) {
-		Locale locale = (Locale) client.getUserProperties().get(Constants.LOCALE);
-		if (null != locale) {
-			logger.debug("Locale is set in session : {}", locale);
-			ThreadLocalContextHolder.put(Constants.LOCALE, locale);
-		}
 		MessageFromClient message = MessageFromClient.createFromJson(json);
 		logger.debug("Receive call message '{}' for session '{}'", message.getId(), client.getId());
 		getCallServiceManager().sendMessageToClient(message, client);

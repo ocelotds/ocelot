@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds;
 
-import org.ocelotds.i18n.ThreadLocalContextHolder;
+import org.ocelotds.context.ThreadLocalContextHolder;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;

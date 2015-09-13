@@ -22,6 +22,7 @@ import org.ocelotds.Constants;
 import org.ocelotds.IServicesProvider;
 import org.ocelotds.configuration.OcelotConfiguration;
 import org.ocelotds.objects.FakeCDI;
+import org.ocelotds.objects.IServiceProviderImpl;
 import org.slf4j.Logger;
 
 /**
@@ -77,6 +78,16 @@ public class ContextListenerTest {
 		assertThat(ocelotminjs).exists();
 	}
 
+	@Test
+	public void testGetWSProtocol() {
+		System.out.println("getWSProtocol");
+		ServletContext sc = mock(ServletContext.class);
+		when(sc.getInitParameter(Constants.Options.SECURE)).thenReturn("false").thenReturn("true");
+		String result = contextListener.getWSProtocol(sc);
+		assertThat(result).isEqualTo(Constants.WS);
+		result = contextListener.getWSProtocol(sc);
+		assertThat(result).isEqualTo(Constants.WSS);
+	}
 	/**
 	 * Test of defineStacktraceConfig method, of class ContextListener.
 	 */
@@ -120,8 +131,12 @@ public class ContextListenerTest {
 
 	}
 
+	/**
+	 * Test of deleteFile method, of class ContextListener.
+	 */
 	@Test
 	public void testDeleteFile() throws IOException {
+		System.out.println("deleteFile");
 		String filename = null;
 		contextListener.deleteFile(filename);
 		filename = "";
@@ -133,4 +148,14 @@ public class ContextListenerTest {
 		contextListener.deleteFile(filename);
 	}
 
+	/**
+	 * Test of createOcelotJsFile method, of class ContextListener.
+	 */
+	@Test
+	public void testCreateOcelotJsFile() throws IOException {
+		System.out.println("createOcelotJsFile");
+		((FakeCDI)servicesProviders).add(new IServiceProviderImpl());
+		File file = contextListener.createOcelotJsFile("/", "ws");
+		assertThat(file).exists();
+	}
 }

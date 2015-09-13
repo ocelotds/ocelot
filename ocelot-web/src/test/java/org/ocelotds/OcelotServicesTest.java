@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds;
 
+import org.ocelotds.context.ThreadLocalContextHolder;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -16,7 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.core.UpdatedCacheManager;
-import org.ocelotds.i18n.ThreadLocalContextHolder;
 import org.slf4j.Logger;
 
 /**
@@ -41,60 +42,53 @@ public class OcelotServicesTest {
 	private OcelotServices ocelotServices;
 
 	/**
-	 * Test of setLocale method, of class OcelotServices.
+	 * Test of getLocale method, of class OcelotServices.
 	 */
 	@Test
-	public void testSetLocale_Locale() {
-		System.out.println("setLocale");
-		ocelotServices.setLocale(null);
+	public void testGetLocale() {
+		System.out.println("getLocale");
+		Locale l = new Locale("fr", "FR");
+		ThreadLocalContextHolder.put(Constants.LOCALE, l);
+		Locale result = ocelotServices.getLocale();
+		assertThat(result).isEqualTo(l);
+		l = new Locale("en", "US");
+		ThreadLocalContextHolder.put(Constants.LOCALE, l);
+		result = ocelotServices.getLocale();
+		assertThat(result).isEqualTo(l);
 	}
 
-	private Session setLocale(Locale locale) {
-		Session session = mock(Session.class);
-		when(session.getUserProperties()).thenReturn(userProperties);
-		ocelotServices.setLocale(locale, session);
-		return session;
-	}
-	
 	/**
 	 * Test of setLocale method, of class OcelotServices.
 	 */
 	@Test
-	public void testSetLocale_Locale_Session() {
+	public void testSetLocale() {
 		System.out.println("setLocale");
 		Locale l = new Locale("fr", "FR");
-		setLocale(l);
-		Locale result = (Locale) userProperties.get(Constants.LOCALE);
-		assertThat(result.getLanguage()).isEqualTo(l.getLanguage());
-		assertThat(result.getCountry()).isEqualTo(l.getCountry());
-		result = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
-		assertThat(result.getLanguage()).isEqualTo(l.getLanguage());
-		assertThat(result.getCountry()).isEqualTo(l.getCountry());
-	}
-
-	/**
-	 * Test of getLocale method, of class OcelotServices.
-	 */
-	@Test
-	public void testGetLocale_0args() {
-		System.out.println("getLocale");
+		ocelotServices.setLocale(l);
 		Locale result = ocelotServices.getLocale();
-		assertThat(result).isNull();
+		assertThat(result).isEqualTo(l);
+		l = new Locale("en", "US");
+		ocelotServices.setLocale(l);
+		result = ocelotServices.getLocale();
+		assertThat(result).isEqualTo(l);
 	}
 
 	/**
-	 * Test of getLocale method, of class OcelotServices.
+	 * Test of getUsername method, of class OcelotServices.
 	 */
 	@Test
-	public void testGetLocale_Session() {
-		System.out.println("getLocale");
-		Locale l = new Locale("en", "US");
+	public void testGetUsername() {
+		System.out.println("getUsername");
+		String result = ocelotServices.getUsername();
+		assertThat(result).isNull();
 		
-		Session session = setLocale(l);
-
-		Locale result = ocelotServices.getLocale(session);
-		assertThat(result.getLanguage()).isEqualTo(l.getLanguage());
-		assertThat(result.getCountry()).isEqualTo(l.getCountry());
+		Session session = mock(Session.class);
+		Principal p = mock(Principal.class);
+		when(p.getName()).thenReturn("username");
+		when(session.getUserPrincipal()).thenReturn(p);
+		result = ocelotServices.getUsername(session);
+		assertThat(result).isEqualTo("username");
+		
 	}
 
 	/**

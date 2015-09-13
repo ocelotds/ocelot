@@ -14,7 +14,7 @@ import javax.naming.NamingException;
 public class ICProducer {
 	
 	@Produces
-	private InitialContext getInitialContext() throws NamingException {
+	InitialContext getInitialContext() throws NamingException {
 		return new InitialContext();
 	}
 	

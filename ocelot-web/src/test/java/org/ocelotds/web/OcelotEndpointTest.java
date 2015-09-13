@@ -26,7 +26,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
 import org.ocelotds.core.CallServiceManager;
 import org.ocelotds.core.SessionManager;
-import org.ocelotds.i18n.ThreadLocalContextHolder;
+import org.ocelotds.context.ThreadLocalContextHolder;
 import org.ocelotds.messaging.MessageFromClient;
 import org.slf4j.Logger;
 
@@ -55,7 +55,7 @@ public class OcelotEndpointTest {
 	 * @throws java.io.IOException
 	 */
 	@Test
-	public void testHandleOpenConnexionFirst() throws IOException {
+	public void testHandleOpenConnexionFromBrowser() throws IOException {
 		System.out.println("handleOpenConnexion");
 		Session session = mock(Session.class);
 		Map<String, Object> result = new HashMap<>();
@@ -68,10 +68,7 @@ public class OcelotEndpointTest {
 		when(config.getUserProperties()).thenReturn(map);
 		ocelotEndpoint.handleOpenConnexion(session, config);
 
-		Locale locale = (Locale) result.get(Constants.LOCALE);
-		assertThat(locale.getCountry()).isEqualTo("FR");
-		assertThat(locale.getLanguage()).isEqualTo("fr");
-		locale = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
+		Locale locale = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
 		assertThat(locale.getCountry()).isEqualTo("FR");
 		assertThat(locale.getLanguage()).isEqualTo("fr");
 	}
@@ -82,18 +79,27 @@ public class OcelotEndpointTest {
 	 * @throws java.io.IOException
 	 */
 	@Test
-	public void testHandleOpenConnexionSecond() throws IOException {
+	public void testHandleOpenConnexionNotFromBrowser() throws IOException {
 		System.out.println("handleOpenConnexion");
 		Session session = mock(Session.class);
 		Map<String, Object> result = new HashMap<>();
 		when(session.getUserProperties()).thenReturn(result);
-		result.put(Constants.LOCALE, new Locale("fr", "FR"));
 		EndpointConfig config = mock(EndpointConfig.class);
+		Map<String, Object> map = new HashMap<>();
+		List<String> accepts = new ArrayList<>();
+		map.put(HttpHeaders.ACCEPT_LANGUAGE, accepts);
+		when(config.getUserProperties()).thenReturn(map);
 		ocelotEndpoint.handleOpenConnexion(session, config);
 
 		Locale locale = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
-		assertThat(locale.getCountry()).isEqualTo("FR");
-		assertThat(locale.getLanguage()).isEqualTo("fr");
+		assertThat(locale.getCountry()).isEqualTo("US");
+		assertThat(locale.getLanguage()).isEqualTo("en");
+
+		map.put(HttpHeaders.ACCEPT_LANGUAGE, null);
+		ocelotEndpoint.handleOpenConnexion(session, config);
+		locale = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
+		assertThat(locale.getCountry()).isEqualTo("US");
+		assertThat(locale.getLanguage()).isEqualTo("en");
 	}
 
 	/**
@@ -137,9 +143,6 @@ public class OcelotEndpointTest {
 	public void testReceiveCommandMessage() {
 		System.out.println("receiveCommandMessage");
 		Session client = mock(Session.class);
-		Map<String, Object> userProps = new HashMap<>();
-		userProps.put(Constants.LOCALE, new Locale("es", "ES"));
-		when(client.getUserProperties()).thenReturn(userProps);
 		String[] parameterNames = new String[]{"\"a\"", "\"b\"", "\"c\""};
 		String[] parameters = new String[]{"\"toto\"", "5", "true"};
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
@@ -150,30 +153,17 @@ public class OcelotEndpointTest {
 				  Constants.Message.ARGUMENTS, Arrays.toString(parameters));
 
 		ocelotEndpoint.receiveCommandMessage(client, json);
-		Locale locale = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
-		assertThat(locale.getCountry()).isEqualTo("ES");
-		assertThat(locale.getLanguage()).isEqualTo("es");
-
-		userProps.clear();
-		ThreadLocalContextHolder.put(Constants.LOCALE, new Locale("fr", "FR"));
-		ocelotEndpoint.receiveCommandMessage(client, json);
-		locale = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
-		assertThat(locale.getCountry()).isEqualTo("FR");
-		assertThat(locale.getLanguage()).isEqualTo("fr");
 
 		ArgumentCaptor<MessageFromClient> captureMsg = ArgumentCaptor.forClass(MessageFromClient.class);
 		ArgumentCaptor<Session> captureSession = ArgumentCaptor.forClass(Session.class);
-		verify(callServiceManager, times(2)).sendMessageToClient(captureMsg.capture(), captureSession.capture());
+		verify(callServiceManager, times(1)).sendMessageToClient(captureMsg.capture(), captureSession.capture());
 
-		List<MessageFromClient> results = captureMsg.getAllValues();
-		for (MessageFromClient result : results) {
-			assertThat(result.getId()).isEqualTo("111");
-			assertThat(result.getDataService()).isEqualTo("ClassName");
-			assertThat(result.getOperation()).isEqualTo("methodName");
-			assertThat(result.getParameterNames()).containsExactly("\"a\"", "\"b\"", "\"c\"");
-			assertThat(result.getParameters()).containsExactly("\"toto\"", "5", "true");
-		}
-
+		MessageFromClient result = captureMsg.getValue();
+		assertThat(result.getId()).isEqualTo("111");
+		assertThat(result.getDataService()).isEqualTo("ClassName");
+		assertThat(result.getOperation()).isEqualTo("methodName");
+		assertThat(result.getParameterNames()).containsExactly("\"a\"", "\"b\"", "\"c\"");
+		assertThat(result.getParameters()).containsExactly("\"toto\"", "5", "true");
 	}
 
 }

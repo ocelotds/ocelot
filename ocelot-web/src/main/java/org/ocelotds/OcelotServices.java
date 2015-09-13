@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds;
 
+import org.ocelotds.context.ThreadLocalContextHolder;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheRemove;
 import org.ocelotds.annotations.JsCacheResult;
@@ -10,7 +11,6 @@ import org.ocelotds.annotations.TransientDataService;
 import org.ocelotds.core.MethodWithSessionInjection;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.core.UpdatedCacheManager;
-import org.ocelotds.i18n.ThreadLocalContextHolder;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
@@ -42,38 +42,43 @@ public class OcelotServices {
 	@Inject
 	private SessionManager sessionManager;
 	
-	@MethodWithSessionInjection
-	public void setLocale(@JsonUnmarshaller(LocaleUnmarshaller.class) Locale locale) {
-	}
-
-	@TransientDataService
+	/**
+	 * define locale for current user
+	 * @param locale 
+	 */
 	@JsCacheRemove(cls = OcelotServices.class, methodName = "getLocale", keys = {})
-	public void setLocale(@JsonUnmarshaller(LocaleUnmarshaller.class) Locale locale, Session session) {
+	public void setLocale(@JsonUnmarshaller(LocaleUnmarshaller.class) Locale locale) {
 		logger.debug("Receive setLocale({}) call from client.", locale);
-		session.getUserProperties().put(Constants.LOCALE, locale);
 		ThreadLocalContextHolder.put(Constants.LOCALE, locale);
 	}
 
-	@MethodWithSessionInjection
-	public Locale getLocale() {
-		return null;
-	}
-
-	@TransientDataService
+	/**
+	 * get current user locale 
+	 * @return 
+	 */
 	@JsCacheResult(year = 1)
 	@JsonMarshaller(LocaleMarshaller.class)
-	public Locale getLocale(Session session) {
+	public Locale getLocale() {
 		logger.debug("Receive getLocale call from client.");
-		return (Locale) session.getUserProperties().get(Constants.LOCALE);
+		return (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
 	}
-	
+
+	/**
+	 * @See getUSername(Session session)
+	 * @return 
+	 */
 	@MethodWithSessionInjection
 	public String getUsername() {
 		return null;
 	}
 
+	/**
+	 * return current username from session
+	 * @param session
+	 * @return 
+	 */
 	@TransientDataService
-	public String getUSername(Session session) {
+	public String getUsername(Session session) {
 		logger.debug("Receive getUsername call from client.");
 		return (String) session.getUserPrincipal().getName();
 	}

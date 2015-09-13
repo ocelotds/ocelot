@@ -1,8 +1,9 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.i18n;
+package org.ocelotds.context;
 
+import org.ocelotds.context.ThreadLocalContextHolder;
 import java.lang.reflect.Constructor;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,11 +60,12 @@ public class ThreadLocalContextHolderTest {
 	/**
 	 * Test of cleanupThread method, of class ThreadLocalContextHolder.
 	 */
-	@Test(expected = NullPointerException.class)
+	@Test
 	public void testCleanupThread() {
 		System.out.println("cleanupThread");
 		ThreadLocalContextHolder.cleanupThread();
-		ThreadLocalContextHolder.get(Constants.LOCALE);
+		Object locale = ThreadLocalContextHolder.get(Constants.LOCALE);
+		assertThat(locale).isNull();
 	}
 	
 }

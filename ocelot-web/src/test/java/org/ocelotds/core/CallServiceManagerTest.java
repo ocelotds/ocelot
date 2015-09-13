@@ -51,6 +51,7 @@ import org.ocelotds.OcelotServices;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshallers.LocaleUnmarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
+import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.resolvers.PojoResolver;
 import org.slf4j.Logger;
@@ -96,15 +97,18 @@ public class CallServiceManagerTest {
 
 	/**
 	 * Test of getUnMarshallerAnnotation method, of class CallServiceManager.
+	 *
+	 * @throws java.lang.NoSuchMethodException
 	 */
 	@Test
 	public void testGetUnMarshallerAnnotation() throws NoSuchMethodException {
-		Method method = OcelotServices.class.getMethod("setLocale", Locale.class, Session.class);
+		Method method = OcelotServices.class.getMethod("setLocale", Locale.class);
 		Annotation[][] parametersAnnotations = method.getParameterAnnotations();
 		Annotation[] parameterAnnotations = parametersAnnotations[0];
 		Class result = callServiceManager.getUnMarshallerAnnotation(parameterAnnotations);
 		assertThat(result).isEqualTo(LocaleUnmarshaller.class);
 	}
+
 	/**
 	 * Test of getResolver method, of class CallServiceManager.
 	 */
@@ -116,33 +120,36 @@ public class CallServiceManagerTest {
 		IDataServiceResolver result = callServiceManager.getResolver("pojo");
 		assertThat(result).isInstanceOf(PojoResolver.class);
 	}
+
 	/**
 	 * Test of getMethodFromDataService method, of class CallServiceManager.
+	 *
 	 * @throws java.lang.NoSuchMethodException
 	 */
 	@Test
 	public void testGetMethodFromDataService() throws NoSuchMethodException {
 		System.out.println("getMethodFromDataService");
-		Class dsClass = this.getClass();
+		Class dsClass = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
 		message.setOperation("methodWith2Arguments");
 		message.setParameters(Arrays.asList("5", "\"toto\""));
 		Object[] arguments = new Object[2];
-		Method expResult = this.getClass().getMethod("methodWith2Arguments", new Class<?>[]{Integer.class, String.class});
+		Method expResult = dsClass.getMethod("methodWith2Arguments", new Class<?>[]{Integer.class, String.class});
 		Method result = callServiceManager.getMethodFromDataService(dsClass, message, arguments);
 		assertThat(result).isEqualTo(expResult);
 		assertThat(arguments).contains(5, Index.atIndex(0));
 		assertThat(arguments).contains("toto", Index.atIndex(1));
 	}
-	
+
 	/**
 	 * Test of getMethodFromDataService method, of class CallServiceManager.
+	 *
 	 * @throws java.lang.NoSuchMethodException
 	 */
 	@Test(expected = NoSuchMethodException.class)
 	public void testGetMethodFromDataServiceNotFound() throws NoSuchMethodException {
 		System.out.println("getMethodFromDataService");
-		Class dsClass = this.getClass();
+		Class dsClass = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
 		message.setOperation("methodWith2Arguments");
 		message.setParameters(Arrays.asList("\"toto\"", "5"));
@@ -150,24 +157,21 @@ public class CallServiceManagerTest {
 		callServiceManager.getMethodFromDataService(dsClass, message, arguments);
 	}
 
-	public void methodWith2Arguments(Integer i, String s) {
-		
-	}
-
 	/**
 	 * Test of getMethodFromDataServiceWithSessionInjection method, of class CallServiceManager.
+	 *
 	 * @throws java.lang.NoSuchMethodException
 	 */
 	@Test
 	public void testGetMethodFromDataServiceWithSessionInjection() throws NoSuchMethodException {
 		System.out.println("getMethodFromDataServiceWithSessionInjection");
 		Session session = mock(Session.class);
-		Class dsClass = this.getClass();
+		Class dsClass = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
 		message.setOperation("methodWith2ArgumentsAndSession");
 		message.setParameters(Arrays.asList("5", "\"toto\""));
 		Object[] arguments = new Object[3];
-		Method expResult = this.getClass().getMethod("methodWith2ArgumentsAndSession", new Class<?>[]{Session.class, Integer.TYPE, String.class});
+		Method expResult = dsClass.getMethod("methodWith2ArgumentsAndSession", new Class<?>[]{Session.class, Integer.TYPE, String.class});
 		Method result = callServiceManager.getMethodFromDataServiceWithSessionInjection(session, dsClass, message, arguments);
 		assertThat(result).isEqualTo(expResult);
 		assertThat(arguments).contains(session, Index.atIndex(0));
@@ -177,13 +181,14 @@ public class CallServiceManagerTest {
 
 	/**
 	 * Test of getMethodFromDataService method, of class CallServiceManager.
+	 *
 	 * @throws java.lang.NoSuchMethodException
 	 */
 	@Test(expected = NoSuchMethodException.class)
 	public void testGetMethodFromDataServiceNotFound2() throws NoSuchMethodException {
 		System.out.println("getMethodFromDataService");
 		Session session = mock(Session.class);
-		Class dsClass = this.getClass();
+		Class dsClass = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
 		message.setOperation("methodWith2ArgumentsAndSession");
 		message.setParameters(Arrays.asList("\"toto\"", "5"));
@@ -191,10 +196,28 @@ public class CallServiceManagerTest {
 		callServiceManager.getMethodFromDataServiceWithSessionInjection(session, dsClass, message, arguments);
 	}
 
-	public void methodWith2ArgumentsAndSession(Session session, int i, String s) {
-		
+	/**
+	 * Test of getMethodFromDataService method, of class CallServiceManager.
+	 *
+	 * @throws java.lang.NoSuchMethodException
+	 */
+	@Test
+	public void testGetMethodFromDataServiceWithWithUnmarshaller() throws NoSuchMethodException {
+		System.out.println("getMethodFromDataService");
+		Class dsClass = ClassAsDataService.class;
+		MessageFromClient message = new MessageFromClient();
+		message.setOperation("methodWithUnmarshaller");
+		message.setParameters(Arrays.asList("{\"language\":\"fr\",\"country\":\"FR\"}"));
+		Object[] arguments = new Object[1];
+		Method expResult = dsClass.getMethod("methodWithUnmarshaller", new Class<?>[]{Locale.class});
+		Method result = callServiceManager.getMethodFromDataService(dsClass, message, arguments);
+		assertThat(result).isEqualTo(expResult);
+		assertThat(arguments).hasSize(1);
+		Locale l = (Locale) arguments[0];
+		assertThat(l.getCountry()).isEqualTo("FR");
+		assertThat(l.getLanguage()).isEqualTo("fr");
 	}
-	
+
 	/**
 	 * Test of convertArgument method, of class CallServiceManager.
 	 */
@@ -203,14 +226,17 @@ public class CallServiceManagerTest {
 		System.out.println("convertArgument");
 		Iterator<String> args = Arrays.asList("\"toto\"", "5", "[\"a\",\"b\"]", "[[\"a\", \"b\"],[\"c\", \"d\"]]",
 				  "[\"c\",\"d\"]", "{\"a\":1, \"b\":2, \"c\":3}", "{\"integer\":5}").iterator();
-		Type col = new GenericType<Collection<String>>() {}.getType();
-		Type map = new GenericType<Map<String, Integer>>() {}.getType();
-		Type colArray = new GenericType<Collection<String[]>>() {}.getType();
+		Type col = new GenericType<Collection<String>>() {
+		}.getType();
+		Type map = new GenericType<Map<String, Integer>>() {
+		}.getType();
+		Type colArray = new GenericType<Collection<String[]>>() {
+		}.getType();
 		Type array = new String[]{}.getClass();
 		for (final Type type : new Type[]{String.class, Integer.class, array, colArray, col, map, Result.class}) {
 			String arg = args.next();
 			Object result = callServiceManager.convertArgument(arg, type);
-			assertThat(result).is(new Condition<Object>(""+type) {
+			assertThat(result).is(new Condition<Object>("" + type) {
 				@Override
 				public boolean matches(Object t) {
 					Class cls;
@@ -224,7 +250,6 @@ public class CallServiceManagerTest {
 			});
 		}
 	}
-	
 
 	/**
 	 * Test of convertArgument method, of class CallServiceManager.
@@ -235,12 +260,9 @@ public class CallServiceManagerTest {
 		callServiceManager.convertArgument("toto", String.class);
 	}
 
-	public void methodWithSomeArguments(String s, Integer i, String[] a, Collection<String> c, Map<String, Integer> m) {
-		
-	}
-	
 	/**
 	 * Test of getDataService method, of class CallServiceManager.
+	 *
 	 * @throws org.ocelotds.spi.DataServiceException
 	 */
 	@Test
@@ -265,6 +287,7 @@ public class CallServiceManagerTest {
 
 	/**
 	 * Test of getDataService method, of class CallServiceManager.
+	 *
 	 * @throws org.ocelotds.spi.DataServiceException
 	 */
 	@Test(expected = DataServiceException.class)
@@ -283,9 +306,10 @@ public class CallServiceManagerTest {
 
 	private class ClassAsNotDataService {
 	}
-	
+
 	/**
 	 * Test of sendMessageToClient method, of class CallServiceManager.
+	 *
 	 * @throws org.ocelotds.spi.DataServiceException
 	 * @throws java.lang.NoSuchMethodException
 	 */
@@ -303,7 +327,7 @@ public class CallServiceManagerTest {
 		Session client = mock(Session.class);
 		RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
 		when(client.getAsyncRemote()).thenReturn(async);
-		
+
 		IDataServiceResolver resolver = mock(IDataServiceResolver.class);
 		when(resolver.getScope(any(Class.class))).thenReturn(Scope.MANAGED);
 		when(resolver.resolveDataService(cls)).thenReturn(new ClassAsDataService());
@@ -313,16 +337,16 @@ public class CallServiceManagerTest {
 		// Method with Session injection
 		message.setOperation("methodReturnString2");
 		callServiceManager.sendMessageToClient(message, client);
-		
+
 		message.setOperation("methodReturnCachedString");
 		callServiceManager.sendMessageToClient(message, client);
-		
+
 		message.setOperation("methodUnknown");
 		callServiceManager.sendMessageToClient(message, client);
 
 		message.setOperation("methodThrowException");
 		callServiceManager.sendMessageToClient(message, client);
-		
+
 		Mockito.doThrow(NoSuchMethodException.class).when(callServiceManager).getNonProxiedMethod(cls, "methodReturnString", String.class);
 		message.setOperation("methodReturnString");
 		callServiceManager.sendMessageToClient(message, client);
@@ -358,26 +382,47 @@ public class CallServiceManagerTest {
 
 	@DataService(resolver = "TEST")
 	private class ClassAsDataService {
+
+		public void methodWith2ArgumentsAndSession(Session session, int i, String s) {
+
+		}
+
+		public void methodWithSomeArguments(String s, Integer i, String[] a, Collection<String> c, Map<String, Integer> m) {
+
+		}
+
+		public void methodWith2Arguments(Integer i, String s) {
+
+		}
+
 		public String methodReturnString(String a) {
 			return "r1";
 		}
+
 		@MethodWithSessionInjection
 		public String methodReturnString2(String a) {
 			return "r2";
 		}
+
 		public String methodReturnString2(Session s, String a) {
 			return "r3";
 		}
+
 		public String methodThrowException(String a) throws AbstractMethodError {
 			throw new AbstractMethodError("MyMessage");
 		}
+
 		@JsCacheResult
 		public String methodReturnCachedString(String a) {
 			return "r5";
 		}
+
 		@JsonMarshaller(LocaleMarshaller.class)
 		public Locale methodWithMarshaller(String a) {
 			return new Locale("fr", "FR");
+		}
+
+		public void methodWithUnmarshaller(@JsonUnmarshaller(LocaleUnmarshaller.class) Locale l) {
 		}
 	}
 }

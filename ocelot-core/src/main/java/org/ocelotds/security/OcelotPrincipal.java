@@ -6,7 +6,7 @@ package org.ocelotds.security;
 import java.security.Principal;
 import javax.enterprise.inject.Alternative;
 import org.ocelotds.Constants;
-import org.ocelotds.i18n.ThreadLocalContextHolder;
+import org.ocelotds.context.ThreadLocalContextHolder;
 
 /**
  *
