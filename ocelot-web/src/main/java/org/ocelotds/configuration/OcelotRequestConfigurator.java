@@ -10,6 +10,7 @@ import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.core.HttpHeaders;
+import org.ocelotds.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +32,7 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 		}
 		logger.debug("Get accept-language from client headers : {}", accept);
 		sec.getUserProperties().put(HttpHeaders.ACCEPT_LANGUAGE, accept); // accept-language : [fr, fr-FR;q=0.8, en-US;q=0.5, en;q=0.3]
+		sec.getUserProperties().put(Constants.REQUEST, request); 
 		super.modifyHandshake(sec, request, response);
 	}
 }
