@@ -92,10 +92,10 @@ public class CallServiceManager {
 						arguments[idx] = convertJsonToJava(idx, jsonArg, paramType, parametersAnnotations[idx]);
 						idx++;
 					}
-					logger.debug("Method {}.{}Â with good signature found.", dsClass, message.getOperation());
+					logger.debug("Method {}.{} with good signature found.", dsClass, message.getOperation());
 					return method;
 				} catch (JsonUnmarshallingException | IllegalArgumentException iae) {
-					logger.debug("Method {}.{}Â not found. Arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
+					logger.debug("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
 				}
 			}
 		}
@@ -134,10 +134,10 @@ public class CallServiceManager {
 							}
 						}
 					}
-					logger.debug("Method {}.{}Â with good signature with injected session found.", dsClass, message.getOperation());
+					logger.debug("Method {}.{} with good signature with injected session found.", dsClass, message.getOperation());
 					return method;
 				} catch (JsonUnmarshallingException | IllegalArgumentException iae) {
-					logger.debug("Method {}.{}Â with injected not found. Arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
+					logger.debug("Method {}.{} with injected not found. Arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
 				}
 			}
 		}
@@ -146,12 +146,13 @@ public class CallServiceManager {
 
 	/**
 	 * Convert json to Java
+	 *
 	 * @param idx
 	 * @param jsonArg
 	 * @param paramType
 	 * @param parameterAnnotations
 	 * @return
-	 * @throws JsonUnmarshallingException 
+	 * @throws JsonUnmarshallingException
 	 */
 	Object convertJsonToJava(int idx, String jsonArg, Type paramType, Annotation[] parameterAnnotations) throws JsonUnmarshallingException {
 		Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> unmarshaller = getUnMarshallerAnnotation(parameterAnnotations);
@@ -167,7 +168,7 @@ public class CallServiceManager {
 			return convertArgument(jsonArg, paramType);
 		}
 	}
-	
+
 	/**
 	 * If argument is annotated with JsonUnmarshaller annotation, get the JsonUnmarshaller class
 	 *
@@ -200,9 +201,9 @@ public class CallServiceManager {
 			ObjectMapper mapper = new ObjectMapper();
 			if (ParameterizedType.class.isInstance(paramType)) {
 				JavaType javaType = getJavaType(paramType);
-				logger.debug("Try to convert '{}'Â to JavaType : '{}'", arg, paramType);
+				logger.debug("Try to convert '{}' to JavaType : '{}'", arg, paramType);
 				result = mapper.readValue(arg, javaType);
-				logger.debug("Conversion of '{}'Â to '{}' : OK", arg, paramType);
+				logger.debug("Conversion of '{}' to '{}' : OK", arg, paramType);
 			} else if (Class.class.isInstance(paramType)) {
 				Class cls = (Class) paramType;
 				logger.debug("Try to convert '{}' to Class '{}'", arg, paramType);
@@ -213,7 +214,7 @@ public class CallServiceManager {
 					throw new IOException();
 				}
 				result = mapper.readValue(arg, cls);
-				logger.debug("Conversion of '{}'Â to '{}' : OK", arg, paramType);
+				logger.debug("Conversion of '{}' to '{}' : OK", arg, paramType);
 			}
 		} catch (IOException ex) {
 			logger.debug("Conversion of '{}' to '{}' failed", arg, paramType);
