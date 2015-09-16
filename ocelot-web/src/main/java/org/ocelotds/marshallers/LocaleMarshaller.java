@@ -22,7 +22,10 @@ public class LocaleMarshaller implements JsonMarshaller<Locale> {
 	 */
 	@Override
 	public String toJson(Locale obj) throws JsonMarshallingException {
-		return String.format("{\"%s\":\"%s\",\"%s\":\"%s\"}", Constants.Message.COUNTRY, obj.getCountry(), Constants.Message.LANGUAGE, obj.getLanguage());
+		if(null != obj) {
+			return String.format("{\"%s\":\"%s\",\"%s\":\"%s\"}", Constants.Message.COUNTRY, obj.getCountry(), Constants.Message.LANGUAGE, obj.getLanguage());
+		}
+		return "null";
 	}
 
 }
