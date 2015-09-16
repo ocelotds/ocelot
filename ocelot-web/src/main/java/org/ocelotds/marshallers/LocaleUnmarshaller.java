@@ -27,10 +27,12 @@ public class LocaleUnmarshaller implements JsonUnmarshaller<Locale> {
 	 */
 	@Override
 	public Locale toJava(String json) throws JsonUnmarshallingException {
-		Locale locale;
-		try (JsonReader reader = Json.createReader(new StringReader(json))) {
-			JsonObject root = reader.readObject();
-			locale = new Locale(root.getString(Constants.Message.LANGUAGE), root.getString(Constants.Message.COUNTRY));
+		Locale locale = null;
+		if(null != json) {
+			try (JsonReader reader = Json.createReader(new StringReader(json))) {
+				JsonObject root = reader.readObject();
+				locale = new Locale(root.getString(Constants.Message.LANGUAGE), root.getString(Constants.Message.COUNTRY));
+			}
 		}
 		return locale;
 	}
