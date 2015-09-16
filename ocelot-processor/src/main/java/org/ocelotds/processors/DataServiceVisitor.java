@@ -257,7 +257,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 				if (lastIndexOf >= 0) {
 					methodComment = methodComment.substring(0, lastIndexOf); // include the \n
 				}
-				writer.append("\t *").append(methodComment).append("\t *\n");
+				writer.append("\t *").append(methodComment).append("\n");
 			}
 			// La liste des arguments de la javadoc
 			Iterator<String> typeIterator = argumentsType.iterator();
