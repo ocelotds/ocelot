@@ -78,6 +78,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ocelotds.ArquillianTestCase;
+import org.ocelotds.objects.FakeCDI;
+import org.ocelotds.objects.IServiceProviderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,7 +130,7 @@ public class OcelotTest extends ArquillianTestCase {
 	 * @return
 	 */
 	public static WebArchive createWarArchive() {
-		File[] core = Maven.resolver().resolve("org.ocelotds:ocelot-core:2.2.1-SNAPSHOT").withTransitivity().asFile();
+		File[] core = Maven.resolver().resolve("org.ocelotds:ocelot-core:2.3.1-SNAPSHOT").withTransitivity().asFile();
 		File logback = new File("src/test/resources/logback.xml");
 		File localeFr = new File("src/test/resources/test_fr_FR.properties");
 		File localeUs = new File("src/test/resources/test_en_US.properties");
@@ -136,6 +138,9 @@ public class OcelotTest extends ArquillianTestCase {
 				  .addAsLibraries(core)
 				  .addAsLibraries(createOcelotWebJar())
 				  .addPackages(true, OcelotTest.class.getPackage())
+				  .addPackages(true, "org.ocelotds.objects")
+				  .deleteClass(IServiceProviderImpl.class)
+				  .deleteClass(FakeCDI.class)
 				  .addAsResource(new FileAsset(logback), "logback.xml")
 				  .addAsResource(new FileAsset(localeUs), "test_en_US.properties")
 				  .addAsResource(new FileAsset(localeFr), "test_fr_FR.properties")
@@ -518,7 +523,7 @@ public class OcelotTest extends ArquillianTestCase {
 			int length = connection2.getInputStream().available();
 //			traceFile(connection2.getInputStream());
 			assertTrue("Minification of " + resource + " didn't work, same size of file magnifier : " + length + " / minifer : " + minlength, minlength < length);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			fail(e.getMessage());
 		} finally {
 			if (connection1 != null) {
