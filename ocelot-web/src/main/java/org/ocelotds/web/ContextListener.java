@@ -23,6 +23,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
+import org.ocelotds.annotations.ServiceProvider;
 import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
 
@@ -44,8 +45,9 @@ class ContextListener implements ServletContextListener {
 	 */
 	private static final String DEFAULTSTACKTRACE = "50";
 
-	@Inject
 	@Any
+	@Inject
+	@ServiceProvider(Constants.Provider.JAVASCRIPT)
 	private Instance<IServicesProvider> servicesProviders;
 
 	@Inject
