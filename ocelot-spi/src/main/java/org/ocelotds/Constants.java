@@ -91,4 +91,9 @@ public interface Constants {
 		String USE_ALL_ARGUMENTS = "*";
 		String ARGS_NOT_CONSIDERATED = "-";
 	}
+	
+	interface Provider {
+		String JAVASCRIPT = "JS";
+		String HTML = "HTML";
+	}
 }
