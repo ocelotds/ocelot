@@ -6,6 +6,7 @@ package org.ocelotds.configuration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
@@ -18,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.Constants;
 import org.slf4j.Logger;
 
 
@@ -51,9 +53,8 @@ public class OcelotRequestConfiguratorTest {
 		HandshakeResponse response = mock(HandshakeResponse.class);
 
 		ocelotRequestConfigurator.modifyHandshake(sec, request, response);
-		List<String> result = (List) sec.getUserProperties().get(HttpHeaders.ACCEPT_LANGUAGE);
-		assertThat(result).hasSize(1);
-		assertThat(result).contains("en-US;q=1");
+		Locale result = (Locale) sec.getUserProperties().get(Constants.LOCALE);
+		assertThat(result).isEqualTo(new Locale("en", "US"));
 	}
 	
 	/**
@@ -68,15 +69,14 @@ public class OcelotRequestConfiguratorTest {
 		
 		HandshakeRequest request = mock(HandshakeRequest.class);
 		Map<String, List<String>> headers = new HashMap<>();
-		List<String> accept = Arrays.asList(new String[]{"fr-FR;q=1"});
-		headers.put(HttpHeaders.ACCEPT_LANGUAGE, accept);
+		List<String> accepts = Arrays.asList("fr", "fr-FR;q=1");
+		headers.put(HttpHeaders.ACCEPT_LANGUAGE, accepts);
 		when(request.getHeaders()).thenReturn(headers);
 		
 		HandshakeResponse response = mock(HandshakeResponse.class);
 
 		ocelotRequestConfigurator.modifyHandshake(sec, request, response);
-		List<String> result = (List) sec.getUserProperties().get(HttpHeaders.ACCEPT_LANGUAGE);
-		assertThat(result).hasSize(1);
-		assertThat(result).contains("fr-FR;q=1");
+		Locale result = (Locale) sec.getUserProperties().get(Constants.LOCALE);
+		assertThat(result).isEqualTo(new Locale("fr", "FR"));
 	}
 }

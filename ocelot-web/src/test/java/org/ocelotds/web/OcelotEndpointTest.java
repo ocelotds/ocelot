@@ -4,17 +4,13 @@
 package org.ocelotds.web;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
-import javax.ws.rs.core.HttpHeaders;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
@@ -26,7 +22,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
 import org.ocelotds.core.CallServiceManager;
 import org.ocelotds.core.SessionManager;
-import org.ocelotds.context.ThreadLocalContextHolder;
 import org.ocelotds.messaging.MessageFromClient;
 import org.slf4j.Logger;
 
@@ -62,44 +57,15 @@ public class OcelotEndpointTest {
 		when(session.getUserProperties()).thenReturn(result);
 		EndpointConfig config = mock(EndpointConfig.class);
 		Map<String, Object> map = new HashMap<>();
-		List<String> accepts = new ArrayList<>();
-		accepts.add("fr-FR,fr;q=0.8,en-US;q=0.6,en;q=0.4");
-		map.put(HttpHeaders.ACCEPT_LANGUAGE, accepts);
+		map.put(Constants.SUBJECT, "SUBJECT");
+		map.put(Constants.LOCALE, "LOCALE");
+		map.put(Constants.PRINCIPAL, "PRINCIPAL");
 		when(config.getUserProperties()).thenReturn(map);
 		ocelotEndpoint.handleOpenConnexion(session, config);
 
-		Locale locale = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
-		assertThat(locale.getCountry()).isEqualTo("FR");
-		assertThat(locale.getLanguage()).isEqualTo("fr");
-	}
-
-	/**
-	 * Test of handleOpenConnexion method, of class OcelotEndpoint.
-	 *
-	 * @throws java.io.IOException
-	 */
-	@Test
-	public void testHandleOpenConnexionNotFromBrowser() throws IOException {
-		System.out.println("handleOpenConnexion");
-		Session session = mock(Session.class);
-		Map<String, Object> result = new HashMap<>();
-		when(session.getUserProperties()).thenReturn(result);
-		EndpointConfig config = mock(EndpointConfig.class);
-		Map<String, Object> map = new HashMap<>();
-		List<String> accepts = new ArrayList<>();
-		map.put(HttpHeaders.ACCEPT_LANGUAGE, accepts);
-		when(config.getUserProperties()).thenReturn(map);
-		ocelotEndpoint.handleOpenConnexion(session, config);
-
-		Locale locale = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
-		assertThat(locale.getCountry()).isEqualTo("US");
-		assertThat(locale.getLanguage()).isEqualTo("en");
-
-		map.put(HttpHeaders.ACCEPT_LANGUAGE, null);
-		ocelotEndpoint.handleOpenConnexion(session, config);
-		locale = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
-		assertThat(locale.getCountry()).isEqualTo("US");
-		assertThat(locale.getLanguage()).isEqualTo("en");
+		assertThat(result.get("SUBJECT")).isEqualTo("SUBJECT");
+		assertThat(result.get("LOCALE")).isEqualTo("LOCALE");
+		assertThat(result.get("PRINCIPAL")).isEqualTo("PRINCIPAL");
 	}
 
 	/**

@@ -4,8 +4,6 @@
 
 package org.ocelotds.context;
 
-import org.ocelotds.context.ThreadLocalContextHolder;
-import org.ocelotds.context.OcelotContext;
 import java.security.Principal;
 import java.util.Locale;
 import org.junit.Test;
@@ -62,30 +60,4 @@ public class OcelotContextTest {
 		String result = instance.getUsername();
 		assertThat(result).isEqualTo(expResult);
 	}
-
-	/**
-	 * Test of isUserInRole method, of class OcelotContext.
-	 */
-	@Test
-	public void testIsUserInRole() {
-		System.out.println("isUserInRole");
-
-		boolean result = instance.isUserInRole("NOREQUEST");
-		assertThat(result).isTrue();
-
-		ThreadLocalContextHolder.put(Constants.REQUEST, "BADOBJECT");
-		result = instance.isUserInRole("BADREQUEST");
-		assertThat(result).isTrue();
-		
-		IRequest request = mock(IRequest.class);
-		when(request.isUserInRole(eq("USER"))).thenReturn(Boolean.TRUE);
-		when(request.isUserInRole(eq("ADMIN"))).thenReturn(Boolean.FALSE);
-		ThreadLocalContextHolder.put(Constants.REQUEST, request);
-		result = instance.isUserInRole("USER");
-		assertThat(result).isTrue();
-		result = instance.isUserInRole("ADMIN");
-		assertThat(result).isFalse();
-		
-	}
-	
 }

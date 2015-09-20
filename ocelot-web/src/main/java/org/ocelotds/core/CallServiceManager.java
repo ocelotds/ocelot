@@ -38,6 +38,7 @@ import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
+import org.ocelotds.security.CallService;
 import org.slf4j.Logger;
 
 /**
@@ -293,6 +294,7 @@ public class CallServiceManager {
 	 * @param message
 	 * @param client
 	 */
+	@CallService
 	public void sendMessageToClient(MessageFromClient message, Session client) {
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(message.getId());

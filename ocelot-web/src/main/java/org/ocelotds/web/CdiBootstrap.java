@@ -17,7 +17,8 @@ import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
 
 /**
- *
+ * fix bug from tomcat about websocket has not native cdi injection
+ * 
  * @author hhfrancois
  */
 public abstract class CdiBootstrap {

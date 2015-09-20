@@ -74,6 +74,26 @@ public class OcelotServicesTest {
 	}
 
 	/**
+	 * Test of setLocale method, of class OcelotServices.
+	 */
+	@Test
+	public void testSetLocale_With_Session() {
+		System.out.println("setLocale");
+		Locale l = new Locale("fr", "FR");
+		Session session = mock(Session.class);
+		Map<String, Object> userProperties = new HashMap<>();
+		when(session.getUserProperties()).thenReturn(userProperties);
+		ocelotServices.setLocale(l, session);
+		Locale result = (Locale) userProperties.get(Constants.LOCALE);
+		assertThat(result).isEqualTo(l);
+		
+		l = new Locale("en", "US");
+		ocelotServices.setLocale(l, session);
+		result = (Locale) userProperties.get(Constants.LOCALE);
+		assertThat(result).isEqualTo(l);
+	}
+
+	/**
 	 * Test of getUsername method, of class OcelotServices.
 	 */
 	@Test

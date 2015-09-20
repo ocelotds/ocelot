@@ -3,8 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.context;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.security.Principal;
 import java.util.Locale;
 import javax.inject.Inject;
@@ -37,18 +35,5 @@ public class OcelotContext {
 
 	public String getUsername() {
 		return principal.getName();
-	}
-
-	public boolean isUserInRole(String role) {
-		try {
-			Object request = ThreadLocalContextHolder.get(Constants.REQUEST);
-			if (null == request) {
-				return true;
-			}
-			Method method = request.getClass().getMethod("isUserInRole", String.class);
-			return (boolean) method.invoke(request, role);
-		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-		}
-		return true;
 	}
 }

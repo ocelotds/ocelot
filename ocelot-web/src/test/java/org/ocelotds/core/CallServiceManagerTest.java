@@ -53,6 +53,7 @@ import org.ocelotds.marshallers.LocaleUnmarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
+import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.ocelotds.resolvers.PojoResolver;
 import org.slf4j.Logger;
 
@@ -312,6 +313,7 @@ public class CallServiceManagerTest {
 	 *
 	 * @throws org.ocelotds.spi.DataServiceException
 	 * @throws java.lang.NoSuchMethodException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
 	 */
 	@Test
 	public void testSendMessageToClient() throws DataServiceException, NoSuchMethodException, JsonMarshallingException {
@@ -379,6 +381,15 @@ public class CallServiceManagerTest {
 		assertThat(result.get(5).getResponse()).isEqualTo(new ClassAsDataService().methodReturnString("e"));
 		assertThat(result.get(6).getJson()).isEqualTo(new LocaleMarshaller().toJson(new Locale("fr", "FR")));
 	}
+	
+	@Test(expected = JsonUnmarshallingException.class)
+	public void testConvertJsonToJavaBadUnmarshaller() throws DataServiceException, JsonUnmarshallingException, NoSuchMethodException {
+		System.out.println("convertJsonToJavaBadUnmarshaller");
+
+		Method method = ClassAsDataService.class.getMethod("methodWithBadUnmarshaller", String.class);
+		Annotation[] annotations = method.getParameterAnnotations()[0];
+		callServiceManager.convertJsonToJava(0, "", null, annotations);
+	}
 
 	@DataService(resolver = "TEST")
 	private class ClassAsDataService {
@@ -422,7 +433,23 @@ public class CallServiceManagerTest {
 			return new Locale("fr", "FR");
 		}
 
+		public void methodWithBadUnmarshaller(@JsonUnmarshaller(BadUnmarshaller.class) String a) {
+		}
+
 		public void methodWithUnmarshaller(@JsonUnmarshaller(LocaleUnmarshaller.class) Locale l) {
 		}
+	}
+	
+	static class BadUnmarshaller implements org.ocelotds.marshalling.JsonUnmarshaller<String>{
+		
+		public BadUnmarshaller(String t) {
+			
+		}
+
+		@Override
+		public String toJava(String json) throws JsonUnmarshallingException {
+			return "";
+		}
+		
 	}
 }

@@ -38,23 +38,31 @@ public class OcelotServices {
 
 	@Inject
 	private UpdatedCacheManager updatedCacheManager;
-	
+
 	@Inject
 	private SessionManager sessionManager;
-	
-	/**
-	 * define locale for current user
-	 * @param locale 
-	 */
-	@JsCacheRemove(cls = OcelotServices.class, methodName = "getLocale", keys = {})
+
+	@MethodWithSessionInjection
 	public void setLocale(@JsonUnmarshaller(LocaleUnmarshaller.class) Locale locale) {
-		logger.debug("Receive setLocale({}) call from client.", locale);
 		ThreadLocalContextHolder.put(Constants.LOCALE, locale);
 	}
 
 	/**
-	 * get current user locale 
-	 * @return 
+	 * define locale for current user
+	 *
+	 * @param locale
+	 * @param session
+	 */
+	@TransientDataService
+	@JsCacheRemove(cls = OcelotServices.class, methodName = "getLocale", keys = {})
+	public void setLocale(@JsonUnmarshaller(LocaleUnmarshaller.class) Locale locale, Session session) {
+		session.getUserProperties().put(Constants.LOCALE, locale);
+	}
+
+	/**
+	 * get current user locale
+	 *
+	 * @return
 	 */
 	@JsCacheResult(year = 1)
 	@JsonMarshaller(LocaleMarshaller.class)
@@ -64,8 +72,9 @@ public class OcelotServices {
 	}
 
 	/**
-	 * get current user locale 
-	 * @return 
+	 * get current user locale
+	 *
+	 * @return
 	 */
 	@MethodWithSessionInjection
 	public String getUsername() {
@@ -74,8 +83,9 @@ public class OcelotServices {
 
 	/**
 	 * return current username from session
+	 *
 	 * @param session
-	 * @return 
+	 * @return
 	 */
 	@TransientDataService
 	public String getUsername(Session session) {
@@ -86,7 +96,7 @@ public class OcelotServices {
 	public Collection<String> getOutDatedCache(Map<String, Long> states) {
 		return updatedCacheManager.getOutDatedCache(states);
 	}
-	
+
 	@MethodWithSessionInjection
 	public void subscribe(String topic) {
 	}
@@ -97,13 +107,13 @@ public class OcelotServices {
 
 	@JsTopic
 	@TransientDataService
-	public Integer subscribe(Session session, @JsTopicName(prefix=Constants.Topic.SUBSCRIBERS) String topic) throws IllegalAccessException {
+	public Integer subscribe(Session session, @JsTopicName(prefix = Constants.Topic.SUBSCRIBERS) String topic) throws IllegalAccessException {
 		return sessionManager.registerTopicSession(topic, session);
 	}
 
 	@JsTopic
 	@TransientDataService
-	public Integer unsubscribe(Session session, @JsTopicName(prefix=Constants.Topic.SUBSCRIBERS) String topic) {
+	public Integer unsubscribe(Session session, @JsTopicName(prefix = Constants.Topic.SUBSCRIBERS) String topic) {
 		return sessionManager.unregisterTopicSession(topic, session);
 	}
 

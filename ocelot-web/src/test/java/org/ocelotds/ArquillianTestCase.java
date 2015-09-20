@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds;
 
+import com.sun.enterprise.security.ee.auth.login.ProgrammaticLogin;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Random;
@@ -11,7 +12,9 @@ import org.jboss.shrinkwrap.api.asset.FileAsset;
 import org.jboss.shrinkwrap.api.container.ClassContainer;
 import org.jboss.shrinkwrap.api.container.ResourceContainer;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.ocelotds.objects.FakeCDI;
+import org.junit.Before;
+import org.ocelotds.security.CallService;
+import org.ocelotds.security.CallServiceInterceptor;
 
 /**
  *
@@ -32,16 +35,22 @@ public abstract class ArquillianTestCase {
 				  .addPackages(true, "org.ocelotds.core")
 				  .addPackages(true, "org.ocelotds.encoders")
 				  .addPackages(true, "org.ocelotds.exceptions")
+				  .addPackages(true, "org.ocelotds.marshallers")
 				  .addPackages(true, "org.ocelotds.resolvers")
+				  .addClasses(CallService.class, CallServiceInterceptor.class)
 				  .addPackages(true, "org.ocelotds.web")
-				  .addPackages(true, "org.ocelotds.objects")
-				  .deleteClass(FakeCDI.class)
 				  .addAsManifestResource(new FileAsset(bean), "beans.xml")
 				  .addAsResource(new FileAsset(core), "ocelot-core.js");
 		addJSAndProvider("target/classes", javaArchive, javaArchive);
 		return javaArchive;
 	}
 
+	@Before
+	public void init(){
+		ProgrammaticLogin login = new ProgrammaticLogin();
+		login.login("hhf", "hhf".toCharArray());
+	}
+	
 	/**
 	 * Add srv_xxxx.js and srv_xxxx.ServiceProvider.class
 	 *
