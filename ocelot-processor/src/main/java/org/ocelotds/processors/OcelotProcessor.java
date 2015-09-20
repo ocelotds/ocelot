@@ -79,7 +79,7 @@ public class OcelotProcessor extends AbstractProcessor {
 		try {
 			FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", js);
 			try (Writer writer = resource.openWriter()) {
-				ElementVisitor visitor = new DataServiceVisitor(processingEnv);
+				ElementVisitor visitor = new DataServiceVisitor(processingEnv, writer);
 				for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
 					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " javascript generation class : " + element);
 					element.accept(visitor, writer);
@@ -105,9 +105,11 @@ public class OcelotProcessor extends AbstractProcessor {
 			try (Writer writer = servicesProvider.openWriter()) {
 				writer.append("package " + prefix + ";\n");
 				writer.append("import org.ocelotds.AbstractServiceProvider;\n");
+				writer.append("import org.ocelotds.Constants;\n");
+				writer.append("@org.ocelotds.annotations.ServiceProvider(Constants.Provider.JAVASCRIPT)\n");
 				writer.append("public class ServiceProvider extends AbstractServiceProvider {\n");
 				writer.append("	@Override\n");
-				writer.append("	protected String getJsFilename() {\n");
+				writer.append("	protected String getFilename() {\n");
 				writer.append("		return \""+prefix+".js\";\n");
 				writer.append("	}\n");
 				writer.append("}");
@@ -116,5 +118,33 @@ public class OcelotProcessor extends AbstractProcessor {
 			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
 		}
 		return prefix+".js";
+	}
+
+	/**
+	 *  Create provider of ocelot-services.js and return a part of unic name for ocelot-service.js
+	 * 
+	 * @return 
+	 */
+	String createHTMLServicesProvider() {
+		// Creation du provider de ocelot-services.js
+		String prefix = "srv_" + RANDOM.nextInt(100_000_000);
+		try {
+			FileObject servicesProvider = filer.createSourceFile(prefix+".ServiceProvider");
+			try (Writer writer = servicesProvider.openWriter()) {
+				writer.append("package " + prefix + ";\n");
+				writer.append("import org.ocelotds.AbstractServiceProvider;\n");
+				writer.append("import org.ocelotds.Constants;\n");
+				writer.append("@org.ocelotds.annotations.ServiceProvider(Constants.Provider.HTML)\n");
+				writer.append("public class ServiceProvider extends AbstractServiceProvider {\n");
+				writer.append("	@Override\n");
+				writer.append("	protected String getFilename() {\n");
+				writer.append("		return \""+prefix+".html\";\n");
+				writer.append("	}\n");
+				writer.append("}");
+			}
+		} catch (IOException e) {
+			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+		}
+		return prefix+".html";
 	}
 }
