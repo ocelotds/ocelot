@@ -20,11 +20,11 @@ public abstract class AbstractServiceProvider implements IServicesProvider {
 	@OcelotLogger
 	private Logger logger;
 
-	protected abstract String getJsFilename();
+	protected abstract String getFilename();
 	
 	@Override
 	public void streamJavascriptServices(OutputStream out) {
-		String jsname = getJsFilename();
+		String jsname = getFilename();
 		try (InputStream in = getJsStream(jsname)) {
 			if(null != in) {
 				byte[] buffer = new byte[Constants.DEFAULT_BUFFER_SIZE];
