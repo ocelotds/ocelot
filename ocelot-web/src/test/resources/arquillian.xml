@@ -9,11 +9,6 @@
 			<property name="bindHttpPort">8282</property>			
 		</configuration>
 	</container>
-	<container qualifier="tomcat">
-		<configuration>
-			<property name="bindHttpPort">8282</property>			
-		</configuration>
-	</container>
 	<extension qualifier="webdriver">
 		<property name="browser">phantomjs</property>
 	</extension>
