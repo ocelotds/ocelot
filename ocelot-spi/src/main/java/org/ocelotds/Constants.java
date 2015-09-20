@@ -11,6 +11,7 @@ package org.ocelotds;
  */
 public interface Constants {
 
+	String ALGORITHM = "MD5";
 	String UTF_8 = "UTF-8";
 	String JS = ".js";
 	String MIN = "-min";
