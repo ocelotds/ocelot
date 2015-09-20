@@ -46,7 +46,7 @@ public class DataServiceVisitor implements ElementVisitor<String, Writer> {
 
 	private final KeyMaker keyMaker;
 
-	public DataServiceVisitor(ProcessingEnvironment environment) {
+	public DataServiceVisitor(ProcessingEnvironment environment, Writer writer) {
 		this.environment = environment;
 		this.messager = environment.getMessager();
 		this.keyMaker = new KeyMaker();
