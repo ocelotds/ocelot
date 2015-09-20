@@ -41,7 +41,11 @@ public abstract class AbstractServiceProvider implements IServicesProvider {
 	}
 	
 	InputStream getJsStream(String jsname) {
-		return this.getClass().getClassLoader().getResourceAsStream(jsname);
+		ClassLoader classLoader = this.getClass().getClassLoader();
+		if(null != classLoader) {
+			return classLoader.getResourceAsStream(jsname);
+		}
+		return null;
 	}
 	
 }
