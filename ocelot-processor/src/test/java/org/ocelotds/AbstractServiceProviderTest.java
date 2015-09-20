@@ -35,12 +35,12 @@ public class AbstractServiceProviderTest {
 	private AbstractServiceProviderImpl instance;
 
 	/**
-	 * Test of getJsFilename method, of class AbstractServiceProvider.
+	 * Test of getFilename method, of class AbstractServiceProvider.
 	 */
 	@Test
 	public void testGetJsFilename() {
 		System.out.println("getJsFilename");
-		String result = instance.getJsFilename();
+		String result = instance.getFilename();
 		assertThat(result).isEqualTo(AbstractServiceProviderImpl.FILENAME);
 	}
 
@@ -80,7 +80,7 @@ public class AbstractServiceProviderTest {
 	@Test
 	public void testStreamJavascriptServicesUnknownFile() throws IOException {
 		System.out.println("streamJavascriptServices");
-		when(instance.getJsFilename()).thenReturn("unknowfile.js");
+		when(instance.getFilename()).thenReturn("unknowfile.js");
 		OutputStream out = new ByteArrayOutputStream();
 		instance.streamJavascriptServices(out);
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
