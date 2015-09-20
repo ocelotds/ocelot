@@ -131,5 +131,27 @@ public class OcelotEndpointTest {
 		assertThat(result.getParameterNames()).containsExactly("\"a\"", "\"b\"", "\"c\"");
 		assertThat(result.getParameters()).containsExactly("\"toto\"", "5", "true");
 	}
+	
+	@Test
+	public void testGetSessionManager() {
+		System.out.println("getSessionManager");
+		OcelotEndpoint oe = spy(new OcelotEndpoint());
+		doReturn(new SessionManager()).when(oe).getBean(SessionManager.class);
+
+		SessionManager result = oe.getSessionManager();
+
+		assertThat(result).isInstanceOf(SessionManager.class);
+	}
+	
+	@Test
+	public void testGetCallServiceManager() {
+		System.out.println("getCallServiceManager");
+		OcelotEndpoint oe = spy(new OcelotEndpoint());
+		doReturn(new CallServiceManager()).when(oe).getBean(CallServiceManager.class);
+	
+		CallServiceManager result = oe.getCallServiceManager();
+		
+		assertThat(result).isInstanceOf(CallServiceManager.class);
+	}
 
 }
