@@ -14,7 +14,7 @@ public class IServiceProviderImpl extends AbstractServiceProvider {
 	public final static String FILENAME = "test.js";
 
 	@Override
-	public String getJsFilename() {
+	public String getFilename() {
 		return FILENAME;
 	}
 
