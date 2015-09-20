@@ -68,11 +68,12 @@ public class DataServiceVisitorTest {
 	@Before
 	public void setUp() {
 		ProcessingEnvironment environment = mock(ProcessingEnvironment.class);
+		Writer writer = mock(Writer.class);
 		when(environment.getElementUtils()).thenReturn(elementUtils);
 		when(environment.getFiler()).thenReturn(filer);
 		when(environment.getMessager()).thenReturn(messager);
 		when(environment.getTypeUtils()).thenReturn(typeUtils);
-		instance = new DataServiceVisitor(environment);
+		instance = new DataServiceVisitor(environment, writer);
 	}
 
 	/**
