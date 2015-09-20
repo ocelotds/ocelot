@@ -40,7 +40,7 @@ public class KeyMaker {
 	}
 	
 	MessageDigest getMessageDigest() throws NoSuchAlgorithmException {
-		return MessageDigest.getInstance("MD5");
+		return MessageDigest.getInstance(Constants.ALGORITHM);
 	}
 	
 }
