@@ -5,6 +5,7 @@ package org.ocelotds.web;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import javax.enterprise.inject.Instance;
 import javax.servlet.ServletContext;
@@ -39,6 +40,7 @@ public class ContextListenerTest {
 	private Logger logger;
 
 	@InjectMocks
+	@Spy
 	private ContextListener contextListener;
 
 	@Mock
@@ -76,6 +78,26 @@ public class ContextListenerTest {
 		assertThat(ocelotjs).exists();
 		File ocelotminjs = new File(ocelotminjspath);
 		assertThat(ocelotminjs).exists();
+	}
+
+	/**
+	 * Test of contextInitialized method, of class ContextListener.
+	 */
+	@Test
+	public void testContextInitializedFailed() throws IOException {
+		System.out.println("contextInitializedFailed");
+		ServletContext sc = mock(ServletContext.class);
+		ServletContextEvent sce = mock(ServletContextEvent.class);
+		when(sce.getServletContext()).thenReturn(sc);
+		when(sc.getContextPath()).thenReturn("/");
+		when(contextListener.createOcelotJsFile(anyString(), anyString())).thenThrow(IOException.class);
+		
+		contextListener.contextInitialized(sce);
+		
+		ArgumentCaptor<String> captureLog = ArgumentCaptor.forClass(String.class);
+		verify(logger, times(1)).error(captureLog.capture(), any(IOException.class));
+
+		assertThat(captureLog.getValue()).isEqualTo("Fail to create ocelot.js.");
 	}
 
 	@Test
@@ -157,5 +179,17 @@ public class ContextListenerTest {
 		((FakeCDI)servicesProviders).add(new IServiceProviderImpl());
 		File file = contextListener.createOcelotJsFile("/", "ws");
 		assertThat(file).exists();
+	}
+	
+	/**
+	 * Test of writeOcelotCoreJsFile method, of class ContextListener.
+	 * @throws java.io.IOException
+	 */
+	@Test(expected = IOException.class)
+	public void testWriteOcelotCoreJsFile() throws IOException {
+		System.out.println("writeOcelotCoreJsFile");
+		OutputStream out = mock(OutputStream.class);
+		contextListener.OCELOT_CORE_RESOURCE = "/badfile";
+		contextListener.writeOcelotCoreJsFile(out, "/", "ws");
 	}
 }

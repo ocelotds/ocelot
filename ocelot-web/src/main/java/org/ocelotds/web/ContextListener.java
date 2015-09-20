@@ -32,7 +32,9 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 @WebListener
-public final class ContextListener implements ServletContextListener {
+class ContextListener implements ServletContextListener {
+	
+	String OCELOT_CORE_RESOURCE = Constants.SLASH + Constants.OCELOT_CORE + Constants.JS;
 
 	@Inject
 	@OcelotLogger
@@ -212,10 +214,10 @@ public final class ContextListener implements ServletContextListener {
 	 * @return
 	 * @throws IOException
 	 */
-	private void writeOcelotCoreJsFile(OutputStream out, String ctxPath, String protocol) throws IOException {
-		URL js = this.getClass().getResource(Constants.SLASH + Constants.OCELOT_CORE + Constants.JS);
+	void writeOcelotCoreJsFile(OutputStream out, String ctxPath, String protocol) throws IOException {
+		URL js = this.getClass().getResource(OCELOT_CORE_RESOURCE);
 		if (null == js) {
-			throw new IOException("File " + Constants.SLASH + Constants.OCELOT_CORE + Constants.JS + " not found in classpath.");
+			throw new IOException("File " + OCELOT_CORE_RESOURCE + " not found in classpath.");
 		}
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream(), Constants.UTF_8))) {
 			String inputLine;

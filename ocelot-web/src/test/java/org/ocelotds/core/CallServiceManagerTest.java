@@ -382,6 +382,27 @@ public class CallServiceManagerTest {
 		assertThat(result.get(6).getJson()).isEqualTo(new LocaleMarshaller().toJson(new Locale("fr", "FR")));
 	}
 	
+	
+	@Test
+	public void testBuildFault() {
+		System.out.println("buildFault");
+		when(configuration.getStacktracelength()).thenReturn(1).thenReturn(3);
+		try {
+			throw new Exception("ERROR_MESSAGE");
+		} catch (Exception e) {
+			Fault fault = callServiceManager.buildFault(e);
+			assertThat(fault.getClassname()).isEqualTo("java.lang.Exception");
+			assertThat(fault.getMessage()).isEqualTo("ERROR_MESSAGE");
+			String[] stacktraces = fault.getStacktrace();
+			assertThat(stacktraces).hasSize(1);
+			assertThat(stacktraces[0]).startsWith(this.getClass().getName()+".testBuildFault("+this.getClass().getSimpleName()+".java:");
+
+			fault = callServiceManager.buildFault(e);
+			stacktraces = fault.getStacktrace();
+			assertThat(stacktraces).hasSize(3);
+		}
+	}
+	
 	@Test(expected = JsonUnmarshallingException.class)
 	public void testConvertJsonToJavaBadUnmarshaller() throws DataServiceException, JsonUnmarshallingException, NoSuchMethodException {
 		System.out.println("convertJsonToJavaBadUnmarshaller");

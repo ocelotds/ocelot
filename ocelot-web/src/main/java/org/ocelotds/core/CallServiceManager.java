@@ -36,7 +36,6 @@ import javax.websocket.Session;
 import org.ocelotds.logger.OcelotLogger;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
-import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.ocelotds.security.CallService;
 import org.slf4j.Logger;
@@ -332,18 +331,22 @@ public class CallServiceManager {
 			} catch (NoSuchMethodException ex) {
 				logger.error("Fail to process extra annotations (JsCacheResult, JsCacheRemove) for method : " + method.getName(), ex);
 			}
-		} catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException | DataServiceException | JsonMarshallingException | InstantiationException ex) {
-			int stacktracelength = configuration.getStacktracelength();
-			Throwable cause = ex;
-			if (InvocationTargetException.class.isInstance(ex)) {
-				cause = ex.getCause();
-			}
-			if (stacktracelength == 0 || logger.isDebugEnabled()) {
-				logger.error("Invocation failed", ex);
-			}
-			messageToClient.setFault(new Fault(cause, stacktracelength));
+		} catch (InvocationTargetException ex) {
+			messageToClient.setFault(buildFault(ex.getCause()));
+		} catch (Throwable ex) {
+			messageToClient.setFault(buildFault(ex));
 		}
 		client.getAsyncRemote().sendObject(messageToClient);
+	}
+
+	Fault buildFault(Throwable ex) {
+		Fault fault;
+		int stacktracelength = configuration.getStacktracelength();
+		if (stacktracelength == 0 || logger.isDebugEnabled()) {
+			logger.error("Invocation failed", ex);
+		}
+		fault = new Fault(ex, stacktracelength);
+		return fault;
 	}
 
 	/**
