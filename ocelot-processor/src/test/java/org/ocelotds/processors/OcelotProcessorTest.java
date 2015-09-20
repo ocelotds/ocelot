@@ -162,7 +162,7 @@ public class OcelotProcessorTest {
 		assertThat(result).startsWith("srv_");
 		assertThat(result).endsWith(".js");
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(8)).append(captureString.capture());
+		verify(writer, times(10)).append(captureString.capture());
 		assertThat(captureString.getAllValues()).isNotEmpty();
 	}
 
