@@ -78,7 +78,7 @@ public class EJBResolver implements IDataServiceResolver {
 		return obj;
 	}
 
-	private Object findEJB(String jndi, String name) {
+	Object findEJB(String jndi, String name) {
 		Object result;
 		try {
 			NamingEnumeration<Binding> list = initialContext.listBindings(jndi);
