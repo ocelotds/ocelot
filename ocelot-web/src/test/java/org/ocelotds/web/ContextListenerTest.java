@@ -23,7 +23,8 @@ import org.ocelotds.Constants;
 import org.ocelotds.IServicesProvider;
 import org.ocelotds.configuration.OcelotConfiguration;
 import org.ocelotds.objects.FakeCDI;
-import org.ocelotds.objects.IServiceProviderImpl;
+import org.ocelotds.objects.HtmlServiceProviderImpl;
+import org.ocelotds.objects.JsServiceProviderImpl;
 import org.slf4j.Logger;
 
 /**
@@ -35,6 +36,7 @@ public class ContextListenerTest {
 
 	private String ocelotjspath = null;
 	private String ocelotminjspath = null;
+	private String ocelothtmlpath = null;
 
 	@Mock
 	private Logger logger;
@@ -47,7 +49,9 @@ public class ContextListenerTest {
 	private OcelotConfiguration configuration;
 
 	@Spy
-	private Instance<IServicesProvider> servicesProviders = new FakeCDI<>();
+	private Instance<IServicesProvider> jsServicesProviders = new FakeCDI<>();
+	@Spy
+	private Instance<IServicesProvider> htmlServicesProviders = new FakeCDI<>();
 
 	/**
 	 * Test of contextInitialized method, of class ContextListener.
@@ -64,40 +68,60 @@ public class ContextListenerTest {
 
 		ArgumentCaptor<String> captureKey = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<String> capturePath = ArgumentCaptor.forClass(String.class);
-		verify(sc, times(2)).setInitParameter(captureKey.capture(), capturePath.capture());
+		verify(sc, times(3)).setInitParameter(captureKey.capture(), capturePath.capture());
 		List<String> keys = captureKey.getAllValues();
 		List<String> paths = capturePath.getAllValues();
 
 		assertThat(keys.get(0)).isEqualTo(Constants.OCELOT);
 		assertThat(keys.get(1)).isEqualTo(Constants.OCELOT_MIN);
+		assertThat(keys.get(2)).isEqualTo(Constants.OCELOT_HTML);
 
 		ocelotjspath = paths.get(0);
 		ocelotminjspath = paths.get(1);
+		ocelothtmlpath = paths.get(2);
 
 		File ocelotjs = new File(ocelotjspath);
 		assertThat(ocelotjs).exists();
 		File ocelotminjs = new File(ocelotminjspath);
 		assertThat(ocelotminjs).exists();
+		File ocelothtml = new File(ocelothtmlpath);
+		assertThat(ocelothtml).exists();
 	}
 
 	/**
-	 * Test of contextInitialized method, of class ContextListener.
+	 * Test of createJsFile method, of class ContextListener.
+	 * @throws java.io.IOException
 	 */
 	@Test
-	public void testContextInitializedFailed() throws IOException {
-		System.out.println("contextInitializedFailed");
+	public void testCreateJsFileFailed() throws IOException {
+		System.out.println("createJsFile");
 		ServletContext sc = mock(ServletContext.class);
-		ServletContextEvent sce = mock(ServletContextEvent.class);
-		when(sce.getServletContext()).thenReturn(sc);
 		when(sc.getContextPath()).thenReturn("/");
 		when(contextListener.createOcelotJsFile(anyString(), anyString())).thenThrow(IOException.class);
-		
-		contextListener.contextInitialized(sce);
+
+		contextListener.createJsFile(sc);
 		
 		ArgumentCaptor<String> captureLog = ArgumentCaptor.forClass(String.class);
-		verify(logger, times(1)).error(captureLog.capture(), any(IOException.class));
-
+		verify(logger).error(captureLog.capture(), any(IOException.class));
 		assertThat(captureLog.getValue()).isEqualTo("Fail to create ocelot.js.");
+	}
+
+	/**
+	 * Test of createHtmlFile method, of class ContextListener.
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testCreateHtmlFileFailed() throws IOException {
+		System.out.println("createHtmlFile");
+		ServletContext sc = mock(ServletContext.class);
+		when(sc.getContextPath()).thenReturn("/");
+		when(contextListener.createOcelotHtmlFile(anyString())).thenThrow(IOException.class);
+
+		contextListener.createHtmlFile(sc);
+		
+		ArgumentCaptor<String> captureLog = ArgumentCaptor.forClass(String.class);
+		verify(logger).error(captureLog.capture(), any(IOException.class));
+		assertThat(captureLog.getValue()).isEqualTo("Fail to create ocelot.html.");
 	}
 
 	@Test
@@ -143,14 +167,17 @@ public class ContextListenerTest {
 		when(sce.getServletContext()).thenReturn(sc);
 		when(sc.getInitParameter(eq(Constants.OCELOT))).thenReturn(ocelotjspath);
 		when(sc.getInitParameter(eq(Constants.OCELOT_MIN))).thenReturn(ocelotminjspath);
+		when(sc.getInitParameter(eq(Constants.OCELOT_HTML))).thenReturn(ocelothtmlpath);
 
+		
 		contextListener.contextDestroyed(sce);
 
 		File ocelotjs = new File(ocelotjspath);
 		assertThat(ocelotjs).doesNotExist();
 		File ocelotminjs = new File(ocelotminjspath);
 		assertThat(ocelotminjs).doesNotExist();
-
+		File ocelothtml = new File(ocelothtmlpath);
+		assertThat(ocelothtml).doesNotExist();
 	}
 
 	/**
@@ -172,11 +199,12 @@ public class ContextListenerTest {
 
 	/**
 	 * Test of createOcelotJsFile method, of class ContextListener.
+	 * @throws java.io.IOException
 	 */
 	@Test
 	public void testCreateOcelotJsFile() throws IOException {
 		System.out.println("createOcelotJsFile");
-		((FakeCDI)servicesProviders).add(new IServiceProviderImpl());
+		((FakeCDI)jsServicesProviders).add(new JsServiceProviderImpl());
 		File file = contextListener.createOcelotJsFile("/", "ws");
 		assertThat(file).exists();
 	}
@@ -191,5 +219,17 @@ public class ContextListenerTest {
 		OutputStream out = mock(OutputStream.class);
 		contextListener.OCELOT_CORE_RESOURCE = "/badfile";
 		contextListener.writeOcelotCoreJsFile(out, "/", "ws");
+	}
+
+	/**
+	 * Test of createOcelotHtmlFile method, of class ContextListener.
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testCreateOcelotHtmlFile() throws IOException {
+		System.out.println("createOcelotJsFile");
+		((FakeCDI)htmlServicesProviders).add(new HtmlServiceProviderImpl());
+		File file = contextListener.createOcelotHtmlFile("/");
+		assertThat(file).exists();
 	}
 }

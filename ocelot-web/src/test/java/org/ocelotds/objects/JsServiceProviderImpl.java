@@ -9,7 +9,7 @@ import org.ocelotds.AbstractServiceProvider;
  *
  * @author hhfrancois
  */
-public class IServiceProviderImpl extends AbstractServiceProvider {
+public class JsServiceProviderImpl extends AbstractServiceProvider {
 
 	public final static String FILENAME = "test.js";
 
