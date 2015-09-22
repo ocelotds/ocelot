@@ -7,6 +7,7 @@ package org.ocelotds.processors;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -118,10 +119,10 @@ public class OcelotProcessorTest {
 		boolean result = instance.process(annotations, roundEnv);
 		assertThat(result).isTrue();
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<Diagnostic.Kind> captureKind = ArgumentCaptor.forClass(Diagnostic.Kind.class);
-		verify(messager).printMessage(captureKind.capture(), captureString.capture());
-		assertThat(captureString.getValue()).isEqualTo(" javascript generation class : GeneratedClass");
-		assertThat(captureKind.getValue()).isEqualTo(Diagnostic.Kind.MANDATORY_WARNING);
+		verify(messager, times(2)).printMessage(any(Diagnostic.Kind.class), captureString.capture());
+		List<String> allValues = captureString.getAllValues();
+		assertThat(allValues.get(0)).isEqualTo(" javascript generation class : GeneratedClass");
+		assertThat(allValues.get(1)).isEqualTo(" html generation class : GeneratedClass");
 	}
 
 	/**
@@ -174,6 +175,35 @@ public class OcelotProcessorTest {
 		when(fileObject.openWriter()).thenReturn(writer);
 		when(filer.createSourceFile(anyString())).thenReturn(fileObject);
 		instance.createJSServicesProvider();
+		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
+		ArgumentCaptor<Diagnostic.Kind> captureKind = ArgumentCaptor.forClass(Diagnostic.Kind.class);
+		verify(messager).printMessage(captureKind.capture(), captureString.capture());
+		assertThat(captureString.getValue()).isEqualTo("ERROR");
+		assertThat(captureKind.getValue()).isEqualTo(Diagnostic.Kind.ERROR);
+	}
+
+	@Test
+	public void testCreateHTMLServicesProvider() throws IOException {
+		JavaFileObject fileObject = mock(JavaFileObject.class);
+		Writer writer = mock(Writer.class);
+		when(fileObject.openWriter()).thenReturn(writer);
+		when(filer.createSourceFile(anyString())).thenReturn(fileObject);
+		String result = instance.createHTMLServicesProvider();
+		assertThat(result).startsWith("srv_");
+		assertThat(result).endsWith(".html");
+		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
+		verify(writer, times(10)).append(captureString.capture());
+		assertThat(captureString.getAllValues()).isNotEmpty();
+	}
+
+	@Test
+	public void testCreateHTMLServicesProviderIOException() throws IOException {
+		JavaFileObject fileObject = mock(JavaFileObject.class);
+		Writer writer = mock(Writer.class);
+		when(writer.append(any(CharSequence.class))).thenThrow(new IOException("ERROR"));
+		when(fileObject.openWriter()).thenReturn(writer);
+		when(filer.createSourceFile(anyString())).thenReturn(fileObject);
+		instance.createHTMLServicesProvider();
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Diagnostic.Kind> captureKind = ArgumentCaptor.forClass(Diagnostic.Kind.class);
 		verify(messager).printMessage(captureKind.capture(), captureString.capture());

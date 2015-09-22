@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds;
 
+import java.security.Principal;
 import org.ocelotds.context.ThreadLocalContextHolder;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheRemove;
@@ -90,7 +91,11 @@ public class OcelotServices {
 	@TransientDataService
 	public String getUsername(Session session) {
 		logger.debug("Receive getUsername call from client.");
-		return (String) session.getUserPrincipal().getName();
+		Principal p = session.getUserPrincipal();
+		if(null!= p) {
+			return (String) session.getUserPrincipal().getName();
+		}
+		return Constants.ANONYMOUS;
 	}
 
 	public Collection<String> getOutDatedCache(Map<String, Long> states) {

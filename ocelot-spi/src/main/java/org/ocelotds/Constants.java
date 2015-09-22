@@ -14,7 +14,7 @@ public interface Constants {
 	String ALGORITHM = "MD5";
 	String UTF_8 = "UTF-8";
 	String JS = ".js";
-	String MIN = "-min";
+	String HTML = ".html";
 	String SLASH = "/";
 	String BACKSLASH_N = "\n";
 	String LOCALE = "LOCALE";
@@ -24,11 +24,14 @@ public interface Constants {
 
 	String OCELOT = "ocelot";
 	String OCELOT_CORE = OCELOT + "-core";
-	String OCELOT_MIN = OCELOT + MIN;
+	String OCELOT_HTML = OCELOT + "-html";
+	String OCELOT_MIN = OCELOT + "-min";
 	String SLASH_OCELOT_JS = SLASH + OCELOT + JS;
+	String SLASH_OCELOT_HTML = SLASH + OCELOT + HTML;
 
 	String MINIFY_PARAMETER = "minify";
 	String JSTYPE = "text/javascript;charset=UTF-8";
+	String HTMLTYPE = "text/html;charset=UTF-8";
 	String FALSE = "false";
 	String TRUE = "true";
 

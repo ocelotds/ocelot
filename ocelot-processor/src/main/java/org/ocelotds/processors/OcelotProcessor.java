@@ -75,13 +75,24 @@ public class OcelotProcessor extends AbstractProcessor {
 		}
 		// Create provider of ocelot-services.js
 		String js = createJSServicesProvider();
-		// Create file ocelot-services.js      
+		// Create provider of ocelot-services.html
+		String html = createHTMLServicesProvider();
 		try {
-			FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", js);
-			try (Writer writer = resource.openWriter()) {
-				ElementVisitor visitor = new DataServiceVisitor(processingEnv, writer);
+			// Create file ocelot-services.js      
+			FileObject resourcejs = filer.createResource(StandardLocation.CLASS_OUTPUT, "", js);
+			try (Writer writer = resourcejs.openWriter()) {
+				ElementVisitor visitor = new DataServiceVisitorJsBuilder(processingEnv);
 				for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
 					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " javascript generation class : " + element);
+					element.accept(visitor, writer);
+				}
+			}
+			// Create file ocelot-services.html      
+			FileObject resourcehtml = filer.createResource(StandardLocation.CLASS_OUTPUT, "", html);
+			try (Writer writer = resourcehtml.openWriter()) {
+				ElementVisitor visitor = new DataServiceVisitorHtmlBuilder(processingEnv);
+				for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
+					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " html generation class : " + element);
 					element.accept(visitor, writer);
 				}
 			}

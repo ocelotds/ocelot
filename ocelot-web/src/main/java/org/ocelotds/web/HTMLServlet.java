@@ -6,27 +6,20 @@ package org.ocelotds.web;
 
 import org.ocelotds.Constants;
 import java.io.IOException;
-import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.ocelotds.logger.OcelotLogger;
-import org.slf4j.Logger;
 
 /**
  * Servlet to serve ocelot.js
  *
  * @author hhfrancois
  */
-@WebServlet(urlPatterns = {Constants.SLASH_OCELOT_JS})
-public class JSServlet extends AbstractServlet {
+@WebServlet(urlPatterns = {"/ocelot.htm"})
+public class HTMLServlet extends AbstractServlet {
 
 	private static final long serialVersionUID = 1973549844535787671L;
-
-	@Inject
-	@OcelotLogger
-	private transient Logger logger;
 
 	/**
 	 * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -38,11 +31,7 @@ public class JSServlet extends AbstractServlet {
 	 */
 	@Override
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String minify = request.getParameter(Constants.MINIFY_PARAMETER);
-		String filename = request.getServletContext().getInitParameter(Constants.OCELOT_MIN);
-		if (Constants.FALSE.equalsIgnoreCase(minify)) {
-			filename = request.getServletContext().getInitParameter(Constants.OCELOT);
-		}
-		processFile(filename, Constants.JSTYPE, request, response);
+		String filename = request.getServletContext().getInitParameter(Constants.OCELOT_HTML);
+		processFile(filename, Constants.HTMLTYPE, request, response);
 	}
 }

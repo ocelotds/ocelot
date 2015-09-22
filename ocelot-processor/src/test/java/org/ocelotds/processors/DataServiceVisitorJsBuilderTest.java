@@ -8,21 +8,14 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -37,7 +30,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.KeyMaker;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheResult;
-import org.ocelotds.annotations.TransientDataService;
 import org.slf4j.Logger;
 
 /**
@@ -45,7 +37,7 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 @RunWith(MockitoJUnitRunner.class)
-public class DataServiceVisitorTest {
+public class DataServiceVisitorJsBuilderTest {
 
 	@Mock
 	private Messager messager;
@@ -63,21 +55,20 @@ public class DataServiceVisitorTest {
 	private Logger logger;
 
 	@Mock
-	private DataServiceVisitor instance;
+	private DataServiceVisitorJsBuilder instance;
 
 	@Before
 	public void setUp() {
 		ProcessingEnvironment environment = mock(ProcessingEnvironment.class);
-		Writer writer = mock(Writer.class);
 		when(environment.getElementUtils()).thenReturn(elementUtils);
 		when(environment.getFiler()).thenReturn(filer);
 		when(environment.getMessager()).thenReturn(messager);
 		when(environment.getTypeUtils()).thenReturn(typeUtils);
-		instance = new DataServiceVisitor(environment, writer);
+		instance = new DataServiceVisitorJsBuilder(environment);
 	}
 
 	/**
-	 * Test of visitType method, of class DataServiceVisitor.
+	 * Test of visitType method, of class DataServiceVisitorJsBuilder.
 	 *
 	 * @throws java.io.IOException
 	 */
@@ -111,8 +102,8 @@ public class DataServiceVisitorTest {
 	}
 
 	/**
-	 * Test of visitMethodElement method, of class DataServiceVisitor.
-	 * TODO
+	 * Test of visitMethodElement method, of class DataServiceVisitorJsBuilder. TODO
+	 *
 	 * @throws java.io.IOException
 	 */
 //	@Test
@@ -124,53 +115,11 @@ public class DataServiceVisitorTest {
 		String jsclsname = null;
 		ExecutableElement methodElement = null;
 		Writer writer = null;
-		// given
-
-		// when
-		// then
 		instance.visitMethodElement(first, methodProceeds, classname, jsclsname, methodElement, writer);
 	}
 
 	/**
-	 * Test of getJsClassname method, of class DataServiceVisitor.
-	 */
-	@Test
-	public void testGetJsClassname() {
-		TypeElement typeElement = mock(TypeElement.class);
-		DataService ds = mock(DataService.class);
-		Name name = mock(Name.class);
-
-		when(typeElement.getAnnotation(eq(DataService.class))).thenReturn(ds);
-		when(typeElement.getSimpleName()).thenReturn(name);
-		when(name.toString()).thenReturn("DefaultClassName");
-		when(ds.name()).thenReturn("").thenReturn("SpecifiedClassName");
-
-		String result = instance.getJsClassname(typeElement);
-		assertThat(result).isEqualTo("DefaultClassName");
-
-		result = instance.getJsClassname(typeElement);
-		assertThat(result).isEqualTo("SpecifiedClassName");
-	}
-
-	/**
-	 * Test of createClassComment method, of class DataServiceVisitor.
-	 *
-	 * @throws java.io.IOException
-	 */
-	@Test
-	public void testCreateClassCommentWithError() throws IOException {
-		System.out.println("createClassComment");
-		TypeElement typeElement = mock(TypeElement.class);
-		Writer writer = mock(Writer.class);
-
-		when(elementUtils.getDocComment(any(TypeElement.class))).thenReturn("");
-		when(writer.append(anyString())).thenThrow(IOException.class);
-
-		instance.createClassComment(typeElement, writer);
-	}
-
-	/**
-	 * Test of createClassComment method, of class DataServiceVisitor.
+	 * Test of createClassComment method, of class DataServiceVisitorJsBuilder.
 	 *
 	 * @throws java.io.IOException
 	 */
@@ -198,23 +147,10 @@ public class DataServiceVisitorTest {
 		verify(writer, times(3)).append(captureAppend.capture());
 		List<String> appends = captureAppend.getAllValues();
 		assertThat(appends.get(1)).isEqualTo("Default Comment0");
-
 	}
 
 	/**
-	 * Test of computeComment method, of class DataServiceVisitor.
-	 *
-	 */
-	@Test
-	public void testComputeComment() {
-		System.out.println("computeComment");
-		String comment = "Line1\nLine2\nLine3";
-		String result = instance.computeComment(comment);
-		assertThat(result).isEqualTo("Line1\n *Line2\n *Line3");
-	}
-
-	/**
-	 * Test of createClassComment method, of class DataServiceVisitor.
+	 * Test of createClassComment method, of class DataServiceVisitorJsBuilder.
 	 *
 	 * @throws java.io.IOException
 	 */
@@ -236,123 +172,7 @@ public class DataServiceVisitorTest {
 	}
 
 	/**
-	 * Test of isConsiderateMethod method, of class DataServiceVisitor.
-	 */
-	@Test
-	public void testIsConsiderateMethod() {
-		System.out.println("isConsiderateMethod");
-		String methodname = "methodName";
-		Collection<String> methodProceeds = new ArrayList<>();
-		ExecutableElement methodElement = mock(ExecutableElement.class);
-		VariableElement var0 = mock(VariableElement.class);
-		VariableElement var1 = mock(VariableElement.class);
-		List ves = Arrays.asList(var0, var1);
-		Name name = mock(Name.class);
-		TypeElement objectElement = mock(TypeElement.class);
-		List enclosedElements = mock(List.class);
-		Set modifiers = new HashSet();
-		List annotationMirrors = new ArrayList();
-		AnnotationMirror anno = mock(AnnotationMirror.class);
-		AnnotationMirror annoTransient = mock(AnnotationMirror.class);
-		DeclaredType declaredType0 = mock(DeclaredType.class);
-		DeclaredType declaredType1 = mock(DeclaredType.class);
-
-		when(anno.getAnnotationType()).thenReturn(declaredType0);
-		when(annoTransient.getAnnotationType()).thenReturn(declaredType1);
-		when(declaredType0.toString()).thenReturn(DataService.class.getName());
-		when(declaredType1.toString()).thenReturn(TransientDataService.class.getName());
-		when(name.toString()).thenReturn(methodname);
-		when(methodElement.getParameters()).thenReturn(ves);
-		when(methodElement.getSimpleName()).thenReturn(name);
-		when(methodElement.getModifiers()).thenReturn(modifiers);
-		when(methodElement.getAnnotationMirrors()).thenReturn(annotationMirrors);
-		when(elementUtils.getTypeElement(eq("java.lang.Object"))).thenReturn(objectElement);
-		when(objectElement.getEnclosedElements()).thenReturn(enclosedElements);
-		when(enclosedElements.contains(anyObject())).thenReturn(Boolean.FALSE)
-				  .thenReturn(Boolean.TRUE)
-				  .thenReturn(Boolean.FALSE)
-				  .thenReturn(Boolean.FALSE);
-		modifiers.add(Modifier.PUBLIC);
-
-		// first time
-		boolean result = instance.isConsiderateMethod(methodProceeds, methodElement);
-		assertThat(result).isTrue();
-		assertThat(methodProceeds).hasSize(1);
-
-		// alreadyProcess
-		result = instance.isConsiderateMethod(methodProceeds, methodElement);
-		assertThat(result).isFalse();
-
-		// inherited from Object
-		methodProceeds.clear();
-		result = instance.isConsiderateMethod(methodProceeds, methodElement);
-		assertThat(result).isFalse();
-
-		// static
-		methodProceeds.clear();
-		modifiers.add(Modifier.STATIC);
-		result = instance.isConsiderateMethod(methodProceeds, methodElement);
-		assertThat(result).isFalse();
-
-		// non public
-		methodProceeds.clear();
-		modifiers.clear();
-		result = instance.isConsiderateMethod(methodProceeds, methodElement);
-		assertThat(result).isFalse();
-
-		// Transient
-		methodProceeds.clear();
-		modifiers.add(Modifier.PUBLIC);
-		annotationMirrors.add(anno);
-		annotationMirrors.add(annoTransient);
-		result = instance.isConsiderateMethod(methodProceeds, methodElement);
-		assertThat(result).isFalse();
-	}
-
-	/**
-	 * Test of getArgumentsType method, of class DataServiceVisitor.
-	 */
-	@Test
-	public void testGetArgumentsType() {
-		System.out.println("getArgumentsType");
-		ExecutableElement methodElement = mock(ExecutableElement.class);
-		ExecutableType methodType = mock(ExecutableType.class);
-		TypeMirror var0 = mock(TypeMirror.class);
-		TypeMirror var1 = mock(TypeMirror.class);
-		List ves = Arrays.asList(var0, var1);
-
-		when(methodElement.asType()).thenReturn(methodType);
-		when(var0.toString()).thenReturn("boolean");
-		when(var1.toString()).thenReturn("java.lang.String");
-		when(methodType.getParameterTypes()).thenReturn(ves);
-
-		List<String> expResult = Arrays.asList("boolean", "java.lang.String");
-		List<String> result = instance.getArgumentsType(methodElement);
-		assertThat(result).isEqualTo(expResult);
-	}
-
-	/**
-	 * Test of getArguments method, of class DataServiceVisitor.
-	 */
-	@Test
-	public void testGetArguments() {
-		System.out.println("getArguments");
-		ExecutableElement methodElement = mock(ExecutableElement.class);
-		VariableElement var0 = mock(VariableElement.class);
-		VariableElement var1 = mock(VariableElement.class);
-		List ves = Arrays.asList(var0, var1);
-
-		when(var0.toString()).thenReturn("a");
-		when(var1.toString()).thenReturn("b");
-		when(methodElement.getParameters()).thenReturn(ves);
-
-		List<String> expResult = Arrays.asList("a", "b");
-		List<String> result = instance.getArguments(methodElement);
-		assertThat(result).isEqualTo(expResult);
-	}
-
-	/**
-	 * Test of createMethodComment method, of class DataServiceVisitor.
+	 * Test of createMethodComment method, of class DataServiceVisitorJsBuilder.
 	 *
 	 * @throws java.io.IOException
 	 */
@@ -370,20 +190,20 @@ public class DataServiceVisitorTest {
 		when(returnType.toString()).thenReturn("void");
 		when(writer.append(anyString())).thenReturn(writer);
 		// no comment on method
-		when(elementUtils.getDocComment(any(ExecutableElement.class))).thenReturn("Default Comment");
+		when(elementUtils.getDocComment(any(ExecutableElement.class))).thenReturn("Default Comment\n Second line\n @param test");
 		// then
 		instance.createMethodComment(methodElement, argumentsName, argumentsType, returnType, writer);
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
 		// 
 		verify(writer, times(10)).append(captureAppend.capture());
 		List<String> appends = captureAppend.getAllValues();
-		assertThat(appends.get(2)).isEqualTo("Default Comment");
+		assertThat(appends.get(2)).isEqualTo("Default Comment\n\t * Second line");
 		assertThat(appends.get(5)).isEqualTo("boolean");
 		assertThat(appends.get(7)).isEqualTo("b");
 	}
 
 	/**
-	 * Test of createMethodComment method, of class DataServiceVisitor.
+	 * Test of createMethodComment method, of class DataServiceVisitorJsBuilder.
 	 *
 	 * @throws java.io.IOException
 	 */
@@ -414,7 +234,7 @@ public class DataServiceVisitorTest {
 	}
 
 	/**
-	 * Test of createMethodBody method, of class DataServiceVisitor.
+	 * Test of createMethodBody method, of class DataServiceVisitorJsBuilder.
 	 *
 	 * @throws java.io.IOException
 	 */
@@ -452,7 +272,7 @@ public class DataServiceVisitorTest {
 	}
 
 	/**
-	 * Test of createMethodBody method, of class DataServiceVisitor.
+	 * Test of createMethodBody method, of class DataServiceVisitorJsBuilder.
 	 *
 	 * @throws java.io.IOException
 	 */
@@ -497,73 +317,13 @@ public class DataServiceVisitorTest {
 		assertThat(appends.get(11)).isEqualTo(");\n");
 	}
 
-	/**
-	 * Test of visit method, of class DataServiceVisitor.
-	 */
 	@Test
-	public void testVisit_Element_Writer() {
-		System.out.println("visit");
-		String result = instance.visit(null, null);
-		assertThat(result).isNull();
-	}
-
-	/**
-	 * Test of visit method, of class DataServiceVisitor.
-	 */
-	@Test
-	public void testVisit_Element() {
-		System.out.println("visit");
-		String result = instance.visit(null);
-		assertThat(result).isNull();
-	}
-
-	/**
-	 * Test of visitPackage method, of class DataServiceVisitor.
-	 */
-	@Test
-	public void testVisitPackage() {
-		System.out.println("visitPackage");
-		String result = instance.visitPackage(null, null);
-		assertThat(result).isNull();
-	}
-
-	/**
-	 * Test of visitVariable method, of class DataServiceVisitor.
-	 */
-	@Test
-	public void testVisitVariable() {
-		System.out.println("visitVariable");
-		String result = instance.visitVariable(null, null);
-		assertThat(result).isNull();
-	}
-
-	/**
-	 * Test of visitExecutable method, of class DataServiceVisitor.
-	 */
-	@Test
-	public void testVisitExecutable() {
-		System.out.println("visitExecutable");
-		String result = instance.visitExecutable(null, null);
-		assertThat(result).isNull();
-	}
-
-	/**
-	 * Test of visitTypeParameter method, of class DataServiceVisitor.
-	 */
-	@Test
-	public void testVisitTypeParameter() {
-		System.out.println("visitTypeParameter");
-		String result = instance.visitTypeParameter(null, null);
-		assertThat(result).isNull();
-	}
-
-	/**
-	 * Test of visitUnknown method, of class DataServiceVisitor.
-	 */
-	@Test
-	public void testVisitUnknown() {
-		System.out.println("visitUnknown");
-		String result = instance.visitUnknown(null, null);
-		assertThat(result).isNull();
+	public void testGetKeyFromArg() {
+		String result = instance.getKeyFromArg("c");
+		assertThat(result).isEqualTo("c");
+		result = instance.getKeyFromArg("c.user");
+		assertThat(result).isEqualTo("(c)?c.user:null");
+		result = instance.getKeyFromArg("c.user.id");
+		assertThat(result).isEqualTo("(c&&c.user)?c.user.id:null");
 	}
 }
