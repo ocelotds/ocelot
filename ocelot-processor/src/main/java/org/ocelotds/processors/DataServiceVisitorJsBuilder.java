@@ -220,11 +220,11 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	}
 	
 	/**
-	 * Transform arg to valid key. protect js NPE
-	 * considers if arg or subfield is null
-	 * example : if arg == c return c
-	 * if arg == c.user return (c)?c.user:null
-	 * if arg == c.user.u_id return (c&&c.user)?c.user.u_id:null
+	 * Transform arg to valid key. protect js NPE<br>
+	 * considers if arg or subfield is null<br>
+	 * example : if arg == c return c<br>
+	 * if arg == c.user return (c)?c.user:null<br>
+	 * if arg == c.user.u_id return (c&&c.user)?c.user.u_id:null<br>
 	 * @param arg
 	 * @return 
 	 */
