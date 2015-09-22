@@ -196,6 +196,9 @@ public class CallServiceManager {
 	 */
 	Object convertArgument(String arg, Type paramType) throws IllegalArgumentException {
 		Object result = null;
+		if(null==arg || "null".equals(arg)) {
+			return result;
+		}
 		logger.debug("Try to convert {} : param = {} : {}", new Object[]{arg, paramType, paramType.getClass()});
 		try {
 			ObjectMapper mapper = new ObjectMapper();

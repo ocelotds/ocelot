@@ -250,6 +250,8 @@ public class CallServiceManagerTest {
 				}
 			});
 		}
+		Object result = callServiceManager.convertArgument(null, Result.class);
+		assertThat(result).isNull();
 	}
 
 	/**
