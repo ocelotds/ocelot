@@ -79,7 +79,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ocelotds.ArquillianTestCase;
 import org.ocelotds.objects.FakeCDI;
-import org.ocelotds.objects.IServiceProviderImpl;
+import org.ocelotds.objects.JsServiceProviderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,7 +139,7 @@ public class OcelotTest extends ArquillianTestCase {
 				  .addAsLibraries(createOcelotWebJar())
 				  .addPackages(true, OcelotTest.class.getPackage())
 				  .addPackages(true, "org.ocelotds.objects")
-				  .deleteClass(IServiceProviderImpl.class)
+				  .deleteClass(JsServiceProviderImpl.class)
 				  .deleteClass(FakeCDI.class)
 				  .addAsResource(new FileAsset(logback), "logback.xml")
 				  .addAsResource(new FileAsset(localeUs), "test_en_US.properties")
