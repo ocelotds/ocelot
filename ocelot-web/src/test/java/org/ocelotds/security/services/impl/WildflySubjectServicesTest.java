@@ -4,14 +4,7 @@
 
 package org.ocelotds.security.services.impl;
 
-import java.security.Principal;
-import javax.security.auth.Subject;
 import org.junit.Test;
-import static org.assertj.core.api.Assertions.*;
-import org.jboss.security.AnybodyPrincipal;
-import org.jboss.security.SecurityContext;
-import org.jboss.security.SecurityContextAssociation;
-import org.jboss.security.identity.extensions.CredentialIdentityFactory;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
