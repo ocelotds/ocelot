@@ -3,9 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.security;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.security.Principal;
 import java.util.Locale;
 import java.util.Map;
@@ -18,6 +15,7 @@ import javax.websocket.Session;
 import org.ocelotds.Constants;
 import org.ocelotds.context.ThreadLocalContextHolder;
 import org.ocelotds.logger.OcelotLogger;
+import org.ocelotds.security.services.SubjectServices;
 import org.slf4j.Logger;
 
 /**
@@ -31,6 +29,9 @@ public class CallServiceInterceptor {
 	@Inject
 	@OcelotLogger
 	private Logger logger;
+	
+	@Inject
+	SubjectServices subjectServices;
 
 	@AroundInvoke
 	public Object intercept(InvocationContext ctx) throws Exception {
@@ -52,16 +53,7 @@ public class CallServiceInterceptor {
 			ThreadLocalContextHolder.put(Constants.LOCALE, locale);
 
 			final Subject subject = (Subject) sessionProperties.get(Constants.SUBJECT);
-
-			// Glassfish implementation
-			try {
-				Class<?> secuCtxClass = Class.forName("com.sun.enterprise.security.SecurityContext");
-				Constructor constructor = secuCtxClass.getConstructor(Subject.class);
-				Object secuCtx = constructor.newInstance(subject); // SecurityContext secuCtx = new SecurityContext(subject);
-				Method setCurrent = secuCtxClass.getMethod("setCurrent", secuCtxClass);
-				setCurrent.invoke(null, secuCtx); // SecurityContext.setCurrent(secuCtx);
-				logger.debug("Use glassfish implementation for set security context");
-			} catch (ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {}
+			subjectServices.setSubject(subject, principal);
 		}
 
 		return ctx.proceed();

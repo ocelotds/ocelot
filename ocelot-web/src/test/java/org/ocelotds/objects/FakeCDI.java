@@ -20,17 +20,17 @@ public class FakeCDI<T> implements Instance<T> {
 
 	@Override
 	public Instance<T> select(Annotation... qualifiers) {
-		return null;
+		return this;
 	}
 
 	@Override
 	public Instance<T> select(Class subtype, Annotation... qualifiers) {
-		return null;
+		return this;
 	}
 
 	@Override
 	public Instance<T> select(TypeLiteral subtype, Annotation... qualifiers) {
-		return null;
+		return this;
 	}
 
 	@Override

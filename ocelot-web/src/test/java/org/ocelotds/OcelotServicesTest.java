@@ -27,8 +27,6 @@ import org.slf4j.Logger;
 @RunWith(MockitoJUnitRunner.class)
 public class OcelotServicesTest {
 	
-	private final Map<String, Object> userProperties = new HashMap<>();
-
 	@Mock
 	private Logger logger;
 	
@@ -101,11 +99,15 @@ public class OcelotServicesTest {
 		System.out.println("getUsername");
 		String result = ocelotServices.getUsername();
 		assertThat(result).isNull();
-		
 		Session session = mock(Session.class);
 		Principal p = mock(Principal.class);
+		
 		when(p.getName()).thenReturn("username");
-		when(session.getUserPrincipal()).thenReturn(p);
+		when(session.getUserPrincipal()).thenReturn(null).thenReturn(p);
+		
+		result = ocelotServices.getUsername(session);
+		assertThat(result).isEqualTo(Constants.ANONYMOUS);
+		
 		result = ocelotServices.getUsername(session);
 		assertThat(result).isEqualTo("username");
 		

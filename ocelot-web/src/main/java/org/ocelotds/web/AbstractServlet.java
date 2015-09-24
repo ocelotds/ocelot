@@ -87,7 +87,7 @@ public abstract class AbstractServlet extends HttpServlet {
 	 */
 	@Override
 	public String getServletInfo() {
-		return "ocelot.js";
+		return "ocelot-servlet";
 	}// </editor-fold>
 
 }

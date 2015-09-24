@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.*;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
 import org.slf4j.Logger;
@@ -34,6 +35,7 @@ public class OcelotRequestConfiguratorTest {
 	private Logger logger;
 
 	@InjectMocks
+	@Spy
 	private OcelotRequestConfigurator ocelotRequestConfigurator;
 	
 	/**
@@ -43,15 +45,14 @@ public class OcelotRequestConfiguratorTest {
 	public void testModifyHandshakeWithDefaultAccept() {
 		System.out.println("testModifyHandshakeWithDefaultAccept");
 		ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
-		Map<String, Object> userProperties = new HashMap<>();
-		when(sec.getUserProperties()).thenReturn(userProperties);
-		
 		HandshakeRequest request = mock(HandshakeRequest.class);
+		HandshakeResponse response = mock(HandshakeResponse.class);
+		Map<String, Object> userProperties = new HashMap<>();
 		Map<String, List<String>> headers = new HashMap<>();
+		
+		when(sec.getUserProperties()).thenReturn(userProperties);
 		when(request.getHeaders()).thenReturn(headers);
 		
-		HandshakeResponse response = mock(HandshakeResponse.class);
-
 		ocelotRequestConfigurator.modifyHandshake(sec, request, response);
 		Locale result = (Locale) sec.getUserProperties().get(Constants.LOCALE);
 		assertThat(result).isEqualTo(new Locale("en", "US"));
@@ -65,16 +66,15 @@ public class OcelotRequestConfiguratorTest {
 		System.out.println("testModifyHandshake");
 		ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
 		Map<String, Object> userProperties = new HashMap<>();
-		when(sec.getUserProperties()).thenReturn(userProperties);
-		
 		HandshakeRequest request = mock(HandshakeRequest.class);
+		HandshakeResponse response = mock(HandshakeResponse.class);
 		Map<String, List<String>> headers = new HashMap<>();
 		List<String> accepts = Arrays.asList("fr", "fr-FR;q=1");
 		headers.put(HttpHeaders.ACCEPT_LANGUAGE, accepts);
+
+		when(sec.getUserProperties()).thenReturn(userProperties);
 		when(request.getHeaders()).thenReturn(headers);
 		
-		HandshakeResponse response = mock(HandshakeResponse.class);
-
 		ocelotRequestConfigurator.modifyHandshake(sec, request, response);
 		Locale result = (Locale) sec.getUserProperties().get(Constants.LOCALE);
 		assertThat(result).isEqualTo(new Locale("fr", "FR"));

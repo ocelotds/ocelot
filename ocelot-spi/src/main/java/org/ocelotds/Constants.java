@@ -100,4 +100,11 @@ public interface Constants {
 		String JAVASCRIPT = "JS";
 		String HTML = "HTML";
 	}
+	
+	interface Container {
+		String GLASSFISH = "GLASSFISH";
+		String WILDFLY = "WILDFLY";
+		String TOMCAT = "TOMCAT";
+		String TOMEE = "TOMEE";
+	}
 }

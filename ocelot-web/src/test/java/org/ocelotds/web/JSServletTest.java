@@ -14,31 +14,27 @@ import org.apache.catalina.ssi.ByteArrayServletOutputStream;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
-import org.slf4j.Logger;
 
 /**
  *
  * @author hhfrancois
  */
-@RunWith(MockitoJUnitRunner.class)
 public class JSServletTest {
 
-	@Mock
-	private Logger logger;
+	private static final String EXPECTED = "line1;\nline2;\nline3;";
 
-	@InjectMocks
-	private JSServlet jsServlet;
+	private JSServlet jsServlet = new JSServlet();
 	
 	HttpServletRequest request;
 	HttpServletResponse response;
 	
-	public ByteArrayServletOutputStream setUp(String minify, final String ocelotjs, final String ocelotjsmin) throws IOException {
+	public ByteArrayServletOutputStream setUp(String minify) throws IOException {
+		File file = File.createTempFile("ocelot", ".js");
+		try(FileWriter writer = new FileWriter(file)) {
+			writer.write(EXPECTED);
+		}
 		request = mock(HttpServletRequest.class);
 		ServletContext servletContext = mock(ServletContext.class);
 		response = mock(HttpServletResponse.class);
@@ -46,8 +42,8 @@ public class JSServletTest {
 		ByteArrayServletOutputStream out = new ByteArrayServletOutputStream();
 		when(response.getOutputStream()).thenReturn(out);
 		when(request.getServletContext()).thenReturn(servletContext);
-		when(servletContext.getInitParameter(eq(Constants.OCELOT_MIN))).thenReturn(ocelotjsmin);
-		when(servletContext.getInitParameter(eq(Constants.OCELOT))).thenReturn(ocelotjs);
+		when(servletContext.getInitParameter(eq(Constants.OCELOT_MIN))).thenReturn(file.getAbsolutePath());
+		when(servletContext.getInitParameter(eq(Constants.OCELOT))).thenReturn(file.getAbsolutePath());
 		return out;
 	}
 
@@ -57,22 +53,17 @@ public class JSServletTest {
 	 * @throws javax.servlet.ServletException
 	 */
 	@Test
-	public void testDoGet() throws  IOException, ServletException  {
-		System.out.println("doGet");
-		String expected = "line1;\nline2;\nline3;";
-		File file = File.createTempFile("ocelot", ".js");
-		try(FileWriter writer = new FileWriter(file)) {
-			writer.write(expected);
-		}
-		ByteArrayServletOutputStream result = setUp(Constants.FALSE, file.getAbsolutePath(), "none");
+	public void testProcessRequest_MinFalse() throws  IOException, ServletException  {
+		System.out.println("processRequest");
+		ByteArrayServletOutputStream result = setUp(Constants.FALSE);
 		jsServlet.doGet(request, response);
 		ArgumentCaptor<String> captureType = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Integer> captureLength = ArgumentCaptor.forClass(Integer.class);
 		verify(response).setContentType(captureType.capture());
 		verify(response).setContentLength(captureLength.capture());
 		assertThat(captureType.getValue()).isEqualTo(Constants.JSTYPE);
-		assertThat(captureLength.getValue()).isEqualTo((int)file.length());
-		assertThat(new String(result.toByteArray())).isEqualTo(expected);
+		assertThat(captureLength.getValue()).isEqualTo((int)EXPECTED.length());
+		assertThat(new String(result.toByteArray())).isEqualTo(EXPECTED);
 	}
 
 	/**
@@ -81,31 +72,16 @@ public class JSServletTest {
 	 * @throws javax.servlet.ServletException
 	 */
 	@Test
-	public void testDoPost() throws  IOException, ServletException  {
-		System.out.println("doPost");
-		String expected = "line1;line2;line3;";
-		File file = File.createTempFile("ocelot", ".js");
-		try(FileWriter writer = new FileWriter(file)) {
-			writer.write(expected);
-		}
-		ByteArrayServletOutputStream result = setUp(Constants.TRUE, "none", file.getAbsolutePath());
+	public void testProcessRequest_MinTrue() throws  IOException, ServletException  {
+		System.out.println("processRequest");
+		ByteArrayServletOutputStream result = setUp(Constants.TRUE);
 		jsServlet.doPost(request, response);
 		ArgumentCaptor<String> captureType = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Integer> captureLength = ArgumentCaptor.forClass(Integer.class);
 		verify(response).setContentType(captureType.capture());
 		verify(response).setContentLength(captureLength.capture());
 		assertThat(captureType.getValue()).isEqualTo(Constants.JSTYPE);
-		assertThat(captureLength.getValue()).isEqualTo((int)file.length());
-		assertThat(new String(result.toByteArray())).isEqualTo(expected);
-	}
-
-	/**
-	 * Test of getServletInfo method, of class JSServlet.
-	 */
-	@Test
-	public void testGetServletInfo() {
-		System.out.println("getServletInfo");
-		String result = jsServlet.getServletInfo();
-		assertThat(result).isEqualTo("ocelot.js");
+		assertThat(captureLength.getValue()).isEqualTo((int)EXPECTED.length());
+		assertThat(new String(result.toByteArray())).isEqualTo(EXPECTED);
 	}
 }

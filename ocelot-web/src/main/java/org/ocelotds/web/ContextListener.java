@@ -25,6 +25,7 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import org.ocelotds.annotations.ServiceProvider;
 import org.ocelotds.logger.OcelotLogger;
+import org.ocelotds.security.services.SubjectServices;
 import org.slf4j.Logger;
 
 /**
@@ -57,6 +58,9 @@ class ContextListener implements ServletContextListener {
 
 	@Inject
 	private OcelotConfiguration configuration;
+	
+	@Inject 
+	private SubjectServices subjectServices;
 
 	/**
 	 * Init options from InitParameter in web.xml Generate ocelot-services.js and ocelot-services-min.js Generate ocelot-core-min.js
@@ -65,8 +69,10 @@ class ContextListener implements ServletContextListener {
 	 */
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
-		logger.debug("Context initialisation...");
 		ServletContext sc = sce.getServletContext();
+		String serverInfo = sc.getServerInfo();
+		logger.debug("Context '{}' initialisation...", serverInfo);
+		subjectServices.setServerInfo(serverInfo);
 		defineStacktraceConfig(sc);
 		createJsFile(sc);
 		createHtmlFile(sc);

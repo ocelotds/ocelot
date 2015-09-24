@@ -10,11 +10,10 @@ import javax.enterprise.inject.Default;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.util.AnnotationLiteral;
-import javax.inject.Inject;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * fix bug from tomcat about websocket has not native cdi injection
@@ -23,9 +22,7 @@ import org.slf4j.Logger;
  */
 public abstract class CdiBootstrap {
 
-	@Inject
-	@OcelotLogger
-	private Logger logger;
+	private final Logger logger = LoggerFactory.getLogger(CdiBootstrap.class);
 	
 	private final static String BEANMANAGER = "java:comp/env/BeanManager";
 
@@ -42,6 +39,7 @@ public abstract class CdiBootstrap {
 	}
 
 	public <T> T getBean(Class<T> cls) {
+		// return cls.cast(CDI.current().select(cls).get());
 		logger.info("Generate bean {}, from {}, cause native injection doesn't work.", cls, BEANMANAGER);
 		BeanManager bm = getBeanManager();
 		Set<Bean<?>> beans = bm.getBeans(cls, DEFAULT_AT);

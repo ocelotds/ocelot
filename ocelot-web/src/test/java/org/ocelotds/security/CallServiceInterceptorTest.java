@@ -17,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
+import org.ocelotds.security.services.SubjectServices;
 import org.slf4j.Logger;
 
 /**
@@ -28,6 +29,9 @@ public class CallServiceInterceptorTest {
 
 	@Mock
 	private Logger logger;
+
+	@Mock
+	private SubjectServices subjectServices;
 
 	@InjectMocks
 	private CallServiceInterceptor instance;

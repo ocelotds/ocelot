@@ -20,5 +20,5 @@ public class OcelotConfiguration {
 	public void setStacktracelength(int stacktracelength) {
 		this.stacktracelength = stacktracelength;
 	}
-	
+
 }
