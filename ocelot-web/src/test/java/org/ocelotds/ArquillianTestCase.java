@@ -13,8 +13,6 @@ import org.jboss.shrinkwrap.api.container.ClassContainer;
 import org.jboss.shrinkwrap.api.container.ResourceContainer;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Before;
-import org.ocelotds.security.CallService;
-import org.ocelotds.security.CallServiceInterceptor;
 
 /**
  *
@@ -37,7 +35,7 @@ public abstract class ArquillianTestCase {
 				  .addPackages(true, "org.ocelotds.exceptions")
 				  .addPackages(true, "org.ocelotds.marshallers")
 				  .addPackages(true, "org.ocelotds.resolvers")
-				  .addClasses(CallService.class, CallServiceInterceptor.class)
+				  .addPackages(true, "org.ocelotds.security")
 				  .addPackages(true, "org.ocelotds.web")
 				  .addAsManifestResource(new FileAsset(bean), "beans.xml")
 				  .addAsResource(new FileAsset(core), "ocelot-core.js");
