@@ -3,7 +3,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd"
        bean-discovery-mode="all">
-	<interceptors>
-		<class>org.ocelotds.security.CallServiceInterceptor</class>
-	</interceptors>
+	<decorators>
+		<class>org.ocelotds.core.services.CallServiceDecorator</class>
+	</decorators>
 </beans>
