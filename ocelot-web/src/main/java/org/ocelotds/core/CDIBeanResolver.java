@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.web;
+package org.ocelotds.core;
 
 import java.lang.annotation.Annotation;
 import java.util.Set;
@@ -13,33 +13,20 @@ import javax.enterprise.util.AnnotationLiteral;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import org.ocelotds.Constants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * fix bug from tomcat about websocket has not native cdi injection
- * 
+ *
  * @author hhfrancois
  */
-public abstract class CdiBootstrap {
-
-	private final Logger logger = LoggerFactory.getLogger(CdiBootstrap.class);
-	
+public class CDIBeanResolver {
 	private static BeanManager beanManager = null;
-
-	public BeanManager getBeanManager() {
-		if (null == beanManager) {
-			try {
-				beanManager = (BeanManager) getInitialContext().lookup(Constants.BeanManager.BEANMANAGER_ALT);
-			} catch (NamingException e) {
-			}
-		}
-		return beanManager;
-	}
+	
+	/**
+	 * Becareful, don't work if static
+	 */
+	private InitialContext initialContext = null;
 
 	public <T> T getBean(Class<T> cls) {
-		// return cls.cast(CDI.current().select(cls).get()); // TODO : TO TEST 
-		logger.info("Generate bean {}, from {}, cause native injection doesn't work.", cls, Constants.BeanManager.BEANMANAGER_ALT);
 		BeanManager bm = getBeanManager();
 		Set<Bean<?>> beans = bm.getBeans(cls, DEFAULT_AT);
 		Bean<?> b = beans.iterator().next();
@@ -47,12 +34,32 @@ public abstract class CdiBootstrap {
 		return cls.cast(bm.getReference(b, b.getBeanClass(), context));
 	}
 
+	BeanManager getBeanManager() {
+		try {
+			InitialContext ic = getInitialContext();
+			if (null == beanManager) {
+				try {
+					beanManager = (BeanManager) ic.lookup(Constants.BeanManager.BEANMANAGER_JEE); // standart implementation
+				} catch (NamingException e) {
+				}
+			}
+			if (null == beanManager) {
+				beanManager = (BeanManager) ic.lookup(Constants.BeanManager.BEANMANAGER_ALT); // Tomcat implementation
+			}
+		} catch (NamingException e) {
+		} 
+		return beanManager;
+	}
+
 	InitialContext getInitialContext() throws NamingException {
-		return new InitialContext();
+		if(null == initialContext) {
+			initialContext = new InitialContext();
+		}
+		return initialContext;
 	}
 
 	private static final Annotation DEFAULT_AT = new AnnotationLiteral<Default>() {
 		private static final long serialVersionUID = 1L;
 	};
-
+	
 }

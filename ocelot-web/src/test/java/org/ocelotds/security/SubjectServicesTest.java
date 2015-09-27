@@ -4,6 +4,7 @@
 
 package org.ocelotds.security;
 
+import org.ocelotds.security.containers.ContainerSubjectServices;
 import java.security.Principal;
 import javax.enterprise.inject.Instance;
 import javax.security.auth.Subject;
@@ -18,8 +19,8 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.objects.FakeCDI;
-import org.ocelotds.security.impl.GlassfishSubjectServices;
-import org.ocelotds.security.impl.WildflySubjectServices;
+import org.ocelotds.security.containers.GlassfishSubjectServices;
+import org.ocelotds.security.containers.WildflySubjectServices;
 import org.slf4j.Logger;
 
 /**
@@ -60,9 +61,10 @@ public class SubjectServicesTest {
 
 	/**
 	 * Test of getSubject method, of class SubjectServices.
+	 * @throws java.lang.Exception
 	 */
 	@Test
-	public void testGetSubject() {
+	public void testGetSubject() throws Exception {
 		System.out.println("getSubject");
 		ContainerSubjectServices subjectServices = mock(ContainerSubjectServices.class);
 		Subject subject = new Subject();
@@ -77,9 +79,10 @@ public class SubjectServicesTest {
 
 	/**
 	 * Test of setSubject method, of class SubjectServices.
+	 * @throws java.lang.Exception
 	 */
 	@Test
-	public void testSetSubject() {
+	public void testSetSubject() throws Exception {
 		System.out.println("setSubject");
 		ContainerSubjectServices subjectServices = mock(ContainerSubjectServices.class);
 		Subject subject = new Subject();

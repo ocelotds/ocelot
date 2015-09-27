@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.security;
+package org.ocelotds.security.containers;
 
 import java.security.Principal;
 import javax.security.auth.Subject;
@@ -11,8 +11,7 @@ import javax.security.auth.Subject;
  * @author hhfrancois
  */
 public interface ContainerSubjectServices {
-	Subject getSubject();
+	Subject getSubject() throws Exception;
 	
-	void setSubject(Subject subject, Principal principal);
-	
+	void setSubject(Subject subject, Principal principal) throws Exception;
 }

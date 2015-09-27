@@ -30,6 +30,8 @@ import org.ocelotds.test.dataservices.SessionEJBDataService;
 import org.ocelotds.test.dataservices.SingletonEJBDataService;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -64,8 +66,11 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.FileAsset;
+import org.jboss.shrinkwrap.api.container.ClassContainer;
+import org.jboss.shrinkwrap.api.container.ResourceContainer;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.jboss.shrinkwrap.resolver.api.maven.ScopeType;
 import org.jboss.weld.exceptions.UnsatisfiedResolutionException;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -77,9 +82,6 @@ import static org.junit.Assert.fail;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.ocelotds.ArquillianTestCase;
-import org.ocelotds.objects.FakeCDI;
-import org.ocelotds.objects.JsServiceProviderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +90,7 @@ import org.slf4j.LoggerFactory;
  * @author hhfrancois
  */
 @RunWith(Arquillian.class)
-public class OcelotTest extends ArquillianTestCase {
+public class OcelotTest {
 
 	private final static Logger logger = LoggerFactory.getLogger(OcelotTest.class);
 
@@ -130,23 +132,53 @@ public class OcelotTest extends ArquillianTestCase {
 	 * @return
 	 */
 	public static WebArchive createWarArchive() {
-		File[] core = Maven.resolver().resolve("org.ocelotds:ocelot-core:2.4.2-SNAPSHOT").withTransitivity().asFile();
+		File[] imports = Maven.resolver().loadPomFromFile("pom.xml").importDependencies(ScopeType.PROVIDED).resolve().withTransitivity().asFile();
 		File logback = new File("src/test/resources/logback.xml");
 		File localeFr = new File("src/test/resources/test_fr_FR.properties");
 		File localeUs = new File("src/test/resources/test_en_US.properties");
 		WebArchive webArchive = ShrinkWrap.create(WebArchive.class, ctxpath + ".war")
-				  .addAsLibraries(core)
-				  .addAsLibraries(createOcelotWebJar())
+				  .addAsLibraries(imports)
 				  .addPackages(true, OcelotTest.class.getPackage())
-				  .addPackages(true, "org.ocelotds.objects")
-				  .deleteClass(JsServiceProviderImpl.class)
-				  .deleteClass(FakeCDI.class)
-				  .addAsResource(new FileAsset(logback), "logback.xml")
-				  .addAsResource(new FileAsset(localeUs), "test_en_US.properties")
-				  .addAsResource(new FileAsset(localeFr), "test_fr_FR.properties")
+				  .addClass(Result.class)
+				  .addAsResource(logback).addAsResource(localeUs).addAsResource(localeFr)
 				  .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+		addOcelotWebJar(webArchive);
 		addJSAndProvider("target/test-classes", webArchive, webArchive);
 		return webArchive;
+	}
+
+	/**
+	 * Add ocelot-war-xxxxx.jar as library
+	 *
+	 * @param webArchive
+	 */
+	public static void addOcelotWebJar(WebArchive webArchive) {
+		File[] imports = Maven.resolver().resolve("org.ocelotds:ocelot-web:[2,)").withoutTransitivity().asFile();
+		webArchive.addAsLibraries(imports);
+	}
+
+	/**
+	 * Add srv_xxxx.js and srv_xxxx.ServiceProvider.class
+	 *
+	 * @param root
+	 * @param resourceContainer
+	 * @param classContainer
+	 */
+	public static void addJSAndProvider(final String root, ResourceContainer resourceContainer, ClassContainer classContainer) {
+		File classes = new File(root);
+		File[] jsFiles = classes.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File file) {
+				String name = file.getName();
+				return file.isFile() && name.startsWith("srv_") && name.endsWith(".js");
+			}
+		});
+		for (File file : jsFiles) {
+			String jsName = file.getName();
+			String providerPackage = jsName.replaceAll(".js$", "");
+			classContainer.addPackage(providerPackage);
+			resourceContainer.addAsResource(new FileAsset(file), file.getName());
+		}
 	}
 
 	@BeforeClass
@@ -411,6 +443,22 @@ public class OcelotTest extends ArquillianTestCase {
 	}
 
 	/**
+	 * Test instance is reachable
+	 *
+	 * @param clazz
+	 * @param resolverId
+	 */
+	private void testInstanceIsReachable(Class clazz, String resolverId) {
+		IDataServiceResolver resolver = getResolver(resolverId);
+		Object instance = null;
+		try {
+			instance = resolver.resolveDataService(clazz);
+		} catch (DataServiceException ex) {
+		}
+		assertThat(instance).isNotNull().describedAs("Instance not reachable, is null");
+	}
+
+	/**
 	 * Teste de la récupération d'un Singleton On excecute une methode via 2 session distincte sur le même bean. le resultat stocké  l'interieur du bean doit etre identique
 	 *
 	 * @param clazz
@@ -547,7 +595,7 @@ public class OcelotTest extends ArquillianTestCase {
 	}
 
 	/**
-	 * Vérification de la generation du core
+	 * Vérification de la generation du ocelot
 	 */
 	@Test
 	public void testJavascriptGeneration() {
@@ -626,6 +674,7 @@ public class OcelotTest extends ArquillianTestCase {
 	@Test
 	public void testGetEJBSingleton() {
 		System.out.println("getEJBSingleton");
+//		testInstanceIsReachable(SingletonEJBDataService.class, Constants.Resolver.EJB);
 		testInstanceSingletonScope(SingletonEJBDataService.class, Constants.Resolver.EJB);
 	}
 
@@ -935,7 +984,7 @@ public class OcelotTest extends ArquillianTestCase {
 	}
 
 	/**
-	 * Vérifie que l'appel à  une methode inconue remonte bien une erreur adéquate
+	 * Vérifie que l'appel à  une methode inconnue remonte bien une erreur adéquate
 	 */
 	@Test
 	public void testMethodUnknow() {

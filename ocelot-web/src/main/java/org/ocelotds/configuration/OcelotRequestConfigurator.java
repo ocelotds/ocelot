@@ -9,14 +9,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.spi.CDI;
 import javax.security.auth.Subject;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.core.HttpHeaders;
 import org.ocelotds.Constants;
+import org.ocelotds.core.CDIBeanResolver;
 import org.ocelotds.security.SubjectServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +28,8 @@ import org.slf4j.LoggerFactory;
 public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator {
 
 	private final Logger logger = LoggerFactory.getLogger(OcelotRequestConfigurator.class);
+	
+//	private CDIBeanResolver beanResolver = new CDIBeanResolver();
 
 	/**
 	 * Set user information from open websocket
@@ -68,32 +69,9 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 	 * @return 
 	 */
 	Subject getSubject() {
-		SubjectServices subjectServices = getSubjectServices();
+		CDIBeanResolver beanResolver = new CDIBeanResolver();
+		SubjectServices subjectServices = beanResolver.getBean(SubjectServices.class); // getSubjectServices();
 		// get subject from container implementation
 		return (null != subjectServices) ? subjectServices.getSubject() : null;
-	}
-
-	/**
-	 * Get all SubjectServices from container implementation
-	 * 
-	 * @return 
-	 */
-	private Instance<SubjectServices> getAllSubjectServices() {
-		CDI<Object> obj = null;
-		try {
-			obj = CDI.current();
-		} catch (Exception e) {
-		}
-		return (null != obj) ? obj.select(SubjectServices.class) : null;
-	}
-
-	/**
-	 * Get SubjectServices from container implementation
-	 * 
-	 * @return 
-	 */
-	private SubjectServices getSubjectServices() {
-		Instance<SubjectServices> instances = getAllSubjectServices();
-		return (null != instances) ? instances.get() : null;
 	}
 }

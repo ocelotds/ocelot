@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.security.impl;
+package org.ocelotds.security.containers;
 
 import java.security.Principal;
 import javax.security.auth.Subject;
@@ -29,9 +29,10 @@ public class GlassfishSubjectServicesTest {
 
 	/**
 	 * Test of getSetSubject method, of class GlassfishSubjectServices.
+	 * @throws java.lang.Exception
 	 */
 	@Test
-	public void testGetSetSubject() {
+	public void testGetSetSubject() throws Exception {
 		System.out.println("getSubject");
 		Subject expResult = new Subject();
 		Principal principal = mock(Principal.class);

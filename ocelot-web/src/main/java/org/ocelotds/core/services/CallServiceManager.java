@@ -301,18 +301,6 @@ public class CallServiceManager implements CallService {
 		}
 	}
 
-	void defineContextOnThread(Session session) {
-		logger.debug("Define context on Thread");
-		Map<String, Object> sessionProperties = session.getUserProperties();
-		// Get subject from config and set in session
-		final Principal principal = (Principal) sessionProperties.get(Constants.PRINCIPAL);
-		ThreadLocalContextHolder.put(Constants.PRINCIPAL, principal);
-		final Locale locale = (Locale) sessionProperties.get(Constants.LOCALE);
-		ThreadLocalContextHolder.put(Constants.LOCALE, locale);
-		final Subject subject = (Subject) sessionProperties.get(Constants.SUBJECT);
-		subjectServices.setSubject(subject, principal);
-	}
-
 	/**
 	 * Build and send response messages after call request
 	 *
@@ -321,7 +309,6 @@ public class CallServiceManager implements CallService {
 	 */
 	@Override
 	public void sendMessageToClient(MessageFromClient message, Session client) {
-//		defineContextOnThread(client);
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(message.getId());
 		try {
