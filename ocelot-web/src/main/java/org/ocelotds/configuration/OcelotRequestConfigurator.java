@@ -17,7 +17,7 @@ import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.core.HttpHeaders;
 import org.ocelotds.Constants;
-import org.ocelotds.security.services.SubjectServices;
+import org.ocelotds.security.SubjectServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
