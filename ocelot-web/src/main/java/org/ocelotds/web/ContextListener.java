@@ -25,7 +25,7 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import org.ocelotds.annotations.ServiceProvider;
 import org.ocelotds.logger.OcelotLogger;
-import org.ocelotds.security.services.SubjectServices;
+import org.ocelotds.security.SubjectServices;
 import org.slf4j.Logger;
 
 /**
