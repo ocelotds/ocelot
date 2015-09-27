@@ -25,7 +25,7 @@ import org.ocelotds.configuration.OcelotConfiguration;
 import org.ocelotds.objects.FakeCDI;
 import org.ocelotds.objects.HtmlServiceProviderImpl;
 import org.ocelotds.objects.JsServiceProviderImpl;
-import org.ocelotds.security.services.SubjectServices;
+import org.ocelotds.security.SubjectServices;
 import org.slf4j.Logger;
 
 /**
