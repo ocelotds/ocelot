@@ -7,7 +7,7 @@ package org.ocelotds.web;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.Constants;
 import org.ocelotds.configuration.OcelotRequestConfigurator;
-import org.ocelotds.core.CallServiceManager;
+import org.ocelotds.core.services.CallServiceManager;
 import org.ocelotds.encoders.MessageToClientEncoder;
 import java.io.IOException;
 import org.ocelotds.messaging.MessageFromClient;
