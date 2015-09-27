@@ -107,4 +107,9 @@ public interface Constants {
 		String TOMCAT = "TOMCAT";
 		String TOMEE = "TOMEE";
 	}
+	
+	interface BeanManager {
+		String BEANMANAGER_JEE = "java:comp/BeanManager";
+		String BEANMANAGER_ALT = "java:comp/env/BeanManager";
+	}
 }
