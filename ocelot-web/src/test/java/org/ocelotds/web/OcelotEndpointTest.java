@@ -20,7 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
-import org.ocelotds.core.CallServiceManager;
+import org.ocelotds.core.services.CallServiceManager;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.messaging.MessageFromClient;
 import org.slf4j.Logger;
