@@ -26,8 +26,7 @@ public class CDIBeanResolverTest {
 		CDIBeanResolver instance = spy(new CDIBeanResolver());
 		InitialContext ic = mock(InitialContext.class);
 
-//		doReturn(ic).when(instance).getInitialContext();
-		when(instance.getInitialContext()).thenReturn(ic);
+		doReturn(ic).when(instance).getInitialContext();
 		when(ic.lookup(anyString())).thenThrow(NamingException.class).thenThrow(NamingException.class);
 
 		BeanManager result = instance.getBeanManager();
