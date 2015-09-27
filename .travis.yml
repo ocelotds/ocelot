@@ -27,5 +27,5 @@ addons:
       notification_email: "francois.achache@gmail.com"
       build_command_prepend: "mvn clean"
       build_command: "mvn compile -DskipTests=true -Dgpg.skip=true"
-      branch_pattern: master
+      branch_pattern: coverity_scan
 
