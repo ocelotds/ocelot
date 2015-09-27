@@ -78,6 +78,23 @@ public class SubjectServicesTest {
 	}
 
 	/**
+	 * Test of getSubject method, of class SubjectServices.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	public void testGetSubjectNull() throws Exception {
+		System.out.println("getSubject");
+		ContainerSubjectServices subjectServices = mock(ContainerSubjectServices.class);
+
+		doReturn(subjectServices).when(instance).getContainerSubjectServices();
+		when(subjectServices.getSubject()).thenThrow(Exception.class);
+		
+		Subject result = instance.getSubject();
+		
+		assertThat(result).isNull();
+	}
+
+	/**
 	 * Test of setSubject method, of class SubjectServices.
 	 * @throws java.lang.Exception
 	 */
@@ -99,4 +116,20 @@ public class SubjectServicesTest {
 		assertThat(capturePrincipal.getValue()).isEqualTo(principal);
 	}
 
+	/**
+	 * Test of setSubject method, of class SubjectServices.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	public void testNoSetSubject() throws Exception {
+		System.out.println("setSubject");
+		ContainerSubjectServices subjectServices = mock(ContainerSubjectServices.class);
+		Subject subject = new Subject();
+		Principal principal = mock(Principal.class);
+
+		doReturn(subjectServices).when(instance).getContainerSubjectServices();
+		doThrow(Exception.class).when(subjectServices).setSubject(subject, principal);
+
+		instance.setSubject(subject, principal);
+	}
 }
