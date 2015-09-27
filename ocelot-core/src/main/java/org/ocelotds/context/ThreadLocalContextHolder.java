@@ -18,10 +18,18 @@ public class ThreadLocalContextHolder {
 	}
 
 	public static void put(String key, Object payload) {
-		if (THREAD_WITH_CONTEXT.get() == null) {
-			THREAD_WITH_CONTEXT.set(new HashMap<String, Object>());
+		Map<String, Object> context = THREAD_WITH_CONTEXT.get();
+		if (context == null) {
+			context = new HashMap<>();
+			THREAD_WITH_CONTEXT.set(context);
 		}
-		THREAD_WITH_CONTEXT.get().put(key, payload);
+		if(null == payload) {
+			if(context.containsKey(key)) {
+				context.remove(key);
+			}
+		} else {
+			context.put(key, payload);
+		}
 	}
 
 	public static Object get(String key) {
