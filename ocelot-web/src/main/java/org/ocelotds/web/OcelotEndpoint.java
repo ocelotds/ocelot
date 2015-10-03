@@ -55,7 +55,7 @@ public class OcelotEndpoint {
 		Map<String, Object> configProperties = config.getUserProperties();
 		Map<String, Object> sessionProperties = session.getUserProperties();
 		// Get subject from config and set in session, only one time by connexion
-		sessionProperties.put(Constants.SUBJECT, configProperties.get(Constants.SUBJECT));
+		sessionProperties.put(Constants.SECURITY_CONTEXT, configProperties.get(Constants.SECURITY_CONTEXT));
 		sessionProperties.put(Constants.LOCALE, configProperties.get(Constants.LOCALE));
 		sessionProperties.put(Constants.PRINCIPAL, configProperties.get(Constants.PRINCIPAL));
 	}
