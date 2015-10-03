@@ -38,11 +38,35 @@ if ("WebSocket" in window) {
          return evt;
       }
       function stateUpdated() {
-         var response, promise = promises[STATUS];
-         if (promise) {
-            response = createMessageEventFromPromise(promise, ocelotController.status);
+         foreachPromiseInPromisesDo(STATUS, function(promise) {
+            var response = createMessageEventFromPromise(promise, ocelotController.status);
             promise.response = response;
+         }); 
+      }
+      function foreachPromiseInPromisesDo(id, func) {
+         foreachPromiseDo(getPromises(id), func);
+      }
+      function foreachPromiseDo(aPromises, func) {
+         var i;
+         if(aPromises) {
+            for(i = 0; i < aPromises.length; i++) {
+               func(aPromises[i]);
+            }
          }
+      }
+      function addPromiseToId(promise, id) { // add promise to promise list and return if some promises exists already for id
+         var exists = (promises[id] !== undefined);
+         if(!exists) {
+            promises[id] = [];
+         }
+         promises[id].push(promise);
+         return exists;
+      }
+      function clearPromisesForId(id) {
+         delete promises[id];
+      }
+      function getPromises(id) {
+         return promises[id] || [];
       }
       function isTopicSubscription(promise, topic) {
          if (promise.dataservice === OSRV && promise.operation === SUB) {
@@ -70,29 +94,33 @@ if ("WebSocket" in window) {
             ws = new WebSocket("%WSS%://" + host + "/ocelot-endpoint");
          }
          ws.onmessage = function (evt) {
-            var response, msgToClient = JSON.parse(evt.data), promise = promises[msgToClient.id];
-            if (!promise) {
-               return;
-            }
-            if (msgToClient.type === FAULT) {
-               response = createFaultEventFromPromise(promise, msgToClient.response);
-               delete promises[msgToClient.id];
-            } else if (msgToClient.type === RES) {
-               // if msg is response of subscribe request
-               if (isTopicSubscription(promise)) {
-                  promises[promise.args[0]] = promise;
-               }
-               else if (isTopicUnsubscription(promise)) {
-                  delete promises[promise.args[0]];
-               }
+            var idx, response, msgToClient = JSON.parse(evt.data), promise, apromise = getPromises(msgToClient.id);
+            if (msgToClient.type === RES) { // maybe should be store result in cache
                // if msgToClient has dead line so we stock in cache
                ocelotController.cacheManager.putResultInCache(msgToClient);
-               response = createResultEventFromPromise(promise, msgToClient.response);
-               delete promises[msgToClient.id];
-            } else if (msgToClient.type === MSG) {
-               response = createMessageEventFromPromise(promise, msgToClient.response);
             }
-            promise.response = response;
+            for (idx = 0; idx < apromise.length; idx++) {
+               promise = apromise[idx];
+               if (msgToClient.type === FAULT) {
+                  response = createFaultEventFromPromise(promise, msgToClient.response);
+               } else if (msgToClient.type === RES) {
+                  // if msg is response of subscribe request
+                  if (isTopicSubscription(promise)) {
+                     addPromiseToId(promise, promise.args[0]);
+                  }
+                  else if (isTopicUnsubscription(promise)) {
+                     clearPromisesForId(promise.args[0]);
+                  }
+                  response = createResultEventFromPromise(promise, msgToClient.response);
+               } else if (msgToClient.type === MSG) {
+                  response = createMessageEventFromPromise(promise, msgToClient.response);
+               }
+               promise.response = response;
+            }
+            // when receive result or fault, remove handlers, except for topic
+            if(msgToClient.type !== MSG) {
+               clearPromisesForId(msgToClient.id);
+            }
          };
          ws.onopen = function (evt) {
             console.info("Websocket opened");
@@ -103,7 +131,7 @@ if ("WebSocket" in window) {
                promises = {};
                Object.keys(ps).forEach(function (id, index, array) {
                   if (id !== ps[id].id) {
-                     ocelotController.addPromise(ps[id]);
+                     foreachPromiseDo(ps[id], ocelotController.addPromise);
                   }
                });
                while (handler = openHandlers.shift()) { // launch open handlers
@@ -181,12 +209,12 @@ if ("WebSocket" in window) {
          },
          addPromise: function (promise) {
             if (isTopicSubscription(promise, STATUS)) {
-               promises[STATUS] = promise;
+               addPromiseToId(promise, STATUS);
                stateUpdated();
                return;
             }
             if (isTopicUnsubscription(promise, STATUS)) {
-               delete promises[STATUS];
+               clearPromisesForId(STATUS);
                return;
             }
             // check entry cache
@@ -198,8 +226,9 @@ if ("WebSocket" in window) {
             }
             // else call
             if (ws.readyState === 1) {
-               promises[promise.id] = promise;
-               ws.send(JSON.stringify(promise.json));
+               if(!addPromiseToId(promise, promise.id)) {
+                  ws.send(JSON.stringify(promise.json));
+               }
             } else {
                promise.response = createMessageEventFromPromise(promise, {"classname": "none", "message": "Websocket is not ready : status " + status, "stacktrace": []});
             }
@@ -399,7 +428,7 @@ if ("WebSocket" in window) {
                   }
                }
                var promise = {
-                  id: id, dataservice: ds, operation: op, args: args, argNames: argNames, cacheIgnored: false,
+                  id: id, key: id, dataservice: ds, operation: op, args: args, argNames: argNames, cacheIgnored: false,
                   set response(e) {
                      evt = e;
                      process(e);
