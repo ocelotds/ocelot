@@ -3,15 +3,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.security.containers;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.security.Principal;
 import javax.inject.Inject;
 import javax.security.auth.Subject;
 import org.ocelotds.Constants;
 import org.ocelotds.logger.OcelotLogger;
 import org.ocelotds.annotations.ContainerQualifier;
+import org.ocelotds.security.SecurityContext;
 import org.slf4j.Logger;
 
 /**
@@ -21,32 +19,48 @@ import org.slf4j.Logger;
 @ContainerQualifier(Constants.Container.GLASSFISH)
 public class GlassfishSubjectServices implements ContainerSubjectServices {
 	
-	private static final String SECURIT_CONTEXT = "com.sun.enterprise.security.SecurityContext";
-
 	@Inject
 	@OcelotLogger
 	private Logger logger;
 
 	@Override
-	public Subject getSubject() throws Exception {
-		Subject subject = null;
-		Class<?> secuCtxClass = Class.forName(SECURIT_CONTEXT);
-		Method getCurrent = secuCtxClass.getMethod("getCurrent");
-		Object current = getCurrent.invoke(null);
-		Method getSubject = current.getClass().getMethod("getSubject");
-		subject = (Subject) getSubject.invoke(current);
-		logger.debug("Use glassfish implementation for get security context");
-		return subject;
+	public SecurityContext getSecurityContext() {
+		com.sun.enterprise.security.SecurityContext current = com.sun.enterprise.security.SecurityContext.getCurrent();
+		return new GlassfishSecurityContext(current.getCallerPrincipal(), current.getSubject());
 	}
 
 	@Override
-	public void setSubject(Subject subject, Principal principal) throws Exception {
-		Class<?> secuCtxClass = Class.forName(SECURIT_CONTEXT);
-		Constructor constructor = secuCtxClass.getConstructor(Subject.class);
-		Object secuCtx = constructor.newInstance(subject); // SecurityContext secuCtx = new SecurityContext(subject);
-		Method setCurrent = secuCtxClass.getMethod("setCurrent", secuCtxClass);
-		setCurrent.invoke(null, secuCtx); // SecurityContext.setCurrent(secuCtx);
-		logger.debug("Use glassfish implementation for set security context");
+	public void setSecurityContext(SecurityContext securityContext) {
+		com.sun.enterprise.security.SecurityContext context = new com.sun.enterprise.security.SecurityContext(securityContext.getSubject());
+		com.sun.enterprise.security.SecurityContext.setCurrent(context);
 	}
 	
+	/**
+	 * private glassfish implementation
+	 */
+	static class GlassfishSecurityContext implements org.ocelotds.security.SecurityContext {
+
+		private final Principal principal;
+		private final Subject subject;
+
+		public GlassfishSecurityContext(Principal principal, Subject subject) {
+			this.principal = principal;
+			this.subject = subject;
+		}
+		
+
+		@Override
+		public Principal getPrincipal() {
+			return principal;
+		}
+
+		@Override
+		public Subject getSubject() {
+			return subject;
+		}
+		@Override
+		public String toString() {
+			return "{\"principal\":"+principal+",\"subject\":"+subject+"}";
+		}
+	}
 }
