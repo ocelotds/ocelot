@@ -52,7 +52,7 @@ public class CallServiceDecoratorTest {
 		Locale l = new Locale("fr", "FR");
 		sessionProperties.put(Constants.PRINCIPAL, p);
 		sessionProperties.put(Constants.LOCALE, l);
-		sessionProperties.put(Constants.SUBJECT, null);
+		sessionProperties.put(Constants.SECURITY_CONTEXT, null);
 
 		when(session.getUserProperties()).thenReturn(sessionProperties);
 		

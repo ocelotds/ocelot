@@ -202,6 +202,21 @@ public class ContextListenerTest {
 	}
 
 	/**
+	 * Test of setInitParameterAnMinifyJs method, of class ContextListener.
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testSetInitParameterAnMinifyJs() throws IOException {
+		ServletContext sc = mock(ServletContext.class);
+		File file = mock(File.class);
+		when(file.getAbsolutePath()).thenReturn("path");
+		contextListener.setInitParameterAnMinifyJs(sc, file, "str1", "str2");
+		ArgumentCaptor<String> captureLog = ArgumentCaptor.forClass(String.class);
+		verify(logger).error(captureLog.capture());
+		assertThat(captureLog.getValue()).isEqualTo("Minification from str1 to str2 failed. minify version will be equals to normal version.");
+	}
+
+	/**
 	 * Test of createOcelotJsFile method, of class ContextListener.
 	 * @throws java.io.IOException
 	 */

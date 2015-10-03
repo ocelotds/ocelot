@@ -4,12 +4,19 @@
 
 package org.ocelotds.security.containers;
 
+import java.security.Principal;
+import java.security.acl.Group;
+import javax.security.auth.Subject;
+import org.glassfish.grizzly.http.server.GrizzlyPrincipal;
+import org.jboss.security.SimpleGroup;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.security.SecurityContext;
 import org.slf4j.Logger;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  *
@@ -28,14 +35,18 @@ public class WildflySubjectServicesTest {
 	 * Test of getSetSubject method, of class WildflySubjectServices.
 	 */
 	@Test
-	public void testGetSetSubject() {
-		System.out.println("getSubject");
-//		Subject expResult = new Subject();
-//		Principal principal = new AnybodyPrincipal();
-//		expResult.getPrincipals().add(principal);
-//		instance.setSubject(expResult, principal);
-//		Subject result = instance.getSubject();
-//		assertThat(result).isEqualTo(expResult);
+	public void testGetSetSecurityContext() {
+		System.out.println("getSecurityContext");
+		Principal p = new GrizzlyPrincipal("demouser");
+		Group g = new SimpleGroup("GROUPNAME");
+		Subject subject = new Subject();
+		subject.getPrincipals().add(p);
+		subject.getPrincipals().add(g);
+		SecurityContext expResult = new WildflySubjectServices.WildflySecurityContext(p, subject, null);
+		instance.setSecurityContext(expResult);
+		SecurityContext result = instance.getSecurityContext();
+//		assertThat(result.getPrincipal()).isEqualTo(expResult.getPrincipal());
+//		assertThat(result.getSubject()).isEqualTo(expResult.getSubject());
 	}
 
 }

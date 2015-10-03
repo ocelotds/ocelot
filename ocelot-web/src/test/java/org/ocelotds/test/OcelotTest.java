@@ -31,7 +31,6 @@ import org.ocelotds.test.dataservices.SingletonEJBDataService;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -132,17 +131,17 @@ public class OcelotTest {
 	 * @return
 	 */
 	public static WebArchive createWarArchive() {
-		File[] imports = Maven.resolver().loadPomFromFile("pom.xml").importDependencies(ScopeType.PROVIDED).resolve().withTransitivity().asFile();
+//		File[] imports = Maven.resolver().loadPomFromFile("pom.xml").importDependencies(ScopeType.PROVIDED).resolve().withTransitivity().asFile();
 		File logback = new File("src/test/resources/logback.xml");
 		File localeFr = new File("src/test/resources/test_fr_FR.properties");
 		File localeUs = new File("src/test/resources/test_en_US.properties");
 		WebArchive webArchive = ShrinkWrap.create(WebArchive.class, ctxpath + ".war")
-				  .addAsLibraries(imports)
+//				  .addAsLibraries(imports)
 				  .addPackages(true, OcelotTest.class.getPackage())
 				  .addClass(Result.class)
 				  .addAsResource(logback).addAsResource(localeUs).addAsResource(localeFr)
 				  .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
-		addOcelotWebJar(webArchive);
+		addOcelotJar(webArchive);
 		addJSAndProvider("target/test-classes", webArchive, webArchive);
 		return webArchive;
 	}
@@ -152,8 +151,8 @@ public class OcelotTest {
 	 *
 	 * @param webArchive
 	 */
-	public static void addOcelotWebJar(WebArchive webArchive) {
-		File[] imports = Maven.resolver().resolve("org.ocelotds:ocelot-web:[2,)").withoutTransitivity().asFile();
+	public static void addOcelotJar(WebArchive webArchive) {
+		File[] imports = Maven.resolver().resolve("org.ocelotds:ocelot-web:[2,)", "org.ocelotds:ocelot-core:[2,)").withTransitivity().asFile();
 		webArchive.addAsLibraries(imports);
 	}
 

@@ -64,72 +64,68 @@ public class SubjectServicesTest {
 	 * @throws java.lang.Exception
 	 */
 	@Test
-	public void testGetSubject() throws Exception {
-		System.out.println("getSubject");
+	public void testGetSecurityContext() throws Exception {
+		System.out.println("getSecurityContext");
 		ContainerSubjectServices subjectServices = mock(ContainerSubjectServices.class);
-		Subject subject = new Subject();
+		SecurityContext securityContext = mock(SecurityContext.class);
 
 		doReturn(subjectServices).when(instance).getContainerSubjectServices();
-		when(subjectServices.getSubject()).thenReturn(subject);
+		when(subjectServices.getSecurityContext()).thenReturn(securityContext);
 		
-		Subject result = instance.getSubject();
+		SecurityContext result = instance.getSecurityContext();
 		
-		assertThat(result).isEqualTo(subject);
+		assertThat(result).isEqualTo(securityContext);
 	}
 
 	/**
-	 * Test of getSubject method, of class SubjectServices.
+	 * Test of getSecurityContext method, of class SubjectServices.
 	 * @throws java.lang.Exception
 	 */
 	@Test
-	public void testGetSubjectNull() throws Exception {
-		System.out.println("getSubject");
+	public void testGetSecurityContextNull() throws Exception {
+		System.out.println("getSecurityContext");
 		ContainerSubjectServices subjectServices = mock(ContainerSubjectServices.class);
 
 		doReturn(subjectServices).when(instance).getContainerSubjectServices();
-		when(subjectServices.getSubject()).thenThrow(Exception.class);
+		when(subjectServices.getSecurityContext()).thenThrow(Exception.class);
 		
-		Subject result = instance.getSubject();
+		SecurityContext result = instance.getSecurityContext();
 		
 		assertThat(result).isNull();
 	}
 
 	/**
-	 * Test of setSubject method, of class SubjectServices.
+	 * Test of setSecurityContext method, of class SubjectServices.
 	 * @throws java.lang.Exception
 	 */
 	@Test
-	public void testSetSubject() throws Exception {
-		System.out.println("setSubject");
+	public void testSetSecurityContext() throws Exception {
+		System.out.println("setSecurityContext");
 		ContainerSubjectServices subjectServices = mock(ContainerSubjectServices.class);
-		Subject subject = new Subject();
-		Principal principal = mock(Principal.class);
+		SecurityContext securityContext = mock(SecurityContext.class);
 
 		doReturn(subjectServices).when(instance).getContainerSubjectServices();
-		instance.setSubject(subject, principal);
+		instance.setSecurityContext(securityContext);
 
-		ArgumentCaptor<Subject> captureSubject = ArgumentCaptor.forClass(Subject.class);
-		ArgumentCaptor<Principal> capturePrincipal = ArgumentCaptor.forClass(Principal.class);
-		verify(subjectServices).setSubject(captureSubject.capture(), capturePrincipal.capture());
+		ArgumentCaptor<SecurityContext> captureSecurityContext = ArgumentCaptor.forClass(SecurityContext.class);
+		verify(subjectServices).setSecurityContext(captureSecurityContext.capture());
 
-		assertThat(captureSubject.getValue()).isEqualTo(subject);
-		assertThat(capturePrincipal.getValue()).isEqualTo(principal);
+		assertThat(captureSecurityContext.getValue()).isEqualTo(securityContext);
 	}
 
 	/**
-	 * Test of setSubject method, of class SubjectServices.
+	 * Test of setSecurityContext method, of class SubjectServices.
 	 * @throws java.lang.Exception
 	 */
 	@Test
-	public void testNoSetSubject() throws Exception {
-		System.out.println("setSubject");
+	public void testNoSetSecurityContext() throws Exception {
+		System.out.println("setSecurityContext");
 		ContainerSubjectServices subjectServices = mock(ContainerSubjectServices.class);
-		Subject subject = new Subject();
-		Principal principal = mock(Principal.class);
+		SecurityContext securityContext = mock(SecurityContext.class);
 
 		doReturn(subjectServices).when(instance).getContainerSubjectServices();
-		doThrow(Exception.class).when(subjectServices).setSubject(subject, principal);
+		doThrow(Exception.class).when(subjectServices).setSecurityContext(securityContext);
 
-		instance.setSubject(subject, principal);
+		instance.setSecurityContext(securityContext);
 	}
 }
