@@ -68,11 +68,11 @@ public class SubjectServices {
 	 *
 	 * @return
 	 */
-	public Subject getSubject() {
+	public SecurityContext getSecurityContext() {
 		ContainerSubjectServices c = getContainerSubjectServices();
 		try {
 			if (c != null) {
-				return c.getSubject();
+				return c.getSecurityContext();
 			}
 		} catch (Exception ex) {
 		}
@@ -82,16 +82,16 @@ public class SubjectServices {
 	/**
 	 * set current Subject using the container implementation
 	 *
-	 * @param subject
-	 * @param principal
+	 * @param securityContext
 	 */
-	public void setSubject(Subject subject, Principal principal) {
+	public void setSecurityContext(SecurityContext securityContext) {
 		ContainerSubjectServices c = getContainerSubjectServices();
 		try {
 			if (c != null) {
-				c.setSubject(subject, principal);
+				c.setSecurityContext(securityContext);
 			}
 		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 	}
 }
