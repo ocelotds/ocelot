@@ -3,15 +3,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.security.containers;
 
-import java.security.Principal;
-import javax.security.auth.Subject;
+import org.ocelotds.security.SecurityContext;
 
 /**
  *
  * @author hhfrancois
  */
 public interface ContainerSubjectServices {
-	Subject getSubject() throws Exception;
-	
-	void setSubject(Subject subject, Principal principal) throws Exception;
+	SecurityContext getSecurityContext();
+	void setSecurityContext(SecurityContext securityContext);
 }
