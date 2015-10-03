@@ -14,11 +14,11 @@ public interface Constants {
 	String ALGORITHM = "MD5";
 	String UTF_8 = "UTF-8";
 	String JS = ".js";
-	String HTML = ".html";
+	String HTML = ".htm";
 	String SLASH = "/";
 	String BACKSLASH_N = "\n";
 	String LOCALE = "LOCALE";
-	String SUBJECT = "SUBJECT";
+	String SECURITY_CONTEXT = "SECURITYCONTEXT";
 	String PRINCIPAL = "PRINCIPAL";
 	String ANONYMOUS = "ANONYMOUS";
 
