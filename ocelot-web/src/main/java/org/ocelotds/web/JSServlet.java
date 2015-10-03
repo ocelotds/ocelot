@@ -7,6 +7,7 @@ package org.ocelotds.web;
 import org.ocelotds.Constants;
 import java.io.IOException;
 import javax.inject.Inject;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -39,9 +40,10 @@ public class JSServlet extends AbstractServlet {
 	@Override
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String minify = request.getParameter(Constants.MINIFY_PARAMETER);
-		String filename = request.getServletContext().getInitParameter(Constants.OCELOT_MIN);
+		final ServletContext servletContext = request.getServletContext();
+		String filename = servletContext.getInitParameter(Constants.OCELOT_MIN);
 		if (Constants.FALSE.equalsIgnoreCase(minify)) {
-			filename = request.getServletContext().getInitParameter(Constants.OCELOT);
+			filename = servletContext.getInitParameter(Constants.OCELOT);
 		}
 		processFile(filename, Constants.JSTYPE, request, response);
 	}
