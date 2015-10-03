@@ -26,18 +26,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.security.Principal;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import javax.security.auth.Subject;
 import javax.websocket.Session;
-import org.ocelotds.Constants;
-import org.ocelotds.context.ThreadLocalContextHolder;
 import org.ocelotds.core.CacheManager;
 import org.ocelotds.core.Cleaner;
 import org.ocelotds.core.MethodWithSessionInjection;
@@ -45,7 +40,6 @@ import org.ocelotds.logger.OcelotLogger;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
-import org.ocelotds.security.SubjectServices;
 import org.slf4j.Logger;
 
 /**
@@ -71,9 +65,6 @@ public class CallServiceManager implements CallService {
 
 	@Inject
 	private CacheManager cacheManager;
-
-	@Inject
-	SubjectServices subjectServices;
 
 	IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
