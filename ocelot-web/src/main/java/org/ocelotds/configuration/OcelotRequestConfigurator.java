@@ -9,13 +9,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.security.auth.Subject;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.core.HttpHeaders;
 import org.ocelotds.Constants;
 import org.ocelotds.core.CDIBeanResolver;
+import org.ocelotds.security.SecurityContext;
 import org.ocelotds.security.SubjectServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +57,7 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 			}
 		}
 		// init from request only on openHandler
-		sec.getUserProperties().put(Constants.SUBJECT, getSubject());
+		sec.getUserProperties().put(Constants.SECURITY_CONTEXT, getSecurityContext());
 		sec.getUserProperties().put(Constants.LOCALE, locale);
 		sec.getUserProperties().put(Constants.PRINCIPAL, request.getUserPrincipal());
 		super.modifyHandshake(sec, request, response);
@@ -68,10 +68,10 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 	 * 
 	 * @return 
 	 */
-	Subject getSubject() {
+	SecurityContext getSecurityContext() {
 		CDIBeanResolver beanResolver = new CDIBeanResolver();
 		SubjectServices subjectServices = beanResolver.getBean(SubjectServices.class); // getSubjectServices();
-		// get subject from container implementation
-		return (null != subjectServices) ? subjectServices.getSubject() : null;
+		// get SecurityContext from container implementation
+		return (null != subjectServices) ? subjectServices.getSecurityContext(): null;
 	}
 }
