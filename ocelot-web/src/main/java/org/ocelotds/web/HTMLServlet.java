@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author hhfrancois
  */
-@WebServlet(urlPatterns = {"/ocelot.htm"})
+@WebServlet(urlPatterns = {Constants.SLASH_OCELOT_HTML})
 public class HTMLServlet extends AbstractServlet {
 
 	private static final long serialVersionUID = 1973549844535787671L;
