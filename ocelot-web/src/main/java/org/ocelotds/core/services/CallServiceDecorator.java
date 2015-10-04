@@ -17,7 +17,7 @@ import org.ocelotds.context.ThreadLocalContextHolder;
 import org.ocelotds.logger.OcelotLogger;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.security.SecurityContext;
-import org.ocelotds.security.SubjectServices;
+import org.ocelotds.security.SecurityServices;
 import org.slf4j.Logger;
 
 /**
@@ -37,7 +37,7 @@ public abstract class CallServiceDecorator implements CallService {
 	private Logger logger;
 
 	@Inject
-	SubjectServices subjectServices;
+	SecurityServices subjectServices;
 
 	@Override
 	public void sendMessageToClient(MessageFromClient message, Session session) {

@@ -25,7 +25,7 @@ import org.ocelotds.configuration.OcelotConfiguration;
 import org.ocelotds.objects.FakeCDI;
 import org.ocelotds.objects.HtmlServiceProviderImpl;
 import org.ocelotds.objects.JsServiceProviderImpl;
-import org.ocelotds.security.SubjectServices;
+import org.ocelotds.security.SecurityServices;
 import org.slf4j.Logger;
 
 /**
@@ -50,7 +50,7 @@ public class ContextListenerTest {
 	private OcelotConfiguration configuration;
 
 	@Mock 
-	private SubjectServices subjectServices;
+	private SecurityServices subjectServices;
 
 	@Spy
 	private Instance<IServicesProvider> jsServicesProviders = new FakeCDI<>();

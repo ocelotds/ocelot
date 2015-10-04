@@ -9,7 +9,7 @@ import org.ocelotds.security.SecurityContext;
  *
  * @author hhfrancois
  */
-public interface ContainerSubjectServices {
+public interface ContainerSecurityServices {
 	SecurityContext getSecurityContext();
 	void setSecurityContext(SecurityContext securityContext);
 }

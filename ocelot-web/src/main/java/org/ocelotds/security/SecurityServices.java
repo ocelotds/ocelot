@@ -3,14 +3,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.security;
 
-import org.ocelotds.security.containers.ContainerSubjectServices;
-import java.security.Principal;
+import org.ocelotds.security.containers.ContainerSecurityServices;
 import java.util.regex.Pattern;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.security.auth.Subject;
+import org.ocelotds.Constants;
 import org.ocelotds.annotations.ContainerQualifier;
 import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
@@ -20,17 +19,21 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 @Singleton
-public class SubjectServices {
+public class SecurityServices {
 
 	@Any
 	@Inject
-	private Instance<ContainerSubjectServices> instances;
+	private Instance<ContainerSecurityServices> instances;
+
+	@Inject
+	@ContainerQualifier(Constants.Container.UNKNOWN)
+	private ContainerSecurityServices unknown;
 
 	@Inject
 	@OcelotLogger
 	private Logger logger;
 
-	private ContainerSubjectServices current = null;
+	private ContainerSecurityServices current = null;
 
 	/**
 	 * Define the current provider for the current container
@@ -38,7 +41,7 @@ public class SubjectServices {
 	 * @param serverInfo
 	 */
 	public void setServerInfo(String serverInfo) {
-		for (ContainerSubjectServices instance : instances) {
+		for (ContainerSecurityServices instance : instances) {
 			ContainerQualifier annotation = instance.getClass().getAnnotation(ContainerQualifier.class);
 			String name = annotation.value();
 			logger.debug("Container vendor {} candidate", name);
@@ -50,16 +53,17 @@ public class SubjectServices {
 			}
 		}
 		if (null == current) {
+			current = unknown;
 			logger.info("No ContainerSubjectServices implementation found in classpath for server '{}'. Implement it or contact ocelot team leader for implements it.", serverInfo);
 		}
 	}
 
 	/**
-	 * get current ContainerSubjectServices using the container implementation
+	 * get current ContainerSecurityServices using the container implementation
 	 *
 	 * @return
 	 */
-	public ContainerSubjectServices getContainerSubjectServices() {
+	ContainerSecurityServices getContainerSubjectServices() {
 		return current;
 	}
 
@@ -69,7 +73,7 @@ public class SubjectServices {
 	 * @return
 	 */
 	public SecurityContext getSecurityContext() {
-		ContainerSubjectServices c = getContainerSubjectServices();
+		ContainerSecurityServices c = getContainerSubjectServices();
 		try {
 			if (c != null) {
 				return c.getSecurityContext();
@@ -85,7 +89,7 @@ public class SubjectServices {
 	 * @param securityContext
 	 */
 	public void setSecurityContext(SecurityContext securityContext) {
-		ContainerSubjectServices c = getContainerSubjectServices();
+		ContainerSecurityServices c = getContainerSubjectServices();
 		try {
 			if (c != null) {
 				c.setSecurityContext(securityContext);

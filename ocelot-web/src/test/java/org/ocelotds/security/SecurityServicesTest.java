@@ -4,10 +4,8 @@
 
 package org.ocelotds.security;
 
-import org.ocelotds.security.containers.ContainerSubjectServices;
-import java.security.Principal;
+import org.ocelotds.security.containers.ContainerSecurityServices;
 import javax.enterprise.inject.Instance;
-import javax.security.auth.Subject;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
@@ -15,12 +13,11 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.objects.FakeCDI;
-import org.ocelotds.security.containers.GlassfishSubjectServices;
-import org.ocelotds.security.containers.WildflySubjectServices;
+import org.ocelotds.security.containers.GlassfishSecurityServices;
+import org.ocelotds.security.containers.WildflySecurityServices;
 import org.slf4j.Logger;
 
 /**
@@ -28,31 +25,38 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SubjectServicesTest {
+public class SecurityServicesTest {
 
 	@Mock
 	private Logger logger;
 
+	@Mock
+	private ContainerSecurityServices unknown;
+
 	@Spy
-	private Instance<ContainerSubjectServices> instances = new FakeCDI<>();
+	private Instance<ContainerSecurityServices> instances = new FakeCDI<>();
 
 	@Spy
 	@InjectMocks
-	private SubjectServices instance;
+	private SecurityServices instance;
 	
 	/**
-	 * Test of setServerInfo method, of class SubjectServices.
+	 * Test of setServerInfo method, of class SecurityServices.
 	 */
 	@Test
 	public void testSetServerInfo() {
 		System.out.println("setServerInfo");
-		GlassfishSubjectServices glassfishSubjectServices = new GlassfishSubjectServices();
-		WildflySubjectServices wildflySubjectServices = new WildflySubjectServices();
-		((FakeCDI<ContainerSubjectServices>) instances).add(glassfishSubjectServices);
-		((FakeCDI<ContainerSubjectServices>) instances).add(wildflySubjectServices);
+		GlassfishSecurityServices glassfishSubjectServices = new GlassfishSecurityServices();
+		WildflySecurityServices wildflySubjectServices = new WildflySecurityServices();
+		((FakeCDI<ContainerSecurityServices>) instances).add(glassfishSubjectServices);
+		((FakeCDI<ContainerSecurityServices>) instances).add(wildflySubjectServices);
 		
+		ContainerSecurityServices result;
+		instance.setServerInfo("... UNKNOWNSERVER ...");
+		result = instance.getContainerSubjectServices();
+		assertThat(result).isEqualTo(unknown);
 		instance.setServerInfo("Glassfish ...");
-		ContainerSubjectServices result = instance.getContainerSubjectServices();
+		result = instance.getContainerSubjectServices();
 		assertThat(result).isEqualTo(glassfishSubjectServices);
 		instance.setServerInfo("... WILDFLY ...");
 		result = instance.getContainerSubjectServices();
@@ -60,13 +64,13 @@ public class SubjectServicesTest {
 	}
 
 	/**
-	 * Test of getSubject method, of class SubjectServices.
+	 * Test of getSubject method, of class SecurityServices.
 	 * @throws java.lang.Exception
 	 */
 	@Test
 	public void testGetSecurityContext() throws Exception {
 		System.out.println("getSecurityContext");
-		ContainerSubjectServices subjectServices = mock(ContainerSubjectServices.class);
+		ContainerSecurityServices subjectServices = mock(ContainerSecurityServices.class);
 		SecurityContext securityContext = mock(SecurityContext.class);
 
 		doReturn(subjectServices).when(instance).getContainerSubjectServices();
@@ -78,13 +82,13 @@ public class SubjectServicesTest {
 	}
 
 	/**
-	 * Test of getSecurityContext method, of class SubjectServices.
+	 * Test of getSecurityContext method, of class SecurityServices.
 	 * @throws java.lang.Exception
 	 */
 	@Test
 	public void testGetSecurityContextNull() throws Exception {
 		System.out.println("getSecurityContext");
-		ContainerSubjectServices subjectServices = mock(ContainerSubjectServices.class);
+		ContainerSecurityServices subjectServices = mock(ContainerSecurityServices.class);
 
 		doReturn(subjectServices).when(instance).getContainerSubjectServices();
 		when(subjectServices.getSecurityContext()).thenThrow(Exception.class);
@@ -95,13 +99,13 @@ public class SubjectServicesTest {
 	}
 
 	/**
-	 * Test of setSecurityContext method, of class SubjectServices.
+	 * Test of setSecurityContext method, of class SecurityServices.
 	 * @throws java.lang.Exception
 	 */
 	@Test
 	public void testSetSecurityContext() throws Exception {
 		System.out.println("setSecurityContext");
-		ContainerSubjectServices subjectServices = mock(ContainerSubjectServices.class);
+		ContainerSecurityServices subjectServices = mock(ContainerSecurityServices.class);
 		SecurityContext securityContext = mock(SecurityContext.class);
 
 		doReturn(subjectServices).when(instance).getContainerSubjectServices();
@@ -114,13 +118,13 @@ public class SubjectServicesTest {
 	}
 
 	/**
-	 * Test of setSecurityContext method, of class SubjectServices.
+	 * Test of setSecurityContext method, of class SecurityServices.
 	 * @throws java.lang.Exception
 	 */
 	@Test
 	public void testNoSetSecurityContext() throws Exception {
 		System.out.println("setSecurityContext");
-		ContainerSubjectServices subjectServices = mock(ContainerSubjectServices.class);
+		ContainerSecurityServices subjectServices = mock(ContainerSecurityServices.class);
 		SecurityContext securityContext = mock(SecurityContext.class);
 
 		doReturn(subjectServices).when(instance).getContainerSubjectServices();

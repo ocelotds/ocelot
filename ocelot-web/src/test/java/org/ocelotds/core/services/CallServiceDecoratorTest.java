@@ -18,7 +18,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
 import org.ocelotds.context.ThreadLocalContextHolder;
-import org.ocelotds.security.SubjectServices;
+import org.ocelotds.security.SecurityServices;
 import org.slf4j.Logger;
 
 /**
@@ -32,7 +32,7 @@ public class CallServiceDecoratorTest {
 	private Logger logger;
 
 	@Mock
-	private SubjectServices subjectServices;
+	private SecurityServices subjectServices;
 
 	@Mock
 	private CallService callSercice;

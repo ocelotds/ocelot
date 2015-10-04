@@ -102,6 +102,7 @@ public interface Constants {
 	}
 	
 	interface Container {
+		String UNKNOWN = "UNKNOWN";
 		String GLASSFISH = "GLASSFISH";
 		String WILDFLY = "WILDFLY";
 		String TOMCAT = "TOMCAT";

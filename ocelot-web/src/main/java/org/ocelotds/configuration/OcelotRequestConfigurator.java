@@ -16,7 +16,7 @@ import javax.ws.rs.core.HttpHeaders;
 import org.ocelotds.Constants;
 import org.ocelotds.core.CDIBeanResolver;
 import org.ocelotds.security.SecurityContext;
-import org.ocelotds.security.SubjectServices;
+import org.ocelotds.security.SecurityServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +70,7 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 	 */
 	SecurityContext getSecurityContext() {
 		CDIBeanResolver beanResolver = new CDIBeanResolver();
-		SubjectServices subjectServices = beanResolver.getBean(SubjectServices.class); // getSubjectServices();
+		SecurityServices subjectServices = beanResolver.getBean(SecurityServices.class); // getSubjectServices();
 		// get SecurityContext from container implementation
 		return (null != subjectServices) ? subjectServices.getSecurityContext(): null;
 	}

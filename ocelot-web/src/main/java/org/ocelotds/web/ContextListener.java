@@ -25,7 +25,7 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import org.ocelotds.annotations.ServiceProvider;
 import org.ocelotds.logger.OcelotLogger;
-import org.ocelotds.security.SubjectServices;
+import org.ocelotds.security.SecurityServices;
 import org.slf4j.Logger;
 
 /**
@@ -60,7 +60,7 @@ class ContextListener implements ServletContextListener {
 	private OcelotConfiguration configuration;
 	
 	@Inject 
-	private SubjectServices subjectServices;
+	private SecurityServices subjectServices;
 
 	/**
 	 * Init options from InitParameter in web.xml Generate ocelot-services.js and ocelot-services-min.js Generate ocelot-core-min.js

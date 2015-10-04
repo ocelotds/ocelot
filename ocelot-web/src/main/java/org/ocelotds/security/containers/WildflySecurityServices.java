@@ -25,7 +25,7 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 @ContainerQualifier(Constants.Container.WILDFLY)
-public class WildflySubjectServices implements ContainerSubjectServices {
+public class WildflySecurityServices implements ContainerSecurityServices {
 
 	@Inject
 	@OcelotLogger

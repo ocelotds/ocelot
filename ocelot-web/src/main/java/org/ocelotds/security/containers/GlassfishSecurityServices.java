@@ -17,7 +17,7 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 @ContainerQualifier(Constants.Container.GLASSFISH)
-public class GlassfishSubjectServices implements ContainerSubjectServices {
+public class GlassfishSecurityServices implements ContainerSecurityServices {
 	
 	@Inject
 	@OcelotLogger
