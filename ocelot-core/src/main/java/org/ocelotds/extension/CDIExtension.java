@@ -20,7 +20,7 @@ public class CDIExtension implements Extension {
 
 	private final static Logger logger = LoggerFactory.getLogger(CDIExtension.class);
 
-	<T> void processAnnotatedType(@Observes AfterTypeDiscovery afd, BeanManager beanManager) {
+	void afterTypeDiscovery(@Observes AfterTypeDiscovery afd, BeanManager beanManager) {
 		List<Class<?>> interceptors = afd.getInterceptors();
 		interceptors.add(JsTopicInterceptor.class);
 		logger.debug("CDI : Add Interceptor {}", JsTopicInterceptor.class);

@@ -26,7 +26,7 @@ public class CDIExtensionTest {
 		when(afd.getInterceptors()).thenReturn(new ArrayList<Class<?>>());
 		BeanManager beanManager = null;
 		CDIExtension instance = new CDIExtension();
-		instance.processAnnotatedType(afd, beanManager);
+		instance.afterTypeDiscovery(afd, beanManager);
 		assertEquals("We add one interceptor", 1, afd.getInterceptors().size());
 	}
 	
