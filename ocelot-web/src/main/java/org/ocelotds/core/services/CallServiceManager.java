@@ -273,20 +273,24 @@ public class CallServiceManager implements CallService {
 		String dataServiceClassName = cls.getName();
 		logger.debug("Looking for dataservice : {}", dataServiceClassName);
 		if (cls.isAnnotationPresent(DataService.class)) {
-			DataService dataServiceAnno = (DataService) cls.getAnnotation(DataService.class);
-			IDataServiceResolver resolver = getResolver(dataServiceAnno.resolver());
-			Scope scope = resolver.getScope(cls);
-			Object dataService = null;
-			if (scope.equals(Scope.SESSION)) {
-				dataService = client.getUserProperties().get(dataServiceClassName);
-			}
-			if (dataService == null) {
-				dataService = resolver.resolveDataService(cls);
+			try {
+				DataService dataServiceAnno = (DataService) cls.getAnnotation(DataService.class);
+				IDataServiceResolver resolver = getResolver(dataServiceAnno.resolver());
+				Scope scope = resolver.getScope(cls);
+				Object dataService = null;
 				if (scope.equals(Scope.SESSION)) {
-					client.getUserProperties().put(dataServiceClassName, dataService);
+					dataService = client.getUserProperties().get(dataServiceClassName);
 				}
+				if (dataService == null) {
+					dataService = resolver.resolveDataService(cls);
+					if (scope.equals(Scope.SESSION)) {
+						client.getUserProperties().put(dataServiceClassName, dataService);
+					}
+				}
+				return dataService;
+			} catch(Exception e) {
+				throw new DataServiceException(dataServiceClassName, e);
 			}
-			return dataService;
 		} else {
 			throw new DataServiceException(dataServiceClassName);
 		}
