@@ -9,6 +9,7 @@ import org.ocelotds.spi.DataServiceResolver;
 import org.ocelotds.spi.IDataServiceResolver;
 import org.ocelotds.spi.Scope;
 import java.util.Map;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -23,6 +24,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  * @author hhfrancois
  */
 @DataServiceResolver(Constants.Resolver.SPRING)
+@ApplicationScoped
 public class SpringResolver implements IDataServiceResolver{
 
 	private static final Logger logger = LoggerFactory.getLogger(SpringResolver.class);
