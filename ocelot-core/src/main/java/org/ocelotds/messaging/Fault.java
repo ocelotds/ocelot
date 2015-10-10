@@ -28,7 +28,6 @@ public class Fault {
 	public Fault(Throwable t, int stacktracelength) {
 		this.throwable = t;
 		if (t != null) {
-			System.out.println("REPLACE QUOTE IN MESSAGE");
 			this.message = t.getMessage().replaceAll("\"", "'");
 			this.classname = t.getClass().getName();
 		}
