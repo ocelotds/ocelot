@@ -19,7 +19,7 @@ import javax.inject.Inject;
 import javax.websocket.Session;
 import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
-import org.ocelotds.logger.OcelotLogger;
+import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshallers.LocaleUnmarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;

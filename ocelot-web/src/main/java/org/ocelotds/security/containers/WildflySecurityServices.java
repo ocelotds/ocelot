@@ -16,7 +16,7 @@ import org.jboss.security.identity.Role;
 import org.jboss.security.identity.extensions.CredentialIdentityFactory;
 import org.jboss.security.identity.plugins.SimpleRoleGroup;
 import org.ocelotds.Constants;
-import org.ocelotds.logger.OcelotLogger;
+import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.annotations.ContainerQualifier;
 import org.slf4j.Logger;
 

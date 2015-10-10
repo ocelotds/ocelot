@@ -24,7 +24,7 @@ import javax.json.JsonReader;
 import javax.json.JsonValue;
 import javax.json.stream.JsonParsingException;
 import org.ocelotds.KeyMaker;
-import org.ocelotds.logger.OcelotLogger;
+import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
 
 /**

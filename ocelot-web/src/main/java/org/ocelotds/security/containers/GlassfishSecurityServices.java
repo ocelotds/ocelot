@@ -7,7 +7,7 @@ import java.security.Principal;
 import javax.inject.Inject;
 import javax.security.auth.Subject;
 import org.ocelotds.Constants;
-import org.ocelotds.logger.OcelotLogger;
+import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.annotations.ContainerQualifier;
 import org.ocelotds.security.SecurityContext;
 import org.slf4j.Logger;

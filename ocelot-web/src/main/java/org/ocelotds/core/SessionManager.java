@@ -22,7 +22,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.websocket.Session;
 import org.ocelotds.Constants;
-import org.ocelotds.logger.OcelotLogger;
+import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import org.slf4j.Logger;

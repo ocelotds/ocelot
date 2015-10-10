@@ -22,7 +22,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import org.ocelotds.core.CDIBeanResolver;
-import org.ocelotds.logger.OcelotLogger;
+import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
 
 /**
@@ -55,6 +55,7 @@ public class OcelotEndpoint {
 		Map<String, Object> configProperties = config.getUserProperties();
 		Map<String, Object> sessionProperties = session.getUserProperties();
 		// Get subject from config and set in session, only one time by connexion
+		sessionProperties.put(Constants.SESSION_BEANS, configProperties.get(Constants.SESSION_BEANS));
 		sessionProperties.put(Constants.SECURITY_CONTEXT, configProperties.get(Constants.SECURITY_CONTEXT));
 		sessionProperties.put(Constants.LOCALE, configProperties.get(Constants.LOCALE));
 		sessionProperties.put(Constants.PRINCIPAL, configProperties.get(Constants.PRINCIPAL));

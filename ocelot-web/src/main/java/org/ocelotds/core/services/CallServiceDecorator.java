@@ -14,7 +14,7 @@ import javax.security.auth.Subject;
 import javax.websocket.Session;
 import org.ocelotds.Constants;
 import org.ocelotds.context.ThreadLocalContextHolder;
-import org.ocelotds.logger.OcelotLogger;
+import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.security.SecurityContext;
 import org.ocelotds.security.SecurityServices;
