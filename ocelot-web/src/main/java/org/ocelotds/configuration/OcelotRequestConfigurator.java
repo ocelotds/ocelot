@@ -3,12 +3,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.configuration;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.servlet.http.HttpSession;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
@@ -29,14 +31,12 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 
 	private final Logger logger = LoggerFactory.getLogger(OcelotRequestConfigurator.class);
 	
-//	private CDIBeanResolver beanResolver = new CDIBeanResolver();
-
 	/**
 	 * Set user information from open websocket
-	 * 
+	 *
 	 * @param sec
 	 * @param request
-	 * @param response 
+	 * @param response
 	 */
 	@Override
 	public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
@@ -56,7 +56,20 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 				}
 			}
 		}
+		Object session = request.getHttpSession();
+		Object attribute;
+		if (session != null && HttpSession.class.isInstance(session)) {
+			HttpSession httpSession = (HttpSession) session;
+			attribute = httpSession.getAttribute(Constants.SESSION_BEANS);
+			if(attribute==null) {
+				attribute = new HashMap();
+				httpSession.setAttribute(Constants.SESSION_BEANS, attribute);
+			}
+		} else {
+			attribute = new HashMap();
+		}
 		// init from request only on openHandler
+		sec.getUserProperties().put(Constants.SESSION_BEANS, attribute);
 		sec.getUserProperties().put(Constants.SECURITY_CONTEXT, getSecurityContext());
 		sec.getUserProperties().put(Constants.LOCALE, locale);
 		sec.getUserProperties().put(Constants.PRINCIPAL, request.getUserPrincipal());
@@ -65,13 +78,13 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 
 	/**
 	 * Get subject from container implementation
-	 * 
-	 * @return 
+	 *
+	 * @return
 	 */
 	SecurityContext getSecurityContext() {
 		CDIBeanResolver beanResolver = new CDIBeanResolver();
 		SecurityServices subjectServices = beanResolver.getBean(SecurityServices.class); // getSubjectServices();
 		// get SecurityContext from container implementation
-		return (null != subjectServices) ? subjectServices.getSecurityContext(): null;
+		return (null != subjectServices) ? subjectServices.getSecurityContext() : null;
 	}
 }
