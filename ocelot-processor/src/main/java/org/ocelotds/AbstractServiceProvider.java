@@ -6,9 +6,8 @@ package org.ocelotds;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import javax.inject.Inject;
-import org.ocelotds.logger.OcelotLogger;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -16,9 +15,7 @@ import org.slf4j.Logger;
  */
 public abstract class AbstractServiceProvider implements IServicesProvider {
 
-	@Inject
-	@OcelotLogger
-	private Logger logger;
+	private final Logger logger = LoggerFactory.getLogger(AbstractServiceProvider.class);
 
 	protected abstract String getFilename();
 	
