@@ -19,6 +19,7 @@ public interface Constants {
 	String BACKSLASH_N = "\n";
 	String LOCALE = "LOCALE";
 	String SECURITY_CONTEXT = "SECURITYCONTEXT";
+	String SESSION_BEANS = "SESSIONBEANS";
 	String PRINCIPAL = "PRINCIPAL";
 	String ANONYMOUS = "ANONYMOUS";
 
