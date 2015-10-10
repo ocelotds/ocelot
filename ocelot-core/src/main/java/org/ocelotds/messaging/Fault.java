@@ -28,7 +28,8 @@ public class Fault {
 	public Fault(Throwable t, int stacktracelength) {
 		this.throwable = t;
 		if (t != null) {
-			this.message = t.getMessage();
+			System.out.println("REPLACE QUOTE IN MESSAGE");
+			this.message = t.getMessage().replaceAll("\"", "'");
 			this.classname = t.getClass().getName();
 		}
 		this.stacktracelength = stacktracelength;
@@ -44,7 +45,11 @@ public class Fault {
 
 	public String[] getStacktrace() {
 		if (throwable != null && stacktracelength > 0) {
-			StackTraceElement[] stackTraces = throwable.getStackTrace();
+			Throwable t = throwable;
+			if(throwable.getCause()!=null) {
+				t = throwable.getCause();
+			}
+			StackTraceElement[] stackTraces = t.getStackTrace();
 			int nb = Math.min(stackTraces.length, stacktracelength);
 			String[] result = new String[nb];
 			for (int i = 0; i < nb; i++) {
