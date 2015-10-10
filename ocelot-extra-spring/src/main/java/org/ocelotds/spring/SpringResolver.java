@@ -14,8 +14,8 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import org.ocelotds.Constants;
+import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
@@ -25,23 +25,27 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  */
 @DataServiceResolver(Constants.Resolver.SPRING)
 @ApplicationScoped
-public class SpringResolver implements IDataServiceResolver{
+public class SpringResolver implements IDataServiceResolver {
 
-	private static final Logger logger = LoggerFactory.getLogger(SpringResolver.class);
-	
+	@Inject
+	@OcelotLogger
+	Logger logger;
+
 	@Inject
 	@Any
-	@OcelotSpringConfiguration		  
+	@OcelotSpringConfiguration
 	Instance<Object> ocelotSpringConfigs;
 
-	private AnnotationConfigApplicationContext applicationContext;
-	
+	AnnotationConfigApplicationContext applicationContext;
+
 	public AnnotationConfigApplicationContext getApplicationContext() {
-		logger.debug("Initialisation du context Spring");
-		if(applicationContext == null) {
-			applicationContext =  new AnnotationConfigApplicationContext();
+		logger.debug("Init Spring context");
+		if (applicationContext == null) {
+			applicationContext = new AnnotationConfigApplicationContext();
+			ClientScope clientScope = new ClientScope();
+			applicationContext.getBeanFactory().registerScope(clientScope.getConversationId(), clientScope);
 			for (Object ocelotSpringConfig : ocelotSpringConfigs) {
-				logger.debug("Find 1 context Spring that implements OcelotSpringConfig");
+				logger.info("Find context Spring {}", ocelotSpringConfig.getClass());
 				applicationContext.register(ocelotSpringConfig.getClass());
 			}
 			applicationContext.refresh();
@@ -63,12 +67,18 @@ public class SpringResolver implements IDataServiceResolver{
 
 	@Override
 	public Scope getScope(Class clazz) {
+		logger.debug("Try to get scope of class {}", clazz);
 		AnnotationConfigApplicationContext applicationCtx = this.getApplicationContext();
 		Map<String, ?> beansOfType = applicationCtx.getBeansOfType(clazz);
-		if(beansOfType != null) {
-			String next = beansOfType.keySet().iterator().next();
-			if(next!=null) {
-				if (!applicationCtx.isPrototype(next) && !applicationCtx.isSingleton(next)) {
+		if (beansOfType != null) {
+			logger.debug("Try to get scope of class {} from beans", clazz);
+			String bean = beansOfType.keySet().iterator().next();
+			logger.debug("Try to get scope of class {} from bean {}", clazz, bean);
+			if (bean != null) {
+				boolean prototype = applicationCtx.isPrototype(bean);
+				boolean singleton = applicationCtx.isSingleton(bean);
+				logger.debug("Try to get scope of class {} prototype : {}, singleton : {}", clazz, prototype, singleton);
+				if (!prototype && !singleton) {
 					return Scope.SESSION;
 				}
 			}
