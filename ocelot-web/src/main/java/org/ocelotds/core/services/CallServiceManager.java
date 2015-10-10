@@ -27,16 +27,18 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.websocket.Session;
+import org.ocelotds.Constants;
 import org.ocelotds.core.CacheManager;
 import org.ocelotds.core.Cleaner;
 import org.ocelotds.core.MethodWithSessionInjection;
-import org.ocelotds.logger.OcelotLogger;
+import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
@@ -278,13 +280,17 @@ public class CallServiceManager implements CallService {
 				IDataServiceResolver resolver = getResolver(dataServiceAnno.resolver());
 				Scope scope = resolver.getScope(cls);
 				Object dataService = null;
+				Map sessionBeans = (Map) client.getUserProperties().get(Constants.SESSION_BEANS);
+				logger.debug("{} : scope : {}", dataServiceClassName, scope);
 				if (scope.equals(Scope.SESSION)) {
-					dataService = client.getUserProperties().get(dataServiceClassName);
+					dataService = sessionBeans.get(dataServiceClassName);
+					logger.debug("{} : scope : session is in session : {}", dataServiceClassName, (dataService!=null));
 				}
 				if (dataService == null) {
 					dataService = resolver.resolveDataService(cls);
 					if (scope.equals(Scope.SESSION)) {
-						client.getUserProperties().put(dataServiceClassName, dataService);
+						logger.debug("Store {} scope session in session", dataServiceClassName);
+						sessionBeans.put(dataServiceClassName, dataService);
 					}
 				}
 				return dataService;
