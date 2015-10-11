@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.core.services;
 
-import org.ocelotds.core.services.CallServiceManager;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -48,6 +47,7 @@ import org.ocelotds.spi.IDataServiceResolver;
 import org.ocelotds.spi.Scope;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
+import org.ocelotds.Constants;
 import org.ocelotds.OcelotServices;
 import org.ocelotds.core.CacheManager;
 import org.ocelotds.core.Cleaner;
@@ -277,19 +277,25 @@ public class CallServiceManagerTest {
 		System.out.println("getDataService");
 		Class cls = ClassAsDataService.class;
 		IDataServiceResolver resolver = mock(IDataServiceResolver.class);
+		Session client = mock(Session.class);
+		Map<String, Object> userProperties = new HashMap<>();
+		Map<String, Object> sessions = new HashMap<>();
+		userProperties.put(Constants.SESSION_BEANS, sessions);
+		
 		when(resolver.getScope(any(Class.class))).thenReturn(Scope.MANAGED);
 		when(resolver.resolveDataService(cls)).thenReturn(new ClassAsDataService());
 		doReturn(resolver).when(callServiceManager).getResolver("TEST");
-		Session client = mock(Session.class);
-		Map<String, Object> userProperties = new HashMap<>();
 		when(client.getUserProperties()).thenReturn(userProperties);
+
 		Object result = callServiceManager.getDataService(client, cls);
 		assertThat(result).isInstanceOf(cls);
-		assertThat(userProperties).doesNotContainKey(cls.getName());
+		assertThat(sessions).doesNotContainKey(cls.getName());
+
 		when(resolver.getScope(any(Class.class))).thenReturn(Scope.SESSION);
+
 		result = callServiceManager.getDataService(client, cls);
 		assertThat(result).isInstanceOf(cls);
-		assertThat(userProperties).containsKey(cls.getName());
+		assertThat(sessions).containsKey(cls.getName());
 	}
 
 	/**
