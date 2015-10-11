@@ -19,6 +19,7 @@ import static org.mockito.Matchers.*;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -94,6 +95,17 @@ public class AbstractServiceProviderTest {
 	}
 
 	/**
+	 * Test of getLogger method, of class AbstractServiceProvider.
+	 */
+	@Test
+	public void testGetLogger() {
+		System.out.println("getLogger");
+		Logger expected = LoggerFactory.getLogger(AbstractServiceProvider.class);
+		Logger logger = instance.getLogger();
+		assertThat(logger).isEqualTo(expected);
+	}
+
+	/**
 	 * Test of getJsStream method, of class AbstractServiceProvider.
 	 */
 	@Test
@@ -103,6 +115,19 @@ public class AbstractServiceProviderTest {
 		assertThat(in).isNotNull();
 		in = instance.getJsStream("unknowfile.js");
 		assertThat(in).isNull();
+
+		doReturn(null).when(instance).getClassLoader();
+		in = instance.getJsStream(AbstractServiceProviderImpl.FILENAME);
+		assertThat(in).isNull();
 	}
 
+	/**
+	 * Test of getClassLoader method, of class AbstractServiceProvider.
+	 */
+	@Test
+	public void testGetClassLoader() {
+		System.out.println("getClassLoader");
+		ClassLoader classLoader = instance.getClassLoader();
+		assertThat(classLoader).isEqualTo(AbstractServiceProvider.class.getClassLoader());
+	}
 }
