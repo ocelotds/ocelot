@@ -21,8 +21,8 @@ import javax.json.JsonValue;
  * @author hhfrancois
  */
 public class MessageToClient {
-	private static final long serialVersionUID = -834697863344344124L;
 
+	private static final long serialVersionUID = -834697863344344854L;
 	/**
 	 * Type of message
 	 */
@@ -36,7 +36,7 @@ public class MessageToClient {
 	 * The result of request
 	 */
 	protected Object response = null;
-	
+
 	/**
 	 * The result of request in json format
 	 */
@@ -79,7 +79,7 @@ public class MessageToClient {
 		this.type = type;
 		this.response = response;
 	}
-	
+
 	public void setResult(Object response) {
 		setResponse(response, MessageType.RESULT);
 	}
@@ -91,7 +91,7 @@ public class MessageToClient {
 	public void setResponse(Object response) {
 		this.response = response;
 	}
-	
+
 	public long getDeadline() {
 		return deadline;
 	}
@@ -132,7 +132,7 @@ public class MessageToClient {
 			message.setId(root.getString(Constants.Message.ID));
 			message.setType(MessageType.valueOf(root.getString(Constants.Message.TYPE)));
 			message.setDeadline(root.getInt(Constants.Message.DEADLINE));
-			if(MessageType.FAULT.equals(message.getType())) {
+			if (MessageType.FAULT.equals(message.getType())) {
 				JsonObject faultJs = root.getJsonObject(Constants.Message.RESPONSE);
 				try {
 					Fault f = Fault.createFromJson(faultJs.toString());
@@ -148,33 +148,25 @@ public class MessageToClient {
 	}
 
 	public String toJson() {
-		String res;
-		String resultFormat = ",\"%s\":%s";
 		ObjectMapper mapper = getObjectMapper();
 		String jsonResponse;
 		try {
 			jsonResponse = this.json;
-			if(null==this.json) {
+			if (null == this.json) {
 				jsonResponse = mapper.writeValueAsString(this.getResponse());
 			}
-			res = String.format(resultFormat, Constants.Message.RESPONSE, jsonResponse);
 		} catch (JsonProcessingException ex) {
-			Fault f = new Fault(ex, 0);
-			try {
-				jsonResponse = mapper.writeValueAsString(f);
-				res = String.format(resultFormat, Constants.Message.RESPONSE, jsonResponse);
-			} catch (JsonProcessingException ex1) {
-				res = String.format(resultFormat, Constants.Message.RESPONSE, "");
-			}
+			jsonResponse = new Fault(ex, 0).toJson();
 		}
-		return String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s%s}",
-				  Constants.Message.TYPE, this.getType(), Constants.Message.ID, this.getId(), Constants.Message.DEADLINE, this.getDeadline(), res);
+		return String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.TYPE, this.getType(), Constants.Message.ID, this.getId(), 
+				  Constants.Message.DEADLINE, this.getDeadline(), Constants.Message.RESPONSE, jsonResponse);
 	}
 
 	ObjectMapper getObjectMapper() {
 		return new ObjectMapper();
 	}
-	
+
 	@Override
 	public String toString() {
 		return toJson();
