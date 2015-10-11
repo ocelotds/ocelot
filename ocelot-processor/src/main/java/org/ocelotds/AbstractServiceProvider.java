@@ -30,11 +30,15 @@ public abstract class AbstractServiceProvider implements IServicesProvider {
 					out.write(buffer, 0, n);
 				}
 			} else {
-				logger.warn("Generation of '{}' failed. File not found", jsname);
+				getLogger().warn("Generation of '{}' failed. File not found", jsname);
 			}
 		} catch(IOException ex) {
-			logger.error("Generation of '"+jsname+"' failed.", ex);
+			getLogger().error("Generation of '"+jsname+"' failed.", ex);
 		}
+	}
+
+	Logger getLogger() {
+		return logger;
 	}
 	
 	InputStream getJsStream(String jsname) {

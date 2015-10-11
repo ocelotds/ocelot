@@ -27,9 +27,6 @@ import org.slf4j.Logger;
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractServiceProviderTest {
 
-	@Mock
-	private Logger logger;
-
 	@InjectMocks
 	@Spy
 	private AbstractServiceProviderImpl instance;
@@ -65,7 +62,11 @@ public class AbstractServiceProviderTest {
 	public void testStreamJavascriptServicesIOException() throws IOException {
 		System.out.println("streamJavascriptServices");
 		OutputStream out = mock(OutputStream.class);
+		Logger logger = mock(Logger.class);
+
 		doThrow(IOException.class).when(out).write(any(byte[].class), anyInt(), anyInt());
+		doReturn(logger).when(instance).getLogger();
+
 		instance.streamJavascriptServices(out);
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Throwable> captureError = ArgumentCaptor.forClass(Throwable.class);
@@ -80,8 +81,12 @@ public class AbstractServiceProviderTest {
 	@Test
 	public void testStreamJavascriptServicesUnknownFile() throws IOException {
 		System.out.println("streamJavascriptServices");
-		when(instance.getFilename()).thenReturn("unknowfile.js");
+		Logger logger = mock(Logger.class);
 		OutputStream out = new ByteArrayOutputStream();
+
+		when(instance.getFilename()).thenReturn("unknowfile.js");
+		doReturn(logger).when(instance).getLogger();
+
 		instance.streamJavascriptServices(out);
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
 		verify(logger).warn(anyString(), captureString.capture());
