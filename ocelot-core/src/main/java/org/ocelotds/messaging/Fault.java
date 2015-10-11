@@ -28,7 +28,9 @@ public class Fault {
 	public Fault(Throwable t, int stacktracelength) {
 		this.throwable = t;
 		if (t != null) {
-			this.message = t.getMessage().replaceAll("\"", "'");
+			if (t.getMessage() != null) {
+				this.message = t.getMessage().replaceAll("\"", "'");
+			}
 			this.classname = t.getClass().getName();
 		}
 		this.stacktracelength = stacktracelength;
@@ -45,7 +47,7 @@ public class Fault {
 	public String[] getStacktrace() {
 		if (throwable != null && stacktracelength > 0) {
 			Throwable t = throwable;
-			if(throwable.getCause()!=null) {
+			if (throwable.getCause() != null) {
 				t = throwable.getCause();
 			}
 			StackTraceElement[] stackTraces = t.getStackTrace();
@@ -68,9 +70,8 @@ public class Fault {
 	 *
 	 * @param json
 	 * @return
-	 * @throws IOException
 	 */
-	public static Fault createFromJson(String json) throws IOException {
+	public static Fault createFromJson(String json) {
 		Fault fault = new Fault(null, 0);
 		try (JsonReader reader = Json.createReader(new StringReader(json))) {
 			JsonObject root = reader.readObject();

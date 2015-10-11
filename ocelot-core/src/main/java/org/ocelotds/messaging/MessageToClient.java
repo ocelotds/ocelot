@@ -134,11 +134,8 @@ public class MessageToClient {
 			message.setDeadline(root.getInt(Constants.Message.DEADLINE));
 			if (MessageType.FAULT.equals(message.getType())) {
 				JsonObject faultJs = root.getJsonObject(Constants.Message.RESPONSE);
-				try {
-					Fault f = Fault.createFromJson(faultJs.toString());
-					message.setFault(f);
-				} catch (IOException ex) {
-				}
+				Fault f = Fault.createFromJson(faultJs.toString());
+				message.setFault(f);
 			} else {
 				JsonValue result = root.get(Constants.Message.RESPONSE);
 				message.setResponse("" + result, message.getType());

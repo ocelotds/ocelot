@@ -149,6 +149,7 @@ public class MessageToClientTest {
 	}
 	/**
 	 * Test of createFromJson method, of class MessageToClient.
+	 * @throws com.fasterxml.jackson.core.JsonProcessingException
 	 */
 	@Test
 	public void testJsonAndToString() throws JsonProcessingException {
@@ -176,7 +177,7 @@ public class MessageToClientTest {
 		msg.setFault(null);
 		msg.setResult("Result");
 
-		jsonResponse = mapper.writeValueAsString(msg.getResponse());
+		jsonResponse = mapper.writeValueAsString("Result");
 		json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
 				  Constants.Message.TYPE, msg.getType(), Constants.Message.ID, msg.getId(), 
 				  Constants.Message.DEADLINE, msg.getDeadline(), Constants.Message.RESPONSE, jsonResponse);
@@ -186,10 +187,11 @@ public class MessageToClientTest {
 		ObjectMapper mapperThrowException = mock(ObjectMapper.class);
 		when(mapperThrowException.writeValueAsString(anyString())).thenThrow(JsonProcessingException.class);
 		when(msg.getObjectMapper()).thenReturn(mapperThrowException);
-		json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+		json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":",
 				  Constants.Message.TYPE, msg.getType(), Constants.Message.ID, msg.getId(), 
-				  Constants.Message.DEADLINE, msg.getDeadline(), Constants.Message.RESPONSE, "");
-		assertThat(msg.toJson()).isEqualTo(json);
+				  Constants.Message.DEADLINE, msg.getDeadline(), Constants.Message.RESPONSE);
+		String res = msg.toJson();
+		assertThat(res.startsWith(json)).isTrue();
 	}
 	
 	@Test

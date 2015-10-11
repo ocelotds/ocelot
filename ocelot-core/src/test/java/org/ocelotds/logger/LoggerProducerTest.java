@@ -4,11 +4,8 @@
 package org.ocelotds.logger;
 
 import java.lang.reflect.Member;
+import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.InjectionPoint;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
@@ -16,7 +13,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ocelotds.logger.LoggerProducer;
+import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
 
 /**
@@ -43,11 +40,21 @@ public class LoggerProducerTest {
 		System.out.println("getLogger");
 		String expResult = LoggerProducerTest.class.getName();
 		Member member = mock(Member.class);
+		Annotated annotated = mock(Annotated.class);
 		Class cls = LoggerProducerTest.class;
+		OcelotLogger ol = mock(OcelotLogger.class);
+
 		when(member.getDeclaringClass()).thenReturn(cls);
 		when(injectionPoint.getMember()).thenReturn(member);
+		when(injectionPoint.getAnnotated()).thenReturn(annotated);
+		when(annotated.getAnnotation(eq(OcelotLogger.class))).thenReturn(ol);
+		when(ol.name()).thenReturn("").thenReturn("SECURITY");
+
 		Logger result = instance.getLogger(injectionPoint);
 		assertThat(result.getName()).isEqualTo(expResult);
-	}
+		
+		result = instance.getLogger(injectionPoint);
+		assertThat(result.getName()).isEqualTo("SECURITY");
+}
 
 }

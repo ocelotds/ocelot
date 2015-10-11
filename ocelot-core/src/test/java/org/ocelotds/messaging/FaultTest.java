@@ -80,6 +80,17 @@ public class FaultTest {
 			int result = instance.getStacktrace().length;
 			assertThat(result).isEqualTo(expResult);
 		}
+		try {
+			throw new Exception();
+		} catch (Exception e) {
+			try {
+				throw new Exception(e);
+			} catch (Exception e1) {
+				Fault instance = new Fault(e1, expResult);
+				int result = instance.getStacktrace().length;
+				assertThat(result).isEqualTo(expResult);
+			}
+		}
 	}
 
 	/**
