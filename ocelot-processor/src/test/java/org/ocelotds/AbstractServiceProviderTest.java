@@ -13,7 +13,6 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import static org.mockito.Mockito.*;
 import static org.mockito.Matchers.*;
 import org.mockito.Spy;
