@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Scope;
  *
  * @author hhfrancois
  */
-@Configuration
+//@Configuration
 public class ApplicationContextConfig {
 
 	@Bean
