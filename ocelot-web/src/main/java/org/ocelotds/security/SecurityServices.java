@@ -5,10 +5,14 @@ package org.ocelotds.security;
 
 import org.ocelotds.security.containers.ContainerSecurityServices;
 import java.util.regex.Pattern;
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Initialized;
+import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.servlet.ServletContext;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.ContainerQualifier;
 import org.ocelotds.annotations.OcelotLogger;
@@ -38,9 +42,10 @@ public class SecurityServices {
 	/**
 	 * Define the current provider for the current container
 	 *
-	 * @param serverInfo
+	 * @param sc
 	 */
-	public void setServerInfo(String serverInfo) {
+	public void setServerInfo(@Observes @Initialized(ApplicationScoped.class) ServletContext sc) {
+		String serverInfo = sc.getServerInfo();
 		for (ContainerSecurityServices instance : instances) {
 			ContainerQualifier annotation = instance.getClass().getAnnotation(ContainerQualifier.class);
 			String name = annotation.value();

@@ -6,6 +6,7 @@ package org.ocelotds.security;
 
 import org.ocelotds.security.containers.ContainerSecurityServices;
 import javax.enterprise.inject.Instance;
+import javax.servlet.ServletContext;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
@@ -50,15 +51,20 @@ public class SecurityServicesTest {
 		WildflySecurityServices wildflySubjectServices = new WildflySecurityServices();
 		((FakeCDI<ContainerSecurityServices>) instances).add(glassfishSubjectServices);
 		((FakeCDI<ContainerSecurityServices>) instances).add(wildflySubjectServices);
+		ServletContext sc	= mock(ServletContext.class);
 		
+		when(sc.getServerInfo()).thenReturn("... UNKNOWNSERVER ...").thenReturn("Glassfish ...").thenReturn("... WILDFLY ...");
+
 		ContainerSecurityServices result;
-		instance.setServerInfo("... UNKNOWNSERVER ...");
+		instance.setServerInfo(sc);
 		result = instance.getContainerSubjectServices();
 		assertThat(result).isEqualTo(unknown);
-		instance.setServerInfo("Glassfish ...");
+
+		instance.setServerInfo(sc);
 		result = instance.getContainerSubjectServices();
 		assertThat(result).isEqualTo(glassfishSubjectServices);
-		instance.setServerInfo("... WILDFLY ...");
+
+		instance.setServerInfo(sc);
 		result = instance.getContainerSubjectServices();
 		assertThat(result).isEqualTo(wildflySubjectServices);
 	}
