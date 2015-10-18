@@ -70,6 +70,9 @@ import org.jboss.shrinkwrap.api.container.ClassContainer;
 import org.jboss.shrinkwrap.api.container.ResourceContainer;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.jboss.shrinkwrap.resolver.api.maven.MavenVersionRangeResult;
+import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
+import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
@@ -163,7 +166,8 @@ public class OcelotTest {
 	 * @param webArchive
 	 */
 	public static void addOcelotJar(WebArchive webArchive) {
-		File[] imports = Maven.resolver().resolve("org.ocelotds:ocelot-web:[2,)", "org.ocelotds:ocelot-core:[2,)").withTransitivity().asFile();
+		String version = "[2,)";
+		File[] imports = Maven.resolver().resolve("org.ocelotds:ocelot-web:"+version, "org.ocelotds:ocelot-core:"+version).withTransitivity().asFile();
 		webArchive.addAsLibraries(imports);
 	}
 
