@@ -32,7 +32,7 @@ public class SecurityServicesTest {
 	private Logger logger;
 
 	@Mock
-	private ContainerSecurityServices unknown;
+	private ContainerSecurityServices current;
 
 	@Spy
 	private Instance<ContainerSecurityServices> instances = new FakeCDI<>();
@@ -58,7 +58,7 @@ public class SecurityServicesTest {
 		ContainerSecurityServices result;
 		instance.setServerInfo(sc);
 		result = instance.getContainerSubjectServices();
-		assertThat(result).isEqualTo(unknown);
+		assertThat(result).isEqualTo(current);
 
 		instance.setServerInfo(sc);
 		result = instance.getContainerSubjectServices();
@@ -80,11 +80,13 @@ public class SecurityServicesTest {
 		SecurityContext securityContext = mock(SecurityContext.class);
 
 		doReturn(subjectServices).when(instance).getContainerSubjectServices();
-		when(subjectServices.getSecurityContext()).thenReturn(securityContext);
+		when(subjectServices.getSecurityContext()).thenReturn(securityContext).thenThrow(Exception.class);
 		
 		SecurityContext result = instance.getSecurityContext();
-		
 		assertThat(result).isEqualTo(securityContext);
+		
+		result = instance.getSecurityContext();
+		assertThat(result).isNull();
 	}
 
 	/**
