@@ -11,9 +11,7 @@ import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 import javax.servlet.ServletContext;
-import org.ocelotds.Constants;
 import org.ocelotds.annotations.ContainerQualifier;
 import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
@@ -22,16 +20,12 @@ import org.slf4j.Logger;
  *
  * @author hhfrancois
  */
-@Singleton
+@ApplicationScoped
 public class SecurityServices {
 
 	@Any
 	@Inject
-	private Instance<ContainerSecurityServices> instances;
-
-	@Inject
-	@ContainerQualifier(Constants.Container.UNKNOWN)
-	private ContainerSecurityServices unknown;
+	private Instance<ContainerSecurityServices> instances; // contains at least the UnkownServerSecutityServices
 
 	@Inject
 	@OcelotLogger
@@ -46,21 +40,27 @@ public class SecurityServices {
 	 */
 	public void setServerInfo(@Observes @Initialized(ApplicationScoped.class) ServletContext sc) {
 		String serverInfo = sc.getServerInfo();
+		boolean found = false;
 		for (ContainerSecurityServices instance : instances) {
 			ContainerQualifier annotation = instance.getClass().getAnnotation(ContainerQualifier.class);
-			String name = annotation.value();
-			logger.debug("Container vendor {} candidate", name);
-			Pattern p = Pattern.compile(".*" + name + ".*", Pattern.CASE_INSENSITIVE);
-			if (p.matcher(serverInfo).matches()) {
-				logger.info("Container vendor {}", name);
-				current = instance;
-				break;
+			if (annotation != null) {
+				String name = annotation.value();
+				logger.debug("Container vendor {} candidate", name);
+				Pattern p = Pattern.compile(".*" + name + ".*", Pattern.CASE_INSENSITIVE);
+				if (p.matcher(serverInfo).matches()) {
+					logger.info("{} ContainerSubjectServices implementation found in classpath.", annotation.value());
+					current = instance;
+					found = true;
+					break;
+				}
+			} else {
+				current = instance; // set the default ContainerSecurityServices
 			}
 		}
-		if (null == current) {
-			current = unknown;
-			logger.info("No ContainerSubjectServices implementation found in classpath for server '{}'. Implement it or contact ocelot team leader for implements it.", serverInfo);
+		if (!found) {
+			logger.info("No ContainerSubjectServices implementation found in classpath for current server. Implement it or contact ocelot team leader for implements it.");
 		}
+
 	}
 
 	/**
