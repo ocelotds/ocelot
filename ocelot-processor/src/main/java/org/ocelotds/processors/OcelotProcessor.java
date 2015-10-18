@@ -77,9 +77,11 @@ public class OcelotProcessor extends AbstractProcessor {
 		String js = createJSServicesProvider();
 		// Create provider of ocelot-services.html
 		String html = createHTMLServicesProvider();
+//		createTestServicesProvider(js, "js");
+//		createTestServicesProvider(html, "html");
 		try {
 			// Create file ocelot-services.js      
-			FileObject resourcejs = filer.createResource(StandardLocation.CLASS_OUTPUT, "", js);
+			FileObject resourcejs = filer.createResource(StandardLocation.CLASS_OUTPUT, "", js+".js");
 			try (Writer writer = resourcejs.openWriter()) {
 				ElementVisitor visitor = new DataServiceVisitorJsBuilder(processingEnv);
 				for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
@@ -88,7 +90,7 @@ public class OcelotProcessor extends AbstractProcessor {
 				}
 			}
 			// Create file ocelot-services.html      
-			FileObject resourcehtml = filer.createResource(StandardLocation.CLASS_OUTPUT, "", html);
+			FileObject resourcehtml = filer.createResource(StandardLocation.CLASS_OUTPUT, "", html+".html");
 			try (Writer writer = resourcehtml.openWriter()) {
 				ElementVisitor visitor = new DataServiceVisitorHtmlBuilder(processingEnv);
 				for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
@@ -120,7 +122,7 @@ public class OcelotProcessor extends AbstractProcessor {
 				writer.append("@org.ocelotds.annotations.ServiceProvider(Constants.Provider.JAVASCRIPT)\n");
 				writer.append("public class ServiceProvider extends AbstractServiceProvider {\n");
 				writer.append("	@Override\n");
-				writer.append("	protected String getFilename() {\n");
+				writer.append("	public String getFilename() {\n");
 				writer.append("		return \""+prefix+".js\";\n");
 				writer.append("	}\n");
 				writer.append("}");
@@ -128,7 +130,7 @@ public class OcelotProcessor extends AbstractProcessor {
 		} catch (IOException e) {
 			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
 		}
-		return prefix+".js";
+		return prefix;
 	}
 
 	/**
@@ -148,7 +150,7 @@ public class OcelotProcessor extends AbstractProcessor {
 				writer.append("@org.ocelotds.annotations.ServiceProvider(Constants.Provider.HTML)\n");
 				writer.append("public class ServiceProvider extends AbstractServiceProvider {\n");
 				writer.append("	@Override\n");
-				writer.append("	protected String getFilename() {\n");
+				writer.append("	public String getFilename() {\n");
 				writer.append("		return \""+prefix+".html\";\n");
 				writer.append("	}\n");
 				writer.append("}");
@@ -156,6 +158,34 @@ public class OcelotProcessor extends AbstractProcessor {
 		} catch (IOException e) {
 			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
 		}
-		return prefix+".html";
+		return prefix;
+	}
+
+	/**
+	 *  Create test provider source
+	 * Doesnt work, cause we cant generate test source...
+	 * 
+	 * @return 
+	 */
+	void createTestServicesProvider(String prefix, String filetype) {
+		try {
+			FileObject servicesProvider = filer.createSourceFile(prefix+".ServiceProviderTest");
+			try (Writer writer = servicesProvider.openWriter()) {
+				writer.append("package " + prefix + ";\n");
+				writer.append("import org.junit.Test;\n");
+				writer.append("import static org.assertj.core.api.Assertions.*;\n");
+				writer.append("public class ServiceProviderTest {\n");
+				writer.append("	private ServiceProvider instance;\n");
+				writer.append("	@Test\n");
+				writer.append("	protected void testGetFilename() {\n");
+				writer.append("		System.out.println(\"getFilename\");\n");
+				writer.append("		String result = instance.getFilename();\n");
+				writer.append("		assertThat(result).isEqualTo(\""+prefix+"."+filetype+"\");\n");
+				writer.append("	}\n");
+				writer.append("}");
+			}
+		} catch (IOException e) {
+			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+		}
 	}
 }

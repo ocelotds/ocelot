@@ -13,12 +13,10 @@ import org.slf4j.LoggerFactory;
  *
  * @author hhfrancois
  */
-public abstract class AbstractServiceProvider implements IServicesProvider {
+public abstract class AbstractServiceProvider implements IServicesProvider, FileNameProvider {
 
 	private final Logger logger = LoggerFactory.getLogger(AbstractServiceProvider.class);
 
-	protected abstract String getFilename();
-	
 	@Override
 	public void streamJavascriptServices(OutputStream out) {
 		String jsname = getFilename();
