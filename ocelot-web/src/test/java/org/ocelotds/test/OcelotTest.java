@@ -70,9 +70,6 @@ import org.jboss.shrinkwrap.api.container.ClassContainer;
 import org.jboss.shrinkwrap.api.container.ResourceContainer;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.jboss.shrinkwrap.resolver.api.maven.MavenVersionRangeResult;
-import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
@@ -377,7 +374,7 @@ public class OcelotTest {
 		final IDataServiceResolver resolver = getResolver(resolverId);
 		try {
 			// hors session, deux beans session scope doivent être differents
-			ExecutorService executorService = Executors.newSingleThreadExecutor();
+			ExecutorService executorService = Executors.newCachedThreadPool();
 			executorService.execute(new CallRunnable(clazz, resolver));
 			executorService.shutdown();
 			GetValue bean2 = resolver.resolveDataService(clazz);
@@ -1551,7 +1548,7 @@ public class OcelotTest {
 
 	}
 
-	final int NB_SIMUL_METHODS = 500;
+	final int NB_SIMUL_METHODS = 200;
 
 	/**
 	 * Teste l'appel simultané de methodes sur autant de session differentes<br>
@@ -1560,7 +1557,7 @@ public class OcelotTest {
 	public void testCallMultiMethodsMultiSessions() {
 		int nb = NB_SIMUL_METHODS;
 		System.out.println("call" + nb + "MethodsMultiSession");
-		ExecutorService executorService = Executors.newFixedThreadPool(nb);
+		ExecutorService executorService = Executors.newCachedThreadPool();
 		final List<Session> sessions = new ArrayList<>();
 		try {
 			final Class clazz = EJBDataService.class;
@@ -1573,9 +1570,10 @@ public class OcelotTest {
 				session.addMessageHandler(new CountDownMessageHandler(lock));
 				executorService.execute(new TestThread(clazz, methodName, session));
 			}
-			boolean await = lock.await(30L * nb, TimeUnit.MILLISECONDS);
+			boolean await = lock.await(10L * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
 			assertTrue("Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nb + " msgs", await);
+			System.out.println("testCallMultiMethodsMultiSessions Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nb + " msgs");
 		} catch (InterruptedException ex) {
 			fail(ex.getMessage());
 		} finally {
@@ -1596,7 +1594,7 @@ public class OcelotTest {
 	public void testCallMultiMethodsMonoSessions() {
 		int nb = NB_SIMUL_METHODS;
 		System.out.println("call" + nb + "MethodsMonoSession");
-		ExecutorService executorService = Executors.newFixedThreadPool(nb);
+		ExecutorService executorService = Executors.newCachedThreadPool();
 		try (Session session = OcelotTest.createAndGetSession()) {
 			final CountDownLatch lock = new CountDownLatch(nb);
 			CountDownMessageHandler messageHandler = new CountDownMessageHandler(lock);
@@ -1609,7 +1607,8 @@ public class OcelotTest {
 			}
 			boolean await = lock.await(10L * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
-			assertTrue("Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + " msgs", await);
+			assertTrue("Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nb + " msgs", await);
+			System.out.println("testCallMultiMethodsMonoSessions Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nb + " msgs");
 		} catch (IOException | InterruptedException ex) {
 			fail(ex.getMessage());
 		} finally {
