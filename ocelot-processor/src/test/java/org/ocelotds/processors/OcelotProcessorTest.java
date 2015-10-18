@@ -161,7 +161,6 @@ public class OcelotProcessorTest {
 		when(filer.createSourceFile(anyString())).thenReturn(fileObject);
 		String result = instance.createJSServicesProvider();
 		assertThat(result).startsWith("srv_");
-		assertThat(result).endsWith(".js");
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
 		verify(writer, times(10)).append(captureString.capture());
 		assertThat(captureString.getAllValues()).isNotEmpty();
@@ -190,7 +189,6 @@ public class OcelotProcessorTest {
 		when(filer.createSourceFile(anyString())).thenReturn(fileObject);
 		String result = instance.createHTMLServicesProvider();
 		assertThat(result).startsWith("srv_");
-		assertThat(result).endsWith(".html");
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
 		verify(writer, times(10)).append(captureString.capture());
 		assertThat(captureString.getAllValues()).isNotEmpty();
