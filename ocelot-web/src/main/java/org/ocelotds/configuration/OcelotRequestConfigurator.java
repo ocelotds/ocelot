@@ -56,7 +56,21 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 				}
 			}
 		}
-		Object session = request.getHttpSession();
+		// init from request only on openHandler
+		sec.getUserProperties().put(Constants.SESSION_BEANS, getSessionBeansMap(request.getHttpSession()));
+		sec.getUserProperties().put(Constants.SECURITY_CONTEXT, getSecurityContext());
+		sec.getUserProperties().put(Constants.LOCALE, locale);
+		sec.getUserProperties().put(Constants.PRINCIPAL, request.getUserPrincipal());
+		super.modifyHandshake(sec, request, response);
+	}
+	
+	/**
+	 * Return the map for storing session beans.
+	 * this map is get and store in httpSession
+	 * @param session
+	 * @return 
+	 */
+	Object getSessionBeansMap(Object session){
 		Object attribute;
 		if (session != null && HttpSession.class.isInstance(session)) {
 			HttpSession httpSession = (HttpSession) session;
@@ -68,12 +82,7 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 		} else {
 			attribute = new HashMap();
 		}
-		// init from request only on openHandler
-		sec.getUserProperties().put(Constants.SESSION_BEANS, attribute);
-		sec.getUserProperties().put(Constants.SECURITY_CONTEXT, getSecurityContext());
-		sec.getUserProperties().put(Constants.LOCALE, locale);
-		sec.getUserProperties().put(Constants.PRINCIPAL, request.getUserPrincipal());
-		super.modifyHandshake(sec, request, response);
+		return attribute;
 	}
 
 	/**
