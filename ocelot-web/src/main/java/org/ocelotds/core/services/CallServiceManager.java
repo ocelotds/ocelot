@@ -27,7 +27,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.enterprise.inject.Any;
@@ -284,7 +283,7 @@ public class CallServiceManager implements CallService {
 				logger.debug("{} : scope : {}", dataServiceClassName, scope);
 				if (scope.equals(Scope.SESSION)) {
 					dataService = sessionBeans.get(dataServiceClassName);
-					logger.debug("{} : scope : session is in session : {}", dataServiceClassName, (dataService!=null));
+					logger.debug("{} : scope : session is in session : {}", dataServiceClassName, (dataService != null));
 				}
 				if (dataService == null) {
 					dataService = resolver.resolveDataService(cls);
@@ -294,7 +293,7 @@ public class CallServiceManager implements CallService {
 					}
 				}
 				return dataService;
-			} catch(Exception e) {
+			} catch (Exception e) {
 				throw new DataServiceException(dataServiceClassName, e);
 			}
 		} else {
