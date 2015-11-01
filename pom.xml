@@ -55,6 +55,9 @@
 		<module>ocelot-spi</module>
 		<module>ocelot-extra-spring</module>
 		<module>ocelot-processor</module>
+		<module>ocelot-glassfish</module>
+		<module>ocelot-wildfly</module>
+		<module>ocelot-picketlink</module>
 	</modules>
 	<dependencies>		
 		<dependency>
@@ -194,9 +197,9 @@
 				<version>4.0.0</version>
 			</plugin>
 			<plugin>
-			  <groupId>org.jacoco</groupId>
-			  <artifactId>jacoco-maven-plugin</artifactId>
-			  <version>0.7.5.201505241946</version>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.7.5.201505241946</version>
 				<executions>
 					<execution>
 						<goals>

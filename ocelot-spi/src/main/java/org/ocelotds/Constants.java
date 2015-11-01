@@ -50,6 +50,7 @@ public interface Constants {
 	interface Options {
 		String SECURE = "ocelot.websocket.secure";
 		String STACKTRACE_LENGTH = "ocelot.stacktrace.length";
+		String SECUREKEY = "ocelot.security.vendor";
 	}
 
 	interface Topic {
@@ -100,13 +101,6 @@ public interface Constants {
 	interface Provider {
 		String JAVASCRIPT = "JS";
 		String HTML = "HTML";
-	}
-	
-	interface Container {
-		String GLASSFISH = "GLASSFISH";
-		String WILDFLY = "WILDFLY";
-		String TOMCAT = "TOMCAT";
-		String TOMEE = "TOMEE";
 	}
 	
 	interface BeanManager {

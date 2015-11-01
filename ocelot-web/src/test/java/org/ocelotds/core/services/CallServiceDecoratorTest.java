@@ -50,10 +50,10 @@ public class CallServiceDecoratorTest {
 		Map<String, Object> sessionProperties = new HashMap<>();
 		Principal p = mock(Principal.class);
 		Locale l = new Locale("fr", "FR");
-		sessionProperties.put(Constants.PRINCIPAL, p);
 		sessionProperties.put(Constants.LOCALE, l);
 		sessionProperties.put(Constants.SECURITY_CONTEXT, null);
 
+		when(session.getUserPrincipal()).thenReturn(p);
 		when(session.getUserProperties()).thenReturn(sessionProperties);
 		
 		instance.sendMessageToClient(null, session);

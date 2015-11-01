@@ -3,7 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.security;
 
-import org.ocelotds.security.containers.ContainerSecurityServices;
+import org.ocelotds.spi.security.SecurityContext;
+import org.ocelotds.spi.security.ContainerSecurityServices;
 import java.util.regex.Pattern;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Initialized;
@@ -12,6 +13,7 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
+import org.ocelotds.Constants;
 import org.ocelotds.annotations.ContainerQualifier;
 import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
@@ -38,8 +40,11 @@ public class SecurityServices {
 	 *
 	 * @param sc
 	 */
-	public void setServerInfo(@Observes @Initialized(ApplicationScoped.class) ServletContext sc) {
-		String serverInfo = sc.getServerInfo();
+	protected void setSecurityContainerService(@Observes @Initialized(ApplicationScoped.class) ServletContext sc) {
+		String securekey = sc.getInitParameter(Constants.Options.SECUREKEY);
+		if (securekey == null || securekey.isEmpty()) {
+			securekey = sc.getServerInfo();
+		}
 		boolean found = false;
 		for (ContainerSecurityServices instance : instances) {
 			ContainerQualifier annotation = instance.getClass().getAnnotation(ContainerQualifier.class);
@@ -47,7 +52,7 @@ public class SecurityServices {
 				String name = annotation.value();
 				logger.debug("Container vendor {} candidate", name);
 				Pattern p = Pattern.compile(".*" + name + ".*", Pattern.CASE_INSENSITIVE);
-				if (p.matcher(serverInfo).matches()) {
+				if (p.matcher(securekey).matches()) {
 					logger.info("{} ContainerSubjectServices implementation found in classpath.", annotation.value());
 					current = instance;
 					found = true;

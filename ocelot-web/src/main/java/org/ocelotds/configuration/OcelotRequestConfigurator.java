@@ -17,7 +17,7 @@ import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.core.HttpHeaders;
 import org.ocelotds.Constants;
 import org.ocelotds.core.CDIBeanResolver;
-import org.ocelotds.security.SecurityContext;
+import org.ocelotds.spi.security.SecurityContext;
 import org.ocelotds.security.SecurityServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,11 +56,9 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 				}
 			}
 		}
-		// init from request only on openHandler
 		sec.getUserProperties().put(Constants.SESSION_BEANS, getSessionBeansMap(request.getHttpSession()));
 		sec.getUserProperties().put(Constants.SECURITY_CONTEXT, getSecurityContext());
 		sec.getUserProperties().put(Constants.LOCALE, locale);
-		sec.getUserProperties().put(Constants.PRINCIPAL, request.getUserPrincipal());
 		super.modifyHandshake(sec, request, response);
 	}
 	
@@ -71,10 +69,10 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 	 * @return 
 	 */
 	Object getSessionBeansMap(Object session){
-		Object attribute;
+		Map attribute;
 		if (session != null && HttpSession.class.isInstance(session)) {
 			HttpSession httpSession = (HttpSession) session;
-			attribute = httpSession.getAttribute(Constants.SESSION_BEANS);
+			attribute = (Map) httpSession.getAttribute(Constants.SESSION_BEANS);
 			if(attribute==null) {
 				attribute = new HashMap();
 				httpSession.setAttribute(Constants.SESSION_BEANS, attribute);
@@ -82,6 +80,7 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 		} else {
 			attribute = new HashMap();
 		}
+		logger.debug("Get from session the beans declared with sessionscoped : {} entries", attribute.size());
 		return attribute;
 	}
 
@@ -91,6 +90,7 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 	 * @return
 	 */
 	SecurityContext getSecurityContext() {
+		logger.debug("Get security context from specific vendor implementation");
 		CDIBeanResolver beanResolver = new CDIBeanResolver();
 		SecurityServices subjectServices = beanResolver.getBean(SecurityServices.class); // getSubjectServices();
 		// get SecurityContext from container implementation

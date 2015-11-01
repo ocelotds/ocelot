@@ -4,7 +4,8 @@
 
 package org.ocelotds.security;
 
-import org.ocelotds.security.containers.ContainerSecurityServices;
+import org.ocelotds.spi.security.SecurityContext;
+import org.ocelotds.spi.security.ContainerSecurityServices;
 import javax.enterprise.inject.Instance;
 import javax.servlet.ServletContext;
 import org.junit.Test;
@@ -16,9 +17,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.Constants;
+import org.ocelotds.annotations.ContainerQualifier;
 import org.ocelotds.objects.FakeCDI;
-import org.ocelotds.security.containers.GlassfishSecurityServices;
-import org.ocelotds.security.containers.WildflySecurityServices;
 import org.slf4j.Logger;
 
 /**
@@ -42,31 +43,48 @@ public class SecurityServicesTest {
 	private SecurityServices instance;
 	
 	/**
-	 * Test of setServerInfo method, of class SecurityServices.
+	 * Test of setSecurityContainerService method, of class SecurityServices.
 	 */
 	@Test
-	public void testSetServerInfo() {
-		System.out.println("setServerInfo");
-		GlassfishSecurityServices glassfishSubjectServices = new GlassfishSecurityServices();
-		WildflySecurityServices wildflySubjectServices = new WildflySecurityServices();
-		((FakeCDI<ContainerSecurityServices>) instances).add(glassfishSubjectServices);
-		((FakeCDI<ContainerSecurityServices>) instances).add(wildflySubjectServices);
+	public void testSetSecurityContainerService() {
+		System.out.println("setSecurityContainerService");
+		TestContainerSecurity testSubjectServices = new TestContainerSecurity();
+		((FakeCDI<ContainerSecurityServices>) instances).add(testSubjectServices);
 		ServletContext sc	= mock(ServletContext.class);
 		
-		when(sc.getServerInfo()).thenReturn("... UNKNOWNSERVER ...").thenReturn("Glassfish ...").thenReturn("... WILDFLY ...");
+		when(sc.getServerInfo()).thenReturn("... UNKNOWNSERVER ...").thenReturn("test ...");
 
 		ContainerSecurityServices result;
-		instance.setServerInfo(sc);
+		instance.setSecurityContainerService(sc);
 		result = instance.getContainerSubjectServices();
 		assertThat(result).isEqualTo(current);
 
-		instance.setServerInfo(sc);
+		instance.setSecurityContainerService(sc);
 		result = instance.getContainerSubjectServices();
-		assertThat(result).isEqualTo(glassfishSubjectServices);
+		assertThat(result).isEqualTo(testSubjectServices);
+	}
 
-		instance.setServerInfo(sc);
+	/**
+	 * Test of setSecurityContainerService method, of class SecurityServices.
+	 */
+	@Test
+	public void testSetSecurityContainerService2() {
+		System.out.println("setSecurityContainerService");
+		TestContainerSecurity testSubjectServices = new TestContainerSecurity();
+		((FakeCDI<ContainerSecurityServices>) instances).add(testSubjectServices);
+		ServletContext sc	= mock(ServletContext.class);
+		
+		when(sc.getInitParameter(Constants.Options.SECUREKEY)).thenReturn("").thenReturn("test ...");
+		when(sc.getServerInfo()).thenReturn("... UNKNOWNSERVER ...");
+
+		ContainerSecurityServices result;
+		instance.setSecurityContainerService(sc);
 		result = instance.getContainerSubjectServices();
-		assertThat(result).isEqualTo(wildflySubjectServices);
+		assertThat(result).isEqualTo(current);
+
+		instance.setSecurityContainerService(sc);
+		result = instance.getContainerSubjectServices();
+		assertThat(result).isEqualTo(testSubjectServices);
 	}
 
 	/**
@@ -139,5 +157,19 @@ public class SecurityServicesTest {
 		doThrow(Exception.class).when(subjectServices).setSecurityContext(securityContext);
 
 		instance.setSecurityContext(securityContext);
+	}
+	
+	@ContainerQualifier("TEST")
+	static class TestContainerSecurity implements ContainerSecurityServices {
+
+		@Override
+		public SecurityContext getSecurityContext() {
+			return null;
+		}
+
+		@Override
+		public void setSecurityContext(SecurityContext securityContext) {
+		}
+		
 	}
 }

@@ -2,21 +2,21 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package org.ocelotds.security.containers;
+package org.ocelotds.wildfly;
 
 import java.security.Principal;
 import java.security.acl.Group;
 import javax.security.auth.Subject;
-import org.glassfish.grizzly.http.server.GrizzlyPrincipal;
 import org.jboss.security.SimpleGroup;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ocelotds.security.SecurityContext;
+import org.ocelotds.spi.security.SecurityContext;
 import org.slf4j.Logger;
 import static org.assertj.core.api.Assertions.*;
+import org.jboss.security.SimplePrincipal;
 
 /**
  *
@@ -37,7 +37,7 @@ public class WildflySecurityServicesTest {
 	@Test
 	public void testGetSetSecurityContext() {
 		System.out.println("getSecurityContext");
-		Principal p = new GrizzlyPrincipal("demouser");
+		Principal p = new SimplePrincipal("demouser");
 		Group g = new SimpleGroup("GROUPNAME");
 		Subject subject = new Subject();
 		subject.getPrincipals().add(p);

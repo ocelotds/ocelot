@@ -60,13 +60,13 @@ public class OcelotEndpointTest {
 		Map<String, Object> map = new HashMap<>();
 		map.put(Constants.SECURITY_CONTEXT, "SECURITY_CONTEXT_RESULT");
 		map.put(Constants.LOCALE, "LOCALE_RESULT");
-		map.put(Constants.PRINCIPAL, "PRINCIPAL_RESULT");
+		map.put(Constants.SESSION_BEANS, "SESSION_BEANS");
 		when(config.getUserProperties()).thenReturn(map);
 		ocelotEndpoint.handleOpenConnexion(session, config);
 
 		assertThat(result.get(Constants.SECURITY_CONTEXT)).isEqualTo("SECURITY_CONTEXT_RESULT");
 		assertThat(result.get(Constants.LOCALE)).isEqualTo("LOCALE_RESULT");
-		assertThat(result.get(Constants.PRINCIPAL)).isEqualTo("PRINCIPAL_RESULT");
+		assertThat(result.get(Constants.SESSION_BEANS)).isEqualTo("SESSION_BEANS");
 	}
 
 	/**

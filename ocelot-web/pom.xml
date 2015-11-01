@@ -52,13 +52,6 @@
 			<version>4.1</version>
 			<scope>provided</scope>
 		</dependency>
-		<!-- WILDFLY -->
-		<dependency>
-			<groupId>org.picketbox</groupId>
-			<artifactId>picketbox</artifactId>
-			<version>4.9.3.Final</version>
-			<scope>provided</scope>
-		</dependency>
 	</dependencies>
 	<!--	<build>
 		<plugins>

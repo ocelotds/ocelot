@@ -1,8 +1,9 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.security.containers;
+package org.ocelotds.wildfly;
 
+import org.ocelotds.spi.security.ContainerSecurityServices;
 import org.jboss.security.identity.Identity;
 import java.security.Principal;
 import java.security.acl.Group;
@@ -15,7 +16,6 @@ import org.jboss.security.SecurityContextUtil;
 import org.jboss.security.identity.Role;
 import org.jboss.security.identity.extensions.CredentialIdentityFactory;
 import org.jboss.security.identity.plugins.SimpleRoleGroup;
-import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.annotations.ContainerQualifier;
 import org.slf4j.Logger;
@@ -24,19 +24,22 @@ import org.slf4j.Logger;
  *
  * @author hhfrancois
  */
-@ContainerQualifier(Constants.Container.WILDFLY)
+@ContainerQualifier(WildflySecurityServices.NAME)
 public class WildflySecurityServices implements ContainerSecurityServices {
+
+	protected static final String NAME = "WILDFLY";
+	private static final String ROLES = "Roles";
 
 	@Inject
 	@OcelotLogger
 	private Logger logger;
-
+	
 	/**
 	 *
 	 * @return
 	 */
 	@Override
-	public org.ocelotds.security.SecurityContext getSecurityContext() {
+	public org.ocelotds.spi.security.SecurityContext getSecurityContext() {
 		return new WildflySecurityContext(SecurityContextAssociation.getPrincipal(), SecurityContextAssociation.getSubject(), SecurityContextAssociation.getCredential());
 	}
 
@@ -45,7 +48,7 @@ public class WildflySecurityServices implements ContainerSecurityServices {
 	 * @param securityContext
 	 */
 	@Override
-	public void setSecurityContext(org.ocelotds.security.SecurityContext securityContext) {
+	public void setSecurityContext(org.ocelotds.spi.security.SecurityContext securityContext) {
 		final WildflySecurityContext context = (WildflySecurityContext) securityContext;
 		final SecurityContext secuContext = SecurityContextAssociation.getSecurityContext();
 		final Role roleGroup = getRoleGroup(context.getSubject());
@@ -65,7 +68,7 @@ public class WildflySecurityServices implements ContainerSecurityServices {
 	public static Role getRoleGroup(final Subject subject) {
 		final Set<Group> groups = subject.getPrincipals(Group.class);
 		for (Group group : groups) {
-			if ("Roles".equals(group.getName())) {
+			if (ROLES.equals(group.getName())) {
 				return new SimpleRoleGroup(group);
 			}
 		}
@@ -75,7 +78,7 @@ public class WildflySecurityServices implements ContainerSecurityServices {
 	/**
 	 * Private implementation for wildfly
 	 */
-	static class WildflySecurityContext implements org.ocelotds.security.SecurityContext {
+	static class WildflySecurityContext implements org.ocelotds.spi.security.SecurityContext {
 
 		private final Principal principal;
 		private final Subject subject;
@@ -87,12 +90,10 @@ public class WildflySecurityServices implements ContainerSecurityServices {
 			this.credential = credential;
 		}
 
-		@Override
 		public Principal getPrincipal() {
 			return principal;
 		}
 
-		@Override
 		public Subject getSubject() {
 			return subject;
 		}

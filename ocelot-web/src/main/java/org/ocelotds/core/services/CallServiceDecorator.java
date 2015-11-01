@@ -10,13 +10,12 @@ import javax.decorator.Decorator;
 import javax.decorator.Delegate;
 import javax.enterprise.inject.Any;
 import javax.inject.Inject;
-import javax.security.auth.Subject;
 import javax.websocket.Session;
 import org.ocelotds.Constants;
 import org.ocelotds.context.ThreadLocalContextHolder;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.messaging.MessageFromClient;
-import org.ocelotds.security.SecurityContext;
+import org.ocelotds.spi.security.SecurityContext;
 import org.ocelotds.security.SecurityServices;
 import org.slf4j.Logger;
 
@@ -38,17 +37,18 @@ public abstract class CallServiceDecorator implements CallService {
 
 	@Inject
 	SecurityServices subjectServices;
-
+	
 	@Override
 	public void sendMessageToClient(MessageFromClient message, Session session) {
 		Map<String, Object> sessionProperties = session.getUserProperties();
 		// Get subject from config and set in session
-		final Principal principal = (Principal) sessionProperties.get(Constants.PRINCIPAL);
+		final Principal principal = session.getUserPrincipal();
 		ThreadLocalContextHolder.put(Constants.PRINCIPAL, principal);
 
 		final Locale locale = (Locale) sessionProperties.get(Constants.LOCALE);
 		ThreadLocalContextHolder.put(Constants.LOCALE, locale);
 
+		// HERE WE SET THE SECURITY CONTEXT WITH SPECIFIC VENDOR IMPLEMENTATION
 		final SecurityContext context = (SecurityContext) sessionProperties.get(Constants.SECURITY_CONTEXT);
 		subjectServices.setSecurityContext(context);
 		logger.debug("Decorate CallService for add context to session Principal : {}, Locale : {}", principal, locale);

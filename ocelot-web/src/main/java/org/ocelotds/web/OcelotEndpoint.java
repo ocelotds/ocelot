@@ -58,7 +58,6 @@ public class OcelotEndpoint {
 		sessionProperties.put(Constants.SESSION_BEANS, configProperties.get(Constants.SESSION_BEANS));
 		sessionProperties.put(Constants.SECURITY_CONTEXT, configProperties.get(Constants.SECURITY_CONTEXT));
 		sessionProperties.put(Constants.LOCALE, configProperties.get(Constants.LOCALE));
-		sessionProperties.put(Constants.PRINCIPAL, configProperties.get(Constants.PRINCIPAL));
 	}
 	@OnError
 	public void onError(Session session, Throwable t) {
