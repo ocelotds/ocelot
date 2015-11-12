@@ -40,7 +40,6 @@ public abstract class CallServiceDecorator implements CallService {
 	
 	@Override
 	public void sendMessageToClient(MessageFromClient message, Session session) {
-		System.out.println("CallServiceDecorator.sendMessageToClient");
 		Map<String, Object> sessionProperties = session.getUserProperties();
 		// Get subject from config and set in session
 		final Principal principal = session.getUserPrincipal();
