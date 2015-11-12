@@ -3,12 +3,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds;
 
-import org.ocelotds.context.ThreadLocalContextHolder;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import javax.inject.Inject;
 import org.ocelotds.annotations.OcelotLogger;
+import org.ocelotds.context.OcelotContext;
 import org.slf4j.Logger;
 
 /**
@@ -20,16 +20,12 @@ public class OcelotI18nServices {
 	@OcelotLogger
 	private Logger logger;
 	
+	@Inject
+	private OcelotContext ocelotContext;
+	
 	public Locale getUserLocale() {
 		logger.debug("Get locale from OcelotServices");
-		Locale locale = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
-		if(null==locale) {
-			logger.debug("Get locale from OcelotServices : default");
-			locale =  new Locale("en", "US");
-		}
-		logger.debug("Get locale from OcelotServices : {}", locale);
-		return locale;
-		
+		return ocelotContext.getLocale();
 	}
 	
 	public String getLocalizedMessage(String bundleName, String entry, Object[] args) {
