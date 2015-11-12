@@ -14,8 +14,8 @@ import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -25,7 +25,10 @@ import org.slf4j.LoggerFactory;
 @LocalBean
 @DataService(resolver = Constants.Resolver.EJB)
 public class EJBDataService implements GetValue {
-	private static final Logger logger = LoggerFactory.getLogger(EJBDataService.class);
+	
+	@Inject
+	@OcelotLogger
+	private Logger logger;
 
 	private double d;
 
