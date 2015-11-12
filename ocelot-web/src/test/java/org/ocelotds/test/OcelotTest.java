@@ -97,7 +97,7 @@ public class OcelotTest {
 	private final static long TIMEOUT = 1000;
 	private final static String PORT = "8282";
 
-	private final static String ctxpath = "ocelot-test";
+	private final static String CTXPATH = "ocelot-test";
 
 	@Inject
 	@MessageEvent
@@ -146,7 +146,7 @@ public class OcelotTest {
 		File logback = new File("src/test/resources/logback.xml");
 		File localeFr = new File("src/test/resources/test_fr_FR.properties");
 		File localeUs = new File("src/test/resources/test_en_US.properties");
-		WebArchive webArchive = ShrinkWrap.create(WebArchive.class, ctxpath + ".war")
+		WebArchive webArchive = ShrinkWrap.create(WebArchive.class, CTXPATH + ".war")
 				  //				  .addAsLibraries(imports)
 				  .addPackages(true, OcelotTest.class.getPackage())
 				  .addClass(Result.class)
@@ -224,7 +224,7 @@ public class OcelotTest {
 		WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 		try {
 			StringBuilder sb = new StringBuilder("ws://localhost:");
-			sb.append(PORT).append(Constants.SLASH).append(ctxpath).append(Constants.SLASH).append("ocelot-endpoint");
+			sb.append(PORT).append(Constants.SLASH).append(CTXPATH).append(Constants.SLASH).append("ocelot-endpoint");
 			URI uri = new URI(sb.toString());
 			return container.connectToServer(OcelotClientEnpoint.class, uri);
 		} catch (URISyntaxException | DeploymentException | IOException ex) {
@@ -559,7 +559,7 @@ public class OcelotTest {
 	 */
 	public HttpURLConnection getConnectionForResource(String resource, boolean min) throws MalformedURLException, IOException {
 		StringBuilder sb = new StringBuilder("http://localhost:");
-		sb.append(PORT).append(Constants.SLASH).append(ctxpath).append(Constants.SLASH).append(resource);
+		sb.append(PORT).append(Constants.SLASH).append(CTXPATH).append(Constants.SLASH).append(resource);
 		if (!min) {
 			sb.append("?").append(Constants.MINIFY_PARAMETER).append("=false");
 		}
@@ -659,7 +659,7 @@ public class OcelotTest {
 				replaced = false;
 				while ((inputLine = in.readLine()) != null) {
 					assertFalse("Dynamic replacement of " + Constants.CTXPATH + " doen't work", inputLine.contains(Constants.CTXPATH));
-					replaced |= inputLine.contains(ctxpath);
+					replaced |= inputLine.contains(CTXPATH);
 				}
 			}
 			assertTrue("Dynamic replacement of context doen't work", replaced);
