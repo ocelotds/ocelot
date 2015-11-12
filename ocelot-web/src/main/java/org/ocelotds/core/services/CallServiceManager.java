@@ -36,7 +36,6 @@ import javax.websocket.Session;
 import org.ocelotds.Constants;
 import org.ocelotds.core.CacheManager;
 import org.ocelotds.core.Cleaner;
-import org.ocelotds.core.MethodWithSessionInjection;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
@@ -99,48 +98,6 @@ public class CallServiceManager implements CallService {
 					return method;
 				} catch (JsonUnmarshallingException | IllegalArgumentException iae) {
 					logger.debug("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
-				}
-			}
-		}
-		throw new NoSuchMethodException(dsClass + "." + message.getOperation());
-	}
-
-	/**
-	 * Get pertinent method and fill the argument list from message arguments This method inject an additional argument, the client session
-	 *
-	 * @param session
-	 * @param dsClass
-	 * @param message
-	 * @param arguments
-	 * @return
-	 * @throws java.lang.NoSuchMethodException
-	 */
-	Method getMethodFromDataServiceWithSessionInjection(final Session session, final Class dsClass, final MessageFromClient message, Object[] arguments) throws NoSuchMethodException {
-		logger.debug("Try to find method with session {} on class {}", message.getOperation(), dsClass);
-		List<String> parameters = message.getParameters();
-		for (Method method : dsClass.getMethods()) {
-			int nbParamater = parameters.size() + 1;
-			if (method.getName().equals(message.getOperation()) && method.getParameterTypes().length == nbParamater) {
-				logger.debug("Process method {}", method.getName());
-				try {
-					Type[] paramTypes = method.getGenericParameterTypes();
-					Annotation[][] parametersAnnotations = method.getParameterAnnotations();
-					int idx = 0, pidx = 0;
-					for (Type paramType : paramTypes) {
-						if (idx < nbParamater) {
-							if (Session.class.equals(paramType)) {
-								arguments[idx++] = session;
-							} else {
-								String jsonArg = cleaner.cleanArg(parameters.get(pidx++));
-								arguments[idx] = convertJsonToJava(idx, jsonArg, paramType, parametersAnnotations[idx]);
-								idx++;
-							}
-						}
-					}
-					logger.debug("Method {}.{} with good signature with injected session found.", dsClass, message.getOperation());
-					return method;
-				} catch (JsonUnmarshallingException | IllegalArgumentException iae) {
-					logger.debug("Method {}.{} with injected not found. Arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
 				}
 			}
 		}
@@ -318,13 +275,7 @@ public class CallServiceManager implements CallService {
 			int nbParam = message.getParameters().size();
 			Object[] arguments = new Object[nbParam];
 			Method method = this.getMethodFromDataService(cls, message, arguments);
-			if (!method.isAnnotationPresent(MethodWithSessionInjection.class)) {
-				messageToClient.setResult(method.invoke(dataService, arguments));
-			} else {
-				arguments = new Object[nbParam + 1];
-				method = this.getMethodFromDataServiceWithSessionInjection(client, cls, message, arguments);
-				messageToClient.setResult(method.invoke(dataService, arguments));
-			}
+			messageToClient.setResult(method.invoke(dataService, arguments));
 			if (method.isAnnotationPresent(JsonMarshaller.class)) {
 				JsonMarshaller jm = method.getAnnotation(JsonMarshaller.class);
 				Class<? extends org.ocelotds.marshalling.JsonMarshaller> marshallerCls = jm.value();
