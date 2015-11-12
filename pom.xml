@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.ocelotds</groupId>
 	<artifactId>ocelot</artifactId>
-	<version>2.4.4-SNAPSHOT</version>
+	<version>2.4.4</version>
 	<packaging>pom</packaging>
 	<name>Ocelot</name>
 	<description>Framework for communication way between java and javascript</description>	
@@ -35,7 +35,7 @@
 		<connection>scm:git:https://github.com/hhdevelopment/ocelot.git</connection>
 		<developerConnection>scm:git:https://github.com/hhdevelopment/ocelot.git</developerConnection>
 		<url>https://github.com/hhdevelopment/ocelot.git</url>
-		<tag>HEAD</tag>
+		<tag>ocelot-2.4.4</tag>
 	</scm>	
 	
 	<distributionManagement>
