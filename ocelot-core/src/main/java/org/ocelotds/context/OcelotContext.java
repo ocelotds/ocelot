@@ -5,7 +5,9 @@ package org.ocelotds.context;
 
 import java.security.Principal;
 import java.util.Locale;
+import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.websocket.Session;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
@@ -19,21 +21,40 @@ public class OcelotContext {
 	@Inject
 	@OcelotLogger
 	private Logger logger;
-	
-	@Inject
-	Principal principal;
+
+	@Produces
+	Session getSession() {
+		return (Session) ThreadLocalContextHolder.get(Constants.SESSION);
+	}
 
 	public Locale getLocale() {
-		Locale locale = (Locale) ThreadLocalContextHolder.get(Constants.LOCALE);
-		if (null == locale) {
-			logger.debug("Get locale from OcelotServices : default");
-			locale = new Locale("en", "US");
+		Session session = getSession();
+		Locale locale;
+		if (session == null) {
+			locale = Locale.US;
+		} else {
+			locale = (Locale) session.getUserProperties().get(Constants.LOCALE);
+			if (null == locale) {
+				locale = new Locale("en", "US");
+				logger.debug("Get locale from OcelotServices : default : {}", locale);
+			} else {
+				logger.debug("Get locale from OcelotServices : {}", locale);
+			}
 		}
-		logger.debug("Get locale from OcelotServices : {}", locale);
 		return locale;
 	}
 
+	public void setLocale(Locale locale) {
+		Session session = getSession();
+		session.getUserProperties().put(Constants.LOCALE, locale);
+	}
+
 	public String getUsername() {
-		return principal.getName();
+		Session session = getSession();
+		Principal p = session.getUserPrincipal();
+		if (null != p) {
+			return p.getName();
+		}
+		return Constants.ANONYMOUS;
 	}
 }
