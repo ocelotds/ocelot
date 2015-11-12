@@ -4,15 +4,10 @@
 package org.ocelotds.security;
 
 import java.security.Principal;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -39,6 +34,7 @@ public class OcelotPrincipalTest {
 	@Test
 	public void testGetName() {
 		System.out.println("getName");
+		ThreadLocalContextHolder.cleanupThread();
 		String result = instance.getName();
 		assertThat(result).isEqualTo(Constants.ANONYMOUS);
 		String expResult = "username";

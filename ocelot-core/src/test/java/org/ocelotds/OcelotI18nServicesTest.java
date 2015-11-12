@@ -3,15 +3,21 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds;
 
+import java.util.HashMap;
 import org.ocelotds.context.ThreadLocalContextHolder;
 import java.util.Locale;
+import java.util.Map;
+import javax.inject.Inject;
+import javax.websocket.Session;
 import org.junit.Before;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.when;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.context.OcelotContext;
 import org.slf4j.Logger;
 
 /**
@@ -26,10 +32,12 @@ public class OcelotI18nServicesTest {
 
 	@InjectMocks
 	private OcelotI18nServices ocelotI18nServices;
+	
+	@Mock
+	private OcelotContext ocelotContext;
 
 	@Before
 	public void init() {
-		ThreadLocalContextHolder.put(Constants.LOCALE, null);
 	}
 	
 	/**
@@ -38,12 +46,12 @@ public class OcelotI18nServicesTest {
 	@Test
 	public void testGetUserLocale() {
 		System.out.println("getUserLocale");
-		Locale expResult = new Locale("en", "US");
+		Map<String, Object> map = new HashMap<>();
+		Locale expResult = Locale.FRANCE;
+
+		when(ocelotContext.getLocale()).thenReturn(expResult);
+
 		Locale result = ocelotI18nServices.getUserLocale();
-		assertThat(result).isEqualTo(expResult);
-		expResult = new Locale("fr", "FR");
-		ThreadLocalContextHolder.put(Constants.LOCALE, expResult);
-		result = ocelotI18nServices.getUserLocale();
 		assertThat(result).isEqualTo(expResult);
 	}
 
@@ -54,15 +62,14 @@ public class OcelotI18nServicesTest {
 	public void testGetLocalizedMessage() {
 		System.out.println("getLocalizedMessage");
 		String bundleName = "test";
-		Locale locale = new Locale("en", "US");
+
+		when(ocelotContext.getLocale()).thenReturn(Locale.US).thenReturn(Locale.FRANCE);
+		
 		String expResult = "Hello François";
-		ThreadLocalContextHolder.put(Constants.LOCALE, locale);
 		String result = ocelotI18nServices.getLocalizedMessage(bundleName, "HELLOGUY", new Object[]{"François"});
 		assertThat(result).isEqualTo(expResult);
 
 		expResult = "Bonjour François";
-		locale = new Locale("fr", "FR");
-		ThreadLocalContextHolder.put(Constants.LOCALE, locale);
 		result = ocelotI18nServices.getLocalizedMessage(bundleName, "HELLOGUY", new Object[]{"François"});
 		assertThat(result).isEqualTo(expResult);
 	}

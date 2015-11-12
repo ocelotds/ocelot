@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.context;
 
-import org.ocelotds.context.ThreadLocalContextHolder;
 import java.lang.reflect.Constructor;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +19,7 @@ public class ThreadLocalContextHolderTest {
 	
 	@Before
 	public void setUp() {
-		ThreadLocalContextHolder.put(Constants.LOCALE, EXPECTED);
+		ThreadLocalContextHolder.put(Constants.PRINCIPAL, EXPECTED);
 	}
 	
 	/**
@@ -53,8 +52,11 @@ public class ThreadLocalContextHolderTest {
 	@Test
 	public void testPut() {
 		System.out.println("put");
-		Object result = ThreadLocalContextHolder.get(Constants.LOCALE);
+		Object result = ThreadLocalContextHolder.get(Constants.PRINCIPAL);
 		assertThat(result).isEqualTo(EXPECTED);
+		ThreadLocalContextHolder.put(Constants.PRINCIPAL, null);
+		result = ThreadLocalContextHolder.get(Constants.PRINCIPAL);
+		assertThat(result).isEqualTo(null);
 	}
 
 	/**
@@ -64,7 +66,7 @@ public class ThreadLocalContextHolderTest {
 	public void testCleanupThread() {
 		System.out.println("cleanupThread");
 		ThreadLocalContextHolder.cleanupThread();
-		Object locale = ThreadLocalContextHolder.get(Constants.LOCALE);
+		Object locale = ThreadLocalContextHolder.get(Constants.PRINCIPAL);
 		assertThat(locale).isNull();
 	}
 	

@@ -51,7 +51,6 @@ import org.ocelotds.Constants;
 import org.ocelotds.OcelotServices;
 import org.ocelotds.core.CacheManager;
 import org.ocelotds.core.Cleaner;
-import org.ocelotds.core.MethodWithSessionInjection;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshallers.LocaleUnmarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
@@ -160,45 +159,6 @@ public class CallServiceManagerTest {
 		message.setParameters(Arrays.asList("\"toto\"", "5"));
 		Object[] arguments = new Object[2];
 		callServiceManager.getMethodFromDataService(dsClass, message, arguments);
-	}
-
-	/**
-	 * Test of getMethodFromDataServiceWithSessionInjection method, of class CallServiceManager.
-	 *
-	 * @throws java.lang.NoSuchMethodException
-	 */
-	@Test
-	public void testGetMethodFromDataServiceWithSessionInjection() throws NoSuchMethodException {
-		System.out.println("getMethodFromDataServiceWithSessionInjection");
-		Session session = mock(Session.class);
-		Class dsClass = ClassAsDataService.class;
-		MessageFromClient message = new MessageFromClient();
-		message.setOperation("methodWith2ArgumentsAndSession");
-		message.setParameters(Arrays.asList("5", "\"toto\""));
-		Object[] arguments = new Object[3];
-		Method expResult = dsClass.getMethod("methodWith2ArgumentsAndSession", new Class<?>[]{Session.class, Integer.TYPE, String.class});
-		Method result = callServiceManager.getMethodFromDataServiceWithSessionInjection(session, dsClass, message, arguments);
-		assertThat(result).isEqualTo(expResult);
-		assertThat(arguments).contains(session, Index.atIndex(0));
-		assertThat(arguments).contains(5, Index.atIndex(1));
-		assertThat(arguments).contains("toto", Index.atIndex(2));
-	}
-
-	/**
-	 * Test of getMethodFromDataService method, of class CallServiceManager.
-	 *
-	 * @throws java.lang.NoSuchMethodException
-	 */
-	@Test(expected = NoSuchMethodException.class)
-	public void testGetMethodFromDataServiceNotFound2() throws NoSuchMethodException {
-		System.out.println("getMethodFromDataService");
-		Session session = mock(Session.class);
-		Class dsClass = ClassAsDataService.class;
-		MessageFromClient message = new MessageFromClient();
-		message.setOperation("methodWith2ArgumentsAndSession");
-		message.setParameters(Arrays.asList("\"toto\"", "5"));
-		Object[] arguments = new Object[2];
-		callServiceManager.getMethodFromDataServiceWithSessionInjection(session, dsClass, message, arguments);
 	}
 
 	/**
@@ -372,7 +332,7 @@ public class CallServiceManagerTest {
 		verify(async, times(7)).sendObject(captureMsg.capture());
 		List<MessageToClient> result = captureMsg.getAllValues();
 		assertThat(result.get(0).getResponse()).isEqualTo(new ClassAsDataService().methodReturnString("e"));
-		assertThat(result.get(1).getResponse()).isEqualTo(new ClassAsDataService().methodReturnString2(client, "e"));
+		assertThat(result.get(1).getResponse()).isEqualTo(new ClassAsDataService().methodReturnString2("e"));
 		assertThat(result.get(2).getResponse()).isEqualTo(new ClassAsDataService().methodReturnCachedString("e"));
 		Calendar deadline = Calendar.getInstance();
 		deadline.add(Calendar.YEAR, 1);
@@ -427,10 +387,6 @@ public class CallServiceManagerTest {
 	@DataService(resolver = "TEST")
 	private class ClassAsDataService {
 
-		public void methodWith2ArgumentsAndSession(Session session, int i, String s) {
-
-		}
-
 		public void methodWithSomeArguments(String s, Integer i, String[] a, Collection<String> c, Map<String, Integer> m) {
 
 		}
@@ -443,12 +399,7 @@ public class CallServiceManagerTest {
 			return "r1";
 		}
 
-		@MethodWithSessionInjection
 		public String methodReturnString2(String a) {
-			return "r2";
-		}
-
-		public String methodReturnString2(Session s, String a) {
 			return "r3";
 		}
 

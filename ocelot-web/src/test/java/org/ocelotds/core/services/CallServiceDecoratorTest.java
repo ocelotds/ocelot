@@ -58,7 +58,6 @@ public class CallServiceDecoratorTest {
 		
 		instance.sendMessageToClient(null, session);
 		assertThat(ThreadLocalContextHolder.get(Constants.PRINCIPAL)).isEqualTo(p);
-		assertThat(ThreadLocalContextHolder.get(Constants.LOCALE)).isEqualTo(l);
 	}
 	
 	private static class CallServiceDecoratorImpl extends CallServiceDecorator {
