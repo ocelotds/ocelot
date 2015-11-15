@@ -36,7 +36,7 @@ public class HtmlFileInitializer extends AbstractFileInitializer {
 	private Logger logger;
 
 	public void initHtmlFile(@Observes @Initialized(ApplicationScoped.class) ServletContext sc) {
-		logger.info("ocelot.htm generation...");
+		logger.debug("ocelot.htm generation...");
 		try {
 			// create tmp/ocelot.html
 			File htmlFile = createOcelotHtmlFile(sc.getContextPath());
@@ -44,6 +44,7 @@ public class HtmlFileInitializer extends AbstractFileInitializer {
 		} catch (IOException ex) {
 			logger.error("Fail to create ocelot.html.", ex);
 		}
+		logger.info("ocelot.htm generated : {}", sc.getInitParameter(Constants.OCELOT_HTML));
 	}
 
 	public void deleteHtmlFile(@Observes @Destroyed(ApplicationScoped.class) ServletContext sc) {

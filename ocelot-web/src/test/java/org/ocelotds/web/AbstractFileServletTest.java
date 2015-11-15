@@ -7,7 +7,6 @@ package org.ocelotds.web;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.catalina.ssi.ByteArrayServletOutputStream;
@@ -20,41 +19,30 @@ import org.mockito.ArgumentCaptor;
  *
  * @author hhfrancois
  */
-public class AbstractServletTest {
+public class AbstractFileServletTest {
 	private final String EXPECTED = "line1;\nline2;\nline3;";
 
-	private AbstractServlet instance = new AbstractServletImpl();
+	private final AbstractFileServlet instance = new AbstractServletImpl();
 
 	HttpServletRequest request;
 	HttpServletResponse response;
-
-	/**
-	 * Test of processRequest method, of class AbstractServlet.
-	 */
-	@Test
-	public void testProcessRequest() throws Exception {
-		System.out.println("processRequest");
-		instance.processRequest(request, response);
-	}
-
-	/**
-	 * Test of processFile method, of class AbstractServlet.
-	 * @throws java.lang.Exception
-	 */
-	@Test
-	public void testProcessFile() throws Exception {
-		System.out.println("processFile");
+	ByteArrayServletOutputStream out;
+	
+	private String filepath;
+	
+	public void init() throws IOException {
 		File file = File.createTempFile("ocelot", ".txt");
 		try(FileWriter writer = new FileWriter(file)) {
 			writer.write(EXPECTED);
 		}
+		filepath = file.getAbsolutePath();
 		request = mock(HttpServletRequest.class);
 		response = mock(HttpServletResponse.class);
-		ByteArrayServletOutputStream out = new ByteArrayServletOutputStream();
+		out = new ByteArrayServletOutputStream();
 		when(response.getOutputStream()).thenReturn(out);
-
-		instance.processFile(file.getAbsolutePath(), "text/plain", request, response);
-
+	}
+	
+	public void test() {
 		ArgumentCaptor<String> captureType = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Integer> captureLength = ArgumentCaptor.forClass(Integer.class);
 		verify(response).setContentType(captureType.capture());
@@ -65,23 +53,39 @@ public class AbstractServletTest {
 	}
 
 	/**
-	 * Test of doGet method, of class AbstractServlet.
+	 * Test of processRequest method, of class AbstractFileServlet.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	public void testProcessRequest() throws Exception {
+		System.out.println("processRequest");
+		init();
+		instance.processRequest(request, response);
+		test();
+	}
+
+	/**
+	 * Test of doGet method, of class AbstractFileServlet.
 	 * @throws java.lang.Exception
 	 */
 	@Test
 	public void testDoGet() throws Exception {
 		System.out.println("doGet");
+		init();
 		instance.doGet(request, response);
+		test();
 	}
 
 	/**
-	 * Test of doPost method, of class AbstractServlet.
+	 * Test of doPost method, of class AbstractFileServlet.
 	 * @throws java.lang.Exception
 	 */
 	@Test
 	public void testDoPost() throws Exception {
 		System.out.println("doPost");
+		init();
 		instance.doPost(request, response);
+		test();
 	}
 
 	/**
@@ -97,9 +101,15 @@ public class AbstractServletTest {
 		assertThat(result).isEqualTo("ocelot-servlet");
 	}
 	
-	public class AbstractServletImpl extends AbstractServlet {
+	public class AbstractServletImpl extends AbstractFileServlet {
 		@Override
-		protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		protected String getFilename(HttpServletRequest request) {
+			return filepath;
+		}
+
+		@Override
+		protected String getMimetype(HttpServletRequest request) {
+			return "text/plain";
 		}
 	}
 }

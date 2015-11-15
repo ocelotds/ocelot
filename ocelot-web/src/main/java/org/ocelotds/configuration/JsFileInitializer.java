@@ -44,7 +44,7 @@ public class JsFileInitializer extends AbstractFileInitializer {
 	private Instance<IServicesProvider> jsServicesProviders;
 
 	public void initOcelotJsFile(@Observes @Initialized(ApplicationScoped.class) ServletContext sc) {
-		logger.info("ocelot.js generation...");
+		logger.debug("ocelot.js generation...");
 		try {
 			// create tmp/ocelot.js
 			File jsFile = createOcelotJsFile(sc.getContextPath(), getWSProtocol(sc));
@@ -52,7 +52,8 @@ public class JsFileInitializer extends AbstractFileInitializer {
 		} catch (IOException ex) {
 			logger.error("Fail to create ocelot.js.", ex);
 		}
-	}
+		logger.info("ocelot.js generated : {} and {}", sc.getInitParameter(Constants.OCELOT_MIN), sc.getInitParameter(Constants.OCELOT));
+}
 
 	public void deleteJsFile(@Observes @Destroyed(ApplicationScoped.class) ServletContext sc) {
 		deleteFile(sc.getInitParameter(Constants.OCELOT));

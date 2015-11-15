@@ -6,10 +6,10 @@ package org.ocelotds.web;
 
 import org.ocelotds.Constants;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -20,31 +20,30 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author hhfrancois
  */
-public abstract class AbstractServlet extends HttpServlet {
+public abstract class AbstractFileServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1973549844535787671L;
 
-	protected abstract void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
+	protected abstract String getFilename(HttpServletRequest request);
+	protected abstract String getMimetype(HttpServletRequest request);
 
 	/**
 	 * 
-	 * @param filename
-	 * @param mimetype
 	 * @param request
 	 * @param response
 	 * @throws ServletException
 	 * @throws IOException 
 	 */
-	protected void processFile(String filename, String mimetype, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		response.setContentType(mimetype);
-		File source = new File(filename);
-		OutputStream out = response.getOutputStream();
+	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		int count = 0;
-		try (InputStream in = new FileInputStream(source)) {
-			byte[] buffer = new byte[Constants.DEFAULT_BUFFER_SIZE];
-			int n = 0;
-			while (-1 != (n = in.read(buffer))) {
-				out.write(buffer, 0, n);
+		response.setContentType(getMimetype(request));
+		File source = new File(getFilename(request));
+		Writer writer = response.getWriter();
+		try (Reader reader = new FileReader(source)) {
+			char[] cbuf = new char[Constants.DEFAULT_BUFFER_SIZE];
+			while (reader.ready()) {
+				int n = reader.read(cbuf);
+				writer.write(cbuf, 0, n);
 				count += n;
 			}
 		}
@@ -88,6 +87,5 @@ public abstract class AbstractServlet extends HttpServlet {
 	@Override
 	public String getServletInfo() {
 		return "ocelot-servlet";
-	}// </editor-fold>
-
+	}
 }

@@ -5,11 +5,8 @@
 package org.ocelotds.web;
 
 import org.ocelotds.Constants;
-import java.io.IOException;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * Servlet to serve ocelot.js
@@ -17,21 +14,16 @@ import javax.servlet.http.HttpServletResponse;
  * @author hhfrancois
  */
 @WebServlet(urlPatterns = {Constants.SLASH_OCELOT_HTML})
-public class HTMLServlet extends AbstractServlet {
+public class HTMLServlet extends AbstractFileServlet {
 
 	private static final long serialVersionUID = 1973549844535787671L;
 
-	/**
-	 * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
-	 *
-	 * @param request servlet request
-	 * @param response servlet response
-	 * @throws ServletException if a servlet-specific error occurs
-	 * @throws IOException if an I/O error occurs
-	 */
 	@Override
-	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String filename = request.getServletContext().getInitParameter(Constants.OCELOT_HTML);
-		processFile(filename, Constants.HTMLTYPE, request, response);
+	protected String getFilename(HttpServletRequest request) {
+		return request.getServletContext().getInitParameter(Constants.OCELOT_HTML);
+	}
+	@Override
+	protected String getMimetype(HttpServletRequest request) {
+		return Constants.HTMLTYPE;
 	}
 }
