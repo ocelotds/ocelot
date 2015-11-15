@@ -58,6 +58,7 @@
 		<module>ocelot-glassfish</module>
 		<module>ocelot-wildfly</module>
 		<module>ocelot-picketlink</module>
+	 <module>ocelot-weblogic</module>
 	</modules>
 	<dependencies>		
 		<dependency>
