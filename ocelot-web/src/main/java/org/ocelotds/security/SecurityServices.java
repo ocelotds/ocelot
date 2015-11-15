@@ -63,7 +63,7 @@ public class SecurityServices {
 			}
 		}
 		if (!found) {
-			logger.info("No ContainerSubjectServices implementation found in classpath for current server. Implement it or contact ocelot team leader for implements it.");
+			logger.info("ContainerSubjectServices implementation not found in classpath for current server {}.\nImplement it and annotate it with @ContainerQualifier or contact ocelot team leader for implements it.", securekey);
 		}
 
 	}
