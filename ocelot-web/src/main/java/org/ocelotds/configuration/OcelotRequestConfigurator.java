@@ -57,7 +57,10 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 			}
 		}
 		sec.getUserProperties().put(Constants.SESSION_BEANS, getSessionBeansMap(request.getHttpSession()));
-		sec.getUserProperties().put(Constants.SECURITY_CONTEXT, getSecurityContext());
+		SecurityContext securityContext = getSecurityContext();
+		if(securityContext != null) {
+			sec.getUserProperties().put(Constants.SECURITY_CONTEXT, securityContext);
+		}
 		sec.getUserProperties().put(Constants.LOCALE, locale);
 		super.modifyHandshake(sec, request, response);
 	}
