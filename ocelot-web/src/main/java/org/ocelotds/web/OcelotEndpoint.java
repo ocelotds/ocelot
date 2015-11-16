@@ -24,6 +24,7 @@ import javax.websocket.server.ServerEndpoint;
 import org.ocelotds.core.CDIBeanResolver;
 import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * WebSocket endpoint
@@ -56,12 +57,14 @@ public class OcelotEndpoint {
 		Map<String, Object> sessionProperties = session.getUserProperties();
 		// Get subject from config and set in session, only one time by connexion
 		sessionProperties.put(Constants.SESSION_BEANS, configProperties.get(Constants.SESSION_BEANS));
-		sessionProperties.put(Constants.SECURITY_CONTEXT, configProperties.get(Constants.SECURITY_CONTEXT));
+		if(configProperties.containsKey(Constants.SECURITY_CONTEXT)) {
+			sessionProperties.put(Constants.SECURITY_CONTEXT, configProperties.get(Constants.SECURITY_CONTEXT));
+		}
 		sessionProperties.put(Constants.LOCALE, configProperties.get(Constants.LOCALE));
 	}
 	@OnError
 	public void onError(Session session, Throwable t) {
-		logger.error("Unknow error for session " + session.getId(), t);
+		getLogger().error("Unknow error for session " + session.getId(), t);
 	}
 
 	/**
@@ -72,7 +75,7 @@ public class OcelotEndpoint {
 	 */
 	@OnClose
 	public void handleClosedConnection(Session session, CloseReason closeReason) {
-		logger.debug("Close connexion for session '{}' : '{}'", session.getId(), closeReason.getCloseCode());
+		getLogger().debug("Close connexion for session '{}' : '{}'", session.getId(), closeReason.getCloseCode());
 		if (session.isOpen()) {
 			try {
 				session.close();
@@ -91,8 +94,15 @@ public class OcelotEndpoint {
 	@OnMessage
 	public void receiveCommandMessage(Session client, String json) {
 		MessageFromClient message = MessageFromClient.createFromJson(json);
-		logger.debug("Receive call message '{}' for session '{}'", message.getId(), client.getId());
+		getLogger().debug("Receive call message '{}' for session '{}'", message.getId(), client.getId());
 		getCallServiceManager().sendMessageToClient(message, client);
+	}
+
+	Logger getLogger() {
+		if (null == logger) {
+			logger = LoggerFactory.getLogger(OcelotEndpoint.class);
+		}
+		return logger;
 	}
 
 	SessionManager getSessionManager() {
