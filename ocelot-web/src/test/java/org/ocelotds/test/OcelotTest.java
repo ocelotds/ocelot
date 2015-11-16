@@ -163,7 +163,7 @@ public class OcelotTest {
 	 * @param webArchive
 	 */
 	public static void addOcelotJar(WebArchive webArchive) {
-		String version = "[2,)";
+		String version = "2.4.6-SNAPSHOT";
 		File[] imports = Maven.resolver().resolve("org.ocelotds:ocelot-web:"+version, "org.ocelotds:ocelot-core:"+version).withTransitivity().asFile();
 		webArchive.addAsLibraries(imports);
 	}
