@@ -7,6 +7,7 @@ package org.ocelotds.web;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.catalina.ssi.ByteArrayServletOutputStream;
@@ -39,16 +40,17 @@ public class AbstractFileServletTest {
 		request = mock(HttpServletRequest.class);
 		response = mock(HttpServletResponse.class);
 		out = new ByteArrayServletOutputStream();
-		when(response.getOutputStream()).thenReturn(out);
+		when(response.getWriter()).thenReturn(new PrintWriter(out));
 	}
 	
-	public void test() {
+	public void test() throws IOException {
 		ArgumentCaptor<String> captureType = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Integer> captureLength = ArgumentCaptor.forClass(Integer.class);
 		verify(response).setContentType(captureType.capture());
 		verify(response).setContentLength(captureLength.capture());
 		assertThat(captureType.getValue()).isEqualTo("text/plain");
 		assertThat(captureLength.getValue()).isEqualTo((int)EXPECTED.length());
+		response.getWriter().close();
 		assertThat(new String(out.toByteArray())).isEqualTo(EXPECTED);
 	}
 
