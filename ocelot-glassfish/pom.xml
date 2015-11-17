@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.ocelotds</groupId>
 		<artifactId>ocelot</artifactId>
-		<version>2.4.6</version>
+		<version>2.4.6-SNAPSHOT</version>
 	</parent>
 	<artifactId>ocelot-glassfish</artifactId>
 	<packaging>jar</packaging>
@@ -12,7 +12,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ocelot-spi</artifactId>
-			<version>2.4.6</version>
+			<version>2.4.6-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
