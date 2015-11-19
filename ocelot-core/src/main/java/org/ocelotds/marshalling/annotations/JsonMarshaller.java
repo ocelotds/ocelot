@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  * @author hhfrancois
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.FIELD})
 public @interface JsonMarshaller {
 	Class<? extends org.ocelotds.marshalling.JsonMarshaller> value();
 }
