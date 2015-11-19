@@ -4,7 +4,7 @@ jdk: oraclejdk7
 before_install:
    - pip install --user codecov
 install: mvn deploy --settings .travis-oss-settings.xml -Dgpg.skip=true
-after_success: 
+after_install:
    - codecov
 branches:
   only:
