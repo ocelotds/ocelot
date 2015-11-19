@@ -6,6 +6,9 @@ package org.ocelotds.web;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
+import javax.enterprise.inject.spi.Annotated;
+import javax.enterprise.inject.spi.EventMetadata;
+import javax.enterprise.inject.spi.InjectionPoint;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import org.junit.Test;
@@ -17,7 +20,10 @@ import org.mockito.Mock;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.messaging.MessageToClient;
 import static org.mockito.Mockito.*;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.annotations.JsTopicEvent;
+import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.messaging.MessageType;
 import org.slf4j.Logger;
 
@@ -35,7 +41,8 @@ public class TopicsMessagesBroadcasterTest {
 	private SessionManager sessionManager;
 
 	@InjectMocks
-	private TopicsMessagesBroadcaster messagesBroadcaster;
+	@Spy
+	private TopicsMessagesBroadcaster instance;
 	
 	/**
 	 * Test of sendMessageToTopic method, of class TopicsMessagesBroadcaster.
@@ -59,7 +66,7 @@ public class TopicsMessagesBroadcasterTest {
 		msg.setId(id);
 		String expResult = "RESULT";
 		msg.setResult(expResult);
-		messagesBroadcaster.sendMessageToTopic(msg);
+		instance.sendMessageToTopic(msg);
 
 		ArgumentCaptor<MessageToClient> captureMsg = ArgumentCaptor.forClass(MessageToClient.class);
 		verify(async).sendObject(captureMsg.capture());
@@ -84,7 +91,7 @@ public class TopicsMessagesBroadcasterTest {
 		msg.setId(id);
 		String expResult = "RESULT";
 		msg.setResult(expResult);
-		messagesBroadcaster.sendMessageToTopic(msg);
+		instance.sendMessageToTopic(msg);
 		assertThat(msg.getType()).isEqualTo(MessageType.MESSAGE);
 	}
 
@@ -102,7 +109,67 @@ public class TopicsMessagesBroadcasterTest {
 		msg.setId(id);
 		String expResult = "RESULT";
 		msg.setResult(expResult);
-		messagesBroadcaster.sendMessageToTopic(msg);
+		instance.sendMessageToTopic(msg);
 		assertThat(msg.getType()).isEqualTo(MessageType.MESSAGE);
+	}
+
+	/**
+	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
+	 */
+	@Test
+	public void sendObjectToTopicWithoutMarshaller() {
+		System.out.println("sendObjectToTopic");
+		String payload = "PAYLOAD";
+		EventMetadata metadata = mock(EventMetadata.class);
+		InjectionPoint injectionPoint = mock(InjectionPoint.class);
+		Annotated annotated = mock(Annotated.class);
+		JsTopicEvent event = mock(JsTopicEvent.class);
+
+		when(metadata.getInjectionPoint()).thenReturn(injectionPoint);
+		when(injectionPoint.getAnnotated()).thenReturn(annotated);
+		when(annotated.getAnnotation(JsTopicEvent.class)).thenReturn(null).thenReturn(event);
+		when(annotated.getAnnotation(JsonMarshaller.class)).thenReturn(null);
+		when(event.value()).thenReturn("TOPIC");
+
+		instance.sendObjectToTopic(payload, metadata);
+
+		instance.sendObjectToTopic(payload, metadata);
+
+		ArgumentCaptor<MessageToClient> captureMtC = ArgumentCaptor.forClass(MessageToClient.class);
+		verify(instance).sendMessageToTopic(captureMtC.capture());
+		
+		MessageToClient value = captureMtC.getValue();
+		String json = value.toJson();
+		assertThat(json).isEqualTo("{\"type\":\"MESSAGE\",\"id\":\"TOPIC\",\"deadline\":0,\"response\":\"PAYLOAD\"}");
+	}
+
+	/**
+	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
+	 */
+	@Test
+	public void sendObjectToTopicWithMarshaller() {
+		System.out.println("sendObjectToTopic");
+		String payload = "PAYLOAD";
+		EventMetadata metadata = mock(EventMetadata.class);
+		InjectionPoint injectionPoint = mock(InjectionPoint.class);
+		Annotated annotated = mock(Annotated.class);
+		JsTopicEvent event = mock(JsTopicEvent.class);
+		JsonMarshaller jm = mock(JsonMarshaller.class);
+
+		when(metadata.getInjectionPoint()).thenReturn(injectionPoint);
+		when(injectionPoint.getAnnotated()).thenReturn(annotated);
+		when(annotated.getAnnotation(JsTopicEvent.class)).thenReturn(event);
+		when(annotated.getAnnotation(JsonMarshaller.class)).thenReturn(jm);
+		doReturn(JsMarshaller.class).when(jm).value();
+		when(event.value()).thenReturn("TOPIC");
+
+		instance.sendObjectToTopic(payload, metadata);
+
+		ArgumentCaptor<MessageToClient> captureMtC = ArgumentCaptor.forClass(MessageToClient.class);
+		verify(instance).sendMessageToTopic(captureMtC.capture());
+		
+		MessageToClient value = captureMtC.getValue();
+		String json = value.toJson();
+		assertThat(json).isEqualTo("{\"type\":\"MESSAGE\",\"id\":\"TOPIC\",\"deadline\":0,\"response\":\"payload\"}");
 	}
 }
