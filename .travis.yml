@@ -1,9 +1,8 @@
 sudo: false
 language: java
 jdk: oraclejdk7
-install: mvn install -DskipTests=true -Dgpg.skip=true
+install: mvn install deploy --settings .travis-oss-settings.xml -DskipTests=true -Dgpg.skip=true
 after_success: 
-   - mvn deploy --settings .travis-oss-settings.xml -Dgpg.skip=true
    - bash <(curl -s https://codecov.io/bash)
 branches:
   only:
@@ -26,7 +25,5 @@ addons:
          name: "hhdevelopment/ocelot"
          description: "Build submitted via Travis CI"
       notification_email: "francois.achache@gmail.com"
-      build_command_prepend: "mvn clean"
-      build_command: "mvn compile -DskipTests=true -Dgpg.skip=true"
       branch_pattern: coverity_scan
 
