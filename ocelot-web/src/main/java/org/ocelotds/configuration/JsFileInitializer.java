@@ -71,6 +71,7 @@ public class JsFileInitializer extends AbstractFileInitializer {
 		try (OutputStream out = new FileOutputStream(file)) {
 			createLicenceComment(out);
 			for (IServicesProvider servicesProvider : jsServicesProviders) {
+				logger.info("javascript provider found");
 				servicesProvider.streamJavascriptServices(out);
 			}
 			writeOcelotCoreJsFile(out, ctxPath, protocol);
