@@ -3,8 +3,8 @@ language: java
 jdk: oraclejdk7
 before_install:
    - pip install --user codecov
-install: mvn deploy --settings .travis-oss-settings.xml -Dgpg.skip=true
-after_install:
+install: mvn deploy --settings .travis-oss-settings.xml -DskipTests=true -Dgpg.skip=true
+after_success: 
    - codecov
 branches:
   only:
