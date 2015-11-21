@@ -84,6 +84,7 @@ if ("WebSocket" in window) {
          return topic ? (promise.args[0] === topic) : true;
       }
       function init() {
+         console.info("Websocket initialization...");
          var host = document.location.hostname;
          if (document.location.port && document.location.port !== "") {
             host = host + ":" + document.location.port;
@@ -134,9 +135,6 @@ if ("WebSocket" in window) {
                      foreachPromiseDo(ps[id], ocelotController.addPromise);
                   }
                });
-               while (handler = openHandlers.shift()) { // launch open handlers
-                  handler();
-               }
                return;
             }
             // Controller subscribe to ocelot-cleancache topic
@@ -164,18 +162,16 @@ if ("WebSocket" in window) {
          };
          ws.onerror = function (evt) {
             console.info("Websocket error : "+evt.reason);
-            var handler;
-            while (handler = errorHandlers.shift()) {
+            errorHandlers.forEach(function (handler, index, array) {
                handler(evt);
-            }
+            });
             stateUpdated();
          };
          ws.onclose = function (evt) {
             console.info("Websocket closed : "+evt.reason);
-            var handler;
-            while (handler = closeHandlers.shift()) {
+            closeHandlers.forEach(function (handler, index, array) {
                handler(evt);
-            }
+            });
             stateUpdated();
          };
       }
