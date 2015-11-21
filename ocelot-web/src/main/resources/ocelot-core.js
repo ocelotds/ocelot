@@ -1,10 +1,9 @@
 var ocelotController, OcelotPromiseFactory, MD5Tools;
 var Subscriber = (function(topic) {
-   var promise, ocelotSrv = new OcelotServices();
-   promise = ocelotSrv.subscribe(topic);
+   var promise = ocelotServices.subscribe(topic);
    Object.defineProperty(promise, "topic", { get: function () { return topic; } });
    promise.unsubscribe = function() {
-     return ocelotSrv.unsubscribe(topic);
+     return ocelotServices.unsubscribe(topic);
    };
    return promise;
 });
@@ -12,8 +11,7 @@ if ("WebSocket" in window) {
    ocelotController = (function () {
       var MSG = "MESSAGE", RES = "RESULT", FAULT = "FAULT", ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove",
          CLEANCACHE = "ocelot-cleancache", STATUS = "ocelot-status", OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe",
-         stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], promises = {}, openHandlers = [], closeHandlers = [], errorHandlers = [], ws, ocelotSrv;
-      ocelotSrv = new OcelotServices();
+         stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], promises = {}, openHandlers = [], closeHandlers = [], errorHandlers = [], ws;
       function createEventFromPromise(type, promise) {
          var evt = document.createEvent(EVT);
          evt.initEvent(type, true, false);
@@ -67,6 +65,12 @@ if ("WebSocket" in window) {
       }
       function getPromises(id) {
          return promises[id] || [];
+      }
+      function isOcelotControllerServices(promise) {
+         if (promise.dataservice === "ocelotController") {
+            return true;
+         }
+         return false;
       }
       function isTopicSubscription(promise, topic) {
          if (promise.dataservice === OSRV && promise.operation === SUB) {
@@ -125,20 +129,26 @@ if ("WebSocket" in window) {
          };
          ws.onopen = function (evt) {
             console.info("Websocket opened");
-            var handler, ps;
+            var handler, apromise, idx, ps, promise;
             stateUpdated();
-            if (Object.keys(promises).length) { // its not open, but re-open, we redo the previous subscription
+            apromise = getPromises("ocelotController.open");
+            if (apromise.length) { // its not open, but re-open
+               for (idx = 0; idx < apromise.length; idx++) { // call handlers attached to open method 
+                  promise = apromise[idx];
+                  promise.response = createResultEventFromPromise(promise, null);
+               }
                ps = promises;
                promises = {};
-               Object.keys(ps).forEach(function (id, index, array) {
+               Object.keys(ps).forEach(function (id, index, array) { // we redo the previous subscription
                   if (id !== ps[id].id) {
                      foreachPromiseDo(ps[id], ocelotController.addPromise);
                   }
                });
+               clearPromisesForId("ocelotController.open");
                return;
             }
             // Controller subscribe to ocelot-cleancache topic
-            ocelotSrv.subscribe(CLEANCACHE).message(function (id) {
+            ocelotServices.subscribe(CLEANCACHE).message(function (id) {
                if (id === ALL) {
                   ocelotController.cacheManager.clearCache();
                }
@@ -147,13 +157,13 @@ if ("WebSocket" in window) {
                }
             });
             // Get Locale from server or cache and re-set it
-            ocelotSrv.getLocale().then(function (locale) {
+            ocelotServices.getLocale().then(function (locale) {
                if (locale) {
-                  ocelotSrv.setLocale(locale);
+                  ocelotServices.setLocale(locale);
                }
             });
             // send states or current objects in cache with lastupdate
-            ocelotSrv.getOutDatedCache(ocelotController.cacheManager.getLastUpdateCache()).then(function (entries) {
+            ocelotServices.getOutDatedCache(ocelotController.cacheManager.getLastUpdateCache()).then(function (entries) {
                ocelotController.cacheManager.removeEntries(entries);
             });
             while (handler = openHandlers.shift()) { // launch open handlers
@@ -168,11 +178,19 @@ if ("WebSocket" in window) {
             stateUpdated();
          };
          ws.onclose = function (evt) {
-            console.info("Websocket closed : "+evt.reason);
+            var promise, idx, apromise = getPromises("ocelotController.close");
+            if (apromise.length) { // its not open, but re-open
+               for (idx = 0; idx < apromise.length; idx++) { // call handlers attached to open method 
+                  promise = apromise[idx];
+                  promise.response = createResultEventFromPromise(promise, evt.reason);
+               }
+               clearPromisesForId("ocelotController.close");
+            }
             closeHandlers.forEach(function (handler, index, array) {
                handler(evt);
             });
             stateUpdated();
+            console.info("Websocket closed : "+evt.reason);
          };
       }
       init();
@@ -198,10 +216,14 @@ if ("WebSocket" in window) {
             errorHandlers.push(listener);
          },
          open: function () {
+            var promise =  OcelotPromiseFactory.createPromise("ocelotController", "ocelotController.open", "open", [], []);
             init();
+            return promise;
          },
          close: function (reason) {
+            var promise =  OcelotPromiseFactory.createPromise("ocelotController", "ocelotController.close", "close", [], []);
             ws.close(1000, reason|"Normal closure; the connection successfully completed whatever purpose for which it was created.");
+            return promise;
          },
          addPromise: function (promise) {
             if (isTopicSubscription(promise, STATUS)) {
@@ -211,6 +233,11 @@ if ("WebSocket" in window) {
             }
             if (isTopicUnsubscription(promise, STATUS)) {
                clearPromisesForId(STATUS);
+               return;
+            }
+            // if it's internal service like ocelotController.open or ocelotController.close
+            if(isOcelotControllerServices(promise)){
+               addPromiseToId(promise, promise.id);
                return;
             }
             // check entry cache
@@ -226,7 +253,7 @@ if ("WebSocket" in window) {
                   ws.send(JSON.stringify(promise.json));
                }
             } else {
-               promise.response = createMessageEventFromPromise(promise, {"classname": "none", "message": "Websocket is not ready : status " + status, "stacktrace": []});
+               promise.response = createFaultEventFromPromise(promise, {"classname": "none", "message": "Websocket is not ready : status " + status, "stacktrace": []});
             }
          },
          cacheManager: (function () {
