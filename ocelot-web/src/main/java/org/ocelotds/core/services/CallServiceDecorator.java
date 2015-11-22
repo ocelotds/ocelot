@@ -40,18 +40,20 @@ public abstract class CallServiceDecorator implements CallService {
 	
 	@Override
 	public void sendMessageToClient(MessageFromClient message, Session session) {
-		Map<String, Object> sessionProperties = session.getUserProperties();
-		// Get subject from config and set in session
-		final Principal principal = session.getUserPrincipal();
-		ThreadLocalContextHolder.put(Constants.PRINCIPAL, principal);
+		if(null != session) {
+			Map<String, Object> sessionProperties = session.getUserProperties();
+			// Get subject from config and set in session
+			final Principal principal = session.getUserPrincipal();
+			ThreadLocalContextHolder.put(Constants.PRINCIPAL, principal);
 
-		ThreadLocalContextHolder.put(Constants.SESSION, session);
+			ThreadLocalContextHolder.put(Constants.SESSION, session);
 
-		// HERE WE SET THE SECURITY CONTEXT WITH SPECIFIC VENDOR IMPLEMENTATION
-		final SecurityContext context = (SecurityContext) sessionProperties.get(Constants.SECURITY_CONTEXT);
-		subjectServices.setSecurityContext(context);
-		final Locale locale = (Locale) sessionProperties.get(Constants.LOCALE);
-		logger.debug("Decorate CallService for add context to session Principal : {}, Locale : {}", principal, locale);
+			// HERE WE SET THE SECURITY CONTEXT WITH SPECIFIC VENDOR IMPLEMENTATION
+			final SecurityContext context = (SecurityContext) sessionProperties.get(Constants.SECURITY_CONTEXT);
+			subjectServices.setSecurityContext(context);
+			final Locale locale = (Locale) sessionProperties.get(Constants.LOCALE);
+			logger.debug("Decorate CallService for add context to session Principal : {}, Locale : {}", principal, locale);
+		}
 		callSercice.sendMessageToClient(message, session);
 	}
 }
