@@ -180,7 +180,7 @@ if ("WebSocket" in window) {
          ws.onclose = function (evt) {
             var promise, idx, apromise = getPromises("ocelotController.close");
             if (apromise.length) { // its not open, but re-open
-               for (idx = 0; idx < apromise.length; idx++) { // call handlers attached to open method 
+               for (idx = 0; idx < apromise.length; idx++) { // call handlers attached to close method 
                   promise = apromise[idx];
                   promise.response = createResultEventFromPromise(promise, evt.reason);
                }
@@ -222,7 +222,9 @@ if ("WebSocket" in window) {
          },
          close: function (reason) {
             var promise =  OcelotPromiseFactory.createPromise("ocelotController", "ocelotController.close", "close", [], []);
-            ws.close(1000, reason|"Normal closure; the connection successfully completed whatever purpose for which it was created.");
+            setTimeout(function() {
+               ws.close(1000, reason|"Normal closure; the connection successfully completed whatever purpose for which it was created.");
+            }, 10);
             return promise;
          },
          addPromise: function (promise) {
