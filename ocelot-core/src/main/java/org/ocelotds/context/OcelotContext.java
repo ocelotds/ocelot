@@ -51,9 +51,11 @@ public class OcelotContext {
 
 	public String getUsername() {
 		Session session = getSession();
-		Principal p = session.getUserPrincipal();
-		if (null != p) {
-			return p.getName();
+		if(null != session) {
+			Principal p = session.getUserPrincipal();
+			if (null != p) {
+				return p.getName();
+			}
 		}
 		return Constants.ANONYMOUS;
 	}
