@@ -64,8 +64,10 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 				}
 			}
 			writer.append("\n};\n");
-			writer.append("console.info('create OcelotDataService<"+jsclsname.substring(0, 1).toLowerCase()+jsclsname.substring(1)+":"+jsclsname+">');\n");
-			writer.append("var "+jsclsname.substring(0, 1).toLowerCase()+jsclsname.substring(1)+" = new "+jsclsname+"();\n");
+			String instanceName = jsclsname.substring(0, 1).toLowerCase()+jsclsname.substring(1);
+			writer.append("console.info('create OcelotDataService<");
+			writer.append(instanceName).append(":").append(jsclsname).append(">');\n");
+			writer.append("var ").append(instanceName).append(" = new ").append(jsclsname).append("();\n");
 		} catch (IOException ex) {
 		}
 		return null;

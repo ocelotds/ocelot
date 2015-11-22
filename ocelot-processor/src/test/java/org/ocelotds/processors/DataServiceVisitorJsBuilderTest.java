@@ -94,7 +94,7 @@ public class DataServiceVisitorJsBuilderTest {
 		String result = instance.visitType(typeElement, writer);
 		assertThat(result).isNull();
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(10)).append(captureAppend.capture());
+		verify(writer, times(20)).append(captureAppend.capture());
 		List<String> appends = captureAppend.getAllValues();
 		assertThat(appends.get(1)).isEqualTo("ClassName");
 		assertThat(appends.get(4)).isEqualTo("packageName.ClassName");
