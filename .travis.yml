@@ -3,7 +3,7 @@ language: java
 jdk: oraclejdk7
 before_install:
    - pip install --user codecov
-install: mvn deploy --settings .travis-oss-settings.xml -DskipTests=true -Dgpg.skip=true
+install: mvn deploy --settings .travis-settings.xml -DskipTests=true -Dgpg.skip=true
 after_success: 
    - codecov
 branches:
@@ -20,6 +20,10 @@ env:
    - secure: "IceZIWYE55lWayWU3yCcO0YOONsUdJdK4kywltTBNkt7m+KsgG0or5gl1feamR+dZSfHukWWw2ujrRXt3sWBBxeLtzi3BOXJCMoK0eRnR/FWTMrDtK7YWzCfy7BiYtq3cirRwXTwjECv9pROeQiS8YBMD2X0N4Ob2zZw+OEdJco="
    # COVERITY_SCAN_TOKEN
    - secure: "Rq+vTWVD/r/v3rFYo7zcETqHVI/AlSYXCVfB/66AOn5/g2raCyvuIleIHgclXyKsJijjDEkIxzDifIEdUYvsGWPurrN/V0HY5IaOImwJ6XduLC8iT5xYP+dEOB1+KTv3c3hlRv77TqfdwWdq7abNDjhs3ehiHQzPRquWn2ECJ84="
+   # ORACLE_USERNAME
+   - secure: "SW69Zyu9C9tQ17bypqbQAZOZH/4aYnTQZn/1Ce+2HwKl1ChSPrIBy9UXISELq8YnHV+HbHE0SLs3nHEwbTVaf/LAIMKZLLErZZSp9coYUhKNILh2td5ymuQBoOtwMezwkCnqpUNva9I/c1MSi3HbwrLSDdtXbMKJioUyr5yPDmM="
+   # ORACLE_PASSWORD
+   - secure: "dLftsA5olB2ctKw+kj4U2mqxlJzFO5ipYrjtUy3qNXMrj0KoLv6csZLhLTYydbWlt9Xpw0uXzb3eab7HXCBSc08OfayDtzDr3QFkdnm4sGfqE6l5IKtfX/kac17CG7gUwtESLHMS4MDMuorZbv6f5NR35qtjaCjVP1/r4d1Qq4w="
 
 addons:
    coverity_scan:
