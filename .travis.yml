@@ -13,22 +13,22 @@ branches:
 env:
   global:
    # OSS_USERNAME
-   - secure: "dcYhoyzhLyLGdtL69zBNgvndD8b/8WjjFpZJoBCy5Ew760INfNK19hDOE/8FpWNar4Lu9/KfgNnj2S5FsF0sFQzcaqjXOfkwYrUevmQqE3zTVtQzSo0VLeclTVEFaqgJSOre2oHZtZj4wWcA3H3oZ5tYRIr5pzq/hlRSOosZQCM="
+   #- secure: "dcYhoyzhLyLGdtL69zBNgvndD8b/8WjjFpZJoBCy5Ew760INfNK19hDOE/8FpWNar4Lu9/KfgNnj2S5FsF0sFQzcaqjXOfkwYrUevmQqE3zTVtQzSo0VLeclTVEFaqgJSOre2oHZtZj4wWcA3H3oZ5tYRIr5pzq/hlRSOosZQCM="
    # OSS_PASSWORD
-   - secure: "DakTIC0o14UC0fEbU2zNsOYAzGShdj1JrmXrS7iJPtJKIkkMclhpnOBG0Hqg2LN11q12jmGO5xbcrfkSph7oE/JMgfobr8NDvUX6Mb3azt7ro5j8m1WUngx5W1FDoApDd4YatV7JNTyWBh8zoYovhJ3t/ACadLL5lyon8H6oM70="
+   #- secure: "DakTIC0o14UC0fEbU2zNsOYAzGShdj1JrmXrS7iJPtJKIkkMclhpnOBG0Hqg2LN11q12jmGO5xbcrfkSph7oE/JMgfobr8NDvUX6Mb3azt7ro5j8m1WUngx5W1FDoApDd4YatV7JNTyWBh8zoYovhJ3t/ACadLL5lyon8H6oM70="
    # GPG_PASSPHRASE
-   - secure: "IceZIWYE55lWayWU3yCcO0YOONsUdJdK4kywltTBNkt7m+KsgG0or5gl1feamR+dZSfHukWWw2ujrRXt3sWBBxeLtzi3BOXJCMoK0eRnR/FWTMrDtK7YWzCfy7BiYtq3cirRwXTwjECv9pROeQiS8YBMD2X0N4Ob2zZw+OEdJco="
+   #- secure: "IceZIWYE55lWayWU3yCcO0YOONsUdJdK4kywltTBNkt7m+KsgG0or5gl1feamR+dZSfHukWWw2ujrRXt3sWBBxeLtzi3BOXJCMoK0eRnR/FWTMrDtK7YWzCfy7BiYtq3cirRwXTwjECv9pROeQiS8YBMD2X0N4Ob2zZw+OEdJco="
    # COVERITY_SCAN_TOKEN
-   - secure: "Rq+vTWVD/r/v3rFYo7zcETqHVI/AlSYXCVfB/66AOn5/g2raCyvuIleIHgclXyKsJijjDEkIxzDifIEdUYvsGWPurrN/V0HY5IaOImwJ6XduLC8iT5xYP+dEOB1+KTv3c3hlRv77TqfdwWdq7abNDjhs3ehiHQzPRquWn2ECJ84="
+   #- secure: "Rq+vTWVD/r/v3rFYo7zcETqHVI/AlSYXCVfB/66AOn5/g2raCyvuIleIHgclXyKsJijjDEkIxzDifIEdUYvsGWPurrN/V0HY5IaOImwJ6XduLC8iT5xYP+dEOB1+KTv3c3hlRv77TqfdwWdq7abNDjhs3ehiHQzPRquWn2ECJ84="
    # ORACLE_USERNAME
-   - secure: "SW69Zyu9C9tQ17bypqbQAZOZH/4aYnTQZn/1Ce+2HwKl1ChSPrIBy9UXISELq8YnHV+HbHE0SLs3nHEwbTVaf/LAIMKZLLErZZSp9coYUhKNILh2td5ymuQBoOtwMezwkCnqpUNva9I/c1MSi3HbwrLSDdtXbMKJioUyr5yPDmM="
+   #- secure: "SW69Zyu9C9tQ17bypqbQAZOZH/4aYnTQZn/1Ce+2HwKl1ChSPrIBy9UXISELq8YnHV+HbHE0SLs3nHEwbTVaf/LAIMKZLLErZZSp9coYUhKNILh2td5ymuQBoOtwMezwkCnqpUNva9I/c1MSi3HbwrLSDdtXbMKJioUyr5yPDmM="
    # ORACLE_PASSWORD
-   - secure: "dLftsA5olB2ctKw+kj4U2mqxlJzFO5ipYrjtUy3qNXMrj0KoLv6csZLhLTYydbWlt9Xpw0uXzb3eab7HXCBSc08OfayDtzDr3QFkdnm4sGfqE6l5IKtfX/kac17CG7gUwtESLHMS4MDMuorZbv6f5NR35qtjaCjVP1/r4d1Qq4w="
+   #- secure: "dLftsA5olB2ctKw+kj4U2mqxlJzFO5ipYrjtUy3qNXMrj0KoLv6csZLhLTYydbWlt9Xpw0uXzb3eab7HXCBSc08OfayDtzDr3QFkdnm4sGfqE6l5IKtfX/kac17CG7gUwtESLHMS4MDMuorZbv6f5NR35qtjaCjVP1/r4d1Qq4w="
 
 addons:
    coverity_scan:
       project:
-         name: "hhdevelopment/ocelot"
+         name: "ocelotds/ocelot"
          description: "Build submitted via Travis CI"
       notification_email: "francois.achache@gmail.com"
       build_command_prepend: "mvn clean"

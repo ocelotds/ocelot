@@ -5,11 +5,15 @@ package org.ocelotds.weblogic;
 
 import org.ocelotds.spi.security.ContainerSecurityServices;
 import java.security.Principal;
+import java.security.PrivilegedAction;
 import javax.inject.Inject;
 import javax.security.auth.Subject;
+import javax.security.jacc.PolicyContext;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.annotations.ContainerQualifier;
 import org.slf4j.Logger;
+import sun.security.action.GetBooleanAction;
+import weblogic.security.Security;
 
 /**
  *
@@ -23,14 +27,15 @@ public class WeblogicSecurityServices implements ContainerSecurityServices {
 	@Inject
 	@OcelotLogger
 	private Logger logger;
-	
+
 	/**
 	 *
 	 * @return
 	 */
 	@Override
 	public org.ocelotds.spi.security.SecurityContext getSecurityContext() {
-		return new WeblogicSecurityContext(null, null, null);
+//		Subject subject = (Subject) PolicyContext.getContext("javax.security.auth.Subject.container");
+		return new WeblogicSecurityContext(Security.getCurrentSubject());
 	}
 
 	/**
@@ -40,6 +45,9 @@ public class WeblogicSecurityServices implements ContainerSecurityServices {
 	@Override
 	public void setSecurityContext(org.ocelotds.spi.security.SecurityContext securityContext) {
 		final WeblogicSecurityContext context = (WeblogicSecurityContext) securityContext;
+		Subject source = context.getSubject();
+		
+		Security.runAs(source, new GetBooleanAction("OTHER"));
 	}
 
 	/**
@@ -47,31 +55,19 @@ public class WeblogicSecurityServices implements ContainerSecurityServices {
 	 */
 	static class WeblogicSecurityContext implements org.ocelotds.spi.security.SecurityContext {
 
-		private final Principal principal;
 		private final Subject subject;
-		private final Object credential;
 
-		public WeblogicSecurityContext(Principal principal, Subject subject, Object credential) {
-			this.principal = principal;
+		public WeblogicSecurityContext(Subject subject) {
 			this.subject = subject;
-			this.credential = credential;
-		}
-
-		public Principal getPrincipal() {
-			return principal;
 		}
 
 		public Subject getSubject() {
 			return subject;
 		}
 
-		public Object getCredential() {
-			return credential;
-		}
-
 		@Override
 		public String toString() {
-			return "{\"principal\":" + principal + ",\"subject\":" + subject + ",\"credential\":" + credential + "}";
+			return "{\"subject\":" + subject + "}";
 		}
 	}
 }

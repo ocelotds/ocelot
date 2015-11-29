@@ -56,10 +56,12 @@ public class JsTopicInterceptor implements Serializable {
 				for (Annotation parameterAnnotation : parameterAnnotations) {
 					if (parameterAnnotation.annotationType().equals(JsTopicName.class)) {
 						JsTopicName jsTopicName = (JsTopicName) parameterAnnotation;
+						topic = (String) parameters[idx];
 						if (!jsTopicName.prefix().isEmpty()) {
-							topic = jsTopicName.prefix() + Constants.Topic.COLON + parameters[idx];
-						} else {
-							topic = (String) parameters[idx];
+							topic = jsTopicName.prefix() + Constants.Topic.COLON + topic;
+						}
+						if (!jsTopicName.posfix().isEmpty()) {
+							topic = topic + Constants.Topic.COLON + jsTopicName.posfix();
 						}
 						break;
 					}
