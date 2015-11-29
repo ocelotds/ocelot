@@ -87,7 +87,7 @@ public interface Constants {
 
 		String POJO = "pojo";
 		String CDI = "cdi";
-		String EJB = "ejb";
+		String EJB = "cdi";
 		String SPRING = "spring";
 	}
 
