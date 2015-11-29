@@ -8,14 +8,14 @@ package org.ocelotds.test.dataservices;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.DataService;
 import javax.annotation.PostConstruct;
-import javax.inject.Singleton;
+import javax.enterprise.context.ApplicationScoped;
 
 /**
  *
  * @author hhfrancois
  */
 @DataService(resolver = Constants.Resolver.CDI)
-@Singleton
+@ApplicationScoped
 public class SingletonCDIDataService implements GetValue {
 	
 	private double d;

@@ -47,6 +47,8 @@ public class CdiResolver implements IDataServiceResolver {
 				switch (annoName) {
 					case "javax.enterprise.context.Dependent":
 						return Scope.SESSION;
+					case "javax.ejb.Stateful":
+						return Scope.SESSION;
 					default:
 				}
 			}

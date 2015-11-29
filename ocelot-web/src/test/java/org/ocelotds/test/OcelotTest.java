@@ -22,7 +22,6 @@ import org.ocelotds.resolvers.CdiResolver;
 import org.ocelotds.spi.DataServiceException;
 import org.ocelotds.spi.IDataServiceResolver;
 import org.ocelotds.resolvers.DataServiceResolverIdLitteral;
-import org.ocelotds.resolvers.EJBResolver;
 import org.ocelotds.resolvers.PojoResolver;
 import org.ocelotds.test.dataservices.GetValue;
 import org.ocelotds.test.dataservices.SessionCDIDataService;
@@ -452,15 +451,15 @@ public class OcelotTest {
 	/**
 	 * Teste de la récupération de 2 beans singleton, il doivent être identiques
 	 */
-	private void testInstanceSingletonScope(Class clazz, String resolverId) {
+	private void testInstanceSingletonScope(Class<? extends GetValue> clazz, String resolverId) {
 		IDataServiceResolver resolver = getResolver(resolverId);
 		try {
 			// deux singletons doivent être identiques
-			Object singleton1 = resolver.resolveDataService(clazz);
+			GetValue singleton1 = resolver.resolveDataService(clazz);
 			assertNotNull(singleton1);
-			Object singleton2 = resolver.resolveDataService(clazz);
+			GetValue singleton2 = resolver.resolveDataService(clazz);
 			assertNotNull(singleton2);
-			assertEquals(singleton1, singleton2);
+			assertThat(singleton1.getValue()).isEqualTo(singleton2.getValue());
 		} catch (DataServiceException ex) {
 			fail(resolverId + " bean not reached");
 		}
@@ -695,7 +694,7 @@ public class OcelotTest {
 		System.out.println("getResolverEjb");
 		IDataServiceResolver resolver = getResolver(Constants.Resolver.EJB);
 		assertNotNull(resolver);
-		assertTrue(EJBResolver.class.isInstance(resolver));
+		assertTrue(CdiResolver.class.isInstance(resolver));
 	}
 
 	/**
