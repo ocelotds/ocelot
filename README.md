@@ -1,8 +1,8 @@
 # OCELOT
 ## More  details on [ocelotds.org](http://ocelotds.org)
-[![Codecov Status](https://codecov.io/github/hhdevelopment/ocelot/coverage.svg?branch=master)](https://codecov.io/github/hhdevelopment)
-[![Coverity Status](https://scan.coverity.com/projects/5757/badge.svg)](https://scan.coverity.com/projects/5757)
-[![Build Status](https://travis-ci.org/hhdevelopment/ocelot.svg?branch=master)](https://travis-ci.org/hhdevelopment/ocelot)
+[![Codecov Status](https://codecov.io/github/ocelods/ocelot/coverage.svg?branch=master)](https://codecov.io/github/ocelods)
+[![Coverity Status](https://scan.coverity.com/projects/7127/badge.svg)](https://scan.coverity.com/projects/7127)
+[![Build Status](https://travis-ci.org/ocelods/ocelot.svg?branch=master)](https://travis-ci.org/ocelods/ocelot)
 [![Maven](https://img.shields.io/badge/Maven central-2.5.0-blue.svg)](http://search.maven.org/#search|ga|1|ocelot)
 [![Maven](https://img.shields.io/badge/OSS Sonatype-2.5.1--SNAPSHOT-lightgrey.svg)](https://oss.sonatype.org/#nexus-search;gav~org.ocelotds~ocelot~~~)
 
@@ -12,8 +12,6 @@
 #### Forget limitations about number of connections between browsers and backend. At best 6 simultaneous connections.
 
 [Browsers limitations](http://webdebug.net/2013/12/browser-connection-limit)
-
-[HOW TO](https://github.com/hhdevelopment/ocelot/wiki/howto)
 
 ## WAR Package 
 ```xml
@@ -68,4 +66,4 @@ Ocelot can work in servlet container like tomcat without EJB features of course.
 
 See documentation for [details](http://ocelotds.org).
 
-![codecov.io](http://codecov.io/github/hhdevelopment/ocelot/branch.svg?branch=master)
+![codecov.io](http://codecov.io/github/ocelods/ocelot/branch.svg?branch=master)
