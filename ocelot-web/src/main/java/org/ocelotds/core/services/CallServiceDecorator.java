@@ -15,8 +15,6 @@ import org.ocelotds.Constants;
 import org.ocelotds.context.ThreadLocalContextHolder;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.messaging.MessageFromClient;
-import org.ocelotds.spi.security.SecurityContext;
-import org.ocelotds.security.SecurityServices;
 import org.slf4j.Logger;
 
 /**
@@ -35,22 +33,17 @@ public abstract class CallServiceDecorator implements CallService {
 	@OcelotLogger
 	private Logger logger;
 
-	@Inject
-	SecurityServices subjectServices;
-	
 	@Override
 	public void sendMessageToClient(MessageFromClient message, Session session) {
-		if(null != session) {
+		if (null != session) {
 			Map<String, Object> sessionProperties = session.getUserProperties();
 			// Get subject from config and set in session
 			final Principal principal = session.getUserPrincipal();
 			ThreadLocalContextHolder.put(Constants.PRINCIPAL, principal);
 
 			ThreadLocalContextHolder.put(Constants.SESSION, session);
+			ThreadLocalContextHolder.put(Constants.HANDSHAKEREQUEST, sessionProperties.get(Constants.HANDSHAKEREQUEST));
 
-			// HERE WE SET THE SECURITY CONTEXT WITH SPECIFIC VENDOR IMPLEMENTATION
-			final SecurityContext context = (SecurityContext) sessionProperties.get(Constants.SECURITY_CONTEXT);
-			subjectServices.setSecurityContext(context);
 			final Locale locale = (Locale) sessionProperties.get(Constants.LOCALE);
 			logger.debug("Decorate CallService for add context to session Principal : {}, Locale : {}", principal, locale);
 		}

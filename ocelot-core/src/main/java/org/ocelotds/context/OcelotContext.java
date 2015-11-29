@@ -8,6 +8,7 @@ import java.util.Locale;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.websocket.Session;
+import javax.websocket.server.HandshakeRequest;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
@@ -49,14 +50,27 @@ public class OcelotContext {
 		session.getUserProperties().put(Constants.LOCALE, locale);
 	}
 
-	public String getUsername() {
+	HandshakeRequest getHandshakeRequest() {
+		return (HandshakeRequest) ThreadLocalContextHolder.get(Constants.HANDSHAKEREQUEST);
+	}
+
+	public boolean isUserInRole(String role) {
+		return getHandshakeRequest().isUserInRole(role);
+	}
+
+	public Principal getPrincipal() {
 		Session session = getSession();
-		if(null != session) {
+		if (null != session) {
 			Principal p = session.getUserPrincipal();
 			if (null != p) {
-				return p.getName();
+				return p;
 			}
 		}
-		return Constants.ANONYMOUS;
+		return new Principal() {
+			@Override
+			public String getName() {
+				return Constants.ANONYMOUS;
+			}
+		};
 	}
 }

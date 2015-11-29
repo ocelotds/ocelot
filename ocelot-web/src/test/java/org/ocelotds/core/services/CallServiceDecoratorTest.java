@@ -18,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
 import org.ocelotds.context.ThreadLocalContextHolder;
-import org.ocelotds.security.SecurityServices;
 import org.slf4j.Logger;
 
 /**
@@ -30,9 +29,6 @@ public class CallServiceDecoratorTest {
 
 	@Mock
 	private Logger logger;
-
-	@Mock
-	private SecurityServices subjectServices;
 
 	@Mock
 	private CallService callSercice;
@@ -51,7 +47,6 @@ public class CallServiceDecoratorTest {
 		Principal p = mock(Principal.class);
 		Locale l = new Locale("fr", "FR");
 		sessionProperties.put(Constants.LOCALE, l);
-		sessionProperties.put(Constants.SECURITY_CONTEXT, null);
 
 		when(session.getUserPrincipal()).thenReturn(p);
 		when(session.getUserProperties()).thenReturn(sessionProperties);

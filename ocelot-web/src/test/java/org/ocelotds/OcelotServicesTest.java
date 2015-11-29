@@ -88,10 +88,14 @@ public class OcelotServicesTest {
 	@Test
 	public void testGetUsername() {
 		System.out.println("getUsername");
+		Principal p1 = mock(Principal.class);
+		Principal p2 = mock(Principal.class);
 		String u1 = Constants.ANONYMOUS;
 		String u2 = "username";
 
-		when(ocelotContext.getUsername()).thenReturn(u1).thenReturn(u2);
+		when(p1.getName()).thenReturn(u1);
+		when(p2.getName()).thenReturn(u2);
+		when(ocelotContext.getPrincipal()).thenReturn(p1).thenReturn(p2);
 
 		assertThat(ocelotServices.getUsername()).isEqualTo(u1);
 		assertThat(ocelotServices.getUsername()).isEqualTo(u2);

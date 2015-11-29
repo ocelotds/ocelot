@@ -1658,6 +1658,7 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(topic));
+			System.out.println(""+messageToClient.getResponse());
 			assertEquals(MessageType.RESULT, messageToClient.getType());
 			long t0 = System.currentTimeMillis();
 			MessageFromClient messageFromClient = getMessageFromClient(EJBDataService.class, "generateCleanCacheMessage", "\"a\",\"r\"", getJson(""), getJson(new Result(5)));
@@ -1691,6 +1692,7 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(topic));
+			System.out.println(""+messageToClient.getResponse());
 			assertEquals(MessageType.RESULT, messageToClient.getType());
 			long t0 = System.currentTimeMillis();
 //			Thread.sleep(TIMEOUT);

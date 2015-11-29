@@ -74,7 +74,7 @@ public class OcelotServices {
 	 * @return
 	 */
 	public String getUsername() {
-		return ocelotContext.getUsername();
+		return ocelotContext.getPrincipal().getName();
 	}
 
 	public Collection<String> getOutDatedCache(Map<String, Long> states) {

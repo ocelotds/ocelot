@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import javax.websocket.Session;
+import javax.websocket.server.HandshakeRequest;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
@@ -36,6 +37,9 @@ public class OcelotContextTest {
 	
 	@Mock
 	private Session session;
+
+	@Mock
+	private HandshakeRequest handshakeRequest;
 
 	/**
 	 * Test of getLocale method, of class OcelotContext.
@@ -76,22 +80,33 @@ public class OcelotContextTest {
 		assertThat(map.get(Constants.LOCALE)).isEqualTo(Locale.FRANCE);
 	}
 	/**
-	 * Test of getUsername method, of class OcelotContext.
+	 * Test of getPrincipal method, of class OcelotContext.
 	 */
 	@Test
-	public void testGetUsername() {
-		System.out.println("getUsername");
+	public void testGetPrincipal() {
+		System.out.println("getPrincipal");
 		Principal p = mock(Principal.class);
 		String expResult = "username";
 
 		when(p.getName()).thenReturn(expResult);
-		when(session.getUserPrincipal()).thenReturn(p).thenReturn(null);
+		when(session.getUserPrincipal()).thenReturn(null).thenReturn(p);
 		when(instance.getSession()).thenReturn(session);
 
-		String result = instance.getUsername();
-		assertThat(result).isEqualTo(expResult);
-
-		result = instance.getUsername();
+		String result = instance.getPrincipal().getName();
 		assertThat(result).isEqualTo(Constants.ANONYMOUS);
+
+		result = instance.getPrincipal().getName();
+		assertThat(result).isEqualTo(expResult);
+	}
+
+	@Test
+	public void testIsUserInRole() {
+		when(instance.getHandshakeRequest()).thenReturn(handshakeRequest);
+		when(handshakeRequest.isUserInRole("OK")).thenReturn(Boolean.TRUE);
+		when(handshakeRequest.isUserInRole("NOK")).thenReturn(Boolean.FALSE);
+		boolean result = instance.isUserInRole("OK");
+		assertThat(result).isEqualTo(Boolean.TRUE);
+		result = instance.isUserInRole("NOK");
+		assertThat(result).isEqualTo(Boolean.FALSE);
 	}
 }

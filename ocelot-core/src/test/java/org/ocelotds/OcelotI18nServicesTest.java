@@ -4,11 +4,8 @@
 package org.ocelotds;
 
 import java.util.HashMap;
-import org.ocelotds.context.ThreadLocalContextHolder;
 import java.util.Locale;
 import java.util.Map;
-import javax.inject.Inject;
-import javax.websocket.Session;
 import org.junit.Before;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;

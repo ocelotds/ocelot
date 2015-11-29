@@ -54,7 +54,6 @@ public class OcelotRequestConfiguratorTest {
 		when(sec.getUserProperties()).thenReturn(userProperties);
 		when(request.getHeaders()).thenReturn(headers);
 
-		doReturn(null).when(instance).getSecurityContext();
 		instance.modifyHandshake(sec, request, response);
 		Locale result = (Locale) sec.getUserProperties().get(Constants.LOCALE);
 		assertThat(result).isEqualTo(new Locale("en", "US"));
@@ -76,7 +75,6 @@ public class OcelotRequestConfiguratorTest {
 
 		when(sec.getUserProperties()).thenReturn(userProperties);
 		when(request.getHeaders()).thenReturn(headers);
-		doReturn(null).when(instance).getSecurityContext();
 
 		instance.modifyHandshake(sec, request, response);
 		Locale result = (Locale) sec.getUserProperties().get(Constants.LOCALE);

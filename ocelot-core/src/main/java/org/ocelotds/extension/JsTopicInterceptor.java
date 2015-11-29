@@ -60,8 +60,8 @@ public class JsTopicInterceptor implements Serializable {
 						if (!jsTopicName.prefix().isEmpty()) {
 							topic = jsTopicName.prefix() + Constants.Topic.COLON + topic;
 						}
-						if (!jsTopicName.posfix().isEmpty()) {
-							topic = topic + Constants.Topic.COLON + jsTopicName.posfix();
+						if (!jsTopicName.postfix().isEmpty()) {
+							topic = topic + Constants.Topic.COLON + jsTopicName.postfix();
 						}
 						break;
 					}

@@ -5,7 +5,7 @@
 	<artifactId>ocelot</artifactId>
 	<version>2.5.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>Ocelot</name>
+	<name>ocelot</name>
 	<description>Framework for communication way between java and javascript</description>	
 	<url>http://ocelotds.org</url>
 	
@@ -76,10 +76,6 @@
 		<module>ocelot-spi</module>
 		<module>ocelot-extra-spring</module>
 		<module>ocelot-processor</module>
-		<module>ocelot-glassfish</module>
-		<module>ocelot-wildfly</module>
-		<module>ocelot-picketlink</module>
-		<module>ocelot-weblogic</module>
 	</modules>
 	<dependencies>		
 		<dependency>

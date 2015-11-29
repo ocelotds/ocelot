@@ -17,5 +17,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.PARAMETER})
 public @interface JsTopicName {
 	String prefix() default "";
-	String posfix() default "";
+	String postfix() default "";
 }

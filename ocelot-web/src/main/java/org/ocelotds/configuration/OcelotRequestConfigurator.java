@@ -16,9 +16,6 @@ import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 import javax.ws.rs.core.HttpHeaders;
 import org.ocelotds.Constants;
-import org.ocelotds.core.CDIBeanResolver;
-import org.ocelotds.spi.security.SecurityContext;
-import org.ocelotds.security.SecurityServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,10 +54,7 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 			}
 		}
 		sec.getUserProperties().put(Constants.SESSION_BEANS, getSessionBeansMap(request.getHttpSession()));
-		SecurityContext securityContext = getSecurityContext();
-		if(securityContext != null) {
-			sec.getUserProperties().put(Constants.SECURITY_CONTEXT, securityContext);
-		}
+		sec.getUserProperties().put(Constants.HANDSHAKEREQUEST, request);
 		sec.getUserProperties().put(Constants.LOCALE, locale);
 		super.modifyHandshake(sec, request, response);
 	}
@@ -85,18 +79,5 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 		}
 		logger.debug("Get from session the beans declared with sessionscoped : {} entries", attribute.size());
 		return attribute;
-	}
-
-	/**
-	 * Get subject from container implementation
-	 *
-	 * @return
-	 */
-	SecurityContext getSecurityContext() {
-		logger.debug("Get security context from specific vendor implementation");
-		CDIBeanResolver beanResolver = new CDIBeanResolver();
-		SecurityServices subjectServices = beanResolver.getBean(SecurityServices.class); // getSubjectServices();
-		// get SecurityContext from container implementation
-		return (null != subjectServices) ? subjectServices.getSecurityContext() : null;
 	}
 }
