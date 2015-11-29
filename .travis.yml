@@ -22,7 +22,7 @@ env:
    - secure: "N+gUkhYkGQtkI/gajXdlz0Wl/xuNcwM8o5p/xXnnu0+diDrl/TNDBg9tO6xv6kNsFH4Rn9UpP5g6AbB79JPlZJ2/wzdyWuQRZfCcr2NOxedGp7peOsEqpGhZmk1z8Jn4OF9WiDPvc5qxoQ1ilUM3mH5wXCSXHULTHvZFdNafYZE="
    #- secure: "IceZIWYE55lWayWU3yCcO0YOONsUdJdK4kywltTBNkt7m+KsgG0or5gl1feamR+dZSfHukWWw2ujrRXt3sWBBxeLtzi3BOXJCMoK0eRnR/FWTMrDtK7YWzCfy7BiYtq3cirRwXTwjECv9pROeQiS8YBMD2X0N4Ob2zZw+OEdJco="
    # COVERITY_SCAN_TOKEN
-   - secure: 
+   - secure: "A4k3D6+FsZ1I5vUF9pAtXsZZxltthBb00jLXwP+pwe+Zfmf7rxAUL+01gUf5+ZoacWOKvgj+OdWJGCJMun3XaPGXpPWL0fIyWv8SvPQAIzHj9SnpoSHH+zpUHsEoq/m1MpzExWiBa4XEFIKCzTbPqWyOBbV/LGOYK6AQtRamJuc="
    #- secure: "Rq+vTWVD/r/v3rFYo7zcETqHVI/AlSYXCVfB/66AOn5/g2raCyvuIleIHgclXyKsJijjDEkIxzDifIEdUYvsGWPurrN/V0HY5IaOImwJ6XduLC8iT5xYP+dEOB1+KTv3c3hlRv77TqfdwWdq7abNDjhs3ehiHQzPRquWn2ECJ84="
    # ORACLE_USERNAME
    - secure: "HC6MjTCz3IQuSmiqqmr+o2Bmh5gwbQHBVnGeoucBlX3/RBttOge4ymJj1waKhgyHeLd9jlWP2tkmh34H0h6P7jOKo755cftkCGWARfhvlxL7lzYSOMUiSgzVHqqQKIStxKav2Xr3tgqSxRGU0AcZG97zxGMMoWKVgkXHDBOUneU="
