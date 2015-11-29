@@ -9,7 +9,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- *
+ * Annotation allows cache mecanism on client
  * @author hhfrancois
  */
 @Retention(RetentionPolicy.RUNTIME)

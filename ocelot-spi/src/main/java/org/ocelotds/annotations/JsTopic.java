@@ -13,7 +13,7 @@ import javax.enterprise.util.Nonbinding;
 import javax.interceptor.InterceptorBinding;
 
 /**
- * Annotation for specify that the method annotated remove entry cache
+ * Annotation specifies that the method annotated result is publmic to Topic
  * @author hhfrancois
  */
 @Inherited

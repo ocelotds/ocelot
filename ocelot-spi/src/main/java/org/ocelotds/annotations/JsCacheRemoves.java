@@ -9,7 +9,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- *
+ * Annotation allows multi JsCacheRemove on one method
  * @author hhfrancois
  */
 @Retention(RetentionPolicy.RUNTIME)

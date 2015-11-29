@@ -10,7 +10,8 @@ import java.lang.annotation.Target;
 import javax.inject.Qualifier;
 
 /**
- *
+ * Annotation allows class is the controler to specify topic
+ * The class have to implement TopicAccessControl
  * @author hhfrancois
  */
 @Qualifier

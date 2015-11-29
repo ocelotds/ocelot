@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 import javax.inject.Qualifier;
 
 /**
- *
+ * Annotation qualify a security vendor class
  * @author hhfrancois
  */
 @Qualifier

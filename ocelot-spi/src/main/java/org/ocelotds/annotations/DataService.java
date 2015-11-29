@@ -10,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation permettant d'identifier les classes à exposer aux clients
+ * Annotation allows identify explosed classes to clients
  *
  * @author hhfrancois
  */
