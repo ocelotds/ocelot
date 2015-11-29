@@ -164,7 +164,7 @@ public class OcelotTest {
 	 */
 	public static void addOcelotJar(WebArchive webArchive) {
 		String version = "2.5.1-SNAPSHOT";
-		File[] imports = Maven.resolver().resolve("org.ocelotds:ocelot-web:"+version, "org.ocelotds:ocelot-core:"+version).withTransitivity().asFile();
+		File[] imports = Maven.resolver().resolve("org.ocelotds:ocelot-web:" + version, "org.ocelotds:ocelot-core:" + version).withTransitivity().asFile();
 		webArchive.addAsLibraries(imports);
 	}
 
@@ -604,6 +604,16 @@ public class OcelotTest {
 		}
 	}
 
+	private int countByte(InputStream in) throws IOException {
+		int result = 0;
+		byte[] buffer = new byte[1024];
+		int n = 0;
+		while (-1 != (n = in.read(buffer))) {
+			result += n;
+		}
+		return result;
+	}
+
 	/**
 	 * Vérification de la minification des javascripts
 	 *
@@ -616,10 +626,10 @@ public class OcelotTest {
 		HttpURLConnection connection2 = null;
 		try {
 			connection1 = getConnectionForResource(resource, true);
-			int minlength = connection1.getInputStream().available();
+			int minlength = countByte(connection1.getInputStream());
 //			traceFile(connection1.getInputStream());
 			connection2 = getConnectionForResource(resource, false);
-			int length = connection2.getInputStream().available();
+			int length = countByte(connection2.getInputStream());
 //			traceFile(connection2.getInputStream());
 			assertTrue("Minification of " + resource + " didn't work, same size of file magnifier : " + length + " / minifer : " + minlength, minlength < length);
 		} catch (IOException e) {
