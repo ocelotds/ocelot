@@ -8,28 +8,6 @@
 			<username>${env.OSS_USERNAME}</username>
 			<password>${env.OSS_PASSWORD}</password>
 		</server>
-		<server>
-			<id>maven.oracle.com</id>
-			<username>${env.ORACLE_USERNAME}</username>
-			<password>${env.ORACLE_PASSWORD}</password>
-			<configuration>
-				<basicAuthScope>
-					<host>ANY</host>
-					<port>ANY</port>
-					<realm>OAM 11g</realm>
-				</basicAuthScope>
-				<httpConfiguration>
-					<all>
-						<params>
-							<property>
-								<name>http.protocol.allow-circular-redirects</name>
-								<value>%b,true</value>
-							</property>
-						</params>
-					</all>
-				</httpConfiguration>
-			</configuration>
-		</server>
 	</servers>
 	<profiles>
 		<profile>

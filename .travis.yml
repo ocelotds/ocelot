@@ -20,10 +20,6 @@ env:
    - secure: "N+gUkhYkGQtkI/gajXdlz0Wl/xuNcwM8o5p/xXnnu0+diDrl/TNDBg9tO6xv6kNsFH4Rn9UpP5g6AbB79JPlZJ2/wzdyWuQRZfCcr2NOxedGp7peOsEqpGhZmk1z8Jn4OF9WiDPvc5qxoQ1ilUM3mH5wXCSXHULTHvZFdNafYZE="
    # COVERITY_SCAN_TOKEN
    - secure: "A4k3D6+FsZ1I5vUF9pAtXsZZxltthBb00jLXwP+pwe+Zfmf7rxAUL+01gUf5+ZoacWOKvgj+OdWJGCJMun3XaPGXpPWL0fIyWv8SvPQAIzHj9SnpoSHH+zpUHsEoq/m1MpzExWiBa4XEFIKCzTbPqWyOBbV/LGOYK6AQtRamJuc="
-   # ORACLE_USERNAME
-   - secure: "HC6MjTCz3IQuSmiqqmr+o2Bmh5gwbQHBVnGeoucBlX3/RBttOge4ymJj1waKhgyHeLd9jlWP2tkmh34H0h6P7jOKo755cftkCGWARfhvlxL7lzYSOMUiSgzVHqqQKIStxKav2Xr3tgqSxRGU0AcZG97zxGMMoWKVgkXHDBOUneU="
-   # ORACLE_PASSWORD
-   - secure: "DHkU9TtQjRXWGhlKt5nOzknijazmZigaCiPf0CCk3ejhqSy7smP47XjUnMb7H2/dHP1E4pJF2QCtdZ7TS0fNzdbfJ5LQapDGg34BOS8p6peY1Dfs7J+e4/AIRVIAnx2G/loEKZK3MyUSNTLAgFUzMdSNUUVMVV8m3OvnCX7wShA="
 
 addons:
    coverity_scan:
@@ -32,6 +28,6 @@ addons:
          description: "Build submitted via Travis CI"
       notification_email: "francois.achache@gmail.com"
       build_command_prepend: "mvn clean"
-      build_command: "mvn compile -DskipTests=true -Dgpg.skip=true"
+      build_command: "mvn compile -Dgpg.skip=true"
       branch_pattern: coverity_scan
 
