@@ -16,10 +16,10 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<gpg.keyname>CBA4886D</gpg.keyname>
 				<gpg.defaultKeyring>false</gpg.defaultKeyring>
-				<gpg.publicKeyring>.pub</gpg.publicKeyring>
-				<gpg.secretKeyring>.priv</gpg.secretKeyring>
+				<gpg.keyname>CBA4886D</gpg.keyname>
+<!--				<gpg.publicKeyring>.pub</gpg.publicKeyring>
+				<gpg.secretKeyring>.priv</gpg.secretKeyring>-->
 				<gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
 			</properties>
 		</profile>  

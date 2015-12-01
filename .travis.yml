@@ -3,6 +3,9 @@ language: java
 jdk: oraclejdk7
 before_install:
    - pip install --user codecov
+   - gpg --quiet --import .pub
+   - gpg --quiet --import .gpg
+   - gpg --quiet --import .asc
    - cp .pub /home/travis/.gnupg/.pub
    - cp .gpg /home/travis/.gnupg/.priv
 install: mvn clean deploy --settings .travis-settings.xml
