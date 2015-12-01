@@ -4,9 +4,9 @@ jdk: oraclejdk7
 before_install:
    - pip install --user codecov
    - gpg --import gpg.cert
+install: mvn clean deploy --settings .travis-settings.xml
 after_success: 
    - codecov
-   - mvn clean deploy --settings .travis-settings.xml -DskipTests=true -Dgpg.skip=true
 branches:
   only:
    - master
