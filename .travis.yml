@@ -3,7 +3,7 @@ language: java
 jdk: oraclejdk7
 before_install:
    - pip install --user codecov
-   - gpg --import 136004F1BAEA3A73476EE5EC6A5E1BE62A3E6F43.asc
+   - gpg --import .gpg
    - gpg --list-secret-keys
 install: mvn clean deploy --settings .travis-settings.xml
 after_success: 
