@@ -3,7 +3,7 @@ language: java
 jdk: oraclejdk7
 before_install:
    - pip install --user codecov
-   - gpg --allow-secret-key-import --import .gpg << Y
+   - gpg --quiet --import .gpg
    - gpg --list-secret-keys
 install: mvn clean deploy --settings .travis-settings.xml
 after_success: 
@@ -19,7 +19,7 @@ env:
    # OSS_PASSWORD
    - secure: "erME4L4b57ZGgvppUTEl6mIK9UugihJN3PpISfxzXiS3JlYFCGFa1dDF+hHU0MUcobjvzO6QpwizKQ8rH7F9oqgSlGg3vi0wLSVA3arPHyrGvcp21ViubxHkPg9lfX/SfRCspa/nNGGnHRaJmabbnDnMlxRqyQuFUOf93v+mduc="
    # GPG_PASSPHRASE
-   - secure: "N+gUkhYkGQtkI/gajXdlz0Wl/xuNcwM8o5p/xXnnu0+diDrl/TNDBg9tO6xv6kNsFH4Rn9UpP5g6AbB79JPlZJ2/wzdyWuQRZfCcr2NOxedGp7peOsEqpGhZmk1z8Jn4OF9WiDPvc5qxoQ1ilUM3mH5wXCSXHULTHvZFdNafYZE="
+   - secure: "Su5UCKSvwB6Ubw/ouRH9Eh3S3qWGBFbhAU/peuMjN13aQZoSCqL0MCA2dGWLTzgLQmkJGNt8+iIZeLODusFQ0kTaLupBRCJKCMbKVy/cFeJVZ5rdFzJfB5+hBa8sFL8cibARFVIKy9GftSSQKD/TWOOIbOwz3R5B8Wjqp4ylwYA="
    # COVERITY_SCAN_TOKEN
    - secure: "A4k3D6+FsZ1I5vUF9pAtXsZZxltthBb00jLXwP+pwe+Zfmf7rxAUL+01gUf5+ZoacWOKvgj+OdWJGCJMun3XaPGXpPWL0fIyWv8SvPQAIzHj9SnpoSHH+zpUHsEoq/m1MpzExWiBa4XEFIKCzTbPqWyOBbV/LGOYK6AQtRamJuc="
    # FOO
