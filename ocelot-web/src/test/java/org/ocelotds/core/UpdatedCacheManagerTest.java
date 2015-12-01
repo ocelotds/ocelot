@@ -42,7 +42,11 @@ public class UpdatedCacheManagerTest {
 		map.put(cachekey, now.getTime()-DELAY);
 		updatedCacheManager.receiveCacheRemoveEvent(cachekey);
 		Collection<String> result = updatedCacheManager.getOutDatedCache(map);
+		assertThat(result).isNotNull();
 		assertThat(result).contains(cachekey);
+		result = updatedCacheManager.getOutDatedCache(null);
+		assertThat(result).isNotNull();
+		assertThat(result).isEmpty();
 	}
 
 	/**
