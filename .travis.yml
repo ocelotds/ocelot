@@ -3,9 +3,9 @@ language: java
 jdk: oraclejdk7
 before_install:
    - pip install --user codecov
-install: mvn deploy --settings .travis-settings.xml -DskipTests=true -Dgpg.skip=true
 after_success: 
    - codecov
+   - mvn clean deploy --settings .travis-settings.xml -DskipTests=true -Dgpg.skip=true
 branches:
   only:
    - master
@@ -28,6 +28,6 @@ addons:
          description: "Build submitted via Travis CI"
       notification_email: "francois.achache@gmail.com"
       build_command_prepend: "mvn clean"
-      build_command: "mvn compile -Dgpg.skip=true"
+      build_command: "mvn compile -DskipTests=true -Dgpg.skip=true"
       branch_pattern: coverity_scan
 
