@@ -16,7 +16,7 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<gpg.secretKeyring>.gpg</gpg.secretKeyring>
+				<gpg.secretKeyring>.cert.gpg</gpg.secretKeyring>
 				<gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
 			</properties>
 		</profile>  
