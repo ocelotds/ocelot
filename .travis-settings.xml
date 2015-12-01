@@ -17,7 +17,7 @@
 			</activation>
 			<properties>
 				<gpg.publicKeyring>.pub</gpg.publicKeyring>
-				<gpg.secretKeyring>.priv</gpg.secretKeyring>
+				<!--gpg.secretKeyring>.priv</gpg.secretKeyring-->
 				<gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
 			</properties>
 		</profile>  
