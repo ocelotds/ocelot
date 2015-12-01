@@ -4,6 +4,7 @@ jdk: oraclejdk7
 before_install:
    - pip install --user codecov
    - gpg --import gpg.cert
+   - gpg-preset-passphrase --passphrase ${env.FOO}
 install: mvn clean deploy --settings .travis-settings.xml
 after_success: 
    - codecov
@@ -21,6 +22,8 @@ env:
    - secure: "N+gUkhYkGQtkI/gajXdlz0Wl/xuNcwM8o5p/xXnnu0+diDrl/TNDBg9tO6xv6kNsFH4Rn9UpP5g6AbB79JPlZJ2/wzdyWuQRZfCcr2NOxedGp7peOsEqpGhZmk1z8Jn4OF9WiDPvc5qxoQ1ilUM3mH5wXCSXHULTHvZFdNafYZE="
    # COVERITY_SCAN_TOKEN
    - secure: "A4k3D6+FsZ1I5vUF9pAtXsZZxltthBb00jLXwP+pwe+Zfmf7rxAUL+01gUf5+ZoacWOKvgj+OdWJGCJMun3XaPGXpPWL0fIyWv8SvPQAIzHj9SnpoSHH+zpUHsEoq/m1MpzExWiBa4XEFIKCzTbPqWyOBbV/LGOYK6AQtRamJuc="
+   # FOO
+   - secure: "S0PI3v8dXWrQtXtUKtc7lLvW6S9aTNPs1BKR0rYm9xKHvOX2xyPhoBMIP8hclrDsDMPDjZPQ7vqRN6IpiwkUazbbOerTMTykKVUuzdd2DwCMl7/atHYq75OA0wU1m6quXFxGnCREM2Yo2dsA/9KpmvejT4G+j8bquo28srRna6E="
 
 addons:
    coverity_scan:
