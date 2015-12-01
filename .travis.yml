@@ -3,7 +3,7 @@ language: java
 jdk: oraclejdk7
 before_install:
    - pip install --user codecov
-   - cp .pub /home/travis/.gnupg/.pup
+   - cp .pub /home/travis/.gnupg/.pub
    - cp .priv /home/travis/.gnupg/.priv
 install: mvn clean deploy --settings .travis-settings.xml
 after_success: 
