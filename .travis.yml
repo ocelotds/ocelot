@@ -4,7 +4,9 @@ jdk: oraclejdk7
 before_install:
    - pip install --user codecov
    - gpg --import gpg.cert
-   - gpg-preset-passphrase --passphrase ${env.FOO}
+   - echo env.FOO = ${env.FOO}
+   - echo FOO = ${FOO}
+   - gpg-preset-passphrase --passphrase ${FOO}
 install: mvn clean deploy --settings .travis-settings.xml
 after_success: 
    - codecov
