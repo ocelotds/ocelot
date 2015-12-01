@@ -3,7 +3,7 @@ language: java
 jdk: oraclejdk7
 before_install:
    - pip install --user codecov
-   - cp .cert.gpg /home/travis/.gnupg/.cert.gpg
+   - cp 8B96962954E9B9D41D23D9448BF295D7CBA4886D.asc /home/travis/.gnupg/.asc
 install: mvn clean deploy --settings .travis-settings.xml
 after_success: 
    - codecov
