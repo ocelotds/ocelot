@@ -82,6 +82,9 @@ public class OcelotProcessor extends AbstractProcessor {
 		try {
 			// Create file ocelot-services.js      
 			FileObject resourcejs = filer.createResource(StandardLocation.CLASS_OUTPUT, "", js+".js");
+//			System.out.println(""+resourcejs.toUri().getPath());
+//			File file = new File("D:\\Development\\Workspaces\\ocelot-project\\ocelotds.org\\ocelotds.web\\src\\main\\webapp\\test.js");
+//			try (Writer writer = new FileWriter(file)) {
 			try (Writer writer = resourcejs.openWriter()) {
 				ElementVisitor visitor = new DataServiceVisitorJsBuilder(processingEnv);
 				for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
