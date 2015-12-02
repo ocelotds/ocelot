@@ -30,8 +30,9 @@ public class UpdatedCacheManagerTest {
 
 	@InjectMocks
 	private UpdatedCacheManager updatedCacheManager;
+
 	/**
-	 * Test of receiveCacheRemoveEvent method, of class UpdatedCacheManager.
+	 * Test of getOutDatedCache method, of class UpdatedCacheManager.
 	 */
 	@Test
 	public void testGetOutDatedCache() {
@@ -39,22 +40,20 @@ public class UpdatedCacheManagerTest {
 		String cachekey = UUID.randomUUID().toString();
 		Map<String, Long> map = new HashMap<>();
 		Date now = new Date();
+		// test key is outofdate
 		map.put(cachekey, now.getTime()-DELAY);
 		updatedCacheManager.receiveCacheRemoveEvent(cachekey);
 		Collection<String> result = updatedCacheManager.getOutDatedCache(map);
 		assertThat(result).isNotNull();
 		assertThat(result).contains(cachekey);
-		result = updatedCacheManager.getOutDatedCache(null);
-		assertThat(result).isNotNull();
-		assertThat(result).isEmpty();
 	}
 
 	/**
-	 * Test of receiveCacheRemoveEvent method, of class UpdatedCacheManager.
+	 * Test of getOutDatedCache method, of class UpdatedCacheManager.
 	 */
 	@Test
-	public void testGetNoOutDatedCache() {
-		System.out.println("getNoOutDatedCache");
+	public void testGetNoYetOutDatedCache() {
+		System.out.println("getNoYetOutDatedCache");
 		String cachekey = UUID.randomUUID().toString();
 		Map<String, Long> map = new HashMap<>();
 		Date now = new Date();
@@ -62,5 +61,31 @@ public class UpdatedCacheManagerTest {
 		updatedCacheManager.receiveCacheRemoveEvent(cachekey);
 		Collection<String> result = updatedCacheManager.getOutDatedCache(map);
 		assertThat(result).doesNotContain(cachekey);
+	}
+
+	/**
+	 * Test of getOutDatedCache method, of class UpdatedCacheManager.
+	 */
+	@Test
+	public void testGetNoOutDatedCache() {
+		System.out.println("getNoOutDatedCache");
+		Map<String, Long> map = new HashMap<>();
+		Date now = new Date();
+		String cachekey = UUID.randomUUID().toString();
+		map.put(cachekey, now.getTime()-DELAY);
+		Collection<String> result = updatedCacheManager.getOutDatedCache(map);
+		assertThat(result).isNotNull();
+		assertThat(result).isEmpty();
+	}
+
+	/**
+	 * Test of getOutDatedCache method, of class UpdatedCacheManager.
+	 */
+	@Test
+	public void testGetOutDatedCacheNullMap() {
+		System.out.println("getNoOutDatedCacheNullMap");
+		Collection<String> result = updatedCacheManager.getOutDatedCache(null);
+		assertThat(result).isNotNull();
+		assertThat(result).isEmpty();
 	}
 }
