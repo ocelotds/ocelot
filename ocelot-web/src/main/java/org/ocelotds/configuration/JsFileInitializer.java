@@ -43,16 +43,11 @@ public class JsFileInitializer extends AbstractFileInitializer {
 	@ServiceProvider(Constants.Provider.JAVASCRIPT)
 	private Instance<IServicesProvider> jsServicesProviders;
 
-	@Any
-	@Inject
-	@org.ocelotds.configuration.annotations.OcelotConfiguration(OcelotConfigurationName.SECURE)
-	private Instance<String> ocelotConfigurationsSecure;
-
 	public void initOcelotJsFile(@Observes @Initialized(ApplicationScoped.class) ServletContext sc) {
 		logger.debug("ocelot.js generation...");
 		try {
 			// create tmp/ocelot.js
-			File jsFile = createOcelotJsFile(sc.getContextPath(), getWSProtocol(sc));
+			File jsFile = createOcelotJsFile(sc.getContextPath());
 			setInitParameterAnMinifyJs(sc, jsFile);
 		} catch (IOException ex) {
 			logger.error("Fail to create ocelot.js.", ex);
@@ -71,7 +66,7 @@ public class JsFileInitializer extends AbstractFileInitializer {
 	 * @return
 	 * @throws IOException
 	 */
-	File createOcelotJsFile(String ctxPath, String protocol) throws IOException {
+	File createOcelotJsFile(String ctxPath) throws IOException {
 		File file = File.createTempFile(Constants.OCELOT, Constants.JS);
 		try (OutputStream out = new FileOutputStream(file)) {
 			createLicenceComment(out);
@@ -79,31 +74,11 @@ public class JsFileInitializer extends AbstractFileInitializer {
 				logger.info("javascript provider found {}", servicesProvider);
 				servicesProvider.streamJavascriptServices(out);
 			}
-			writeOcelotCoreJsFile(out, ctxPath, protocol);
+			writeOcelotCoreJsFile(out, ctxPath);
 		}
 		return file;
 	}
 
-	/**
-	 * Return protocol for webscoket, ws(default) or wss
-	 * setting ocelot.websocket.secure option in web.xml for change protocol 
-	 * @param sc
-	 * @return 
-	 */
-	String getWSProtocol(ServletContext sc) {
-		String protocol = Constants.WS;
-		String secure;
-		if(ocelotConfigurationsSecure.isUnsatisfied()) {
-			secure = sc.getInitParameter(Constants.Options.SECURE);
-		} else {
-			secure = ocelotConfigurationsSecure.get();
-		}
-		if (Constants.TRUE.equals(secure)) {
-			protocol = Constants.WSS;
-		}
-		return protocol;
-	}
-	
 	/**
 	 * Set js name as an init-parameter on ServletContext,<br>
 	 * Minify it and set the minify name as init-parameter too.
@@ -172,7 +147,7 @@ public class JsFileInitializer extends AbstractFileInitializer {
 	 * @return
 	 * @throws IOException
 	 */
-	void writeOcelotCoreJsFile(OutputStream out, String ctxPath, String protocol) throws IOException {
+	void writeOcelotCoreJsFile(OutputStream out, String ctxPath) throws IOException {
 		URL js = this.getClass().getResource(OCELOT_CORE_RESOURCE);
 		if (null == js) {
 			throw new IOException("File " + OCELOT_CORE_RESOURCE + " not found in classpath.");
@@ -180,7 +155,7 @@ public class JsFileInitializer extends AbstractFileInitializer {
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream(), Constants.UTF_8))) {
 			String inputLine;
 			while ((inputLine = in.readLine()) != null) {
-				out.write(inputLine.replaceAll(Constants.CTXPATH, ctxPath).replaceAll(Constants.PROTOCOL, protocol).getBytes(Constants.UTF_8));
+				out.write(inputLine.replaceAll(Constants.CTXPATH, ctxPath).getBytes(Constants.UTF_8));
 				out.write(Constants.BACKSLASH_N.getBytes(Constants.UTF_8));
 			}
 		}

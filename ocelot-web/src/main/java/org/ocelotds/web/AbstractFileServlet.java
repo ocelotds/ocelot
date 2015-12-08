@@ -4,11 +4,11 @@
  */
 package org.ocelotds.web;
 
+import java.io.BufferedReader;
 import org.ocelotds.Constants;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.io.Writer;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -37,14 +37,20 @@ public abstract class AbstractFileServlet extends HttpServlet {
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		int count = 0;
 		response.setContentType(getMimetype(request));
+		String protocol = getProtocol(request);
 		File source = new File(getFilename(request));
-		Writer writer = response.getWriter();
-		try (Reader reader = new FileReader(source)) {
-			char[] cbuf = new char[Constants.DEFAULT_BUFFER_SIZE];
-			while (reader.ready()) {
-				int n = reader.read(cbuf);
-				writer.write(cbuf, 0, n);
-				count += n;
+		try (Writer writer = response.getWriter()) {
+			try (BufferedReader in = new BufferedReader(new FileReader(source))) {
+				String inputLine;
+				while ((inputLine = in.readLine()) != null) {
+					if(count!=0) {
+						writer.write(Constants.BACKSLASH_N);
+						count++;
+					}
+					String result = inputLine.replaceAll(Constants.PROTOCOL, protocol);
+					writer.write(result);
+					count += result.length();
+				}
 			}
 		}
 		response.setContentLength(count);
@@ -87,5 +93,13 @@ public abstract class AbstractFileServlet extends HttpServlet {
 	@Override
 	public String getServletInfo() {
 		return "ocelot-servlet";
+	}
+
+	private String getProtocol(HttpServletRequest request) {
+		String protocol = Constants.WS;
+		if(request.isSecure()) {
+			protocol = Constants.WSS;
+		}
+		return protocol;
 	}
 }

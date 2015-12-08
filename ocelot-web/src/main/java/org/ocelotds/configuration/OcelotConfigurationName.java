@@ -8,5 +8,5 @@ package org.ocelotds.configuration;
  * @author hhfrancois
  */
 public enum OcelotConfigurationName {
-	SECURE, STACKTRACELENGTH
+	STACKTRACELENGTH
 }
