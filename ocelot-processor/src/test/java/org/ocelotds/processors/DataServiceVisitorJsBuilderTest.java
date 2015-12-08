@@ -19,7 +19,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import javax.tools.Diagnostic;
 import org.junit.Before;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
@@ -30,7 +29,6 @@ import static org.mockito.Mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.KeyMaker;
 import org.ocelotds.annotations.JsCacheResult;
-import org.slf4j.Logger;
 
 /**
  *
@@ -86,11 +84,11 @@ public class DataServiceVisitorJsBuilderTest {
 
 		instance._visitType(typeElement, writer);
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(24)).append(captureAppend.capture());
+		verify(writer, times(27)).append(captureAppend.capture());
 		List<String> appends = captureAppend.getAllValues();
 		assertThat(appends.get(1)).isEqualTo("className");
 		assertThat(appends.get(7)).isEqualTo("packageName.ClassName");
-		assertThat(appends.get(21)).isEqualTo("className");
+		assertThat(appends.get(23)).isEqualTo("className");
 	}
 
 	/**
