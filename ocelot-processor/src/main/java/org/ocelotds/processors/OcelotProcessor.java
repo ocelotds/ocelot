@@ -112,7 +112,7 @@ public class OcelotProcessor extends AbstractProcessor {
 	String createJSServicesProvider() {
 		// Creation du provider de ocelot-services.js
 		String prefix = "srv_" + RANDOM.nextInt(100_000_000);
-		createServicesProvider(prefix, "js");
+		createServicesProvider(prefix, "js", "JAVASCRIPT");
 		return prefix;
 	}
 
@@ -124,7 +124,7 @@ public class OcelotProcessor extends AbstractProcessor {
 	String createJsonServicesProvider() {
 		// Creation du provider de ocelot-services.js
 		String prefix = "srv_" + RANDOM.nextInt(100_000_000);
-		createServicesProvider(prefix, "json");
+		createServicesProvider(prefix, "json", "JSON");
 		return prefix;
 	}
 
@@ -133,12 +133,12 @@ public class OcelotProcessor extends AbstractProcessor {
 	 *
 	 * @return
 	 */
-	void createServicesProvider(String prefix, String type) {
+	void createServicesProvider(String prefix, String type, String providerType) {
 		try (Writer writer = getOpendSourceFileObjectWriter(prefix + ".ServiceProvider")) {
 			writer.append("package ").append(prefix).append(";\n");
 			writer.append("import org.ocelotds.AbstractServiceProvider;\n");
 			writer.append("import org.ocelotds.Constants;\n");
-			writer.append("@org.ocelotds.annotations.ServiceProvider(Constants.Provider.JSON)\n");
+			writer.append("@org.ocelotds.annotations.ServiceProvider(Constants.Provider."+providerType+")\n");
 			writer.append("public class ServiceProvider extends AbstractServiceProvider {\n");
 			writer.append("	@Override\n");
 			writer.append("	public String getFilename() {\n");

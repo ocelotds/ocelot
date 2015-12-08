@@ -161,7 +161,7 @@ public class OcelotProcessorTest {
 	@Test
 	public void testCreateJSServicesProvider() throws IOException {
 		System.out.println("createJSServicesProvider");
-		doNothing().when(instance).createServicesProvider(anyString(), anyString());
+		doNothing().when(instance).createServicesProvider(anyString(), anyString(), anyString());
 		String result = instance.createJSServicesProvider();
 		assertThat(result).startsWith("srv_");
 	}
@@ -169,7 +169,7 @@ public class OcelotProcessorTest {
 	@Test
 	public void testCreateJsonServicesProvider() throws IOException {
 		System.out.println("createJsonServicesProvider");
-		doNothing().when(instance).createServicesProvider(anyString(), anyString());
+		doNothing().when(instance).createServicesProvider(anyString(), anyString(), anyString());
 		String result = instance.createJsonServicesProvider();
 		assertThat(result).startsWith("srv_");
 	}
@@ -180,7 +180,7 @@ public class OcelotProcessorTest {
 		Writer writer = mock(Writer.class);
 		when(writer.append(anyString())).thenReturn(writer);
 		doReturn(writer).when(instance).getOpendSourceFileObjectWriter(anyString());
-		instance.createServicesProvider("srv_1234", "json");
+		instance.createServicesProvider("srv_1234", "json", "JSON");
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
 		verify(writer, times(16)).append(captureString.capture());
 		List<String> allValues = captureString.getAllValues();
@@ -196,7 +196,7 @@ public class OcelotProcessorTest {
 		Writer writer = mock(Writer.class);
 		when(writer.append(any(CharSequence.class))).thenThrow(new IOException("ERROR"));
 		doReturn(writer).when(instance).getOpendSourceFileObjectWriter(anyString());
-		instance.createServicesProvider("srv_1234", "json");
+		instance.createServicesProvider("srv_1234", "json", "JSON");
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Diagnostic.Kind> captureKind = ArgumentCaptor.forClass(Diagnostic.Kind.class);
 		verify(messager).printMessage(captureKind.capture(), captureString.capture());
