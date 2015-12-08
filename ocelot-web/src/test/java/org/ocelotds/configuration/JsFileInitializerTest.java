@@ -128,6 +128,7 @@ public class JsFileInitializerTest {
 	public void testCreateOcelotJsFile() throws IOException {
 		System.out.println("createOcelotJsFile");
 		((FakeCDI) jsServicesProviders).add(new JsServiceProviderImpl());
+		instance.OCELOT_CORE_RESOURCE = Constants.SLASH + Constants.OCELOT_CORE + Constants.JS;
 		File file = instance.createOcelotJsFile("/", "ws");
 		assertThat(file).exists();
 	}

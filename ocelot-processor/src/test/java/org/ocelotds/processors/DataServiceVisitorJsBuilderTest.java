@@ -19,6 +19,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import javax.tools.Diagnostic;
 import org.junit.Before;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
@@ -28,7 +29,6 @@ import org.mockito.Mock;
 import static org.mockito.Mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.KeyMaker;
-import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheResult;
 import org.slf4j.Logger;
 
@@ -51,10 +51,6 @@ public class DataServiceVisitorJsBuilderTest {
 	@Mock
 	private Types typeUtils;
 
-	@Mock
-	private Logger logger;
-
-	@Mock
 	private DataServiceVisitorJsBuilder instance;
 
 	@Before
@@ -64,41 +60,37 @@ public class DataServiceVisitorJsBuilderTest {
 		when(environment.getFiler()).thenReturn(filer);
 		when(environment.getMessager()).thenReturn(messager);
 		when(environment.getTypeUtils()).thenReturn(typeUtils);
-		instance = new DataServiceVisitorJsBuilder(environment);
+		instance = spy(new DataServiceVisitorJsBuilder(environment));
 	}
 
 	/**
-	 * Test of visitType method, of class DataServiceVisitorJsBuilder.
+	 * Test of _visitType method, of class DataServiceVisitorJsBuilder.
 	 *
 	 * @throws java.io.IOException
 	 */
 	@Test
-	public void testVisitType() throws IOException {
-		System.out.println("visitType");
+	public void test_VisitType() throws IOException {
+		System.out.println("_visitType");
 		TypeElement typeElement = mock(TypeElement.class);
-		Writer writer = mock(Writer.class);
+		Writer writer = getMockWriter();
+		doNothing().when(instance).createClassComment(eq(typeElement), eq(writer));
+		doReturn(0).when(instance).browseAndWriteMethods(anyListOf(ExecutableElement.class), anyString(), eq(writer));
+		doReturn("ClassName").when(instance).getJsClassname(eq(typeElement));
+
 		Name qname = mock(Name.class);
-		Name sname = mock(Name.class);
 		List methodElements = new ArrayList();
-		DataService ds = mock(DataService.class);
 
-		when(typeElement.getAnnotation(eq(DataService.class))).thenReturn(ds);
 		when(typeElement.getQualifiedName()).thenReturn(qname);
-		when(typeElement.getSimpleName()).thenReturn(sname);
 		when(qname.toString()).thenReturn("packageName.ClassName");
-		when(sname.toString()).thenReturn("ClassName");
 		when(typeElement.getEnclosedElements()).thenReturn(methodElements);
-		when(writer.append(anyString())).thenReturn(writer);
-		when(ds.name()).thenReturn("");
 
-		String result = instance.visitType(typeElement, writer);
-		assertThat(result).isNull();
+		instance._visitType(typeElement, writer);
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(20)).append(captureAppend.capture());
+		verify(writer, times(24)).append(captureAppend.capture());
 		List<String> appends = captureAppend.getAllValues();
-		assertThat(appends.get(1)).isEqualTo("ClassName");
-		assertThat(appends.get(4)).isEqualTo("packageName.ClassName");
-		assertThat(appends.get(7)).isEqualTo("ClassName");
+		assertThat(appends.get(1)).isEqualTo("className");
+		assertThat(appends.get(7)).isEqualTo("packageName.ClassName");
+		assertThat(appends.get(21)).isEqualTo("className");
 	}
 
 	/**
@@ -106,16 +98,47 @@ public class DataServiceVisitorJsBuilderTest {
 	 *
 	 * @throws java.io.IOException
 	 */
-//	@Test
+	@Test
 	public void visitMethodElement() throws IOException {
-		System.out.println("visitType");
-		boolean first = true;
-		Collection<String> methodProceeds = null;
-		String classname = null;
-		String jsclsname = null;
-		ExecutableElement methodElement = null;
-		Writer writer = null;
-		instance.visitMethodElement(first, methodProceeds, classname, jsclsname, methodElement, writer);
+		System.out.println("visitMethodElement");
+		Writer writer = getMockWriter();
+		String classname = "packageName.ClassName";
+		ExecutableElement methodElement = mock(ExecutableElement.class);
+		Name name = mock(Name.class);
+		TypeMirror tm = mock(TypeMirror.class);
+		List<String> argumentsType = new ArrayList<>();
+		List<String> arguments = new ArrayList<>();
+
+		doNothing().when(instance).createMethodComment(any(ExecutableElement.class), anyList(), anyList(), any(TypeMirror.class), any(Writer.class));
+		doNothing().when(instance).createMethodBody(eq(classname), any(ExecutableElement.class), any(Iterator.class), any(Writer.class));
+		when(methodElement.getSimpleName()).thenReturn(name);
+		when(name.toString()).thenReturn("ClassName");
+		doReturn(argumentsType).when(instance).getArgumentsType(eq(methodElement));
+		doReturn(arguments).when(instance).getArguments(eq(methodElement));
+		when(methodElement.getReturnType()).thenReturn(tm);
+		
+		instance.visitMethodElement(0, classname, methodElement, writer);
+		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
+		verify(writer, times(7)).append(captureAppend.capture());
+		
+		writer = getMockWriter();
+		argumentsType.add(String.class.getName());
+		arguments.add("str");
+		instance.visitMethodElement(0, classname, methodElement, writer);
+		captureAppend = ArgumentCaptor.forClass(String.class);
+		verify(writer, times(8)).append(captureAppend.capture());
+
+		writer = getMockWriter();
+		argumentsType.add(String.class.getName());
+		arguments.add("str2");
+		instance.visitMethodElement(0, classname, methodElement, writer);
+		captureAppend = ArgumentCaptor.forClass(String.class);
+		verify(writer, times(10)).append(captureAppend.capture());
+
+		writer = getMockWriter();
+		instance.visitMethodElement(1, classname, methodElement, writer);
+		captureAppend = ArgumentCaptor.forClass(String.class);
+		verify(writer, times(12)).append(captureAppend.capture());
 	}
 
 	/**
@@ -127,7 +150,7 @@ public class DataServiceVisitorJsBuilderTest {
 	public void testCreateClassCommentWithInterfaceComment() throws IOException {
 		System.out.println("createClassComment");
 		TypeElement typeElement = mock(TypeElement.class);
-		Writer writer = mock(Writer.class);
+		Writer writer = getMockWriter();
 		TypeMirror t0 = mock(TypeMirror.class);
 		TypeMirror t1 = mock(TypeMirror.class);
 		TypeElement el0 = mock(TypeElement.class);
@@ -138,15 +161,14 @@ public class DataServiceVisitorJsBuilderTest {
 		when(typeElement.getInterfaces()).thenReturn(interfaces);
 		when(typeUtils.asElement(eq(t0))).thenReturn(el0);
 		when(typeUtils.asElement(eq(t1))).thenReturn(el1);
-		when(writer.append(anyString())).thenReturn(writer);
 		when(elementUtils.getDocComment(eq(el0))).thenReturn("Default Comment0");
 		when(elementUtils.getDocComment(eq(el1))).thenReturn(null);
 
 		instance.createClassComment(typeElement, writer);
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(3)).append(captureAppend.capture());
+		verify(writer, times(6)).append(captureAppend.capture());
 		List<String> appends = captureAppend.getAllValues();
-		assertThat(appends.get(1)).isEqualTo("Default Comment0");
+		assertThat(appends.get(3)).isEqualTo("Default Comment0");
 	}
 
 	/**
@@ -158,16 +180,15 @@ public class DataServiceVisitorJsBuilderTest {
 	public void testCreateClassCommentWithDefaultComment() throws IOException {
 		System.out.println("createClassComment");
 		TypeElement typeElement = mock(TypeElement.class);
-		Writer writer = mock(Writer.class);
+		Writer writer = getMockWriter();
 
 		when(elementUtils.getDocComment(any(TypeElement.class))).thenReturn("Line1\nLine2");
-		when(writer.append(anyString())).thenReturn(writer);
 
 		instance.createClassComment(typeElement, writer);
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(3)).append(captureAppend.capture());
+		verify(writer, times(6)).append(captureAppend.capture());
 		List<String> appends = captureAppend.getAllValues();
-		assertThat(appends.get(1)).isEqualTo("Line1\n *Line2");
+		assertThat(appends.get(3)).isEqualTo("Line1\n *Line2");
 
 	}
 
@@ -184,22 +205,21 @@ public class DataServiceVisitorJsBuilderTest {
 		List<String> argumentsName = Arrays.asList("b");
 		List<String> argumentsType = Arrays.asList("boolean");
 		TypeMirror returnType = mock(TypeMirror.class);
-		Writer writer = mock(Writer.class);
+		Writer writer = getMockWriter();
 		// when
 		// return type != void
 		when(returnType.toString()).thenReturn("void");
-		when(writer.append(anyString())).thenReturn(writer);
 		// no comment on method
 		when(elementUtils.getDocComment(any(ExecutableElement.class))).thenReturn("Default Comment\n Second line\n @param test");
 		// then
 		instance.createMethodComment(methodElement, argumentsName, argumentsType, returnType, writer);
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
 		// 
-		verify(writer, times(10)).append(captureAppend.capture());
+		verify(writer, times(16)).append(captureAppend.capture());
 		List<String> appends = captureAppend.getAllValues();
-		assertThat(appends.get(2)).isEqualTo("Default Comment\n\t * Second line");
-		assertThat(appends.get(5)).isEqualTo("boolean");
-		assertThat(appends.get(7)).isEqualTo("b");
+		assertThat(appends.get(5)).isEqualTo("Default Comment\n\t\t * Second line");
+		assertThat(appends.get(9)).isEqualTo("boolean");
+		assertThat(appends.get(11)).isEqualTo("b");
 	}
 
 	/**
@@ -215,22 +235,21 @@ public class DataServiceVisitorJsBuilderTest {
 		List<String> argumentsName = Arrays.asList("b");
 		List<String> argumentsType = Arrays.asList("boolean");
 		TypeMirror returnType = mock(TypeMirror.class);
-		Writer writer = mock(Writer.class);
+		Writer writer = getMockWriter();
 		// when
 		// return type != void
 		when(returnType.toString()).thenReturn("java.lang.String");
-		when(writer.append(anyString())).thenReturn(writer);
 		// no comment on method
 		when(elementUtils.getDocComment(any(ExecutableElement.class))).thenReturn(null);
 		// then
 		instance.createMethodComment(methodElement, argumentsName, argumentsType, returnType, writer);
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
 		// 
-		verify(writer, times(10)).append(captureAppend.capture());
+		verify(writer, times(17)).append(captureAppend.capture());
 		List<String> appends = captureAppend.getAllValues();
-		assertThat(appends.get(2)).isEqualTo("boolean");
-		assertThat(appends.get(4)).isEqualTo("b");
-		assertThat(appends.get(7)).isEqualTo("java.lang.String");
+		assertThat(appends.get(5)).isEqualTo("boolean");
+		assertThat(appends.get(7)).isEqualTo("b");
+		assertThat(appends.get(11)).isEqualTo("java.lang.String");
 	}
 
 	/**
@@ -257,18 +276,18 @@ public class DataServiceVisitorJsBuilderTest {
 		Collection<String> arguments = Arrays.asList("a", "b", "c", "d");
 		Iterator<String> iterator = arguments.iterator();
 
-		Writer writer = mock(Writer.class);
-		when(writer.append(anyString())).thenReturn(writer);
+		Writer writer = getMockWriter();
 
 		instance.createMethodBody(classname, methodElement, iterator, writer);
 
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(12)).append(captureAppend.capture());
+		verify(writer, times(22)).append(captureAppend.capture());
 		List<String> appends = captureAppend.getAllValues();
-		assertThat(appends.get(1)).isEqualTo(methodname);
-		assertThat(appends.get(3)).isEqualTo("		var id = \"" + classMethodHash + "_\" + JSON.stringify([");
-		assertThat(appends.get(7)).isEqualTo("\"a\",\"b\",\"c\",\"d\"");
-		assertThat(appends.get(9)).isEqualTo("a,b,c,d");
+		assertThat(appends.get(3)).isEqualTo(classMethodHash);
+		assertThat(appends.get(7)).isEqualTo("(a)?a.c:null,(b)?b.i:null,d");
+		assertThat(appends.get(13)).isEqualTo(methodname);
+		assertThat(appends.get(16)).isEqualTo("\"a\",\"b\",\"c\",\"d\"");
+		assertThat(appends.get(18)).isEqualTo("a,b,c,d");
 	}
 
 	/**
@@ -295,26 +314,18 @@ public class DataServiceVisitorJsBuilderTest {
 		Collection<String> arguments = Arrays.asList("a", "b", "c", "d");
 		Iterator<String> iterator = arguments.iterator();
 
-		Writer writer = mock(Writer.class);
-		when(writer.append(anyString())).thenReturn(writer);
+		Writer writer = getMockWriter();
 
 		instance.createMethodBody(classname, methodElement, iterator, writer);
 
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(12)).append(captureAppend.capture());
+		verify(writer, times(22)).append(captureAppend.capture());
 		List<String> appends = captureAppend.getAllValues();
-		assertThat(appends.get(0)).isEqualTo("		var op = \"");
-		assertThat(appends.get(1)).isEqualTo(methodname);
-		assertThat(appends.get(2)).isEqualTo("\";\n");
-		assertThat(appends.get(3)).isEqualTo("		var id = \"" + classMethodHash + "_\" + JSON.stringify([");
-		assertThat(appends.get(4)).isEqualTo("a,b,c,d");
-		assertThat(appends.get(5)).isEqualTo("]).md5();\n");
-		assertThat(appends.get(6)).isEqualTo("		return OcelotPromiseFactory.createPromise(this.ds, id, op, [");
-		assertThat(appends.get(7)).isEqualTo("\"a\",\"b\",\"c\",\"d\"");
-		assertThat(appends.get(8)).isEqualTo("], [");
-		assertThat(appends.get(9)).isEqualTo("a,b,c,d");
-		assertThat(appends.get(10)).isEqualTo("]");
-		assertThat(appends.get(11)).isEqualTo(");\n");
+		assertThat(appends.get(3)).isEqualTo(classMethodHash);
+		assertThat(appends.get(7)).isEqualTo("a,b,c,d");
+		assertThat(appends.get(13)).isEqualTo(methodname);
+		assertThat(appends.get(16)).isEqualTo("\"a\",\"b\",\"c\",\"d\"");
+		assertThat(appends.get(18)).isEqualTo("a,b,c,d");
 	}
 
 	@Test
@@ -325,5 +336,11 @@ public class DataServiceVisitorJsBuilderTest {
 		assertThat(result).isEqualTo("(c)?c.user:null");
 		result = instance.getKeyFromArg("c.user.id");
 		assertThat(result).isEqualTo("(c&&c.user)?c.user.id:null");
+	}
+	
+	Writer getMockWriter() throws IOException {
+		Writer writer = mock(Writer.class);
+		when(writer.append(anyString())).thenReturn(writer);
+		return writer;
 	}
 }

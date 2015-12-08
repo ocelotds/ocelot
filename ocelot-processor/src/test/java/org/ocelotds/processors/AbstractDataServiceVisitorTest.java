@@ -4,6 +4,8 @@
 
 package org.ocelotds.processors;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -24,11 +26,13 @@ import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import javax.tools.Diagnostic;
 import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.DataService;
@@ -67,7 +71,68 @@ public class AbstractDataServiceVisitorTest {
 		when(environment.getFiler()).thenReturn(filer);
 		when(environment.getMessager()).thenReturn(messager);
 		when(environment.getTypeUtils()).thenReturn(typeUtils);
-		instance = new DataServiceVisitorJsBuilder(environment);
+		instance = spy(new DataServiceVisitorJsBuilder(environment));
+	}
+
+	/**
+	 * Test of visitType method, of class DataServiceVisitorJsBuilder.
+	 *
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testVisitType() throws IOException {
+		System.out.println("visitType");
+		TypeElement typeElement = mock(TypeElement.class);
+		Writer writer = getMockWriter();
+		Name qname = mock(Name.class);
+
+		when(typeElement.getQualifiedName()).thenReturn(qname);
+		when(qname.toString()).thenReturn("packageName.ClassName");
+		doNothing().when(instance)._visitType(eq(typeElement), eq(writer));
+
+		String res = instance.visitType(typeElement, writer);
+		assertThat(res).isNull();
+	}
+
+	/**
+	 * Test of visitType method, of class DataServiceVisitorJsBuilder.
+	 *
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testVisitTypeFail() throws IOException {
+		System.out.println("visitTypeFail");
+		TypeElement typeElement = mock(TypeElement.class);
+		Writer writer = getMockWriter();
+		Name qname = mock(Name.class);
+
+		when(typeElement.getQualifiedName()).thenReturn(qname);
+		when(qname.toString()).thenReturn("packageName.ClassName");
+		StringBuilder stringBuilder = new StringBuilder();
+		doReturn(stringBuilder).when(instance).getStringBuilder();
+		doThrow(IOException.class).when(instance)._visitType(eq(typeElement), eq(writer));
+
+		String res = instance.visitType(typeElement, writer);
+		assertThat(res).isNull();
+
+		ArgumentCaptor<Diagnostic.Kind> capturePrint = ArgumentCaptor.forClass(Diagnostic.Kind.class);
+		verify(messager).printMessage(capturePrint.capture(), anyString());
+
+		assertThat(capturePrint.getValue()).isEqualTo(Diagnostic.Kind.ERROR);
+		assertThat(stringBuilder.toString()).isEqualTo("Cannot Create service : packageName.ClassName cause IOException on writer");
+
+	}
+
+	/**
+	 * Test of getJsInstancename method, of class DataServiceVisitorJsBuilder.
+	 */
+	@Test
+	public void testGetJsInstancename() {
+		String result = instance.getJsInstancename("DefaultClassName");
+		assertThat(result).isEqualTo("defaultClassName");
+
+		result = instance.getJsInstancename("SpecifiedClassName");
+		assertThat(result).isEqualTo("specifiedClassName");
 	}
 
 	/**
@@ -101,6 +166,29 @@ public class AbstractDataServiceVisitorTest {
 		String comment = "Line1\nLine2\nLine3";
 		String result = instance.computeComment(comment, " ");
 		assertThat(result).isEqualTo("Line1\n *Line2\n *Line3");
+	}
+
+	/**
+	 * Test of browseAndWriteMethods method, of class DataServiceVisitorJsBuilder.
+	 * 
+	 * @throws IOException 
+	 */
+	@Test
+	public void testBrowseAndWriteMethods() throws IOException {
+		System.out.println("browseAndWriteMethods");
+		List<ExecutableElement> methodElements = new ArrayList<>();
+		ExecutableElement element = mock(ExecutableElement.class);
+		methodElements.add(element);
+		String classname = "packageName.ClassName";
+		Writer writer = getMockWriter();
+
+		doReturn(false).doReturn(true).when(instance).isConsiderateMethod(anyCollection(), any(ExecutableElement.class));
+		doNothing().when(instance).visitMethodElement(anyInt(), anyString(), any(ExecutableElement.class), any(Writer.class));
+		// then
+		int result = instance.browseAndWriteMethods(methodElements, classname, writer);
+		assertThat(result).isEqualTo(0);
+		result = instance.browseAndWriteMethods(methodElements, classname, writer);
+		assertThat(result).isEqualTo(1);
 	}
 
 	/**
@@ -289,4 +377,16 @@ public class AbstractDataServiceVisitorTest {
 		assertThat(result).isNull();
 	}
 
+	@Test
+	public void testGetStringBuilder() {
+		StringBuilder stringBuilder = instance.getStringBuilder();
+		assertThat(stringBuilder).isNotNull();
+		assertThat(stringBuilder.length()).isEqualTo(0);
+	}
+	
+	Writer getMockWriter() throws IOException {
+		Writer writer = mock(Writer.class);
+		when(writer.append(anyString())).thenReturn(writer);
+		return writer;
+	}
 }

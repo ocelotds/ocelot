@@ -11,12 +11,16 @@ import org.ocelotds.core.UpdatedCacheManager;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
+import javax.enterprise.inject.Any;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
 import org.ocelotds.annotations.OcelotLogger;
+import org.ocelotds.annotations.ServiceProvider;
 import org.ocelotds.context.OcelotContext;
+import org.ocelotds.marshallers.IServiceProviderMarshaller;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshallers.LocaleUnmarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
@@ -45,6 +49,11 @@ public class OcelotServices {
 
 	@Inject
 	private Session session;
+
+	@Any
+	@Inject
+	@ServiceProvider(Constants.Provider.JSON)
+	private Instance<IServicesProvider> jsonServicesProviders;
 
 	/**
 	 * define locale for current user
@@ -93,5 +102,10 @@ public class OcelotServices {
 
 	public Integer getNumberSubscribers(String topic) {
 		return sessionManager.getNumberSubscribers(topic);
+	}
+
+	@JsonMarshaller(IServiceProviderMarshaller.class)
+	public Instance<IServicesProvider> getServices() {
+		return jsonServicesProviders;
 	}
 }

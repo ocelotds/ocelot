@@ -32,7 +32,7 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 public class JsFileInitializer extends AbstractFileInitializer {
-	String OCELOT_CORE_RESOURCE = Constants.SLASH + Constants.OCELOT_CORE + Constants.JS;
+	static String OCELOT_CORE_RESOURCE = Constants.SLASH + Constants.OCELOT_CORE + Constants.JS;
 
 	@Inject
 	@OcelotLogger

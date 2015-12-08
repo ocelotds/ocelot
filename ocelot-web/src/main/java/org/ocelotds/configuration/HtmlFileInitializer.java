@@ -3,34 +3,30 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.configuration;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.URL;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Destroyed;
 import javax.enterprise.context.Initialized;
 import javax.enterprise.event.Observes;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import org.ocelotds.Constants;
-import org.ocelotds.IServicesProvider;
 import org.ocelotds.annotations.OcelotLogger;
-import org.ocelotds.annotations.ServiceProvider;
 import org.slf4j.Logger;
 
 /**
- *
+ * Create ocelot.htm
  * @author hhfrancois
  */
 public class HtmlFileInitializer extends AbstractFileInitializer {
-	@Any
-	@Inject
-	@ServiceProvider(Constants.Provider.HTML)
-	private Instance<IServicesProvider> htmlServicesProviders;
-	
+	final static private String CONTENT_RESOURCE = Constants.SLASH + Constants.CONTENT + Constants.HTML;
+
 	@Inject
 	@OcelotLogger
 	private Logger logger;
@@ -60,46 +56,30 @@ public class HtmlFileInitializer extends AbstractFileInitializer {
 	File createOcelotHtmlFile(String ctxPath) throws IOException {
 		File file = File.createTempFile(Constants.OCELOT, Constants.HTML);
 		try (OutputStream out = new FileOutputStream(file)) {
-			writeHtmlHeaders(out, ctxPath);
-			for (IServicesProvider servicesProvider : htmlServicesProviders) {
-				servicesProvider.streamJavascriptServices(out);
-			}
-			writeHtmlFooter(out);
+			writeOcelotContentHTMLFile(out, ctxPath);
 		}
 		return file;
 	}
 
-	void writeHtmlHeaders(OutputStream out, String ctxPath) throws IOException {
-		out.write("<!DOCTYPE html>\n".getBytes(Constants.UTF_8));
-		out.write("<html>\n".getBytes(Constants.UTF_8));
-		out.write("  <head>\n".getBytes(Constants.UTF_8));
-		out.write("      <title></title>\n".getBytes(Constants.UTF_8));
-		out.write("  </head>\n".getBytes(Constants.UTF_8));
-		out.write("  <script src=\"".getBytes(Constants.UTF_8));
-		out.write(ctxPath.getBytes(Constants.UTF_8));
-		out.write("/ocelot.js?minify=false\" type=\"text/javascript\"></script>\n".getBytes(Constants.UTF_8));
-		out.write("  <body>\n".getBytes(Constants.UTF_8));
-		out.write("     <script>\n".getBytes(Constants.UTF_8));
-		out.write("        function processCall(event) {\n".getBytes(Constants.UTF_8));
-		out.write("           var first = true, toexec, classname, methodname, args = [], child, children = event.target.parentNode.childNodes;\n".getBytes(Constants.UTF_8));
-		out.write("           classname = event.target.attributes[\"classname\"].value;\n".getBytes(Constants.UTF_8));
-		out.write("           methodname = event.target.attributes[\"methodname\"].value;\n".getBytes(Constants.UTF_8));
-		out.write("           toexec = \"new \"+classname+\"().\"+methodname+\"(\";\n".getBytes(Constants.UTF_8));
-		out.write("           for(var i in children) {\n".getBytes(Constants.UTF_8));
-		out.write("              child = children[i];\n".getBytes(Constants.UTF_8));
-		out.write("              if(child.nodeName === \"INPUT\") {\n".getBytes(Constants.UTF_8));
-		out.write("                 if(first) first = false;\n".getBytes(Constants.UTF_8));
-		out.write("                 else toexec += \",\";\n".getBytes(Constants.UTF_8));
-		out.write("                 toexec += (child.value)?child.value:\"null\";\n".getBytes(Constants.UTF_8));
-		out.write("              }\n".getBytes(Constants.UTF_8));
-		out.write("           }\n".getBytes(Constants.UTF_8));
-		out.write("           toexec += \").event(function(evt) {alert(JSON.stringify(evt.response));});\";\n".getBytes(Constants.UTF_8));
-		out.write("           eval(toexec);\n".getBytes(Constants.UTF_8));
-		out.write("        }\n".getBytes(Constants.UTF_8));
-		out.write("     </script>\n".getBytes(Constants.UTF_8));
-	}
-	void writeHtmlFooter(OutputStream out) throws IOException {
-		out.write("  </body>\n".getBytes(Constants.UTF_8));
-		out.write("</html>\n".getBytes(Constants.UTF_8));
+	/**
+	 * Write content.htm part and replace contextpath token
+	 *
+	 * @param writer
+	 * @param ctxPath
+	 * @return
+	 * @throws IOException
+	 */
+	void writeOcelotContentHTMLFile(OutputStream out, String ctxPath) throws IOException {
+		URL content = this.getClass().getResource(CONTENT_RESOURCE);
+		if (null == content) {
+			throw new IOException("File " + CONTENT_RESOURCE + " not found in classpath.");
+		}
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(content.openStream(), Constants.UTF_8))) {
+			String inputLine;
+			while ((inputLine = in.readLine()) != null) {
+				out.write(inputLine.replaceAll(Constants.CTXPATH, ctxPath).getBytes(Constants.UTF_8));
+				out.write(Constants.BACKSLASH_N.getBytes(Constants.UTF_8));
+			}
+		}
 	}
 }

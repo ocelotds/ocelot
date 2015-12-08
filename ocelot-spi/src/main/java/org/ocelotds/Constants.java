@@ -24,6 +24,7 @@ public interface Constants {
 	String PRINCIPAL = "PRINCIPAL";
 	String ANONYMOUS = "ANONYMOUS";
 
+	String CONTENT = "content";
 	String OCELOT = "ocelot";
 	String OCELOT_CORE = OCELOT + "-core";
 	String OCELOT_HTML = OCELOT + "-html";
@@ -102,6 +103,7 @@ public interface Constants {
 	interface Provider {
 		String JAVASCRIPT = "JS";
 		String HTML = "HTML";
+		String JSON = "JSON";
 	}
 	
 	interface BeanManager {

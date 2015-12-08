@@ -4,11 +4,13 @@
  */
 package org.ocelotds.processors;
 
+import java.io.IOException;
 import org.ocelotds.annotations.TransientDataService;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -21,6 +23,9 @@ import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
+import javax.tools.Diagnostic;
 import org.ocelotds.annotations.DataService;
 
 /**
@@ -31,7 +36,15 @@ import org.ocelotds.annotations.DataService;
  */
 public abstract class AbstractDataServiceVisitor implements ElementVisitor<String, Writer> {
 
+	protected final String QUOTE = "\"";
+	protected final String TAB = "\t";
+	protected final String TAB2 = "\t\t";
+	protected final String TAB3 = "\t\t\t";
+	protected final String CR = "\n";
+
 	protected final ProcessingEnvironment environment;
+	protected final Messager messager;
+
 	/**
 	 * Tools for log processor
 	 */
@@ -42,6 +55,52 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	 */
 	public AbstractDataServiceVisitor(ProcessingEnvironment environment) {
 		this.environment = environment;
+		this.messager = environment.getMessager();
+	}
+
+	/**
+	 * 
+	 * @param typeElement
+	 * @param writer
+	 * @return 
+	 */
+	@Override
+	public String visitType(TypeElement typeElement, Writer writer) {
+		String classname = typeElement.getQualifiedName().toString();
+		try {
+			_visitType(typeElement, writer);
+		} catch (IOException ex) {
+			StringBuilder msg = getStringBuilder().append("Cannot Create service : ").append(classname).append(" cause IOException on writer");
+			messager.printMessage(Diagnostic.Kind.ERROR, msg);
+		}
+		return null;
+	}
+
+	/**
+	 * 
+	 * @param typeElement
+	 * @param writer
+	 * @throws IOException 
+	 */
+	abstract void _visitType(TypeElement typeElement, Writer writer) throws IOException;
+	/**
+	 * 
+	 * @param first
+	 * @param classname
+	 * @param methodElement
+	 * @param writer
+	 * @throws IOException 
+	 */
+	abstract void visitMethodElement(int first, String classname, ExecutableElement methodElement, Writer writer) throws IOException;
+
+	/**
+	 * Compute the name of instance class
+	 *
+	 * @param classname
+	 * @return
+	 */
+	String getJsInstancename(String classname) {
+		return classname.substring(0, 1).toLowerCase()+classname.substring(1);
 	}
 
 	/**
@@ -68,6 +127,26 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	String computeComment(String comment, String space) {
 		String replace = "\n"+space+"*";
 		return comment.replaceAll("\n", replace);
+	}
+
+	/**
+	 * browse valid methods and write equivalent js methods in writer
+	 *
+	 * @param methodElements
+	 * @param classname
+	 * @param writer
+	 * @return
+	 * @throws IOException
+	 */
+	int browseAndWriteMethods(List<ExecutableElement> methodElements, String classname, Writer writer) throws IOException {
+		Collection<String> methodProceeds = new ArrayList<>();
+		int nb = 0;
+		for (ExecutableElement methodElement : methodElements) {
+			if (isConsiderateMethod(methodProceeds, methodElement)) {
+				visitMethodElement(nb++, classname, methodElement, writer);
+			}
+		}
+		return nb;
 	}
 
 	/**
@@ -169,5 +248,17 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	@Override
 	public String visitUnknown(Element e, Writer p) {
 		return null;
+	}
+
+	Elements getElementUtils() {
+		return  environment.getElementUtils();
+	}
+	
+	Types getTypeUtils() {
+		return  environment.getTypeUtils();
+	}
+
+	StringBuilder getStringBuilder() {
+		return new StringBuilder();
 	}
 }

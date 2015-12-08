@@ -27,7 +27,7 @@ public class CdiResolver implements IDataServiceResolver {
 
 	@Inject
 	BeanManager beanManager;
-
+	
 	@Override
 	public <T> T resolveDataService(Class<T> clazz) throws DataServiceException {
 //		return CDI.current().select(clazz).get(); // equivalent, but no testable

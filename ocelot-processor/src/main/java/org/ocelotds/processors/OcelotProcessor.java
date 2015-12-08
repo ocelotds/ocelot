@@ -26,6 +26,7 @@ import javax.tools.StandardLocation;
 
 /**
  * Processor of annotation org.ocelotds.annotations.DataService
+ *
  * @author hhfrancois
  */
 @SupportedAnnotationTypes(value = {OcelotProcessor.DATASERVICE_AT})
@@ -43,7 +44,7 @@ public class OcelotProcessor extends AbstractProcessor {
 	static void setDone(boolean done) {
 		OcelotProcessor.done = done;
 	}
-	
+
 	/**
 	 * Tools for access filesystem
 	 */
@@ -58,7 +59,7 @@ public class OcelotProcessor extends AbstractProcessor {
 	 * Init processor<br>
 	 * get filer, messager<br>
 	 * get options
-	 * 
+	 *
 	 */
 	@Override
 	public void init(ProcessingEnvironment processingEnv) {
@@ -75,30 +76,25 @@ public class OcelotProcessor extends AbstractProcessor {
 		}
 		// Create provider of ocelot-services.js
 		String js = createJSServicesProvider();
-		// Create provider of ocelot-services.html
-		String html = createHTMLServicesProvider();
-//		createTestServicesProvider(js, "js");
-//		createTestServicesProvider(html, "html");
+		// Create provider of json
+		String json = createJsonServicesProvider();
+
 		try {
 			// Create file ocelot-services.js      
-			FileObject resourcejs = filer.createResource(StandardLocation.CLASS_OUTPUT, "", js+".js");
-//			System.out.println(""+resourcejs.toUri().getPath());
-//			File file = new File("D:\\Development\\Workspaces\\ocelot-project\\ocelotds.org\\ocelotds.web\\src\\main\\webapp\\test.js");
-//			try (Writer writer = new FileWriter(file)) {
-			try (Writer writer = resourcejs.openWriter()) {
+			try (Writer writer = getOpendResourceFileObjectWriter(js, "js")) {
 				ElementVisitor visitor = new DataServiceVisitorJsBuilder(processingEnv);
 				for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
 					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " javascript generation class : " + element);
 					element.accept(visitor, writer);
 				}
 			}
-			// Create file ocelot-services.html      
-			FileObject resourcehtml = filer.createResource(StandardLocation.CLASS_OUTPUT, "", html+".html");
-			try (Writer writer = resourcehtml.openWriter()) {
-				ElementVisitor visitor = new DataServiceVisitorHtmlBuilder(processingEnv);
+			// Create json services file       
+			try (Writer writer = getOpendResourceFileObjectWriter(json, "json")) {
+				boolean first = true;
 				for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
-					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " html generation class : " + element);
-					element.accept(visitor, writer);
+					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " json generation class : " + element);
+					element.accept(new DataServiceVisitorJsonBuilder(processingEnv, first), writer);
+					first = false;
 				}
 			}
 		} catch (IOException e) {
@@ -107,88 +103,77 @@ public class OcelotProcessor extends AbstractProcessor {
 		OcelotProcessor.setDone(true);
 		return true;
 	}
-	
+
 	/**
-	 *  Create provider of ocelot-services.js and return a part of unic name for ocelot-service.js
-	 * 
-	 * @return 
+	 * Create provider of ocelot-services.js and return a part of unic name for ocelot-service.js
+	 *
+	 * @return
 	 */
 	String createJSServicesProvider() {
 		// Creation du provider de ocelot-services.js
 		String prefix = "srv_" + RANDOM.nextInt(100_000_000);
-		try {
-			FileObject servicesProvider = filer.createSourceFile(prefix+".ServiceProvider");
-			try (Writer writer = servicesProvider.openWriter()) {
-				writer.append("package " + prefix + ";\n");
-				writer.append("import org.ocelotds.AbstractServiceProvider;\n");
-				writer.append("import org.ocelotds.Constants;\n");
-				writer.append("@org.ocelotds.annotations.ServiceProvider(Constants.Provider.JAVASCRIPT)\n");
-				writer.append("public class ServiceProvider extends AbstractServiceProvider {\n");
-				writer.append("	@Override\n");
-				writer.append("	public String getFilename() {\n");
-				writer.append("		return \""+prefix+".js\";\n");
-				writer.append("	}\n");
-				writer.append("}");
-			}
-		} catch (IOException e) {
-			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
-		}
+		createServicesProvider(prefix, "js");
 		return prefix;
 	}
 
 	/**
-	 *  Create provider of ocelot-services.js and return a part of unic name for ocelot-service.js
-	 * 
-	 * @return 
+	 * Create provider of ocelot-services.js and return a part of unic name for ocelot-service.js
+	 *
+	 * @return
 	 */
-	String createHTMLServicesProvider() {
+	String createJsonServicesProvider() {
 		// Creation du provider de ocelot-services.js
 		String prefix = "srv_" + RANDOM.nextInt(100_000_000);
-		try {
-			FileObject servicesProvider = filer.createSourceFile(prefix+".ServiceProvider");
-			try (Writer writer = servicesProvider.openWriter()) {
-				writer.append("package " + prefix + ";\n");
-				writer.append("import org.ocelotds.AbstractServiceProvider;\n");
-				writer.append("import org.ocelotds.Constants;\n");
-				writer.append("@org.ocelotds.annotations.ServiceProvider(Constants.Provider.HTML)\n");
-				writer.append("public class ServiceProvider extends AbstractServiceProvider {\n");
-				writer.append("	@Override\n");
-				writer.append("	public String getFilename() {\n");
-				writer.append("		return \""+prefix+".html\";\n");
-				writer.append("	}\n");
-				writer.append("}");
-			}
-		} catch (IOException e) {
-			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
-		}
+		createServicesProvider(prefix, "json");
 		return prefix;
 	}
 
 	/**
-	 *  Create test provider source
-	 * Doesnt work, cause we cant generate test source...
-	 * 
-	 * @return 
+	 * Create provider of ocelot-services.js and return a part of unic name for ocelot-service.js
+	 *
+	 * @return
 	 */
-	void createTestServicesProvider(String prefix, String filetype) {
-		try {
-			FileObject servicesProvider = filer.createSourceFile(prefix+".ServiceProviderTest");
-			try (Writer writer = servicesProvider.openWriter()) {
-				writer.append("package " + prefix + ";\n");
-				writer.append("import org.junit.Test;\n");
-				writer.append("import static org.assertj.core.api.Assertions.*;\n");
-				writer.append("public class ServiceProviderTest {\n");
-				writer.append("	private ServiceProvider instance;\n");
-				writer.append("	@Test\n");
-				writer.append("	protected void testGetFilename() {\n");
-				writer.append("		System.out.println(\"getFilename\");\n");
-				writer.append("		String result = instance.getFilename();\n");
-				writer.append("		assertThat(result).isEqualTo(\""+prefix+"."+filetype+"\");\n");
-				writer.append("	}\n");
-				writer.append("}");
-			}
+	void createServicesProvider(String prefix, String type) {
+		try (Writer writer = getOpendSourceFileObjectWriter(prefix + ".ServiceProvider")) {
+			writer.append("package ").append(prefix).append(";\n");
+			writer.append("import org.ocelotds.AbstractServiceProvider;\n");
+			writer.append("import org.ocelotds.Constants;\n");
+			writer.append("@org.ocelotds.annotations.ServiceProvider(Constants.Provider.JSON)\n");
+			writer.append("public class ServiceProvider extends AbstractServiceProvider {\n");
+			writer.append("	@Override\n");
+			writer.append("	public String getFilename() {\n");
+			writer.append("		return \"").append(prefix).append(".").append(type).append("\";\n");
+			writer.append("	}\n");
+			writer.append("}");
 		} catch (IOException e) {
 			messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
 		}
+	}
+
+	/**
+	 * Create writer from filer
+	 *
+	 * @param name
+	 * @return
+	 * @throws IOException
+	 */
+	Writer getOpendSourceFileObjectWriter(String name) throws IOException {
+		FileObject source = filer.createSourceFile(name);
+		return source.openWriter();
+	}
+
+	/**
+	 * Create writer from filer
+	 *
+	 * @param name
+	 * @return
+	 * @throws IOException
+	 */
+	Writer getOpendResourceFileObjectWriter(String name, String type) throws IOException {
+//			System.out.println(""+resourcejs.toUri().getPath());
+//			File file = new File("D:\\Development\\Workspaces\\ocelot-project\\ocelotds.org\\ocelotds.web\\src\\main\\webapp\\test.js");
+//			return new FileWriter(file);
+		FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", name + "." + type);
+		return resource.openWriter();
 	}
 }
