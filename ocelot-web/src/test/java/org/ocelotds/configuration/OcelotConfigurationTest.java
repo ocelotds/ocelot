@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.configuration;
 
+import javax.enterprise.inject.Instance;
 import javax.servlet.ServletContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +29,9 @@ public class OcelotConfigurationTest {
 	@InjectMocks
 	@Spy
 	private OcelotConfiguration ocelotConfiguration;
+	
+	@Mock
+	private Instance<String> ocelotConfigurationsStack;
 
 	/**
 	 * Test of readConfigFromContext method, of class OcelotConfiguration.
@@ -39,14 +43,34 @@ public class OcelotConfigurationTest {
 		ServletContext sc = mock(ServletContext.class);
 		// when
 		when(sc.getInitParameter(eq(Constants.Options.STACKTRACE_LENGTH))).thenReturn(null).thenReturn("20");
+		when(ocelotConfigurationsStack.isUnsatisfied()).thenReturn(true);
+		
 		// then
-		ocelotConfiguration.readConfigFromContext(sc);
+		ocelotConfiguration.readStacktraceConfig(sc);
 		int result = ocelotConfiguration.getStacktracelength();
 		assertThat(result).isEqualTo(50);
 
-		ocelotConfiguration.readConfigFromContext(sc);
+		ocelotConfiguration.readStacktraceConfig(sc);
 		result = ocelotConfiguration.getStacktracelength();
 		assertThat(result).isEqualTo(20);
+	}
+
+	/**
+	 * Test of readConfigFromContext method, of class OcelotConfiguration.
+	 */
+	@Test
+	public void readConfigFromProducer() {
+		System.out.println("testReadConfigFromContext");
+		// given
+		ServletContext sc = mock(ServletContext.class);
+		// when
+		when(ocelotConfigurationsStack.isUnsatisfied()).thenReturn(false);
+		when(ocelotConfigurationsStack.get()).thenReturn("80");
+		
+		// then
+		ocelotConfiguration.readStacktraceConfig(sc);
+		int result = ocelotConfiguration.getStacktracelength();
+		assertThat(result).isEqualTo(80);
 	}
 
 	/**

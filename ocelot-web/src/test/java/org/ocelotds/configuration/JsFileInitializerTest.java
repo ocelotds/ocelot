@@ -43,6 +43,9 @@ public class JsFileInitializerTest {
 	@InjectMocks
 	@Spy
 	private JsFileInitializer instance;
+
+	@Mock
+	private Instance<String> ocelotConfigurationsSecure;
 	
 	/**
 	 * Test of initOcelotJsFile method, of class JsFileInitializer.
@@ -73,6 +76,39 @@ public class JsFileInitializerTest {
 		assertThat(ocelotjs).exists();
 		File ocelotminjs = new File(ocelotminjspath);
 		assertThat(ocelotminjs).exists();
+	}
+
+	@Test
+	public void testGetWSProtocolFromContext() {
+		System.out.println("testGetWSProtocol");
+		ServletContext sc = mock(ServletContext.class);
+
+		when(sc.getInitParameter(eq(Constants.Options.SECURE))).thenReturn(null).thenReturn("false").thenReturn("true");
+		when(ocelotConfigurationsSecure.isUnsatisfied()).thenReturn(true);
+		
+		String result = instance.getWSProtocol(sc);
+		assertThat(result).isEqualTo(Constants.WS);
+
+		result = instance.getWSProtocol(sc);
+		assertThat(result).isEqualTo(Constants.WS);
+
+		result = instance.getWSProtocol(sc);
+		assertThat(result).isEqualTo(Constants.WSS);
+	}
+
+	@Test
+	public void testGetWSProtocolFromProducer() {
+		System.out.println("testGetWSProtocol");
+		ServletContext sc = mock(ServletContext.class);
+
+		when(ocelotConfigurationsSecure.isUnsatisfied()).thenReturn(false);
+		when(ocelotConfigurationsSecure.get()).thenReturn("false").thenReturn("true");
+		
+		String result = instance.getWSProtocol(sc);
+		assertThat(result).isEqualTo(Constants.WS);
+
+		result = instance.getWSProtocol(sc);
+		assertThat(result).isEqualTo(Constants.WSS);
 	}
 
 	/**

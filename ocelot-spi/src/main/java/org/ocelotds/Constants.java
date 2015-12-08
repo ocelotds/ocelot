@@ -52,7 +52,6 @@ public interface Constants {
 	interface Options {
 		String SECURE = "ocelot.websocket.secure";
 		String STACKTRACE_LENGTH = "ocelot.stacktrace.length";
-		String SECUREKEY = "ocelot.security.impl";
 	}
 
 	interface Topic {

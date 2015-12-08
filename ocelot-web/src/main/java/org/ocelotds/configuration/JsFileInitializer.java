@@ -43,6 +43,11 @@ public class JsFileInitializer extends AbstractFileInitializer {
 	@ServiceProvider(Constants.Provider.JAVASCRIPT)
 	private Instance<IServicesProvider> jsServicesProviders;
 
+	@Any
+	@Inject
+	@org.ocelotds.configuration.annotations.OcelotConfiguration(OcelotConfigurationName.SECURE)
+	private Instance<String> ocelotConfigurationsSecure;
+
 	public void initOcelotJsFile(@Observes @Initialized(ApplicationScoped.class) ServletContext sc) {
 		logger.debug("ocelot.js generation...");
 		try {
@@ -86,8 +91,13 @@ public class JsFileInitializer extends AbstractFileInitializer {
 	 * @return 
 	 */
 	String getWSProtocol(ServletContext sc) {
-		String secure = sc.getInitParameter(Constants.Options.SECURE);
 		String protocol = Constants.WS;
+		String secure;
+		if(ocelotConfigurationsSecure.isUnsatisfied()) {
+			secure = sc.getInitParameter(Constants.Options.SECURE);
+		} else {
+			secure = ocelotConfigurationsSecure.get();
+		}
 		if (Constants.TRUE.equals(secure)) {
 			protocol = Constants.WSS;
 		}
