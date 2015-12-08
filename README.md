@@ -3,7 +3,7 @@
 [![Codecov Status](https://codecov.io/github/ocelotds/ocelot/coverage.svg?branch=master)](https://codecov.io/github/ocelotds)
 [![Coverity Status](https://scan.coverity.com/projects/7127/badge.svg)](https://scan.coverity.com/projects/7127)
 [![Build Status](https://travis-ci.org/ocelotds/ocelot.svg?branch=master)](https://travis-ci.org/ocelotds/ocelot)
-[![Maven](https://img.shields.io/badge/Maven central-2.6.2-blue.svg)](http://search.maven.org/#search|ga|1|ocelot)
+[![Maven](https://img.shields.io/badge/Maven central-2.6.1-blue.svg)](http://search.maven.org/#search|ga|1|ocelot)
 [![Maven](https://img.shields.io/badge/OSS Sonatype-2.6.2--SNAPSHOT-lightgrey.svg)](https://oss.sonatype.org/#nexus-search;gav~org.ocelotds~ocelot~~~)
 
 ## The best and easiest communication way between java 7 and javascript
