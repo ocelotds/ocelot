@@ -50,7 +50,6 @@ public interface Constants {
 	int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
 	interface Options {
-		String SECURE = "ocelot.websocket.secure";
 		String STACKTRACE_LENGTH = "ocelot.stacktrace.length";
 	}
 
