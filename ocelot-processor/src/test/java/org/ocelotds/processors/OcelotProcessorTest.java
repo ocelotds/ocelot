@@ -30,6 +30,7 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.DataService;
 import org.slf4j.Logger;
+import static org.ocelotds.processors.OcelotProcessor.ProviderType;
 
 /**
  *
@@ -109,10 +110,10 @@ public class OcelotProcessorTest {
 		doReturn(json).when(instance).createJsonServicesProvider();
 		Writer writerjs = mock(Writer.class);
 		when(writerjs.append(anyString())).thenReturn(writerjs);
-		doReturn(writerjs).when(instance).getOpendResourceFileObjectWriter(eq(js), eq("js"));
+		doReturn(writerjs).when(instance).getOpendResourceFileObjectWriter(eq(js), eq(ProviderType.JAVASCRIPT));
 		Writer writerjson = mock(Writer.class);
 		when(writerjson.append(anyString())).thenReturn(writerjson);
-		doReturn(writerjson).when(instance).getOpendResourceFileObjectWriter(eq(json), eq("json"));
+		doReturn(writerjson).when(instance).getOpendResourceFileObjectWriter(eq(json), eq(ProviderType.JSON));
 
 		
 		Set<? extends TypeElement> annotations = mock(Set.class);
@@ -161,7 +162,7 @@ public class OcelotProcessorTest {
 	@Test
 	public void testCreateJSServicesProvider() throws IOException {
 		System.out.println("createJSServicesProvider");
-		doNothing().when(instance).createServicesProvider(anyString(), anyString(), anyString());
+		doNothing().when(instance).createServicesProvider(anyString(), any(ProviderType.class));
 		String result = instance.createJSServicesProvider();
 		assertThat(result).startsWith("srv_");
 	}
@@ -169,25 +170,37 @@ public class OcelotProcessorTest {
 	@Test
 	public void testCreateJsonServicesProvider() throws IOException {
 		System.out.println("createJsonServicesProvider");
-		doNothing().when(instance).createServicesProvider(anyString(), anyString(), anyString());
+		doNothing().when(instance).createServicesProvider(anyString(), any(ProviderType.class));
 		String result = instance.createJsonServicesProvider();
 		assertThat(result).startsWith("srv_");
 	}
 
 	@Test
-	public void testCreateServicesProvider() throws IOException {
-		System.out.println("createServicesProvider");
+	public void testCreateServicesProviderJson() throws IOException {
+		System.out.println("createServicesProviderJson");
+		testCreateServicesProvider(ProviderType.JSON);
+	}
+
+	@Test
+	public void testCreateServicesProviderJs() throws IOException {
+		System.out.println("createServicesProviderJs");
+		testCreateServicesProvider(ProviderType.JAVASCRIPT);
+	}
+
+	private void testCreateServicesProvider(ProviderType type) throws IOException {
 		Writer writer = mock(Writer.class);
 		when(writer.append(anyString())).thenReturn(writer);
 		doReturn(writer).when(instance).getOpendSourceFileObjectWriter(anyString());
-		instance.createServicesProvider("srv_1234", "json", "JSON");
+		String prefix = "srv_1234";
+		instance.createServicesProvider(prefix, type);
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(16)).append(captureString.capture());
+		verify(writer, times(18)).append(captureString.capture());
 		List<String> allValues = captureString.getAllValues();
 		assertThat(allValues).isNotEmpty();
-		assertThat(allValues.get(1)).isEqualTo("srv_1234");
-		assertThat(allValues.get(10)).isEqualTo("srv_1234");
-		assertThat(allValues.get(12)).isEqualTo("json");
+		assertThat(allValues.get(1)).isEqualTo(prefix);
+		assertThat(allValues.get(6)).isEqualTo(type.name());
+		assertThat(allValues.get(12)).isEqualTo(prefix);
+		assertThat(allValues.get(14)).isEqualTo(type.getExtension());
 	}
 
 	@Test
@@ -196,7 +209,7 @@ public class OcelotProcessorTest {
 		Writer writer = mock(Writer.class);
 		when(writer.append(any(CharSequence.class))).thenThrow(new IOException("ERROR"));
 		doReturn(writer).when(instance).getOpendSourceFileObjectWriter(anyString());
-		instance.createServicesProvider("srv_1234", "json", "JSON");
+		instance.createServicesProvider("srv_1234", ProviderType.JSON);
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Diagnostic.Kind> captureKind = ArgumentCaptor.forClass(Diagnostic.Kind.class);
 		verify(messager).printMessage(captureKind.capture(), captureString.capture());
@@ -222,7 +235,7 @@ public class OcelotProcessorTest {
 		Writer writer = mock(Writer.class);
 		when(filer.createResource(eq(StandardLocation.CLASS_OUTPUT), anyString(), anyString())).thenReturn(fileObject);
 		when(fileObject.openWriter()).thenReturn(writer);
-		Writer result = instance.getOpendResourceFileObjectWriter("test", "js");
+		Writer result = instance.getOpendResourceFileObjectWriter("test", ProviderType.JAVASCRIPT);
 		assertThat(result).isEqualTo(writer);
 	}
 
