@@ -14,10 +14,12 @@ import javax.websocket.Session;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
 import org.ocelotds.core.CDIBeanResolver;
@@ -25,6 +27,7 @@ import org.ocelotds.core.services.CallServiceManager;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.messaging.MessageFromClient;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -34,16 +37,19 @@ import org.slf4j.Logger;
 public class OcelotEndpointTest {
 
 	@Mock
-	private Logger logger;
-
-	@Mock
 	private SessionManager sessionManager;
 
 	@Mock
 	private CallServiceManager callServiceManager;
 
 	@InjectMocks
+	@Spy
 	private OcelotEndpoint ocelotEndpoint;
+	
+	@Before
+	public void init() {
+		doReturn(LoggerFactory.getLogger(OcelotEndpoint.class)).when(ocelotEndpoint).getLogger();
+	}
 	
 	/**
 	 * Test of handleOpenConnexion method, of class OcelotEndpoint.
@@ -162,5 +168,13 @@ public class OcelotEndpointTest {
 		System.out.println("getCDIBeanResolver");
 		CDIBeanResolver cdiBeanResolver = ocelotEndpoint.getCDIBeanResolver();
 		assertThat(cdiBeanResolver).isInstanceOf(CDIBeanResolver.class);
+	}
+	
+	@Test
+	public void testGetLogger() {
+		doCallRealMethod().when(ocelotEndpoint).getLogger();
+		Logger logger = ocelotEndpoint.getLogger();
+		assertThat(logger).isNotNull();
+		assertThat(logger.getName()).isEqualTo(OcelotEndpoint.class.getName());
 	}
 }
