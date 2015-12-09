@@ -3,12 +3,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds;
 
-import org.ocelotds.context.ThreadLocalContextHolder;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import javax.enterprise.inject.Instance;
 import javax.websocket.Session;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -45,8 +45,11 @@ public class OcelotServicesTest {
 	@Mock
 	private OcelotContext ocelotContext;
 
+	@Mock
+	private Instance<IServicesProvider> jsonServicesProviders;
+
 	@InjectMocks
-	private OcelotServices ocelotServices;
+	private OcelotServices instance;
 
 	/**
 	 * Test of getLocale method, of class OcelotServices.
@@ -59,8 +62,8 @@ public class OcelotServicesTest {
 
 		when(ocelotContext.getLocale()).thenReturn(l).thenReturn(l2);
 
-		assertThat(ocelotServices.getLocale()).isEqualTo(l);
-		assertThat(ocelotServices.getLocale()).isEqualTo(l2);
+		assertThat(instance.getLocale()).isEqualTo(l);
+		assertThat(instance.getLocale()).isEqualTo(l2);
 	}
 
 	/**
@@ -72,8 +75,8 @@ public class OcelotServicesTest {
 		Locale l = new Locale("fr", "FR");
 		Locale l2 = new Locale("en", "US");
 
-		ocelotServices.setLocale(l);
-		ocelotServices.setLocale(l2);
+		instance.setLocale(l);
+		instance.setLocale(l2);
 
 		ArgumentCaptor<Locale> localeCaptor = ArgumentCaptor.forClass(Locale.class);
 		verify(ocelotContext, times(2)).setLocale(localeCaptor.capture());
@@ -97,8 +100,8 @@ public class OcelotServicesTest {
 		when(p2.getName()).thenReturn(u2);
 		when(ocelotContext.getPrincipal()).thenReturn(p1).thenReturn(p2);
 
-		assertThat(ocelotServices.getUsername()).isEqualTo(u1);
-		assertThat(ocelotServices.getUsername()).isEqualTo(u2);
+		assertThat(instance.getUsername()).isEqualTo(u1);
+		assertThat(instance.getUsername()).isEqualTo(u2);
 	}
 
 	/**
@@ -108,7 +111,7 @@ public class OcelotServicesTest {
 	public void testGetOutDatedCache() {
 		System.out.println("getOutDatedCache");
 		Map<String, Long> states = new HashMap<>();
-		ocelotServices.getOutDatedCache(states);
+		instance.getOutDatedCache(states);
 	}
 
 	/**
@@ -117,7 +120,7 @@ public class OcelotServicesTest {
 	@Test
 	public void testSubscribe_String() throws IllegalAccessException {
 		System.out.println("subscribe");
-		ocelotServices.subscribe("TOPIC");
+		instance.subscribe("TOPIC");
 	}
 
 	/**
@@ -126,7 +129,7 @@ public class OcelotServicesTest {
 	@Test
 	public void testUnsubscribe_String() {
 		System.out.println("unsubscribe");
-		ocelotServices.unsubscribe("TOPIC");
+		instance.unsubscribe("TOPIC");
 	}
 
 	/**
@@ -137,7 +140,7 @@ public class OcelotServicesTest {
 	public void testSubscribe_Session_String() throws IllegalAccessException {
 		System.out.println("subscribe");
 		when(sessionManager.registerTopicSession(anyString(), any(Session.class))).thenReturn(1);
-		Integer result = ocelotServices.subscribe("TOPIC");
+		Integer result = instance.subscribe("TOPIC");
 		assertThat(result).isEqualTo(1);
 	}
 
@@ -148,7 +151,7 @@ public class OcelotServicesTest {
 	public void testUnsubscribe_Session_String() {
 		System.out.println("unsubscribe");
 		when(sessionManager.unregisterTopicSession(anyString(), any(Session.class))).thenReturn(0);
-		Integer result = ocelotServices.unsubscribe("TOPIC");
+		Integer result = instance.unsubscribe("TOPIC");
 		assertThat(result).isEqualTo(0);
 	}
 
@@ -159,8 +162,14 @@ public class OcelotServicesTest {
 	public void testGetNumberSubscribers() {
 		System.out.println("getNumberSubscribers");
 		when(sessionManager.getNumberSubscribers(anyString())).thenReturn(0);
-		Integer result = ocelotServices.getNumberSubscribers("TOPIC");
+		Integer result = instance.getNumberSubscribers("TOPIC");
 		assertThat(result).isEqualTo(0);
+	}
+	
+	@Test
+	public void testGetServices() {
+		Instance<IServicesProvider> services = instance.getServices();
+		assertThat(services).isEqualTo(jsonServicesProviders);
 	}
 	
 }
