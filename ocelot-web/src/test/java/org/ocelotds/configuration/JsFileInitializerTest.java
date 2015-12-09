@@ -6,6 +6,7 @@ package org.ocelotds.configuration;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URL;
 import javax.enterprise.inject.Instance;
 import javax.servlet.ServletContext;
 import org.junit.Test;
@@ -20,8 +21,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.IServicesProvider;
 import org.ocelotds.objects.FakeCDI;
 import org.slf4j.Logger;
-import java.util.List;
 import org.ocelotds.Constants;
+import static org.ocelotds.configuration.JsFileInitializer.OCELOT_CORE_RESOURCE;
 import org.ocelotds.objects.JsServiceProviderImpl;
 
 /**
@@ -46,33 +47,39 @@ public class JsFileInitializerTest {
 
 	/**
 	 * Test of initOcelotJsFile method, of class JsFileInitializer.
+	 * @throws java.io.IOException
 	 */
 	@Test
-	public void testInitOcelotJsFile() {
+	public void testInitOcelotJsFile() throws IOException	{
 		System.out.println("initOcelotJsFile");
 		ServletContext sc = mock(ServletContext.class);
+		File file = mock(File.class);
 
-		when(sc.getContextPath()).thenReturn("/");
-		when(sc.getInitParameter(Constants.Options.SECURE)).thenReturn(Constants.TRUE);
+		doReturn(file).when(instance).createOcelotJsFile(anyString());
+		doNothing().when(instance).setInitParameterAnMinifyJs(any(ServletContext.class), any(File.class));
 
 		instance.initOcelotJsFile(sc);
 		
-		ArgumentCaptor<String> captureKey = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<String> capturePath = ArgumentCaptor.forClass(String.class);
-		verify(sc, times(2)).setInitParameter(captureKey.capture(), capturePath.capture());
-		List<String> keys = captureKey.getAllValues();
-		List<String> paths = capturePath.getAllValues();
+		verify(instance).setInitParameterAnMinifyJs(any(ServletContext.class), any(File.class));
+	}
 
-		assertThat(keys.get(0)).isEqualTo(Constants.OCELOT);
-		assertThat(keys.get(1)).isEqualTo(Constants.OCELOT_MIN);
-	
-		ocelotjspath = paths.get(0);
-		ocelotminjspath = paths.get(1);
-	
-		File ocelotjs = new File(ocelotjspath);
-		assertThat(ocelotjs).exists();
-		File ocelotminjs = new File(ocelotminjspath);
-		assertThat(ocelotminjs).exists();
+	/**
+	 * Test of createJsFile method, of class ContextListener.
+	 *
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testInitOcelotJsFileFailed() throws IOException {
+		System.out.println("initOcelotJsFileFailed");
+		ServletContext sc = mock(ServletContext.class);
+
+		doThrow(IOException.class).when(instance).createOcelotJsFile(anyString());
+		doNothing().when(instance).setInitParameterAnMinifyJs(any(ServletContext.class), any(File.class));
+
+		instance.initOcelotJsFile(sc);
+		
+		ArgumentCaptor<String> captureLog = ArgumentCaptor.forClass(String.class);
+		verify(logger).error(captureLog.capture(), any(IOException.class));
 	}
 
 	/**
@@ -101,25 +108,6 @@ public class JsFileInitializerTest {
 	}
 
 	/**
-	 * Test of createJsFile method, of class ContextListener.
-	 *
-	 * @throws java.io.IOException
-	 */
-	@Test
-	public void testInitOcelotJsFileFailed() throws IOException {
-		System.out.println("initOcelotJsFileFailed");
-		ServletContext sc = mock(ServletContext.class);
-		when(sc.getContextPath()).thenReturn("/");
-		when(instance.createOcelotJsFile(anyString())).thenThrow(IOException.class);
-
-		instance.initOcelotJsFile(sc);
-
-		ArgumentCaptor<String> captureLog = ArgumentCaptor.forClass(String.class);
-		verify(logger).error(captureLog.capture(), any(IOException.class));
-		assertThat(captureLog.getValue()).isEqualTo("Fail to create ocelot.js.");
-	}
-
-	/**
 	 * Test of createOcelotJsFile method, of class ContextListener.
 	 *
 	 * @throws java.io.IOException
@@ -144,5 +132,64 @@ public class JsFileInitializerTest {
 		OutputStream out = mock(OutputStream.class);
 		instance.OCELOT_CORE_RESOURCE = "/badfile";
 		instance.writeOcelotCoreJsFile(out, "/");
+	}
+	
+	@Test
+	public void testSetInitParameterAnMinifyJs() throws IOException {
+		System.out.println("setInitParameterAnMinifyJs");
+		ServletContext sc = mock(ServletContext.class);
+		File js = mock(File.class);
+		File minjs = mock(File.class);
+		String pathjs = "/path/file.js";
+		String pathminjs = "/path/filemin.js";
+		when(js.getAbsolutePath()).thenReturn(pathjs);
+		when(minjs.getAbsolutePath()).thenReturn(pathminjs);
+		
+		doReturn(minjs).when(instance).minifyJs(anyString());
+		
+		instance.setInitParameterAnMinifyJs(sc, js);
+		
+		ArgumentCaptor<String> capturePathJs = ArgumentCaptor.forClass(String.class);
+		verify(sc).setInitParameter(eq(Constants.OCELOT), capturePathJs.capture());
+		ArgumentCaptor<String> capturePathMinJs = ArgumentCaptor.forClass(String.class);
+		verify(sc).setInitParameter(eq(Constants.OCELOT_MIN), capturePathMinJs.capture());
+		assertThat(capturePathJs.getValue()).isEqualTo(pathjs);
+		assertThat(capturePathMinJs.getValue()).isEqualTo(pathminjs);
+	}
+
+	@Test
+	public void testSetInitParameterAnMinifyJsFailed() throws IOException {
+		System.out.println("setInitParameterAnMinifyJs");
+		ServletContext sc = mock(ServletContext.class);
+		File js = mock(File.class);
+		File minjs = mock(File.class);
+		String pathjs = "/path/file.js";
+		String pathminjs = "/path/filemin.js";
+		when(js.getAbsolutePath()).thenReturn(pathjs);
+		when(minjs.getAbsolutePath()).thenReturn(pathminjs);
+		
+		doThrow(IOException.class).when(instance).minifyJs(anyString());
+		
+		instance.setInitParameterAnMinifyJs(sc, js);
+		
+		verify(logger).error(anyString());
+		ArgumentCaptor<String> capturePathJs = ArgumentCaptor.forClass(String.class);
+		verify(sc).setInitParameter(eq(Constants.OCELOT), capturePathJs.capture());
+		ArgumentCaptor<String> capturePathMinJs = ArgumentCaptor.forClass(String.class);
+		verify(sc).setInitParameter(eq(Constants.OCELOT_MIN), capturePathMinJs.capture());
+		assertThat(capturePathJs.getValue()).isEqualTo(pathjs);
+		assertThat(capturePathMinJs.getValue()).isEqualTo(pathjs);
+	}
+
+	@Test
+	public void testMinifyJs() throws IOException {
+		System.out.println("minifyJs");
+		URL js = this.getClass().getResource(OCELOT_CORE_RESOURCE);
+
+		File minifyJs = instance.minifyJs(js.getFile());
+		
+		assertThat(minifyJs).isFile();
+		assertThat(minifyJs).exists();
+		assertThat(minifyJs.getAbsolutePath()).isNotEqualTo(js.getFile());
 	}
 }

@@ -92,19 +92,16 @@ public class JsFileInitializer extends AbstractFileInitializer {
 		// create tmp/ocelot-xxx.js
 		String filePath = file.getAbsolutePath();
 		sc.setInitParameter(Constants.OCELOT, filePath);
-		logger.debug("Generate '{}' : '{}'.", Constants.OCELOT, filePath);
+		logger.info("Generate '{}' : '{}'.", Constants.OCELOT, filePath);
 		try {
 			// create tmp/ocelot-xxx-min.js
-			file = minifyJs(filePath, Constants.OCELOT_MIN);
+			file = minifyJs(filePath);
 			filePath = file.getAbsolutePath();
-		} catch (Exception ex) {
+			logger.info("Generate '{}' : '{}'.", Constants.OCELOT_MIN, filePath);
+		} catch (IOException ex) {
 			logger.error("Minification from " + Constants.OCELOT + " to " + Constants.OCELOT_MIN + " failed. minify version will be equals to normal version.");
 		}
-		if (filePath != null) {
-			sc.setInitParameter(Constants.OCELOT_MIN, filePath);
-			logger.debug("Generate '{}' : '{}'.", Constants.OCELOT_MIN, filePath);
-		}
-
+		sc.setInitParameter(Constants.OCELOT_MIN, filePath);
 	}
 
 	/**
@@ -115,8 +112,8 @@ public class JsFileInitializer extends AbstractFileInitializer {
 	 * @return
 	 * @throws IOException
 	 */
-	private File minifyJs(String filename, String prefix) throws IOException {
-		File minifiedFile = File.createTempFile(prefix, Constants.JS);
+	File minifyJs(String filename) throws IOException {
+		File minifiedFile = File.createTempFile(Constants.OCELOT_MIN, Constants.JS);
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename), Constants.UTF_8))) {
 			String line;
 			StringBuilder buffer = new StringBuilder();
