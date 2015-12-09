@@ -220,7 +220,6 @@ public class CallServiceManager implements CallService {
 
 	/**
 	 * Get Dataservice, store dataservice in session if session scope.<br>
-	 * TODO I would like to do that from an interceptor, but how give the session to it ?
 	 *
 	 * @param client
 	 * @param cls
@@ -232,30 +231,43 @@ public class CallServiceManager implements CallService {
 		logger.debug("Looking for dataservice : {}", dataServiceClassName);
 		if (cls.isAnnotationPresent(DataService.class)) {
 			try {
-				DataService dataServiceAnno = (DataService) cls.getAnnotation(DataService.class);
-				IDataServiceResolver resolver = getResolver(dataServiceAnno.resolver());
-				Scope scope = resolver.getScope(cls);
-				Object dataService = null;
-				Map sessionBeans = (Map) client.getUserProperties().get(Constants.SESSION_BEANS);
-				logger.debug("{} : scope : {}", dataServiceClassName, scope);
-				if (scope.equals(Scope.SESSION)) {
-					dataService = sessionBeans.get(dataServiceClassName);
-					logger.debug("{} : scope : session is in session : {}", dataServiceClassName, (dataService != null));
-				}
-				if (dataService == null) {
-					dataService = resolver.resolveDataService(cls);
-					if (scope.equals(Scope.SESSION)) {
-						logger.debug("Store {} scope session in session", dataServiceClassName);
-						sessionBeans.put(dataServiceClassName, dataService);
-					}
-				}
-				return dataService;
+				return _getDataService(client, cls);
 			} catch (Exception e) {
 				throw new DataServiceException(dataServiceClassName, e);
 			}
 		} else {
 			throw new DataServiceException(dataServiceClassName);
 		}
+	}
+
+	/**
+	 * Get Dataservice, store dataservice in session if session scope.<br>
+	 *
+	 * @param client
+	 * @param cls
+	 * @return
+	 * @throws DataServiceException
+	 */
+	Object _getDataService(Session client, Class cls) throws Exception {
+		String dataServiceClassName = cls.getName();
+		DataService dataServiceAnno = (DataService) cls.getAnnotation(DataService.class);
+		IDataServiceResolver resolver = getResolver(dataServiceAnno.resolver());
+		Scope scope = resolver.getScope(cls);
+		Object dataService = null;
+		Map sessionBeans = (Map) client.getUserProperties().get(Constants.SESSION_BEANS);
+		logger.debug("{} : scope : {}", dataServiceClassName, scope);
+		if (scope.equals(Scope.SESSION)) {
+			dataService = sessionBeans.get(dataServiceClassName);
+			logger.debug("{} : scope : session is in session : {}", dataServiceClassName, (dataService != null));
+		}
+		if (dataService == null) {
+			dataService = resolver.resolveDataService(cls);
+			if (scope.equals(Scope.SESSION)) {
+				logger.debug("Store {} scope session in session", dataServiceClassName);
+				sessionBeans.put(dataServiceClassName, dataService);
+			}
+		}
+		return dataService;
 	}
 
 	/**

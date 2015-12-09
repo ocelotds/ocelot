@@ -85,7 +85,7 @@ public class CallServiceManagerTest {
 
 	@Spy
 	@InjectMocks
-	private CallServiceManager callServiceManager;
+	private CallServiceManager instance;
 
 	@Before
 	public void init() {
@@ -109,7 +109,7 @@ public class CallServiceManagerTest {
 		Method method = OcelotServices.class.getMethod("setLocale", Locale.class);
 		Annotation[][] parametersAnnotations = method.getParameterAnnotations();
 		Annotation[] parameterAnnotations = parametersAnnotations[0];
-		Class result = callServiceManager.getUnMarshallerAnnotation(parameterAnnotations);
+		Class result = instance.getUnMarshallerAnnotation(parameterAnnotations);
 		assertThat(result).isEqualTo(LocaleUnmarshaller.class);
 	}
 
@@ -118,10 +118,10 @@ public class CallServiceManagerTest {
 	 */
 	@Test
 	public void testGetResolver() {
-		Instance<IDataServiceResolver> instance = mock(Instance.class);
-		when(resolvers.select(eq(new DataServiceResolverIdLitteral("pojo")))).thenReturn(instance);
-		when(instance.get()).thenReturn(new PojoResolver());
-		IDataServiceResolver result = callServiceManager.getResolver("pojo");
+		Instance<IDataServiceResolver> inst = mock(Instance.class);
+		when(resolvers.select(eq(new DataServiceResolverIdLitteral("pojo")))).thenReturn(inst);
+		when(inst.get()).thenReturn(new PojoResolver());
+		IDataServiceResolver result = instance.getResolver("pojo");
 		assertThat(result).isInstanceOf(PojoResolver.class);
 	}
 
@@ -139,7 +139,7 @@ public class CallServiceManagerTest {
 		message.setParameters(Arrays.asList("5", "\"toto\""));
 		Object[] arguments = new Object[2];
 		Method expResult = dsClass.getMethod("methodWith2Arguments", new Class<?>[]{Integer.class, String.class});
-		Method result = callServiceManager.getMethodFromDataService(dsClass, message, arguments);
+		Method result = instance.getMethodFromDataService(dsClass, message, arguments);
 		assertThat(result).isEqualTo(expResult);
 		assertThat(arguments).contains(5, Index.atIndex(0));
 		assertThat(arguments).contains("toto", Index.atIndex(1));
@@ -158,7 +158,7 @@ public class CallServiceManagerTest {
 		message.setOperation("methodWith2Arguments");
 		message.setParameters(Arrays.asList("\"toto\"", "5"));
 		Object[] arguments = new Object[2];
-		callServiceManager.getMethodFromDataService(dsClass, message, arguments);
+		instance.getMethodFromDataService(dsClass, message, arguments);
 	}
 
 	/**
@@ -175,7 +175,7 @@ public class CallServiceManagerTest {
 		message.setParameters(Arrays.asList("{\"language\":\"fr\",\"country\":\"FR\"}"));
 		Object[] arguments = new Object[1];
 		Method expResult = dsClass.getMethod("methodWithUnmarshaller", new Class<?>[]{Locale.class});
-		Method result = callServiceManager.getMethodFromDataService(dsClass, message, arguments);
+		Method result = instance.getMethodFromDataService(dsClass, message, arguments);
 		assertThat(result).isEqualTo(expResult);
 		assertThat(arguments).hasSize(1);
 		Locale l = (Locale) arguments[0];
@@ -200,7 +200,7 @@ public class CallServiceManagerTest {
 		Type array = new String[]{}.getClass();
 		for (final Type type : new Type[]{String.class, Integer.class, array, colArray, col, map, Result.class}) {
 			String arg = args.next();
-			Object result = callServiceManager.convertArgument(arg, type);
+			Object result = instance.convertArgument(arg, type);
 			assertThat(result).is(new Condition<Object>("" + type) {
 				@Override
 				public boolean matches(Object t) {
@@ -214,7 +214,7 @@ public class CallServiceManagerTest {
 				}
 			});
 		}
-		Object result = callServiceManager.convertArgument(null, Result.class);
+		Object result = instance.convertArgument(null, Result.class);
 		assertThat(result).isNull();
 	}
 
@@ -224,7 +224,7 @@ public class CallServiceManagerTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testConvertArgumentFail() throws IllegalArgumentException {
 		System.out.println("convertArgumentFail");
-		callServiceManager.convertArgument("toto", String.class);
+		instance.convertArgument("toto", String.class);
 	}
 
 	/**
@@ -233,8 +233,8 @@ public class CallServiceManagerTest {
 	 * @throws org.ocelotds.spi.DataServiceException
 	 */
 	@Test
-	public void testGetDataService() throws DataServiceException {
-		System.out.println("getDataService");
+	public void test_GetDataService() throws Exception {
+		System.out.println("_getDataService");
 		Class cls = ClassAsDataService.class;
 		IDataServiceResolver resolver = mock(IDataServiceResolver.class);
 		Session client = mock(Session.class);
@@ -242,22 +242,33 @@ public class CallServiceManagerTest {
 		Map<String, Object> sessions = new HashMap<>();
 		userProperties.put(Constants.SESSION_BEANS, sessions);
 		
-		when(resolver.getScope(any(Class.class))).thenReturn(Scope.MANAGED);
+		when(resolver.getScope(any(Class.class))).thenReturn(Scope.MANAGED).thenReturn(Scope.SESSION);
 		when(resolver.resolveDataService(cls)).thenReturn(new ClassAsDataService());
-		doReturn(resolver).when(callServiceManager).getResolver("TEST");
+		doReturn(resolver).when(instance).getResolver("TEST");
 		when(client.getUserProperties()).thenReturn(userProperties);
 
-		Object result = callServiceManager.getDataService(client, cls);
+		Object result = instance._getDataService(client, cls);
 		assertThat(result).isInstanceOf(cls);
 		assertThat(sessions).doesNotContainKey(cls.getName());
 
-		when(resolver.getScope(any(Class.class))).thenReturn(Scope.SESSION);
-
-		result = callServiceManager.getDataService(client, cls);
+		result = instance._getDataService(client, cls);
 		assertThat(result).isInstanceOf(cls);
 		assertThat(sessions).containsKey(cls.getName());
 	}
 
+	@Test
+	public void testGetDataService() throws Exception {
+		System.out.println("getDataService");
+		Class cls = ClassAsDataService.class;
+		Session client = mock(Session.class);
+		ClassAsDataService expected = new ClassAsDataService();
+		
+		doReturn(expected).when(instance)._getDataService(any(Session.class), any(Class.class));
+
+		Object result = instance.getDataService(client, cls);
+		
+		assertThat(result).isEqualTo(expected);
+	}
 	/**
 	 * Test of getDataService method, of class CallServiceManager.
 	 *
@@ -267,14 +278,25 @@ public class CallServiceManagerTest {
 	public void testGetDataServiceFail() throws DataServiceException {
 		System.out.println("getDataServiceFail");
 		Class cls = ClassAsNotDataService.class;
-		IDataServiceResolver resolver = mock(IDataServiceResolver.class);
-		when(resolver.getScope(any(Class.class))).thenReturn(Scope.MANAGED);
-		when(resolver.resolveDataService(cls)).thenReturn(new ClassAsNotDataService());
-		doReturn(resolver).when(callServiceManager).getResolver("TEST");
 		Session client = mock(Session.class);
-		Map<String, Object> userProperties = new HashMap<>();
-		when(client.getUserProperties()).thenReturn(userProperties);
-		callServiceManager.getDataService(client, cls);
+		
+		instance.getDataService(client, cls);
+	}
+
+	/**
+	 * Test of getDataService method, of class CallServiceManager.
+	 *
+	 * @throws org.ocelotds.spi.DataServiceException
+	 */
+	@Test(expected = DataServiceException.class)
+	public void testGetDataServiceFail2() throws DataServiceException, Exception {
+		System.out.println("getDataServiceFail2");
+		Class cls = ClassAsDataService.class;
+		Session client = mock(Session.class);
+		
+		doThrow(Exception.class).when(instance)._getDataService(any(Session.class), any(Class.class));
+
+		instance.getDataService(client, cls);
 	}
 
 	private class ClassAsNotDataService {
@@ -305,28 +327,28 @@ public class CallServiceManagerTest {
 		IDataServiceResolver resolver = mock(IDataServiceResolver.class);
 		when(resolver.getScope(any(Class.class))).thenReturn(Scope.MANAGED);
 		when(resolver.resolveDataService(cls)).thenReturn(new ClassAsDataService());
-		doReturn(resolver).when(callServiceManager).getResolver("TEST");
+		doReturn(resolver).when(instance).getResolver("TEST");
 
-		callServiceManager.sendMessageToClient(message, client);
+		instance.sendMessageToClient(message, client);
 		// Method with Session injection
 		message.setOperation("methodReturnString2");
-		callServiceManager.sendMessageToClient(message, client);
+		instance.sendMessageToClient(message, client);
 
 		message.setOperation("methodReturnCachedString");
-		callServiceManager.sendMessageToClient(message, client);
+		instance.sendMessageToClient(message, client);
 
 		message.setOperation("methodUnknown");
-		callServiceManager.sendMessageToClient(message, client);
+		instance.sendMessageToClient(message, client);
 
 		message.setOperation("methodThrowException");
-		callServiceManager.sendMessageToClient(message, client);
+		instance.sendMessageToClient(message, client);
 
-		Mockito.doThrow(NoSuchMethodException.class).when(callServiceManager).getNonProxiedMethod(cls, "methodReturnString", String.class);
+		Mockito.doThrow(NoSuchMethodException.class).when(instance).getNonProxiedMethod(cls, "methodReturnString", String.class);
 		message.setOperation("methodReturnString");
-		callServiceManager.sendMessageToClient(message, client);
+		instance.sendMessageToClient(message, client);
 
 		message.setOperation("methodWithMarshaller");
-		callServiceManager.sendMessageToClient(message, client);
+		instance.sendMessageToClient(message, client);
 
 		ArgumentCaptor<MessageToClient> captureMsg = ArgumentCaptor.forClass(MessageToClient.class);
 		verify(async, times(7)).sendObject(captureMsg.capture());
@@ -362,14 +384,14 @@ public class CallServiceManagerTest {
 		try {
 			throw new Exception("ERROR_MESSAGE");
 		} catch (Exception e) {
-			Fault fault = callServiceManager.buildFault(e);
+			Fault fault = instance.buildFault(e);
 			assertThat(fault.getClassname()).isEqualTo("java.lang.Exception");
 			assertThat(fault.getMessage()).isEqualTo("ERROR_MESSAGE");
 			String[] stacktraces = fault.getStacktrace();
 			assertThat(stacktraces).hasSize(1);
 			assertThat(stacktraces[0]).startsWith(this.getClass().getName()+".testBuildFault("+this.getClass().getSimpleName()+".java:");
 
-			fault = callServiceManager.buildFault(e);
+			fault = instance.buildFault(e);
 			stacktraces = fault.getStacktrace();
 			assertThat(stacktraces).hasSize(3);
 		}
@@ -381,7 +403,7 @@ public class CallServiceManagerTest {
 
 		Method method = ClassAsDataService.class.getMethod("methodWithBadUnmarshaller", String.class);
 		Annotation[] annotations = method.getParameterAnnotations()[0];
-		callServiceManager.convertJsonToJava(0, "", null, annotations);
+		instance.convertJsonToJava(0, "", null, annotations);
 	}
 
 	@DataService(resolver = "TEST")
