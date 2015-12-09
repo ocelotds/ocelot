@@ -117,4 +117,17 @@ public class HtmlFileInitializerTest {
 		File file = instance.createOcelotHtmlFile("/");
 		assertThat(file).exists();
 	}
+
+	/**
+	 * Test of createOcelotHtmlFile method, of class ContextListener.
+	 *
+	 * @throws java.io.IOException
+	 */
+	@Test(expected = IOException.class)
+	public void testCreateOcelotHtmlFileFail() throws IOException {
+		System.out.println("createOcelotHtmlFileFail");
+		doReturn(null).when(instance).getContentURL();
+		((FakeCDI) htmlServicesProviders).add(new HtmlServiceProviderImpl());
+		instance.createOcelotHtmlFile("/");
+	}
 }

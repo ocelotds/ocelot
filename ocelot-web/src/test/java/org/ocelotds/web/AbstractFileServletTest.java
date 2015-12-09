@@ -15,6 +15,7 @@ import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.mockito.ArgumentCaptor;
+import org.ocelotds.Constants;
 
 /**
  *
@@ -101,6 +102,19 @@ public class AbstractFileServletTest {
 		System.out.println("getServletInfo");
 		String result = instance.getServletInfo();
 		assertThat(result).isEqualTo("ocelot-servlet");
+	}
+	
+	@Test
+	public void testGetProtocol() throws IOException {
+		System.out.println("getServletInfo");
+		init();
+		when(request.isSecure()).thenReturn(false).thenReturn(true);
+
+		String protocol = instance.getProtocol(request);
+		assertThat(protocol).isEqualTo(Constants.WS);
+		
+		protocol = instance.getProtocol(request);
+		assertThat(protocol).isEqualTo(Constants.WSS);
 	}
 	
 	public class AbstractServletImpl extends AbstractFileServlet {

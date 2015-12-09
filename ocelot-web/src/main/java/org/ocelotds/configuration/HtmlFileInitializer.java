@@ -70,7 +70,7 @@ public class HtmlFileInitializer extends AbstractFileInitializer {
 	 * @throws IOException
 	 */
 	void writeOcelotContentHTMLFile(OutputStream out, String ctxPath) throws IOException {
-		URL content = this.getClass().getResource(CONTENT_RESOURCE);
+		URL content = getContentURL();
 		if (null == content) {
 			throw new IOException("File " + CONTENT_RESOURCE + " not found in classpath.");
 		}
@@ -81,5 +81,9 @@ public class HtmlFileInitializer extends AbstractFileInitializer {
 				out.write(Constants.BACKSLASH_N.getBytes(Constants.UTF_8));
 			}
 		}
+	}
+	
+	URL getContentURL() {
+		return this.getClass().getResource(CONTENT_RESOURCE);
 	}
 }

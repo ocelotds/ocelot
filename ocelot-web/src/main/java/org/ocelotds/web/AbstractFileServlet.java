@@ -95,7 +95,7 @@ public abstract class AbstractFileServlet extends HttpServlet {
 		return "ocelot-servlet";
 	}
 
-	private String getProtocol(HttpServletRequest request) {
+	String getProtocol(HttpServletRequest request) {
 		String protocol = Constants.WS;
 		if(request.isSecure()) {
 			protocol = Constants.WSS;
