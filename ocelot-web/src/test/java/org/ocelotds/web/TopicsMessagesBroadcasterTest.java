@@ -5,6 +5,8 @@ package org.ocelotds.web;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.EventMetadata;
@@ -23,7 +25,10 @@ import static org.mockito.Mockito.*;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.JsTopicEvent;
+import org.ocelotds.literals.JsonMarshallerLiteral;
+import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
+import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.messaging.MessageType;
 import org.slf4j.Logger;
 
@@ -117,7 +122,7 @@ public class TopicsMessagesBroadcasterTest {
 	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
 	 */
 	@Test
-	public void sendObjectToTopicWithoutMarshaller() {
+	public void testSendObjectToTopicWithoutMarshaller() {
 		System.out.println("sendObjectToTopic");
 		String payload = "PAYLOAD";
 		EventMetadata metadata = mock(EventMetadata.class);
@@ -128,48 +133,83 @@ public class TopicsMessagesBroadcasterTest {
 		when(metadata.getInjectionPoint()).thenReturn(injectionPoint);
 		when(injectionPoint.getAnnotated()).thenReturn(annotated);
 		when(annotated.getAnnotation(JsTopicEvent.class)).thenReturn(null).thenReturn(event);
-		when(annotated.getAnnotation(JsonMarshaller.class)).thenReturn(null);
+		when(annotated.isAnnotationPresent(JsonMarshaller.class)).thenReturn(true).thenReturn(false);
+		doReturn("\"payload\"").when(instance).getJsonFromMarshaller(anyObject(), any(JsonMarshaller.class));
 		when(event.value()).thenReturn("TOPIC");
 
+		// no JsTopicEvent
 		instance.sendObjectToTopic(payload, metadata);
 
+		// JsTopicEvent, marshaller
+		instance.sendObjectToTopic(payload, metadata);
+
+		// JsTopicEvent, no marshaller
 		instance.sendObjectToTopic(payload, metadata);
 
 		ArgumentCaptor<MessageToClient> captureMtC = ArgumentCaptor.forClass(MessageToClient.class);
-		verify(instance).sendMessageToTopic(captureMtC.capture());
+		verify(instance, times(2)).sendMessageToTopic(captureMtC.capture());
 		
-		MessageToClient value = captureMtC.getValue();
-		String json = value.toJson();
-		assertThat(json).isEqualTo("{\"type\":\"MESSAGE\",\"id\":\"TOPIC\",\"deadline\":0,\"response\":\"PAYLOAD\"}");
-	}
-
-	/**
-	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
-	 */
-	@Test
-	public void sendObjectToTopicWithMarshaller() {
-		System.out.println("sendObjectToTopic");
-		String payload = "PAYLOAD";
-		EventMetadata metadata = mock(EventMetadata.class);
-		InjectionPoint injectionPoint = mock(InjectionPoint.class);
-		Annotated annotated = mock(Annotated.class);
-		JsTopicEvent event = mock(JsTopicEvent.class);
-		JsonMarshaller jm = mock(JsonMarshaller.class);
-
-		when(metadata.getInjectionPoint()).thenReturn(injectionPoint);
-		when(injectionPoint.getAnnotated()).thenReturn(annotated);
-		when(annotated.getAnnotation(JsTopicEvent.class)).thenReturn(event);
-		when(annotated.getAnnotation(JsonMarshaller.class)).thenReturn(jm);
-		doReturn(JsMarshaller.class).when(jm).value();
-		when(event.value()).thenReturn("TOPIC");
-
-		instance.sendObjectToTopic(payload, metadata);
-
-		ArgumentCaptor<MessageToClient> captureMtC = ArgumentCaptor.forClass(MessageToClient.class);
-		verify(instance).sendMessageToTopic(captureMtC.capture());
-		
-		MessageToClient value = captureMtC.getValue();
+		List<MessageToClient> allValues = captureMtC.getAllValues();
+		MessageToClient value = allValues.get(0);
 		String json = value.toJson();
 		assertThat(json).isEqualTo("{\"type\":\"MESSAGE\",\"id\":\"TOPIC\",\"deadline\":0,\"response\":\"payload\"}");
+		value = allValues.get(1);
+		json = value.toJson();
+		assertThat(json).isEqualTo("{\"type\":\"MESSAGE\",\"id\":\"TOPIC\",\"deadline\":0,\"response\":\"PAYLOAD\"}");
 	}
+	
+	@Test
+	public void testGetJsonFromMarshaller() {
+		Locale locale = Locale.FRANCE;
+		String result = instance.getJsonFromMarshaller(locale, new JsonMarshallerLiteral(LocaleMarshaller.class));
+		assertThat(result).isEqualTo("{\"country\":\"FR\",\"language\":\"fr\"}");
+	}
+	
+	@Test
+	public void testGetJsonFromMarshallerFail1() {
+		Locale locale = Locale.FRANCE;
+		String result = instance.getJsonFromMarshaller(locale, new JsonMarshallerLiteral(JsMarshaller.class));
+		assertThat(result).isEqualTo(null);
+	}
+
+	@Test
+	public void testGetJsonFromMarshallerFail2() {
+		Locale locale = Locale.FRANCE;
+		String result = instance.getJsonFromMarshaller(locale, new JsonMarshallerLiteral(BadMarshaller.class));
+		assertThat(result).isEqualTo(null);
+	}
+
+	@Test
+	public void testGetJsonFromMarshallerFail3() {
+		Locale locale = Locale.FRANCE;
+		String result = instance.getJsonFromMarshaller(locale, new JsonMarshallerLiteral(BadMarshaller2.class));
+		assertThat(result).isEqualTo(null);
+	}
+
+	private class BadMarshaller implements org.ocelotds.marshalling.JsonMarshaller {
+		
+		public BadMarshaller(String s) {
+			
+		}
+
+		@Override
+		public String toJson(Object obj) throws JsonMarshallingException {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+		
+	}
+	
+	private class BadMarshaller2 implements org.ocelotds.marshalling.JsonMarshaller {
+		
+		private BadMarshaller2() {
+			
+		}
+
+		@Override
+		public String toJson(Object obj) throws JsonMarshallingException {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+		
+	}
+
 }

@@ -19,7 +19,6 @@ import javax.websocket.Session;
 import org.ocelotds.annotations.JsTopicEvent;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
-import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.slf4j.Logger;
 
 /**
@@ -49,22 +48,26 @@ public class TopicsMessagesBroadcaster {
 		JsTopicEvent jte = annotated.getAnnotation(JsTopicEvent.class);
 		if (jte != null) {
 			msg.setId(jte.value());
-			JsonMarshaller jma = annotated.getAnnotation(JsonMarshaller.class);
-			if (jma != null) {
-				Class<? extends org.ocelotds.marshalling.JsonMarshaller> marshallerCls = jma.value();
-				try {
-					org.ocelotds.marshalling.JsonMarshaller marshaller = marshallerCls.newInstance();
-					msg.setJson(marshaller.toJson(object));
-				} catch (JsonMarshallingException ex) {
-					logger.error(object+" can't be serialized with marshaller "+marshallerCls, ex);
-				} catch (InstantiationException | IllegalAccessException ex) {
-					logger.error(marshallerCls+" can't be instantiate", ex);
-				}
+			if (annotated.isAnnotationPresent(JsonMarshaller.class)) {
+				msg.setJson(getJsonFromMarshaller(object, annotated.getAnnotation(JsonMarshaller.class)));
 			} else {
 				msg.setResponse(object);
 			}
 			sendMessageToTopic(msg);
 		}
+	}
+	
+	String getJsonFromMarshaller(Object object, JsonMarshaller jma) {
+		Class<? extends org.ocelotds.marshalling.JsonMarshaller> marshallerCls = jma.value();
+		try {
+			org.ocelotds.marshalling.JsonMarshaller marshaller = marshallerCls.newInstance();
+			return marshaller.toJson(object);
+		} catch (InstantiationException | IllegalAccessException ex) {
+			logger.error(marshallerCls+" can't be instantiate", ex);
+		} catch (Throwable ex) {
+			logger.error(object+" can't be serialized with marshaller "+marshallerCls, ex);
+		}
+		return null;
 	}
 
 	public void sendMessageToTopic(@Observes @MessageEvent MessageToClient msg) {

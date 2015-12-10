@@ -4,12 +4,6 @@
  */
 package org.ocelotds.core.services;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.ArrayType;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import com.fasterxml.jackson.databind.type.MapType;
-import com.fasterxml.jackson.databind.type.SimpleType;
 import org.ocelotds.configuration.OcelotConfiguration;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheResult;
@@ -20,13 +14,10 @@ import org.ocelotds.resolvers.DataServiceResolverIdLitteral;
 import org.ocelotds.spi.DataServiceException;
 import org.ocelotds.spi.IDataServiceResolver;
 import org.ocelotds.spi.Scope;
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import javax.enterprise.inject.Any;
@@ -35,10 +26,8 @@ import javax.inject.Inject;
 import javax.websocket.Session;
 import org.ocelotds.Constants;
 import org.ocelotds.core.CacheManager;
-import org.ocelotds.core.Cleaner;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
-import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.slf4j.Logger;
 
@@ -54,9 +43,6 @@ public class CallServiceManager implements CallService {
 	private Logger logger;
 
 	@Inject
-	private Cleaner cleaner;
-
-	@Inject
 	@Any
 	private Instance<IDataServiceResolver> resolvers;
 
@@ -65,6 +51,9 @@ public class CallServiceManager implements CallService {
 
 	@Inject
 	private CacheManager cacheManager;
+	
+	@Inject
+	private ArgumentConvertor argumentsServices;
 
 	IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
@@ -90,132 +79,18 @@ public class CallServiceManager implements CallService {
 					Annotation[][] parametersAnnotations = method.getParameterAnnotations();
 					int idx = 0;
 					for (Type paramType : paramTypes) {
-						String jsonArg = cleaner.cleanArg(parameters.get(idx));
-						arguments[idx] = convertJsonToJava(idx, jsonArg, paramType, parametersAnnotations[idx]);
+						logger.debug("Try to convert argument ({}) {} : {}.", new Object[]{idx, paramType.toString(), parameters.get(idx)});
+						arguments[idx] = argumentsServices.convertJsonToJava(parameters.get(idx), paramType, parametersAnnotations[idx]);
 						idx++;
 					}
 					logger.debug("Method {}.{} with good signature found.", dsClass, message.getOperation());
 					return method;
 				} catch (JsonUnmarshallingException | IllegalArgumentException iae) {
-					logger.debug("Method {}.{} not found. Arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
+					logger.debug("Method {}.{} not found. Some arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
 				}
 			}
 		}
 		throw new NoSuchMethodException(dsClass + "." + message.getOperation());
-	}
-
-	/**
-	 * Convert json to Java
-	 *
-	 * @param idx
-	 * @param jsonArg
-	 * @param paramType
-	 * @param parameterAnnotations
-	 * @return
-	 * @throws JsonUnmarshallingException
-	 */
-	Object convertJsonToJava(int idx, String jsonArg, Type paramType, Annotation[] parameterAnnotations) throws JsonUnmarshallingException {
-		Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> unmarshaller = getUnMarshallerAnnotation(parameterAnnotations);
-		if (null != unmarshaller) {
-			try {
-				org.ocelotds.marshalling.JsonUnmarshaller newInstance = unmarshaller.newInstance();
-				return newInstance.toJava(jsonArg);
-			} catch (InstantiationException | IllegalAccessException ex) {
-				throw new JsonUnmarshallingException(jsonArg);
-			}
-		} else {
-			logger.debug("Get argument ({}) {} : {}.", new Object[]{idx, paramType.toString(), jsonArg});
-			return convertArgument(jsonArg, paramType);
-		}
-	}
-
-	/**
-	 * If argument is annotated with JsonUnmarshaller annotation, get the JsonUnmarshaller class
-	 *
-	 * @param annotations
-	 * @param paramType
-	 * @return
-	 */
-	Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> getUnMarshallerAnnotation(Annotation[] annotations) {
-		for (Annotation annotation : annotations) {
-			if (JsonUnmarshaller.class.isInstance(annotation)) {
-				JsonUnmarshaller unmarshallerAnnotation = (JsonUnmarshaller) annotation;
-				return unmarshallerAnnotation.value();
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * try to convert json argument in java type
-	 *
-	 * @param arg
-	 * @param paramType
-	 * @return
-	 * @throws IllegalArgumentException
-	 */
-	Object convertArgument(String arg, Type paramType) throws IllegalArgumentException {
-		Object result = null;
-		if (null == arg || "null".equals(arg)) {
-			return result;
-		}
-		logger.debug("Try to convert {} : param = {} : {}", new Object[]{arg, paramType, paramType.getClass()});
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			if (ParameterizedType.class.isInstance(paramType)) {
-				JavaType javaType = getJavaType(paramType);
-				logger.debug("Try to convert '{}' to JavaType : '{}'", arg, paramType);
-				result = mapper.readValue(arg, javaType);
-				logger.debug("Conversion of '{}' to '{}' : OK", arg, paramType);
-			} else if (Class.class.isInstance(paramType)) {
-				Class cls = (Class) paramType;
-				logger.debug("Try to convert '{}' to Class '{}'", arg, paramType);
-				if (cls.equals(String.class) && (!arg.startsWith("\"") || !arg.endsWith("\""))) { // on cherche une string
-					throw new IOException();
-				}
-				if (!cls.equals(String.class) && arg.startsWith("\"") && arg.endsWith("\"")) { // on a une string
-					throw new IOException();
-				}
-				result = mapper.readValue(arg, cls);
-				logger.debug("Conversion of '{}' to '{}' : OK", arg, paramType);
-			}
-		} catch (IOException ex) {
-			logger.debug("Conversion of '{}' to '{}' failed", arg, paramType);
-			throw new IllegalArgumentException(paramType.toString());
-		}
-		return result;
-	}
-
-	private JavaType getJavaType(Type type) {
-		Class clazz;
-		logger.debug("Computing type of {} - {}", type.getClass(), type.toString());
-		if (type instanceof ParameterizedType) {
-			clazz = (Class) ((ParameterizedType) type).getRawType();
-		} else {
-			clazz = (Class) type;
-		}
-		JavaType javaType;
-		Type actualType;
-		if (Collection.class.isAssignableFrom(clazz)) {
-			ParameterizedType pt = (ParameterizedType) type;
-			actualType = pt.getActualTypeArguments()[0];
-			JavaType t1 = getJavaType(actualType);
-			javaType = CollectionType.construct(Collection.class, t1);
-		} else if (clazz.isArray()) {
-			Class t = clazz.getComponentType();
-			JavaType t1 = getJavaType(t);
-			javaType = ArrayType.construct(t1, null, null);
-		} else if (Map.class.isAssignableFrom(clazz)) {
-			ParameterizedType pt = (ParameterizedType) type;
-			actualType = pt.getActualTypeArguments()[0];
-			JavaType t1 = getJavaType(actualType);
-			actualType = pt.getActualTypeArguments()[1];
-			JavaType t2 = getJavaType(actualType);
-			javaType = MapType.construct(Map.class, t1, t2);
-		} else {
-			javaType = SimpleType.construct(clazz);
-		}
-		return javaType;
 	}
 
 	/**

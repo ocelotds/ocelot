@@ -5,6 +5,7 @@ package org.ocelotds.resolvers;
 
 import java.util.HashSet;
 import java.util.Set;
+import javax.ejb.Stateful;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.Bean;
@@ -77,6 +78,17 @@ public class CdiResolverTest {
 	 * Test of getScope method, of class PojoResolver.
 	 */
 	@Test
+	public void testGetScopeSession2() {
+		System.out.println("getScopeSession");
+		Scope expResult = Scope.SESSION;
+		Scope result = cdiResolver.getScope(EJBBeanSession.class);
+		assertThat(result).isEqualTo(expResult);
+	}
+
+	/**
+	 * Test of getScope method, of class PojoResolver.
+	 */
+	@Test
 	public void testGetScopeManaged() {
 		System.out.println("getScopeManaged");
 		Scope expResult = Scope.MANAGED;
@@ -87,6 +99,10 @@ public class CdiResolverTest {
 	@DataService(resolver = "CDI")
 	@Dependent
 	public static class CDIBeanSession {}
+
+	@DataService(resolver = "cdi")
+	@Stateful
+	public static class EJBBeanSession {}
 
 	@DataService(resolver = "CDI")
 	public static class CDIBeanManaged {}

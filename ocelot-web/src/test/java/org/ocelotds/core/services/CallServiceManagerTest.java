@@ -5,13 +5,10 @@ package org.ocelotds.core.services;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -19,10 +16,7 @@ import java.util.UUID;
 import javax.enterprise.inject.Instance;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
-import javax.ws.rs.core.GenericType;
 import org.ocelotds.messaging.MessageFromClient;
-import org.assertj.core.api.Condition;
-import org.assertj.core.data.Index;
 import org.assertj.core.data.Offset;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,14 +27,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.Spy;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.ocelotds.annotations.DataService;
-import org.ocelotds.annotations.JsCacheResult;
 import org.ocelotds.configuration.OcelotConfiguration;
 import org.ocelotds.messaging.Fault;
 import org.ocelotds.messaging.MessageToClient;
-import org.ocelotds.objects.Result;
 import org.ocelotds.resolvers.DataServiceResolverIdLitteral;
 import org.ocelotds.spi.DataServiceException;
 import org.ocelotds.spi.IDataServiceResolver;
@@ -48,13 +37,8 @@ import org.ocelotds.spi.Scope;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.ocelotds.Constants;
-import org.ocelotds.OcelotServices;
 import org.ocelotds.core.CacheManager;
-import org.ocelotds.core.Cleaner;
 import org.ocelotds.marshallers.LocaleMarshaller;
-import org.ocelotds.marshallers.LocaleUnmarshaller;
-import org.ocelotds.marshalling.annotations.JsonMarshaller;
-import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.ocelotds.resolvers.PojoResolver;
@@ -68,13 +52,13 @@ import org.slf4j.Logger;
 public class CallServiceManagerTest {
 
 	@Mock
-	private Cleaner cleaner;
-
-	@Mock
 	private Instance<IDataServiceResolver> resolvers;
 
 	@Mock
 	private OcelotConfiguration configuration;
+
+	@Mock
+	private ArgumentConvertor argumentsServices;
 
 	@Spy
 	@InjectMocks
@@ -89,28 +73,7 @@ public class CallServiceManagerTest {
 
 	@Before
 	public void init() {
-		when(cleaner.cleanArg(anyString())).thenAnswer(new Answer<String>() {
-			@Override
-			public String answer(InvocationOnMock invocation) throws Throwable {
-				Object[] args = invocation.getArguments();
-				return (String) args[0];
-			}
-		});
 		when(configuration.getStacktracelength()).thenReturn(0);
-	}
-
-	/**
-	 * Test of getUnMarshallerAnnotation method, of class CallServiceManager.
-	 *
-	 * @throws java.lang.NoSuchMethodException
-	 */
-	@Test
-	public void testGetUnMarshallerAnnotation() throws NoSuchMethodException {
-		Method method = OcelotServices.class.getMethod("setLocale", Locale.class);
-		Annotation[][] parametersAnnotations = method.getParameterAnnotations();
-		Annotation[] parameterAnnotations = parametersAnnotations[0];
-		Class result = instance.getUnMarshallerAnnotation(parameterAnnotations);
-		assertThat(result).isEqualTo(LocaleUnmarshaller.class);
 	}
 
 	/**
@@ -129,9 +92,10 @@ public class CallServiceManagerTest {
 	 * Test of getMethodFromDataService method, of class CallServiceManager.
 	 *
 	 * @throws java.lang.NoSuchMethodException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
 	 */
 	@Test
-	public void testGetMethodFromDataService() throws NoSuchMethodException {
+	public void testGetMethodFromDataService() throws NoSuchMethodException, JsonUnmarshallingException {
 		System.out.println("getMethodFromDataService");
 		Class dsClass = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
@@ -139,25 +103,31 @@ public class CallServiceManagerTest {
 		message.setParameters(Arrays.asList("5", "\"toto\""));
 		Object[] arguments = new Object[2];
 		Method expResult = dsClass.getMethod("methodWith2Arguments", new Class<?>[]{Integer.class, String.class});
+
+		when(argumentsServices.convertJsonToJava(eq("5"), any(Type.class), any(Annotation[].class))).thenReturn(5);
+		when(argumentsServices.convertJsonToJava(eq("\"toto\""), any(Type.class), any(Annotation[].class))).thenReturn("toto");
+
 		Method result = instance.getMethodFromDataService(dsClass, message, arguments);
 		assertThat(result).isEqualTo(expResult);
-		assertThat(arguments).contains(5, Index.atIndex(0));
-		assertThat(arguments).contains("toto", Index.atIndex(1));
 	}
 
 	/**
 	 * Test of getMethodFromDataService method, of class CallServiceManager.
 	 *
 	 * @throws java.lang.NoSuchMethodException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
 	 */
 	@Test(expected = NoSuchMethodException.class)
-	public void testGetMethodFromDataServiceNotFound() throws NoSuchMethodException {
+	public void testGetMethodFromDataServiceNotFound() throws NoSuchMethodException, JsonUnmarshallingException {
 		System.out.println("getMethodFromDataService");
 		Class dsClass = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
 		message.setOperation("methodWith2Arguments");
 		message.setParameters(Arrays.asList("\"toto\"", "5"));
 		Object[] arguments = new Object[2];
+		
+		when(argumentsServices.convertJsonToJava(anyString(), any(Type.class), any(Annotation[].class))).thenThrow(JsonUnmarshallingException.class);
+
 		instance.getMethodFromDataService(dsClass, message, arguments);
 	}
 
@@ -165,66 +135,27 @@ public class CallServiceManagerTest {
 	 * Test of getMethodFromDataService method, of class CallServiceManager.
 	 *
 	 * @throws java.lang.NoSuchMethodException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
 	 */
 	@Test
-	public void testGetMethodFromDataServiceWithWithUnmarshaller() throws NoSuchMethodException {
+	public void testGetMethodFromDataServiceWithWithUnmarshaller() throws NoSuchMethodException, JsonUnmarshallingException {
 		System.out.println("getMethodFromDataService");
 		Class dsClass = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
 		message.setOperation("methodWithUnmarshaller");
-		message.setParameters(Arrays.asList("{\"language\":\"fr\",\"country\":\"FR\"}"));
+		String json = "{\"language\":\"fr\",\"country\":\"FR\"}";
+		message.setParameters(Arrays.asList(json));
 		Object[] arguments = new Object[1];
 		Method expResult = dsClass.getMethod("methodWithUnmarshaller", new Class<?>[]{Locale.class});
+		
+		when(argumentsServices.convertJsonToJava(eq(json), any(Type.class), any(Annotation[].class))).thenReturn(new Locale("fr", "FR"));
+		
 		Method result = instance.getMethodFromDataService(dsClass, message, arguments);
 		assertThat(result).isEqualTo(expResult);
 		assertThat(arguments).hasSize(1);
 		Locale l = (Locale) arguments[0];
 		assertThat(l.getCountry()).isEqualTo("FR");
 		assertThat(l.getLanguage()).isEqualTo("fr");
-	}
-
-	/**
-	 * Test of convertArgument method, of class CallServiceManager.
-	 */
-	@Test
-	public void testConvertArgument() throws IllegalArgumentException {
-		System.out.println("convertArgument");
-		Iterator<String> args = Arrays.asList("\"toto\"", "5", "[\"a\",\"b\"]", "[[\"a\", \"b\"],[\"c\", \"d\"]]",
-				  "[\"c\",\"d\"]", "{\"a\":1, \"b\":2, \"c\":3}", "{\"integer\":5}").iterator();
-		Type col = new GenericType<Collection<String>>() {
-		}.getType();
-		Type map = new GenericType<Map<String, Integer>>() {
-		}.getType();
-		Type colArray = new GenericType<Collection<String[]>>() {
-		}.getType();
-		Type array = new String[]{}.getClass();
-		for (final Type type : new Type[]{String.class, Integer.class, array, colArray, col, map, Result.class}) {
-			String arg = args.next();
-			Object result = instance.convertArgument(arg, type);
-			assertThat(result).is(new Condition<Object>("" + type) {
-				@Override
-				public boolean matches(Object t) {
-					Class cls;
-					if (type instanceof ParameterizedType) {
-						cls = (Class) ((ParameterizedType) type).getRawType();
-					} else {
-						cls = (Class) type;
-					}
-					return cls.isInstance(t);
-				}
-			});
-		}
-		Object result = instance.convertArgument(null, Result.class);
-		assertThat(result).isNull();
-	}
-
-	/**
-	 * Test of convertArgument method, of class CallServiceManager.
-	 */
-	@Test(expected = IllegalArgumentException.class)
-	public void testConvertArgumentFail() throws IllegalArgumentException {
-		System.out.println("convertArgumentFail");
-		instance.convertArgument("toto", String.class);
 	}
 
 	/**
@@ -395,67 +326,5 @@ public class CallServiceManagerTest {
 			stacktraces = fault.getStacktrace();
 			assertThat(stacktraces).hasSize(3);
 		}
-	}
-	
-	@Test(expected = JsonUnmarshallingException.class)
-	public void testConvertJsonToJavaBadUnmarshaller() throws DataServiceException, JsonUnmarshallingException, NoSuchMethodException {
-		System.out.println("convertJsonToJavaBadUnmarshaller");
-
-		Method method = ClassAsDataService.class.getMethod("methodWithBadUnmarshaller", String.class);
-		Annotation[] annotations = method.getParameterAnnotations()[0];
-		instance.convertJsonToJava(0, "", null, annotations);
-	}
-
-	@DataService(resolver = "TEST")
-	private class ClassAsDataService {
-
-		public void methodWithSomeArguments(String s, Integer i, String[] a, Collection<String> c, Map<String, Integer> m) {
-
-		}
-
-		public void methodWith2Arguments(Integer i, String s) {
-
-		}
-
-		public String methodReturnString(String a) {
-			return "r1";
-		}
-
-		public String methodReturnString2(String a) {
-			return "r3";
-		}
-
-		public String methodThrowException(String a) throws AbstractMethodError {
-			throw new AbstractMethodError("MyMessage");
-		}
-
-		@JsCacheResult
-		public String methodReturnCachedString(String a) {
-			return "r5";
-		}
-
-		@JsonMarshaller(LocaleMarshaller.class)
-		public Locale methodWithMarshaller(String a) {
-			return new Locale("fr", "FR");
-		}
-
-		public void methodWithBadUnmarshaller(@JsonUnmarshaller(BadUnmarshaller.class) String a) {
-		}
-
-		public void methodWithUnmarshaller(@JsonUnmarshaller(LocaleUnmarshaller.class) Locale l) {
-		}
-	}
-	
-	static class BadUnmarshaller implements org.ocelotds.marshalling.JsonUnmarshaller<String>{
-		
-		public BadUnmarshaller(String t) {
-			
-		}
-
-		@Override
-		public String toJava(String json) throws JsonUnmarshallingException {
-			return "";
-		}
-		
 	}
 }
