@@ -81,6 +81,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ocelotds.FileNameProvider;
 import org.ocelotds.annotations.ServiceProvider;
+import org.ocelotds.literals.JsonMarshallerLiteral;
+import org.ocelotds.literals.JsonUnmarshallerLiteral;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,7 +150,7 @@ public class OcelotTest {
 		WebArchive webArchive = ShrinkWrap.create(WebArchive.class, CTXPATH + ".war")
 				  //				  .addAsLibraries(imports)
 				  .addPackages(true, OcelotTest.class.getPackage())
-				  .addClass(Result.class)
+				  .addClass(Result.class).addClass(JsonMarshallerLiteral.class).addClass(JsonUnmarshallerLiteral.class)
 				  .addAsResource(logback).addAsResource(localeUs).addAsResource(localeFr)
 				  .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
 		addOcelotJar(webArchive);
