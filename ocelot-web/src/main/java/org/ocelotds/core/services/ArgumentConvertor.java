@@ -15,6 +15,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Map;
+import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.json.stream.JsonParsingException;
 import org.ocelotds.annotations.OcelotLogger;
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
  *
  * @author hhfrancois
  */
+@Default
 public class ArgumentConvertor implements IArgumentConvertor {
 	@Inject
 	@OcelotLogger
