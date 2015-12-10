@@ -18,6 +18,7 @@ import org.ocelotds.spring.OcelotSpringConfiguration;
 /**
  *
  * @author hhfrancois
+ * @param <T>
  */
 public class SpringConfigurationWrapper<T> implements AnnotatedType {
 
