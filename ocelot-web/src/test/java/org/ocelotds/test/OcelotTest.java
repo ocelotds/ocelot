@@ -106,8 +106,8 @@ public class OcelotTest {
 
 	@Inject
 	@Any
-	@ServiceProvider(Constants.Provider.HTML)
-	private Instance<FileNameProvider> htmlProviders;
+	@ServiceProvider(Constants.Provider.JSON)
+	private Instance<FileNameProvider> jsonProviders;
 
 	@Inject
 	@Any
@@ -591,7 +591,7 @@ public class OcelotTest {
 	@Test
 	public void testHtmlServiceProvider() {
 		System.out.println("testHtmlServiceProvider");
-		testServiceProvider(htmlProviders, "html");
+		testServiceProvider(jsonProviders, "json");
 	}
 
 	public void testServiceProvider(Instance<FileNameProvider> instances, String ext) {

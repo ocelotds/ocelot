@@ -100,7 +100,6 @@ public interface Constants {
 	
 	interface Provider {
 		String JAVASCRIPT = "JS";
-		String HTML = "HTML";
 		String JSON = "JSON";
 	}
 	
