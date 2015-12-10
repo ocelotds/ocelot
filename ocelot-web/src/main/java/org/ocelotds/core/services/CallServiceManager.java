@@ -53,7 +53,7 @@ public class CallServiceManager implements CallService {
 	private CacheManager cacheManager;
 	
 	@Inject
-	private IArgumentConvertor argumentsServices;
+	private ArgumentConvertor convertor;
 
 	IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
@@ -80,7 +80,7 @@ public class CallServiceManager implements CallService {
 					int idx = 0;
 					for (Type paramType : paramTypes) {
 						logger.debug("Try to convert argument ({}) {} : {}.", new Object[]{idx, paramType.toString(), parameters.get(idx)});
-						arguments[idx] = argumentsServices.convertJsonToJava(parameters.get(idx), paramType, parametersAnnotations[idx]);
+						arguments[idx] = convertor.convertJsonToJava(parameters.get(idx), paramType, parametersAnnotations[idx]);
 						idx++;
 					}
 					logger.debug("Method {}.{} with good signature found.", dsClass, message.getOperation());
