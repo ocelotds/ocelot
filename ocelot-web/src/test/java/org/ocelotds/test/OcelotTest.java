@@ -193,12 +193,12 @@ public class OcelotTest {
 			@Override
 			public boolean accept(File file) {
 				String name = file.getName();
-				return file.isFile() && name.startsWith("srv_") && name.endsWith(".html");
+				return file.isFile() && name.startsWith("srv_") && name.endsWith(".json");
 			}
 		});
 		for (File file : htmlFiles) {
 			String htmlName = file.getName();
-			String providerPackage = htmlName.replaceAll(".html$", "");
+			String providerPackage = htmlName.replaceAll(".json$", "");
 			classContainer.addPackage(providerPackage);
 			resourceContainer.addAsResource(new FileAsset(file), file.getName());
 		}
