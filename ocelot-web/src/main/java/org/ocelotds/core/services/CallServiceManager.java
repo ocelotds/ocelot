@@ -53,7 +53,7 @@ public class CallServiceManager implements CallService {
 	private CacheManager cacheManager;
 	
 	@Inject
-	private ArgumentConvertor argumentsServices;
+	private IArgumentConvertor argumentsServices;
 
 	IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();

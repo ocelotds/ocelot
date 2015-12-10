@@ -4,13 +4,13 @@
 
 package org.ocelotds.web;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.catalina.ssi.ByteArrayServletOutputStream;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
@@ -28,7 +28,7 @@ public class AbstractFileServletTest {
 
 	HttpServletRequest request;
 	HttpServletResponse response;
-	ByteArrayServletOutputStream out;
+	ByteArrayOutputStream out;
 	
 	private String filepath;
 	
@@ -40,7 +40,7 @@ public class AbstractFileServletTest {
 		filepath = file.getAbsolutePath();
 		request = mock(HttpServletRequest.class);
 		response = mock(HttpServletResponse.class);
-		out = new ByteArrayServletOutputStream();
+		out = new ByteArrayOutputStream();
 		when(response.getWriter()).thenReturn(new PrintWriter(out));
 	}
 	
