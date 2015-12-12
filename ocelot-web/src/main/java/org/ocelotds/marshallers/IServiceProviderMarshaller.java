@@ -34,8 +34,9 @@ public class IServiceProviderMarshaller implements JsonMarshaller<Instance<IServ
 					if (!first) {
 						out.write(",\n".getBytes(Constants.UTF_8));
 					}
-					first = false;
-					servicesProvider.streamJavascriptServices(out);
+					if(servicesProvider.streamJavascriptServices(out)) {
+						first = false;
+					}
 				}
 				out.write("]".getBytes(Constants.UTF_8));
 				return out.toString();
