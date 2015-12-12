@@ -5,7 +5,6 @@
 	<artifactId>ocelot</artifactId>
 	<version>2.6.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>ocelot</name>
 	<description>Framework for communication way between java and javascript</description>	
 	<url>http://ocelotds.org</url>
 	
