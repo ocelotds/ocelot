@@ -47,7 +47,10 @@ public class OcelotContext {
 
 	public void setLocale(Locale locale) {
 		Session session = getSession();
-		session.getUserProperties().put(Constants.LOCALE, locale);
+		session.getUserProperties().remove(Constants.LOCALE);
+		if (locale != null) {
+			session.getUserProperties().put(Constants.LOCALE, locale);
+		}
 	}
 
 	HandshakeRequest getHandshakeRequest() {
