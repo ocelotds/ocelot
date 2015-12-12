@@ -99,7 +99,10 @@ if ("WebSocket" in window) {
             ws = new WebSocket("%WSS%://" + host + "/ocelot-endpoint");
          }
          ws.onmessage = function (evt) {
-            var idx, response, msgToClient = JSON.parse(evt.data), promise, apromise = getPromises(msgToClient.id);
+            var idx, response, msgToClient, promise, apromise;
+//            console.debug(evt.data);
+            msgToClient = JSON.parse(evt.data);
+            apromise = getPromises(msgToClient.id);
             if (msgToClient.type === RES) { // maybe should be store result in cache
                // if msgToClient has dead line so we stock in cache
                ocelotController.cacheManager.putResultInCache(msgToClient);
