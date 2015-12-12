@@ -4,7 +4,6 @@
 package org.ocelotds.marshallers;
 
 import java.io.OutputStream;
-import java.util.Locale;
 import javax.enterprise.inject.Instance;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
@@ -35,15 +34,18 @@ public class IServiceProviderMarshallerTest {
 		System.out.println("toJson");
 		IServicesProvider provider0 = mock(IServicesProvider.class);
 		((FakeCDI) jsonServicesProviders).add(provider0);
-		doNothing().when(provider0).streamJavascriptServices(any(OutputStream.class));
+		doReturn(true).doReturn(true).doReturn(false).when(provider0).streamJavascriptServices(any(OutputStream.class));
 		String result = instance.toJson(jsonServicesProviders);
 		assertThat(result).isEqualTo("[]");
 
 		IServicesProvider provider1 = mock(IServicesProvider.class);
 		((FakeCDI) jsonServicesProviders).add(provider1);
-		doNothing().when(provider1).streamJavascriptServices(any(OutputStream.class));
+		doReturn(true).when(provider1).streamJavascriptServices(any(OutputStream.class));
 		result = instance.toJson(jsonServicesProviders);
 		assertThat(result).isEqualTo("[,\n]");
+
+		result = instance.toJson(jsonServicesProviders);
+		assertThat(result).isEqualTo("[]");
 	}
 
 	/**
