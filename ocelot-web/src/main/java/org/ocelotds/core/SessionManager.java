@@ -89,6 +89,9 @@ public class SessionManager {
 	 * @throws IllegalAccessException
 	 */
 	public int registerTopicSession(String topic, Session session) throws IllegalAccessException {
+		if(null==topic || topic.isEmpty()) {
+			return 0;
+		}
 		Set<Session> sessions;
 		if (sessionsByTopic.containsKey(topic)) {
 			sessions = sessionsByTopic.get(topic);
@@ -115,6 +118,9 @@ public class SessionManager {
 	 * @return int : number subscribers remaining
 	 */
 	public int unregisterTopicSession(String topic, Session session) {
+		if(null==topic || topic.isEmpty()) {
+			return 0;
+		}
 		logger.debug("'{}' unsubscribe to '{}'", session.getId(), topic);
 		if (Constants.Topic.ALL.equals(topic)) {
 			for (Collection<Session> sessions : sessionsByTopic.values()) {
