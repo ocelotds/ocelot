@@ -18,7 +18,7 @@ public abstract class AbstractServiceProvider implements IServicesProvider, File
 	private final Logger logger = LoggerFactory.getLogger(AbstractServiceProvider.class);
 
 	@Override
-	public void streamJavascriptServices(OutputStream out) {
+	public boolean streamJavascriptServices(OutputStream out) {
 		String jsname = getFilename();
 		try (InputStream in = getJsStream(jsname)) {
 			if(null != in) {
@@ -27,12 +27,14 @@ public abstract class AbstractServiceProvider implements IServicesProvider, File
 				while (-1 != (n = in.read(buffer))) {
 					out.write(buffer, 0, n);
 				}
+				return true;
 			} else {
 				getLogger().warn("Generation of '{}' failed. File not found", jsname);
 			}
 		} catch(IOException ex) {
 			getLogger().error("Generation of '"+jsname+"' failed.", ex);
 		}
+		return false;
 	}
 
 	Logger getLogger() {
