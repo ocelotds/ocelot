@@ -42,6 +42,9 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	 */
 	@Override
 	public Object convertJsonToJava(String jsonArg, Type paramType, Annotation[] parameterAnnotations) throws JsonUnmarshallingException {
+		if("null".equals(jsonArg)) {
+			return null;
+		}
 		Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> unmarshaller = getUnMarshallerAnnotation(parameterAnnotations);
 		if (null != unmarshaller) {
 			try {
