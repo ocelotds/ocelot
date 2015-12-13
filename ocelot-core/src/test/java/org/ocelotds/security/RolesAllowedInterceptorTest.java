@@ -36,16 +36,17 @@ public class RolesAllowedInterceptorTest {
 	@Mock
 	private HandshakeRequest handshakeRequest;
 
+	@Mock
+	private Principal principal;
+
 
 	@Before
 	public void init() {
 		when(instance.getHandshakeRequest()).thenReturn(handshakeRequest);
-		Principal p = mock(Principal.class);
-		when(p.getName()).thenReturn("USERNAME");
 		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE).thenReturn(Boolean.FALSE);
-		when(handshakeRequest.getUserPrincipal()).thenReturn(p);
 		when(handshakeRequest.isUserInRole("OK")).thenReturn(Boolean.TRUE);
 		when(handshakeRequest.isUserInRole("NOK")).thenReturn(Boolean.FALSE);
+		when(principal.toString()).thenReturn("USERNAME");
 	}
 	/**
 	 * Test of checkRolesAllowed method, of class RolesAllowedInterceptor.

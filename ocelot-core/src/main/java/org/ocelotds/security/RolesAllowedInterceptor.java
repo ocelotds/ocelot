@@ -5,6 +5,7 @@ package org.ocelotds.security;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.security.Principal;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
@@ -29,6 +30,9 @@ public class RolesAllowedInterceptor implements Serializable {
 	@Inject
 	@OcelotLogger
 	private transient Logger logger;
+	
+	@Inject
+	private Principal principal;
 
 	/**
 	 *
@@ -45,12 +49,12 @@ public class RolesAllowedInterceptor implements Serializable {
 		for (String roleAllowed : rolesAllowed) {
 			if(handshakeRequest.isUserInRole(roleAllowed)) {
 				if(logger.isDebugEnabled()) {
-					logger.debug("Check method {}.{} role {} allowed", method.getDeclaringClass().getSimpleName(), method.getName(), roleAllowed);
+					logger.debug("Check method {}.{} role {} is allowed", method.getDeclaringClass().getSimpleName(), method.getName(), roleAllowed);
 				}
 				return ctx.proceed();
 			}
 		}
-		throw new IllegalAccessException(handshakeRequest.getUserPrincipal().getName()+" can't excecute "+method.getDeclaringClass().getSimpleName()+"."+method.getName());
+		throw new IllegalAccessException("'"+principal+"' is not allowed "+method.getDeclaringClass().getSimpleName()+"."+method.getName());
 	}
 
 	HandshakeRequest getHandshakeRequest() {
