@@ -76,9 +76,6 @@ public class OcelotProcessor extends AbstractProcessor {
 		}
 		// Create provider of ocelot-services.js
 		String js = createJSServicesProvider();
-		// Create provider of json
-		String json = createJsonServicesProvider();
-
 		try {
 			// Create file ocelot-services.js      
 			try (Writer writer = getOpendResourceFileObjectWriter(js, ProviderType.JAVASCRIPT)) {
@@ -86,15 +83,6 @@ public class OcelotProcessor extends AbstractProcessor {
 				for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
 					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " javascript generation class : " + element);
 					element.accept(visitor, writer);
-				}
-			}
-			// Create json services file       
-			try (Writer writer = getOpendResourceFileObjectWriter(json, ProviderType.JSON)) {
-				boolean first = true;
-				for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
-					messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " json generation class : " + element);
-					element.accept(new DataServiceVisitorJsonBuilder(processingEnv, first), writer);
-					first = false;
 				}
 			}
 		} catch (IOException e) {
@@ -113,18 +101,6 @@ public class OcelotProcessor extends AbstractProcessor {
 		// Creation du provider de ocelot-services.js
 		String prefix = "srv_" + RANDOM.nextInt(100_000_000);
 		createServicesProvider(prefix, ProviderType.JAVASCRIPT);
-		return prefix;
-	}
-
-	/**
-	 * Create provider of ocelot-services.js and return a part of unic name for ocelot-service.js
-	 *
-	 * @return
-	 */
-	String createJsonServicesProvider() {
-		// Creation du provider de ocelot-services.js
-		String prefix = "srv_" + RANDOM.nextInt(100_000_000);
-		createServicesProvider(prefix, ProviderType.JSON);
 		return prefix;
 	}
 
@@ -178,7 +154,7 @@ public class OcelotProcessor extends AbstractProcessor {
 	}
 	
 	enum ProviderType {
-		JSON("json"), JAVASCRIPT("js");
+		JAVASCRIPT("js");
 		final private String ext;
 		private ProviderType(String ext) {
 			this.ext = ext;

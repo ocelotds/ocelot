@@ -105,16 +105,10 @@ public class OcelotProcessorTest {
 		System.out.println("process");
 		OcelotProcessor.setDone(Boolean.FALSE);
 		String js = "jsfilename";
-		String json = "jsonfilename";
 		doReturn(js).when(instance).createJSServicesProvider();
-		doReturn(json).when(instance).createJsonServicesProvider();
 		Writer writerjs = mock(Writer.class);
 		when(writerjs.append(anyString())).thenReturn(writerjs);
 		doReturn(writerjs).when(instance).getOpendResourceFileObjectWriter(eq(js), eq(ProviderType.JAVASCRIPT));
-		Writer writerjson = mock(Writer.class);
-		when(writerjson.append(anyString())).thenReturn(writerjson);
-		doReturn(writerjson).when(instance).getOpendResourceFileObjectWriter(eq(json), eq(ProviderType.JSON));
-
 		
 		Set<? extends TypeElement> annotations = mock(Set.class);
 		Set elements = new HashSet<>();
@@ -129,10 +123,8 @@ public class OcelotProcessorTest {
 		boolean result = instance.process(annotations, roundEnv);
 		assertThat(result).isTrue();
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
-		verify(messager, times(2)).printMessage(any(Diagnostic.Kind.class), captureString.capture());
-		List<String> allValues = captureString.getAllValues();
-		assertThat(allValues.get(0)).isEqualTo(" javascript generation class : GeneratedClass");
-		assertThat(allValues.get(1)).isEqualTo(" json generation class : GeneratedClass");
+		verify(messager).printMessage(any(Diagnostic.Kind.class), captureString.capture());
+		assertThat(captureString.getValue()).isEqualTo(" javascript generation class : GeneratedClass");
 	}
 
 	/**
@@ -168,20 +160,6 @@ public class OcelotProcessorTest {
 	}
 
 	@Test
-	public void testCreateJsonServicesProvider() throws IOException {
-		System.out.println("createJsonServicesProvider");
-		doNothing().when(instance).createServicesProvider(anyString(), any(ProviderType.class));
-		String result = instance.createJsonServicesProvider();
-		assertThat(result).startsWith("srv_");
-	}
-
-	@Test
-	public void testCreateServicesProviderJson() throws IOException {
-		System.out.println("createServicesProviderJson");
-		testCreateServicesProvider(ProviderType.JSON);
-	}
-
-	@Test
 	public void testCreateServicesProviderJs() throws IOException {
 		System.out.println("createServicesProviderJs");
 		testCreateServicesProvider(ProviderType.JAVASCRIPT);
@@ -209,7 +187,7 @@ public class OcelotProcessorTest {
 		Writer writer = mock(Writer.class);
 		when(writer.append(any(CharSequence.class))).thenThrow(new IOException("ERROR"));
 		doReturn(writer).when(instance).getOpendSourceFileObjectWriter(anyString());
-		instance.createServicesProvider("srv_1234", ProviderType.JSON);
+		instance.createServicesProvider("srv_1234", ProviderType.JAVASCRIPT);
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Diagnostic.Kind> captureKind = ArgumentCaptor.forClass(Diagnostic.Kind.class);
 		verify(messager).printMessage(captureKind.capture(), captureString.capture());

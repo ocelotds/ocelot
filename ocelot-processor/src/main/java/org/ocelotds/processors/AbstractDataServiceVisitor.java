@@ -194,11 +194,11 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	 */
 	List<String> getArgumentsType(ExecutableElement methodElement) {
 		ExecutableType methodType = (ExecutableType) methodElement.asType();
-		List<String> argumentsType = new ArrayList<>();
+		List<String> res = new ArrayList<>();
 		for (TypeMirror argumentType : methodType.getParameterTypes()) {
-			argumentsType.add(argumentType.toString());
+			res.add(argumentType.toString());
 		}
-		return argumentsType;
+		return res;
 	}
 
 	/**
@@ -208,11 +208,11 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	 * @return
 	 */
 	List<String> getArguments(ExecutableElement methodElement) {
-		List<String> arguments = new ArrayList<>();
+		List<String> res = new ArrayList<>();
 		for (VariableElement variableElement : methodElement.getParameters()) {
-			arguments.add(variableElement.toString());
+			res.add(variableElement.toString());
 		}
-		return arguments;
+		return res;
 	}
 
 	@Override
