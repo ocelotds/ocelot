@@ -49,12 +49,12 @@ public class RolesAllowedInterceptor implements Serializable {
 		for (String roleAllowed : rolesAllowed) {
 			if(handshakeRequest.isUserInRole(roleAllowed)) {
 				if(logger.isDebugEnabled()) {
-					logger.debug("Check method {}.{} role {} is allowed", method.getDeclaringClass().getSimpleName(), method.getName(), roleAllowed);
+					logger.debug("Check method {}.{} : role {} is allowed", method.getDeclaringClass().getSimpleName(), method.getName(), roleAllowed);
 				}
 				return ctx.proceed();
 			}
 		}
-		throw new IllegalAccessException("'"+principal+"' is not allowed "+method.getDeclaringClass().getSimpleName()+"."+method.getName());
+		throw new IllegalAccessException("'"+principal+"' is not allowed to execute "+method.getDeclaringClass().getSimpleName()+"."+method.getName());
 	}
 
 	HandshakeRequest getHandshakeRequest() {

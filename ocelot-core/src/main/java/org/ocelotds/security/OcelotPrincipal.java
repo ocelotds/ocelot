@@ -25,4 +25,8 @@ public class OcelotPrincipal implements Principal {
 		return name;
 	}
 
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName()+"("+getName()+")";
+	}
 }
