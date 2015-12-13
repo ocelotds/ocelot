@@ -8,17 +8,20 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import javax.enterprise.util.Nonbinding;
+import javax.inject.Qualifier;
 
 /**
  * Annotation allows identify explosed classes to clients
  *
  * @author hhfrancois
  */
+@Qualifier
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
 public @interface DataService {
 
-	String resolver();
+	@Nonbinding String resolver();
 
-	String name() default "";
+	@Nonbinding String name() default "";
 }
