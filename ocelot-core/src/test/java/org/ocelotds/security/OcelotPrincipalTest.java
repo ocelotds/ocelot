@@ -44,5 +44,19 @@ public class OcelotPrincipalTest {
 		result = instance.getName();
 		assertThat(result).isEqualTo(expResult);
 	}
+	
+	@Test
+	public void testToString() {
+		System.out.println("toString");
+		ThreadLocalContextHolder.cleanupThread();
+		String result = instance.toString();
+		assertThat(result).isEqualTo("OcelotPrincipal("+Constants.ANONYMOUS+")");
+		String expResult = "username";
+		Principal p = mock(Principal.class);
+		when(p.getName()).thenReturn(expResult);
+		ThreadLocalContextHolder.put(Constants.PRINCIPAL, p);
+		result = instance.toString();
+		assertThat(result).isEqualTo("OcelotPrincipal("+expResult+")");
+	}
 
 }
