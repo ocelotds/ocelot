@@ -7,7 +7,6 @@ package org.ocelotds.messaging;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ocelotds.Constants;
-import java.io.IOException;
 import java.io.StringReader;
 import java.util.Objects;
 import javax.json.Json;
