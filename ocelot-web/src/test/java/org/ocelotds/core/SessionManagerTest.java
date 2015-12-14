@@ -53,7 +53,7 @@ public class SessionManagerTest {
 	public void init() {
 		when(topicAccessController.select(any(Annotation.class))).thenReturn(null);
 	}
-	
+
 	private static final Annotation DEFAULT_AT = new AnnotationLiteral<Default>() {
 		private static final long serialVersionUID = 1L;
 	};
@@ -132,7 +132,13 @@ public class SessionManagerTest {
 		System.out.println("registerTopicSession");
 		Session session = mock(Session.class);
 		when(session.isOpen()).thenReturn(true);
-		int result = sessionManager.registerTopicSession(TOPIC1, session);
+		int result = sessionManager.registerTopicSession(null, session);
+		assertThat(result).isEqualTo(0);
+
+		result = sessionManager.registerTopicSession("", session);
+		assertThat(result).isEqualTo(0);
+
+		result = sessionManager.registerTopicSession(TOPIC1, session);
 		assertThat(result).isEqualTo(1);
 		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(1);
 
@@ -162,7 +168,13 @@ public class SessionManagerTest {
 		System.out.println("unregisterTopicSession");
 		Session session = mock(Session.class);
 		when(session.isOpen()).thenReturn(true);
-		int result = sessionManager.registerTopicSession(TOPIC1, session);
+		int result = sessionManager.unregisterTopicSession(null, session);
+		assertThat(result).isEqualTo(0);
+
+		result = sessionManager.unregisterTopicSession("", session);
+		assertThat(result).isEqualTo(0);
+
+		result = sessionManager.registerTopicSession(TOPIC1, session);
 		assertThat(result).isEqualTo(1);
 		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(1);
 
@@ -177,7 +189,7 @@ public class SessionManagerTest {
 	 */
 	@Test
 	public void testUnregisterAllTopicSession() throws IllegalAccessException {
-		System.out.println("unregisterTopicSession");
+		System.out.println("unregisterAllTopicSession");
 		Session session = mock(Session.class);
 		when(session.isOpen()).thenReturn(true);
 		int result = sessionManager.registerTopicSession(TOPIC1, session);

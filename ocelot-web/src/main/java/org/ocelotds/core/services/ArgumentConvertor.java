@@ -31,6 +31,8 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	@OcelotLogger
 	private Logger logger;
 
+	@Inject
+	ObjectMapper objectMapper;
 	/**
 	 * Convert json to Java
 	 *
@@ -90,17 +92,16 @@ public class ArgumentConvertor implements IArgumentConvertor {
 		}
 		logger.debug("Try to convert {} : param = {} : {}", new Object[]{arg, paramType, paramType.getClass()});
 		try {
-			ObjectMapper mapper = new ObjectMapper();
 			if (ParameterizedType.class.isInstance(paramType)) {
 				JavaType javaType = getJavaType(paramType);
 				logger.debug("Try to convert '{}' to JavaType : '{}'", arg, paramType);
-				result = mapper.readValue(arg, javaType);
+				result = getObjectMapper().readValue(arg, javaType);
 				logger.debug("Conversion of '{}' to '{}' : OK", arg, paramType);
 			} else if (Class.class.isInstance(paramType)) {
 				Class cls = (Class) paramType;
 				logger.debug("Try to convert '{}' to Class '{}'", arg, paramType);
 				checkStringArgument(cls, arg);
-				result = mapper.readValue(arg, cls);
+				result = getObjectMapper().readValue(arg, cls);
 				logger.debug("Conversion of '{}' to '{}' : OK", arg, paramType);
 			}
 		} catch (IOException ex) {
@@ -158,6 +159,10 @@ public class ArgumentConvertor implements IArgumentConvertor {
 			javaType = SimpleType.construct(clazz);
 		}
 		return javaType;
+	}
+
+	ObjectMapper getObjectMapper() {
+		return objectMapper;
 	}
 	
 }

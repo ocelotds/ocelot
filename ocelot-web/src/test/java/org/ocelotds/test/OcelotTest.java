@@ -106,11 +106,6 @@ public class OcelotTest {
 
 	@Inject
 	@Any
-	@ServiceProvider(Constants.Provider.JSON)
-	private Instance<FileNameProvider> jsonProviders;
-
-	@Inject
-	@Any
 	@ServiceProvider(Constants.Provider.JAVASCRIPT)
 	private Instance<FileNameProvider> jsProviders;
 
@@ -586,12 +581,6 @@ public class OcelotTest {
 	public void testJsServiceProvider() {
 		System.out.println("testJsServiceProvider");
 		testServiceProvider(jsProviders, "js");
-	}
-
-	@Test
-	public void testHtmlServiceProvider() {
-		System.out.println("testHtmlServiceProvider");
-		testServiceProvider(jsonProviders, "json");
 	}
 
 	public void testServiceProvider(Instance<FileNameProvider> instances, String ext) {

@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.core.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -18,6 +19,7 @@ import javax.ws.rs.core.GenericType;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.Condition;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -49,6 +51,24 @@ public class ArgumentConvertorTest {
 	private final Annotation JSONUNMARSHALLER = new JsonUnmarshallerLiteral(LocaleUnmarshaller.class);
 	private final Annotation TRANSIENTDATASERVICE = new AnnotationLiteral<TransientDataService>() {
 	};
+
+	@Before
+	public void init() {
+		instance.objectMapper = new ObjectMapper();
+	}
+	
+	/**
+	 * Test of convertJsonToJava method, of class ArgumentConvertor.
+	 *
+	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
+	 */
+	@Test
+	public void testConvertNullJsonToJava() throws JsonUnmarshallingException {
+		System.out.println("convertNullJsonToJava");
+		doReturn(null).when(instance).getUnMarshallerAnnotation(any(Annotation[].class));
+		Object result = instance.convertJsonToJava("null", String.class, new Annotation[]{});
+		assertThat(result).isEqualTo(null);
+	}
 
 	/**
 	 * Test of convertJsonToJava method, of class ArgumentConvertor.
@@ -173,5 +193,13 @@ public class ArgumentConvertorTest {
 		Method method = ClassAsDataService.class.getMethod("methodWithBadUnmarshaller", String.class);
 		Annotation[] annotations = method.getParameterAnnotations()[0];
 		instance.convertJsonToJava("", null, annotations);
+	}
+	
+	@Test
+	public void testGetObjectMapper() {
+		System.out.println("getObjectMapper");
+		doCallRealMethod().when(instance).getObjectMapper();
+		ObjectMapper result = instance.getObjectMapper();
+		assertThat(result).isInstanceOf(ObjectMapper.class);
 	}
 }

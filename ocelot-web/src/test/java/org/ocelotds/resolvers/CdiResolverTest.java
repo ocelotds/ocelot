@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.resolvers;
 
+import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Set;
 import javax.ejb.Stateful;
@@ -56,7 +57,7 @@ public class CdiResolverTest {
 		Set<Bean<?>> set = new HashSet<>();
 		Bean b = mock(Bean.class);
 		set.add(b);
-		when(beanManager.getBeans(CDIBeanSession.class)).thenReturn(set);
+		when(beanManager.getBeans(any(Type.class), any(DataService.class))).thenReturn(set);
 		when(beanManager.createCreationalContext(any(Bean.class))).thenReturn(null);
 		when(beanManager.getReference(any(Bean.class), any(Class.class), any(CreationalContext.class))).thenReturn(expResult);
 		Object result = cdiResolver.resolveDataService(CDIBeanSession.class);
