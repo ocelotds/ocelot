@@ -3,6 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.ocelotds</groupId>
 	<artifactId>ocelot</artifactId>
+	<name>ocelot</name>
 	<version>2.6.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<description>Framework for communication way between java and javascript</description>	

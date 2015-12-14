@@ -7,5 +7,6 @@
 		<version>2.6.3-SNAPSHOT</version>
 	</parent>
 	<artifactId>ocelot-spi</artifactId>
+	<name>ocelot-spi</name>
 	<packaging>jar</packaging>
 </project>

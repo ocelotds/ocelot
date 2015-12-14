@@ -7,6 +7,7 @@
 		<version>2.6.3-SNAPSHOT</version>
 	</parent>
 	<artifactId>ocelot-processor</artifactId>
+	<name>ocelot-processor</name>
 	<packaging>jar</packaging>
 	<dependencies>
 		<dependency>
