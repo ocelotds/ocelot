@@ -137,6 +137,21 @@ body {
 		.codearea {
 			background-color: #5E615E;
 		}
+		.pink {
+			color: #AE70AF;
+		}
+		.green {
+			color: #9CCCB4;
+		}
+		.blue {
+			color: #1460AC;
+		}
+		.orange {
+			color: #EB9316;
+		}
+		.black {
+			color: #000000;
+		}
 		.func {
 			color: #BA5870;
 		}
@@ -201,6 +216,11 @@ body {
 	<!-- Services core JavaScript
 	================================================== -->
 	<script type="text/javascript">
+		var lut = []; for (var i=0; i<256; i++) { lut[i] = (i<16?'0':'')+(i).toString(16); }
+		function guid() {
+        var d0 = Math.random()*0xffffffff|0;
+        return lut[d0&0xff]+lut[d0>>8&0xff]+lut[d0>>16&0xff]+lut[d0>>24&0xff];
+      }
 		ocelotController.addOpenListener(function() {
 			new Subscriber("ocelot-status").message(function (msg) {
 				var statusText = document.getElementById("status-text");
@@ -245,67 +265,67 @@ body {
 			return li;
 		}
 		function createPanel(srvname, method) {
-			var panel = document.createElement("div");
+			var uid = guid(), panel = document.createElement("div");
 			panel.setAttribute("class", "panel panel-default");
-			panel.appendChild(createTab(srvname, method));
-			panel.appendChild(createTabPanel(srvname, method));
+			panel.appendChild(createTab(srvname, method, uid));
+			panel.appendChild(createTabPanel(srvname, method, uid));
 			return panel;
 		}
-		function createTab(srvname, method) {
-			var tab = document.createElement("div");
-			tab.setAttribute("id", srvname+"-"+method.name+"-heading");
+		function createTab(srvname, method, uid) {
+			var h4, button, tab = document.createElement("div");
+			tab.setAttribute("id", uid+"-heading");
 			tab.setAttribute("class", "panel-heading");
 			tab.setAttribute("role", "tab");
-			var button = document.createElement("div");
+			button = document.createElement("div");
 			tab.appendChild(button);
 			button.setAttribute("class", "collapsed");
 			button.setAttribute("role", "button");
 			button.setAttribute("data-toggle", "collapse");
 			button.setAttribute("data-parent", "#accordion");
-			button.setAttribute("href", "#"+srvname+"-"+method.name);
+			button.setAttribute("href", "#"+uid);
 			button.setAttribute("aria-expanded", "true");
-			button.setAttribute("aria-controls", srvname+"-"+method.name);
-			var h4 = document.createElement("h4");
+			button.setAttribute("aria-controls", uid);
+			h4 = document.createElement("h4");
 			h4.setAttribute("class", "panel-title");
 			button.appendChild(createTabPanelTitle(srvname, method));
 			return tab;
 		}
 		function createTabPanelTitle(srvname, method) {
-			var h4 = document.createElement("h4");
+			var span, b, h4 = document.createElement("h4");
 			h4.setAttribute("class", "panel-title");
-			h4.appendChild(document.createTextNode(method.returntype +" "));
-			var b = document.createElement("b");
-			h4.appendChild(b);
-			b.appendChild(document.createTextNode(srvname+"."+method.name));
-			h4.appendChild(document.createTextNode("("));
+			h4.appendChild(createColoredKey("pink", method.returntype +" ", "span")); // return
+			h4.appendChild(createColoredKey("blue", srvname, "span")); // instancename
+			h4.appendChild(createColoredKey("orange", ".", "b")); // .
+			h4.appendChild(createColoredKey("green", method.name, "span")); // methodname
+			h4.appendChild(createColoredKey("orange", "(", "b")); // (
 			method.argtypes.forEach(function (argtype, index, array) {
-				h4.appendChild(document.createTextNode(argtype+" "));
-				h4.appendChild(document.createTextNode(method.argnames[index]));
+				h4.appendChild(createColoredKey("pink", argtype+" ", "span")); // argtype
+				h4.appendChild(createColoredKey("black", method.argnames[index], "span")); // argname
 				if(index+1<method.argtypes.length) {
-					h4.appendChild(document.createTextNode(", "));
+					h4.appendChild(createColoredKey("orange", ", ", "b")); // ,
 				}
 			});
-			h4.appendChild(document.createTextNode(")"));
+			h4.appendChild(createColoredKey("orange", ")", "b")); // )
 			return h4;
 		}
 		
-		function createTabPanel(srvname, method) {
-			var row, cell, tabpanel = document.createElement("div");
-			tabpanel.setAttribute("id", srvname+"-"+method.name);
+		function createTabPanel(srvname, method, uid) {
+			var send, clear, input, inputgp, tabbody, row, cell, tabpanel = document.createElement("div");
+			tabpanel.setAttribute("id", uid);
 			tabpanel.setAttribute("class", "panel-collapse collapse");
 			tabpanel.setAttribute("role", "tabpanel");
-			tabpanel.setAttribute("aria-labelledby", srvname+"-"+method.name+"-heading");
-			var tabbody = document.createElement("div");
+			tabpanel.setAttribute("aria-labelledby", uid+"-heading");
+			tabbody = document.createElement("div");
 			tabbody.setAttribute("class", "panel-body");
 			tabpanel.appendChild(tabbody);
 			method.inputs = [];
 			method.responseArea = createResponseArea();
-			var send = createSendButton(srvname, method);
-			var clear = createClearButton(method.responseArea);
+			send = createSendButton(srvname, method);
+			clear = createClearButton(method.responseArea);
 			if(method.argtypes.length) {
 				method.argtypes.forEach(function (argtype, index, array) {
-					var inputgp = createInputGroup(argtype);
-					var input = createInput(method.argnames[index]);
+					inputgp = createInputGroup(argtype);
+					input = createInput(method.argnames[index]);
 					method.inputs[index] = input;
 					inputgp.appendChild(input);
 					if(index===array.length-1) {
@@ -348,9 +368,9 @@ body {
 			return cell;
 		}
 		function createInputGroup(argtype) {
-			var inputgp = document.createElement("div");
+			var span, inputgp = document.createElement("div");
 			inputgp.setAttribute("class", "input-group");
-			var span = document.createElement("span");
+			span = document.createElement("span");
 			inputgp.appendChild(span);
 			span.setAttribute("class", "input-group-addon");
 			span.appendChild(document.createTextNode(argtype));
@@ -383,8 +403,8 @@ body {
 		}
 
 		function createResponseArea() {
-			var pre = document.createElement("pre");
-			var code = document.createElement("code");
+			var code, pre = document.createElement("pre");
+			code = document.createElement("code");
 			code.setAttribute("class", "key");
 			pre.appendChild(code);
 			pre.setAttribute("class", "codearea");
@@ -392,51 +412,51 @@ body {
 		}
 		
 		function createHelp(srvname, method) {
-			var pre = document.createElement("pre");
-			var code = document.createElement("code");
+			var tablength, code, pre = document.createElement("pre");
+			code = document.createElement("code");
 			code.setAttribute("class", "key");
 			pre.appendChild(code);
-			var tablength = srvname.length + method.name.length + 3;
+			tablength = srvname.length + method.name.length + 3;
 			pre.setAttribute("class", "codearea");
-			code.appendChild(createColoredKey("key", srvname));
-			code.appendChild(createColoredKey("punctuation", "."));
-			code.appendChild(createColoredKey("key", method.name));
-			code.appendChild(createColoredKey("punctuation", "("));
+			code.appendChild(createColoredKey("key", srvname, "span"));
+			code.appendChild(createColoredKey("punctuation", ".", "span"));
+			code.appendChild(createColoredKey("key", method.name, "span"));
+			code.appendChild(createColoredKey("punctuation", "(", "span"));
 			method.argtemplates.forEach(function (argtemplate, index, array) {
 				if(index) {
-					code.appendChild(createColoredKey("punctuation", ", "));
+					code.appendChild(createColoredKey("punctuation", ", ", "span"));
 					tablength += 2;
 				}
 				code.appendChild(createColoredKey("key", argtemplate));
 				tablength += argtemplate.length;
 			});
-			code.appendChild(createColoredKey("punctuation", ")"));
-			code.appendChild(createColoredKey("punctuation", "."));
+			code.appendChild(createColoredKey("punctuation", ")", "span"));
+			code.appendChild(createColoredKey("punctuation", ".", "span"));
 			code.appendChild(createFunction("event", "evt:OcelotEvent", "if(evt.type===\"RESULT\") {\n      // OK\n   } else {\n      // FAIL\n   }"));
-			code.appendChild(createColoredKey("punctuation", "."));
+			code.appendChild(createColoredKey("punctuation", ".", "span"));
 			code.appendChild(createFunction("then", "result", "// OK"));
-			code.appendChild(createColoredKey("punctuation", "."));
+			code.appendChild(createColoredKey("punctuation", ".", "span"));
 			code.appendChild(createFunction("catch", "fault:Fault", "// FAIL"));
-			code.appendChild(createColoredKey("punctuation", ";"));
+			code.appendChild(createColoredKey("punctuation", ";", "span"));
 			return pre;
 		}
 		function createFunction(func, varg, body) {
 			var span = document.createElement("span");
-			span.appendChild(createColoredKey("key", func));
-			span.appendChild(createColoredKey("punctuation", "("));
-			span.appendChild(createColoredKey("func", "function"));
-			span.appendChild(createColoredKey("punctuation", "("));
-			span.appendChild(createColoredKey("key", varg));
-			span.appendChild(createColoredKey("punctuation", ") {"));
+			span.appendChild(createColoredKey("key", func, "span"));
+			span.appendChild(createColoredKey("punctuation", "(", "span"));
+			span.appendChild(createColoredKey("func", "function", "span"));
+			span.appendChild(createColoredKey("punctuation", "(", "span"));
+			span.appendChild(createColoredKey("key", varg, "span"));
+			span.appendChild(createColoredKey("punctuation", ") {", "span"));
 			span.appendChild(document.createElement("br"));
 			span.appendChild(document.createTextNode("   "));
-			span.appendChild(createColoredKey("key", body));
+			span.appendChild(createColoredKey("key", body, "span"));
 			span.appendChild(document.createElement("br"));
-			span.appendChild(createColoredKey("punctuation", "})"));
+			span.appendChild(createColoredKey("punctuation", "})", "span"));
 			return span;
 		}
-		function createColoredKey(style, key) {
-			var span = document.createElement("span");
+		function createColoredKey(style, key, node) {
+			var span = document.createElement(node);
 			span.setAttribute("class", style);
 			span.appendChild(document.createTextNode(key));
 			return span;
