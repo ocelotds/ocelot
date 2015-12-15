@@ -126,7 +126,7 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	 */
 	String computeComment(String comment, String space) {
 		String replace = "\n"+space+"*";
-		return comment.replaceAll("\n", replace);
+		return comment.replaceAll("\n", replace).replaceAll("([\\{\\[\"])", "\\$1");
 	}
 
 	/**
