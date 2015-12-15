@@ -50,7 +50,7 @@ public class OcelotServicesTest {
 	private OcelotContext ocelotContext;
 
 	@Mock
-	private ObjectMapper objectMapper;
+	private ServiceTools serviceTools;
 
 	@Mock
 	private Instance<Object> dataservices;

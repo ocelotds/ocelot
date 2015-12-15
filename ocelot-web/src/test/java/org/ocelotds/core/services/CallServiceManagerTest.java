@@ -6,6 +6,7 @@ package org.ocelotds.core.services;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -101,7 +102,7 @@ public class CallServiceManagerTest {
 		MessageFromClient message = new MessageFromClient();
 		message.setOperation("methodWith2Arguments");
 		message.setParameters(Arrays.asList("5", "\"toto\""));
-		Object[] arguments = new Object[2];
+		List<Object> arguments = new ArrayList<>();
 		Method expResult = dsClass.getMethod("methodWith2Arguments", new Class<?>[]{Integer.class, String.class});
 
 		when(argumentsServices.convertJsonToJava(eq("5"), any(Type.class), any(Annotation[].class))).thenReturn(5);
@@ -124,7 +125,7 @@ public class CallServiceManagerTest {
 		MessageFromClient message = new MessageFromClient();
 		message.setOperation("methodWith2Arguments");
 		message.setParameters(Arrays.asList("\"toto\"", "5"));
-		Object[] arguments = new Object[2];
+		List<Object> arguments = new ArrayList<>();
 		
 		when(argumentsServices.convertJsonToJava(anyString(), any(Type.class), any(Annotation[].class))).thenThrow(JsonUnmarshallingException.class);
 
@@ -145,7 +146,7 @@ public class CallServiceManagerTest {
 		message.setOperation("methodWithUnmarshaller");
 		String json = "{\"language\":\"fr\",\"country\":\"FR\"}";
 		message.setParameters(Arrays.asList(json));
-		Object[] arguments = new Object[1];
+		List<Object> arguments = new ArrayList<>();
 		Method expResult = dsClass.getMethod("methodWithUnmarshaller", new Class<?>[]{Locale.class});
 		
 		when(argumentsServices.convertJsonToJava(eq(json), any(Type.class), any(Annotation[].class))).thenReturn(new Locale("fr", "FR"));
@@ -153,7 +154,7 @@ public class CallServiceManagerTest {
 		Method result = instance.getMethodFromDataService(dsClass, message, arguments);
 		assertThat(result).isEqualTo(expResult);
 		assertThat(arguments).hasSize(1);
-		Locale l = (Locale) arguments[0];
+		Locale l = (Locale) arguments.get(0);
 		assertThat(l.getCountry()).isEqualTo("FR");
 		assertThat(l.getLanguage()).isEqualTo("fr");
 	}
