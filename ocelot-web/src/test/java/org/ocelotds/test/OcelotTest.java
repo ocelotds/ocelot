@@ -1548,6 +1548,24 @@ public class OcelotTest {
 
 	}
 
+	/**
+	 * Teste l'appel de methode avec la même signature, sauf les arguments
+	 */
+	@Test
+	public void testMethodWithAlmostSameSignature3() {
+		Class clazz = PojoDataService.class;
+		String methodName = "methodWithAlmostSameSignature";
+		System.out.println(methodName + "(string, string)");
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson("foo"), getJson("foo"));
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			Object result = messageToClient.getResponse();
+			assertEquals(getJson(destination.methodWithAlmostSameSignature("foo", "foo")), result);
+		} catch (IOException exception) {
+		}
+
+	}
+
 	final int NB_SIMUL_METHODS = 200;
 
 	/**

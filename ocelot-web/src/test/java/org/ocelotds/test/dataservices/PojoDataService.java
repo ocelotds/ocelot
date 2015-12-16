@@ -168,4 +168,8 @@ public class PojoDataService {
 	public String methodWithAlmostSameSignature(String i) {
 		return "String";
 	}
+
+	public String methodWithAlmostSameSignature(String i, String i2) {
+		return "String2";
+	}
 }

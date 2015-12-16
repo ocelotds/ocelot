@@ -18,8 +18,12 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -51,13 +55,23 @@ public class CallServiceManager implements CallService {
 
 	@Inject
 	private CacheManager cacheManager;
-	
+
 	@Inject
 	private ArgumentConvertor convertor;
 
 	IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
 	}
+	private final Comparator comparator = new Comparator<Method>() {
+		@Override
+		public int compare(Method o1, Method o2) {
+			int res = o1.getParameterCount() - o2.getParameterCount();
+			if (res == 0) {
+				return -1;
+			}
+			return res;
+		}
+	};
 
 	/**
 	 * Get pertinent method and fill the argument list from message arguments
@@ -68,29 +82,88 @@ public class CallServiceManager implements CallService {
 	 * @return
 	 * @throws java.lang.NoSuchMethodException
 	 */
-	Method getMethodFromDataService(final Class dsClass, final MessageFromClient message, Object[] arguments) throws NoSuchMethodException {
+	Method getMethodFromDataService(final Class dsClass, final MessageFromClient message, List<Object> arguments) throws NoSuchMethodException {
 		logger.debug("Try to find method {} on class {}", message.getOperation(), dsClass);
 		List<String> parameters = message.getParameters();
-		for (Method method : dsClass.getMethods()) {
-			if (method.getName().equals(message.getOperation()) && method.getParameterTypes().length == parameters.size()) {
-				logger.debug("Process method {}", method.getName());
-				try {
-					Type[] paramTypes = method.getGenericParameterTypes();
-					Annotation[][] parametersAnnotations = method.getParameterAnnotations();
-					int idx = 0;
-					for (Type paramType : paramTypes) {
-						logger.debug("Try to convert argument ({}) {} : {}.", new Object[]{idx, paramType.toString(), parameters.get(idx)});
-						arguments[idx] = convertor.convertJsonToJava(parameters.get(idx), paramType, parametersAnnotations[idx]);
-						idx++;
+		int nbparam = parameters.size() - getNumberOfNullEnderParameter(parameters); // determine how many parameter is null at the end
+		List<Method> candidates = getSortedCandidateMethods(message.getOperation(), dsClass.getMethods()); // take only method with the good name, and orderedby number of arguments
+		while (nbparam <= parameters.size()) {
+			for (Method method : candidates) {
+				if (method.getParameterTypes().length == nbparam) {
+					logger.debug("Process method {}", method.getName());
+					try {
+						checkMethod(method, arguments, parameters, nbparam);
+						logger.debug("Method {}.{} with good signature found.", dsClass, message.getOperation());
+						return method;
+					} catch (JsonUnmarshallingException | IllegalArgumentException iae) {
+						logger.debug("Method {}.{} not found. Some arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
 					}
-					logger.debug("Method {}.{} with good signature found.", dsClass, message.getOperation());
-					return method;
-				} catch (JsonUnmarshallingException | IllegalArgumentException iae) {
-					logger.debug("Method {}.{} not found. Some arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
+					arguments.clear();
 				}
 			}
+			nbparam++;
 		}
 		throw new NoSuchMethodException(dsClass + "." + message.getOperation());
+	}
+
+	/**
+	 * Check if for nbparam in parameters the method is correct. If yes, store parameters String converted to Java in arguments list
+	 *
+	 * @param method
+	 * @param arguments
+	 * @param parameters
+	 * @param nbparam
+	 * @throws IllegalArgumentException
+	 * @throws JsonUnmarshallingException
+	 */
+	void checkMethod(Method method, List<Object> arguments, List<String> parameters, int nbparam) throws IllegalArgumentException, JsonUnmarshallingException {
+		Type[] paramTypes = method.getGenericParameterTypes();
+		Annotation[][] parametersAnnotations = method.getParameterAnnotations();
+		int idx = 0;
+		for (Type paramType : paramTypes) {
+			logger.debug("Try to convert argument ({}) {} : {}.", new Object[]{idx, paramType, parameters.get(idx)});
+			arguments.add(convertor.convertJsonToJava(parameters.get(idx), paramType, parametersAnnotations[idx]));
+			idx++;
+			if (idx > nbparam) {
+				throw new IllegalArgumentException();
+			}
+		}
+	}
+
+	/**
+	 * return candidates method (same name) sort by number of arguments
+	 *
+	 * @param methodName
+	 * @param methods
+	 * @return
+	 */
+	List<Method> getSortedCandidateMethods(String methodName, Method[] methods) {
+		List<Method> candidates = new ArrayList<>();
+		for (Method method : methods) {
+			if (method.getName().equals(methodName)) {
+				candidates.add(method);
+			}
+		}
+		candidates.sort(comparator);
+		return candidates;
+	}
+
+	/**
+	 * Return the number of null parameter at the end of list
+	 *
+	 * @param parameters
+	 * @return
+	 */
+	int getNumberOfNullEnderParameter(List<String> parameters) {
+		int nbnull = 0;
+		for (int i = parameters.size() - 1; i >= 0; i--) {
+			String parameter = parameters.get(i);
+			if (parameter.equals("null")) {
+				nbnull++;
+			}
+			break;
+		}
+		return nbnull;
 	}
 
 	/**
@@ -159,10 +232,9 @@ public class CallServiceManager implements CallService {
 			Class cls = Class.forName(message.getDataService());
 			Object dataService = this.getDataService(client, cls);
 			logger.debug("Process message {}", message);
-			int nbParam = message.getParameters().size();
-			Object[] arguments = new Object[nbParam];
+			List<Object> arguments = new ArrayList<>();
 			Method method = this.getMethodFromDataService(cls, message, arguments);
-			messageToClient.setResult(method.invoke(dataService, arguments));
+			messageToClient.setResult(method.invoke(dataService, arguments.toArray()));
 			if (method.isAnnotationPresent(JsonMarshaller.class)) {
 				JsonMarshaller jm = method.getAnnotation(JsonMarshaller.class);
 				Class<? extends org.ocelotds.marshalling.JsonMarshaller> marshallerCls = jm.value();
