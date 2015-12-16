@@ -63,7 +63,7 @@ public class CallServiceManager implements CallService {
 	private final Comparator comparator = new Comparator<Method>() {
 		@Override
 		public int compare(Method o1, Method o2) {
-			int res = o1.getParameterCount() - o2.getParameterCount();
+			int res = o1.getParameterTypes().length - o2.getParameterTypes().length;
 			if (res == 0) {
 				return -1;
 			}
