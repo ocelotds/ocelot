@@ -176,6 +176,7 @@ public class OcelotServicesTest {
 	
 	@Test
 	public void testGetServices() {
+		System.out.println("getServices");
 //		Instance<IServicesProvider> services = instance.getServices();
 //		assertThat(services).isEqualTo(jsonServicesProviders);
 	}

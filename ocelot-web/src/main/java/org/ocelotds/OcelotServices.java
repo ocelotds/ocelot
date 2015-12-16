@@ -123,23 +123,27 @@ public class OcelotServices {
 			Class cls = serviceTools.getRealClass(dataservice.getClass());
 			OcelotService ocelotService = new OcelotService(serviceTools.getInstanceNameFromDataservice(cls));
 			result.add(ocelotService);
-			Method[] methods = cls.getDeclaredMethods();
+			Method[] methods = cls.getMethods();
 			for (Method method : methods) {
 				if (serviceTools.isConsiderateMethod(method)) {
-					OcelotMethod ocelotMethod = new OcelotMethod(method.getName(), serviceTools.getShortName(serviceTools.getLiteralType(method.getGenericReturnType())));
-					ocelotService.getMethods().add(ocelotMethod);
-					Annotation[][] annotations = method.getParameterAnnotations();
-					Type[] types = method.getGenericParameterTypes();
-					int index = 0;
-					for (Type type : types) {
-						ocelotMethod.getArgtypes().add(serviceTools.getShortName(serviceTools.getLiteralType(type)));
-						ocelotMethod.getArgnames().add("arg"+index);
-						ocelotMethod.getArgtemplates().add(serviceTools.getTemplateOfType(type, serviceTools.isJsonUnmarshallerAnnotationPresent(annotations[index])));
-						index++;
-					}
+					ocelotService.getMethods().add(getOcelotMethod(method));
 				}
 			}
 		}
 		return result;
+	}
+	
+	private OcelotMethod getOcelotMethod(Method method) {
+		OcelotMethod ocelotMethod = new OcelotMethod(method.getName(), serviceTools.getShortName(serviceTools.getLiteralType(method.getGenericReturnType())));
+		Annotation[][] annotations = method.getParameterAnnotations();
+		Type[] types = method.getGenericParameterTypes();
+		int index = 0;
+		for (Type type : types) {
+			ocelotMethod.getArgtypes().add(serviceTools.getShortName(serviceTools.getLiteralType(type)));
+			ocelotMethod.getArgnames().add("arg"+index);
+			ocelotMethod.getArgtemplates().add(serviceTools.getTemplateOfType(type, serviceTools.getJsonUnmarshaller(annotations[index])));
+			index++;
+		}
+		return ocelotMethod;
 	}
 }
