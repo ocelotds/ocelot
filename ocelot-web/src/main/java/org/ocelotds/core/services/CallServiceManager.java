@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -142,7 +143,7 @@ public class CallServiceManager implements CallService {
 				candidates.add(method);
 			}
 		}
-		candidates.sort(comparator);
+		Collections.sort(candidates, comparator);
 		return candidates;
 	}
 
