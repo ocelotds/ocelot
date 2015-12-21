@@ -126,7 +126,7 @@ public class HtmlFileInitializerTest {
 	@Test(expected = IOException.class)
 	public void testCreateOcelotHtmlFileFail() throws IOException {
 		System.out.println("createOcelotHtmlFileFail");
-		doReturn(null).when(instance).getContentURL();
+		doReturn(null).when(instance).getContentURL(anyString());
 		((FakeCDI) htmlServicesProviders).add(new HtmlServiceProviderImpl());
 		instance.createOcelotHtmlFile("/");
 	}

@@ -4,6 +4,7 @@
 package org.ocelotds.configuration;
 
 import java.io.File;
+import java.net.URL;
 
 /**
  *
@@ -26,4 +27,7 @@ public abstract class AbstractFileInitializer {
 		return false;
 	}
 	
+	URL getContentURL(String resourcename) {
+		return AbstractFileInitializer.class.getResource(resourcename);
+	}
 }

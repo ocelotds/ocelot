@@ -145,7 +145,7 @@ public class JsFileInitializer extends AbstractFileInitializer {
 	 * @throws IOException
 	 */
 	void writeOcelotCoreJsFile(OutputStream out, String ctxPath) throws IOException {
-		URL js = this.getClass().getResource(OCELOT_CORE_RESOURCE);
+		URL js = getContentURL(OCELOT_CORE_RESOURCE);
 		if (null == js) {
 			throw new IOException("File " + OCELOT_CORE_RESOURCE + " not found in classpath.");
 		}
