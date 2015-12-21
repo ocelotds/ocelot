@@ -21,7 +21,7 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import org.ocelotds.core.CDIBeanResolver;
+import org.ocelotds.core.CdiBeanResolver;
 import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,20 +105,20 @@ public class OcelotEndpoint {
 
 	SessionManager getSessionManager() {
 		if (null == sessionManager) {
-			sessionManager = getCDIBeanResolver().getBean(SessionManager.class);
+			sessionManager = getCdiBeanResolver().getBean(SessionManager.class);
 		}
 		return sessionManager;
 	}
 
 	CallServiceManager getCallServiceManager() {
 		if (null == callServiceManager) {
-			callServiceManager = getCDIBeanResolver().getBean(CallServiceManager.class);
+			callServiceManager = getCdiBeanResolver().getBean(CallServiceManager.class);
 		}
 		return callServiceManager;
 	}
 	
-	CDIBeanResolver getCDIBeanResolver() {
-		return new CDIBeanResolver();  // Tomcat exploit
+	CdiBeanResolver getCdiBeanResolver() {
+		return new CdiBeanResolver();  // Tomcat exploit
 	}
 
 }

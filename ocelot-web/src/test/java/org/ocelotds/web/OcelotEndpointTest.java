@@ -22,7 +22,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
-import org.ocelotds.core.CDIBeanResolver;
+import org.ocelotds.core.CdiBeanResolver;
 import org.ocelotds.core.services.CallServiceManager;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.messaging.MessageFromClient;
@@ -141,9 +141,9 @@ public class OcelotEndpointTest {
 	public void testGetSessionManager() {
 		System.out.println("getSessionManager");
 		OcelotEndpoint oe = spy(new OcelotEndpoint());
-		CDIBeanResolver resolver = mock(CDIBeanResolver.class);
+		CdiBeanResolver resolver = mock(CdiBeanResolver.class);
 		when(resolver.getBean(eq(SessionManager.class))).thenReturn(new SessionManager());
-		doReturn(resolver).when(oe).getCDIBeanResolver();
+		doReturn(resolver).when(oe).getCdiBeanResolver();
 
 		SessionManager result = oe.getSessionManager();
 
@@ -154,9 +154,9 @@ public class OcelotEndpointTest {
 	public void testGetCallServiceManager() {
 		System.out.println("getCallServiceManager");
 		OcelotEndpoint oe = spy(new OcelotEndpoint());
-		CDIBeanResolver resolver = mock(CDIBeanResolver.class);
+		CdiBeanResolver resolver = mock(CdiBeanResolver.class);
 		when(resolver.getBean(eq(CallServiceManager.class))).thenReturn(new CallServiceManager());
-		doReturn(resolver).when(oe).getCDIBeanResolver();
+		doReturn(resolver).when(oe).getCdiBeanResolver();
 	
 		CallServiceManager result = oe.getCallServiceManager();
 		
@@ -166,8 +166,8 @@ public class OcelotEndpointTest {
 	@Test
 	public void testGetCDIBeanResolver() {
 		System.out.println("getCDIBeanResolver");
-		CDIBeanResolver cdiBeanResolver = ocelotEndpoint.getCDIBeanResolver();
-		assertThat(cdiBeanResolver).isInstanceOf(CDIBeanResolver.class);
+		CdiBeanResolver cdiBeanResolver = ocelotEndpoint.getCdiBeanResolver();
+		assertThat(cdiBeanResolver).isInstanceOf(CdiBeanResolver.class);
 	}
 	
 	@Test

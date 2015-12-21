@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Locale;
 import java.util.Map;
 import javax.inject.Inject;
 import org.ocelotds.annotations.DataService;
@@ -173,7 +174,7 @@ public class ServiceTools {
 			} catch (InstantiationException | IllegalAccessException | JsonProcessingException ex) {
 			}
 		}
-		return cls.getSimpleName().toLowerCase();
+		return cls.getSimpleName().toLowerCase(Locale.ENGLISH);
 	}
 
 	/**
@@ -191,7 +192,7 @@ public class ServiceTools {
 		} else if (Map.class.isAssignableFrom(cls)) {
 			res = getTemplateOfMap(actualTypeArguments);
 		} else {
-			res = cls.getSimpleName().toLowerCase();
+			res = cls.getSimpleName().toLowerCase(Locale.ENGLISH);
 		}
 		return res;
 	}
@@ -219,16 +220,17 @@ public class ServiceTools {
 	 * @return
 	 */
 	String getTemplateOfMap(Type[] actualTypeArguments) {
-		String res = "{";
+		StringBuilder res = new StringBuilder("{");
 		boolean first = true;
 		for (Type actualTypeArgument : actualTypeArguments) {
 			if (!first) {
-				res += ":";
+				res.append(":");
 			}
-			res += _getTemplateOfType(actualTypeArgument);
+			res.append(_getTemplateOfType(actualTypeArgument));
 			first = false;
 		}
-		return res + "}";
+		res.append("}");
+		return res.toString();
 	}
 
 	/**
@@ -238,7 +240,7 @@ public class ServiceTools {
 	 * @return
 	 */
 	String getInstanceName(String clsName) {
-		return clsName.substring(0, 1).toLowerCase() + clsName.substring(1);
+		return clsName.substring(0, 1).toLowerCase(Locale.ENGLISH) + clsName.substring(1);
 	}
 	
 	/**
@@ -257,7 +259,7 @@ public class ServiceTools {
 	 * @throws java.lang.ClassNotFoundException
 	 */
 	String getRealClassname(String proxyname) throws ClassNotFoundException {
-		int index = proxyname.indexOf("$");
+		int index = proxyname.indexOf('$');
 		if (index != -1) {
 			return proxyname.substring(0, index);
 		} else {

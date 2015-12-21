@@ -13,7 +13,7 @@ import javax.enterprise.util.Nonbinding;
 import javax.interceptor.InterceptorBinding;
 
 /**
- * Annotation specifies that the method annotated result is publmic to Topic
+ * Annotation specifies that the method annotated result is public to Topic
  * @author hhfrancois
  */
 @Inherited

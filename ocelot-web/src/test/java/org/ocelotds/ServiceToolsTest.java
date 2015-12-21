@@ -214,7 +214,7 @@ public class ServiceToolsTest {
 	@Test
 	public void testGetRealClass() throws ClassNotFoundException {
 		System.out.println("getRealClass");
-		doReturn("java.lang.String").doThrow(ClassNotFoundException.class).when(instance).getRealClassname(any(String.class));
+		doReturn("java.lang.String").doThrow(ClassNotFoundException.class).when(instance).getRealClassname(anyString());
 		Class result = instance.getRealClass(Integer.class);
 		assertThat(result).isEqualTo(String.class);
 

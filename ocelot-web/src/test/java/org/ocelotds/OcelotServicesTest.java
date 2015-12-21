@@ -3,15 +3,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
 import javax.websocket.Session;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -21,10 +20,11 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ocelotds.annotations.DataService;
 import org.ocelotds.context.OcelotContext;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.core.UpdatedCacheManager;
+import org.ocelotds.marshalling.JsonUnmarshaller;
+import org.ocelotds.objects.OcelotMethod;
 import org.slf4j.Logger;
 
 /**
@@ -181,4 +181,39 @@ public class OcelotServicesTest {
 //		assertThat(services).isEqualTo(jsonServicesProviders);
 	}
 	
+	@Test
+	public void testGetOcelotMethod0Arg() throws NoSuchMethodException {
+		System.out.println("getOcelotMethod");
+		Method method = this.getClass().getDeclaredMethod("methodWith0Arg");
+		when(serviceTools.getShortName(anyString())).thenReturn("returntype");
+		OcelotMethod result = instance.getOcelotMethod(method);
+		assertThat(result).isNotNull();
+		assertThat(result.getName()).isEqualTo("methodWith0Arg");
+		assertThat(result.getReturntype()).isEqualTo("returntype");
+		assertThat(result.getArgtypes()).isEmpty();
+		assertThat(result.getArgnames()).isEmpty();
+		assertThat(result.getArgtemplates()).isEmpty();
+	}
+	
+	@Test
+	public void testGetOcelotMethod2Args() throws NoSuchMethodException {
+		System.out.println("getOcelotMethod");
+		Method method = this.getClass().getDeclaredMethod("methodWith2Args", String.class, String.class);
+		when(serviceTools.getShortName(anyString())).thenReturn("returntype").thenReturn("argtype");
+		when(serviceTools.getTemplateOfType(any(Type.class), any(JsonUnmarshaller.class))).thenReturn("template");
+		OcelotMethod result = instance.getOcelotMethod(method);
+		assertThat(result).isNotNull();
+		assertThat(result.getName()).isEqualTo("methodWith2Args");
+		assertThat(result.getReturntype()).isEqualTo("returntype");
+		assertThat(result.getArgtypes()).hasSize(2);
+		assertThat(result.getArgnames()).hasSize(2);
+		assertThat(result.getArgtemplates()).hasSize(2);
+	}
+
+	private void methodWith0Arg() {
+		
+	}
+	private void methodWith2Args(String a, String b) {
+		
+	}
 }

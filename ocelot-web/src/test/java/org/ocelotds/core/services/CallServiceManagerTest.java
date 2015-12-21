@@ -3,10 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.core.services;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -19,16 +16,13 @@ import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import org.ocelotds.messaging.MessageFromClient;
 import org.assertj.core.data.Offset;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.Spy;
-import org.ocelotds.configuration.OcelotConfiguration;
 import org.ocelotds.messaging.Fault;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.resolvers.DataServiceResolverIdLitteral;
@@ -40,9 +34,9 @@ import static org.assertj.core.api.Assertions.*;
 import org.ocelotds.Constants;
 import org.ocelotds.core.CacheManager;
 import org.ocelotds.marshallers.LocaleMarshaller;
+import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
-import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
-import org.ocelotds.resolvers.PojoResolver;
+import org.ocelotds.resolvers.CdiResolver;
 import org.slf4j.Logger;
 
 /**
@@ -56,10 +50,7 @@ public class CallServiceManagerTest {
 	private Instance<IDataServiceResolver> resolvers;
 
 	@Mock
-	private OcelotConfiguration configuration;
-
-	@Mock
-	private ArgumentConvertor argumentsServices;
+	private ArgumentServices argumentServices;
 
 	@Spy
 	@InjectMocks
@@ -68,14 +59,15 @@ public class CallServiceManagerTest {
 	@Mock
 	private Logger logger;
 
+	@Mock
+	private MethodServices methodServices;
+
+	@Mock
+	private FaultServices faultServices;
+
 	@Spy
 	@InjectMocks
 	private CallServiceManager instance;
-
-	@Before
-	public void init() {
-		when(configuration.getStacktracelength()).thenReturn(0);
-	}
 
 	/**
 	 * Test of getResolver method, of class CallServiceManager.
@@ -83,80 +75,10 @@ public class CallServiceManagerTest {
 	@Test
 	public void testGetResolver() {
 		Instance<IDataServiceResolver> inst = mock(Instance.class);
-		when(resolvers.select(eq(new DataServiceResolverIdLitteral("pojo")))).thenReturn(inst);
-		when(inst.get()).thenReturn(new PojoResolver());
-		IDataServiceResolver result = instance.getResolver("pojo");
-		assertThat(result).isInstanceOf(PojoResolver.class);
-	}
-
-	/**
-	 * Test of getMethodFromDataService method, of class CallServiceManager.
-	 *
-	 * @throws java.lang.NoSuchMethodException
-	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 */
-	@Test
-	public void testGetMethodFromDataService() throws NoSuchMethodException, JsonUnmarshallingException {
-		System.out.println("getMethodFromDataService");
-		Class dsClass = ClassAsDataService.class;
-		MessageFromClient message = new MessageFromClient();
-		message.setOperation("methodWith2Arguments");
-		message.setParameters(Arrays.asList("5", "\"toto\""));
-		List<Object> arguments = new ArrayList<>();
-		Method expResult = dsClass.getMethod("methodWith2Arguments", new Class<?>[]{Integer.class, String.class});
-
-		when(argumentsServices.convertJsonToJava(eq("5"), any(Type.class), any(Annotation[].class))).thenReturn(5);
-		when(argumentsServices.convertJsonToJava(eq("\"toto\""), any(Type.class), any(Annotation[].class))).thenReturn("toto");
-
-		Method result = instance.getMethodFromDataService(dsClass, message, arguments);
-		assertThat(result).isEqualTo(expResult);
-	}
-
-	/**
-	 * Test of getMethodFromDataService method, of class CallServiceManager.
-	 *
-	 * @throws java.lang.NoSuchMethodException
-	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 */
-	@Test(expected = NoSuchMethodException.class)
-	public void testGetMethodFromDataServiceNotFound() throws NoSuchMethodException, JsonUnmarshallingException {
-		System.out.println("getMethodFromDataService");
-		Class dsClass = ClassAsDataService.class;
-		MessageFromClient message = new MessageFromClient();
-		message.setOperation("methodWith2Arguments");
-		message.setParameters(Arrays.asList("\"toto\"", "5"));
-		List<Object> arguments = new ArrayList<>();
-		
-		when(argumentsServices.convertJsonToJava(anyString(), any(Type.class), any(Annotation[].class))).thenThrow(JsonUnmarshallingException.class);
-
-		instance.getMethodFromDataService(dsClass, message, arguments);
-	}
-
-	/**
-	 * Test of getMethodFromDataService method, of class CallServiceManager.
-	 *
-	 * @throws java.lang.NoSuchMethodException
-	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 */
-	@Test
-	public void testGetMethodFromDataServiceWithWithUnmarshaller() throws NoSuchMethodException, JsonUnmarshallingException {
-		System.out.println("getMethodFromDataService");
-		Class dsClass = ClassAsDataService.class;
-		MessageFromClient message = new MessageFromClient();
-		message.setOperation("methodWithUnmarshaller");
-		String json = "{\"language\":\"fr\",\"country\":\"FR\"}";
-		message.setParameters(Arrays.asList(json));
-		List<Object> arguments = new ArrayList<>();
-		Method expResult = dsClass.getMethod("methodWithUnmarshaller", new Class<?>[]{Locale.class});
-		
-		when(argumentsServices.convertJsonToJava(eq(json), any(Type.class), any(Annotation[].class))).thenReturn(new Locale("fr", "FR"));
-		
-		Method result = instance.getMethodFromDataService(dsClass, message, arguments);
-		assertThat(result).isEqualTo(expResult);
-		assertThat(arguments).hasSize(1);
-		Locale l = (Locale) arguments.get(0);
-		assertThat(l.getCountry()).isEqualTo("FR");
-		assertThat(l.getLanguage()).isEqualTo("fr");
+		when(resolvers.select(eq(new DataServiceResolverIdLitteral("cdi")))).thenReturn(inst);
+		when(inst.get()).thenReturn(new CdiResolver());
+		IDataServiceResolver result = instance.getResolver("cdi");
+		assertThat(result).isInstanceOf(CdiResolver.class);
 	}
 
 	/**
@@ -235,16 +157,152 @@ public class CallServiceManagerTest {
 	}
 
 	/**
-	 * Test of sendMessageToClient method, of class CallServiceManager.
+	 * Test of createMessageToClient method, of class CallServiceManager.
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void testCreateMessageToClient() throws Exception {
+		String methodname = "methodReturnString";
+		System.out.println("createMessageToClient("+methodname+")");
+		Class cls = ClassAsDataService.class;
+		MessageFromClient message = new MessageFromClient();
+		message.setDataService(cls.getName());
+		message.setOperation(methodname);
+		message.setParameterNames(Arrays.asList("a"));
+		message.setParameters(Arrays.asList("\"v\""));
+		message.setId(UUID.randomUUID().toString());
+		Session client = mock(Session.class);
+		Method method = cls.getMethod(methodname, String.class);
+
+		ClassAsDataService obj = new ClassAsDataService();
+		
+		doReturn(obj).when(instance).getDataService(any(Session.class), any(Class.class));
+		doReturn(Arrays.asList("v")).when(instance).getArrayList();
+		when(methodServices.getMethodFromDataService(any(Class.class), any(MessageFromClient.class), anyList())).thenReturn(method);
+		when(methodServices.getNonProxiedMethod(any(Class.class), anyString(), any(Class[].class))).thenReturn(method);
+		
+		MessageToClient result = instance.createMessageToClient(message, client);
+
+		assertThat(result.getResponse()).isEqualTo(obj.methodReturnString("v"));
+	}
+
+	/**
+	 * Test of createMessageToClient method, of class CallServiceManager.
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void testCreateMessageToClient2() throws Exception {
+		String methodname = "methodReturnString2";
+		System.out.println("createMessageToClient("+methodname+")");
+		Class cls = ClassAsDataService.class;
+		MessageFromClient message = new MessageFromClient();
+		message.setDataService(cls.getName());
+		message.setOperation(methodname);
+		message.setParameterNames(Arrays.asList("a"));
+		message.setParameters(Arrays.asList("\"v\""));
+		message.setId(UUID.randomUUID().toString());
+		Session client = mock(Session.class);
+		Method method = cls.getMethod(methodname, String.class);
+
+		ClassAsDataService obj = new ClassAsDataService();
+		
+		doReturn(obj).when(instance).getDataService(any(Session.class), any(Class.class));
+		doReturn(Arrays.asList("v")).when(instance).getArrayList();
+		when(methodServices.getMethodFromDataService(any(Class.class), any(MessageFromClient.class), anyList())).thenReturn(method);
+		when(methodServices.getNonProxiedMethod(any(Class.class), anyString(), any(Class[].class))).thenThrow(NoSuchMethodException.class);
+		
+		MessageToClient result = instance.createMessageToClient(message, client);
+
+		assertThat(result.getResponse()).isEqualTo(obj.methodReturnString2("v"));
+
+		ArgumentCaptor<String> captureLog = ArgumentCaptor.forClass(String.class);
+		verify(logger).error(captureLog.capture(), any(NoSuchMethodException.class));
+		assertThat(captureLog.getValue()).isEqualTo("Fail to process extra annotations (JsCacheResult, JsCacheRemove) for method : "+methodname);
+	}
+
+	/**
+	 * Test of createMessageToClient method, of class CallServiceManager.
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void testCreateMessageToClient3() throws Exception {
+		String methodname = "methodWithMarshaller";
+		System.out.println("createMessageToClient("+methodname+")");
+		Class cls = ClassAsDataService.class;
+		MessageFromClient message = new MessageFromClient();
+		message.setDataService(cls.getName());
+		message.setOperation(methodname);
+		message.setParameterNames(Arrays.asList("a"));
+		message.setParameters(Arrays.asList("\"v\""));
+		message.setId(UUID.randomUUID().toString());
+		Session client = mock(Session.class);
+		Method method = cls.getMethod(methodname, String.class);
+
+		ClassAsDataService obj = new ClassAsDataService();
+		
+		doReturn(obj).when(instance).getDataService(any(Session.class), any(Class.class));
+		doReturn(Arrays.asList("v")).when(instance).getArrayList();
+		when(methodServices.getMethodFromDataService(any(Class.class), any(MessageFromClient.class), anyList())).thenReturn(method);
+		when(methodServices.getNonProxiedMethod(any(Class.class), anyString(), any(Class[].class))).thenReturn(method);
+		when(argumentServices
+				  .getJsonResultFromSpecificMarshaller(any(JsonMarshaller.class), any(Object.class)))
+				  .thenReturn("{\"language\":\"fr\",\"country\":\"FR\"}");
+		
+		MessageToClient result = instance.createMessageToClient(message, client);
+
+		assertThat(result.getJson()).isEqualTo("{\"language\":\"fr\",\"country\":\"FR\"}");
+	}
+
+	/**
+	 * Test of createMessageToClient method, of class CallServiceManager.
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void testCreateMessageToClient4() throws Exception {
+		String methodname = "methodThrowException";
+		System.out.println("createMessageToClient("+methodname+")");
+		Class cls = ClassAsDataService.class;
+		MessageFromClient message = new MessageFromClient();
+		message.setDataService(cls.getName());
+		message.setOperation(methodname);
+		message.setParameterNames(Arrays.asList("a"));
+		message.setParameters(Arrays.asList("\"v\""));
+		message.setId(UUID.randomUUID().toString());
+		Session client = mock(Session.class);
+		Method method = cls.getMethod(methodname, String.class);
+		Fault fault = null;
+		try {
+			throw new AbstractMethodError("MyMessage");
+		} catch (AbstractMethodError e) {
+			fault = new Fault(e, 0);
+		}
+
+		ClassAsDataService obj = new ClassAsDataService();
+		
+		doReturn(obj).when(instance).getDataService(any(Session.class), any(Class.class));
+		doReturn(Arrays.asList("v")).when(instance).getArrayList();
+		when(methodServices.getMethodFromDataService(any(Class.class), any(MessageFromClient.class), anyList())).thenReturn(method);
+		when(methodServices.getNonProxiedMethod(any(Class.class), anyString(), any(Class[].class))).thenReturn(method);
+		when(faultServices.buildFault(any(Throwable.class))).thenReturn(fault);
+		
+		MessageToClient result = instance.createMessageToClient(message, client);
+		assertThat(result.getResponse()).isEqualTo(fault);
+	}
+
+	/**
+	 * Test of createMessageToClient method, of class CallServiceManager.
 	 *
 	 * @throws org.ocelotds.spi.DataServiceException
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
 	 */
-	@Test
-	public void testSendMessageToClient() throws DataServiceException, NoSuchMethodException, JsonMarshallingException {
-		System.out.println("sendMessageToClient");
-		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
+//	@Test
+	public void testCreateMessageToClient02() throws DataServiceException, NoSuchMethodException, JsonMarshallingException {
+		System.out.println("createMessageToClient");
 		Class cls = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
 		message.setDataService(cls.getName());
@@ -253,6 +311,8 @@ public class CallServiceManagerTest {
 		message.setParameters(Arrays.asList("\"v\""));
 		message.setId(UUID.randomUUID().toString());
 		Session client = mock(Session.class);
+
+
 		RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
 		when(client.getAsyncRemote()).thenReturn(async);
 
@@ -275,7 +335,7 @@ public class CallServiceManagerTest {
 		message.setOperation("methodThrowException");
 		instance.sendMessageToClient(message, client);
 
-		Mockito.doThrow(NoSuchMethodException.class).when(instance).getNonProxiedMethod(cls, "methodReturnString", String.class);
+		doThrow(NoSuchMethodException.class).when(methodServices).getNonProxiedMethod(cls, "methodReturnString", String.class);
 		message.setOperation("methodReturnString");
 		instance.sendMessageToClient(message, client);
 
@@ -306,26 +366,5 @@ public class CallServiceManagerTest {
 		assertThat(result.get(4).getResponse()).isEqualTo(fault);
 		assertThat(result.get(5).getResponse()).isEqualTo(new ClassAsDataService().methodReturnString("e"));
 		assertThat(result.get(6).getJson()).isEqualTo(new LocaleMarshaller().toJson(new Locale("fr", "FR")));
-	}
-	
-	
-	@Test
-	public void testBuildFault() {
-		System.out.println("buildFault");
-		when(configuration.getStacktracelength()).thenReturn(1).thenReturn(3);
-		try {
-			throw new Exception("ERROR_MESSAGE");
-		} catch (Exception e) {
-			Fault fault = instance.buildFault(e);
-			assertThat(fault.getClassname()).isEqualTo("java.lang.Exception");
-			assertThat(fault.getMessage()).isEqualTo("ERROR_MESSAGE");
-			String[] stacktraces = fault.getStacktrace();
-			assertThat(stacktraces).hasSize(1);
-			assertThat(stacktraces[0]).startsWith(this.getClass().getName()+".testBuildFault("+this.getClass().getSimpleName()+".java:");
-
-			fault = instance.buildFault(e);
-			stacktraces = fault.getStacktrace();
-			assertThat(stacktraces).hasSize(3);
-		}
 	}
 }

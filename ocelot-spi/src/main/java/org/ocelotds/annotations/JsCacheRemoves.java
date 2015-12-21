@@ -15,5 +15,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface JsCacheRemoves {
+	/**
+	 * Set of JsCacheRemove
+	 * @return 
+	 */
 	JsCacheRemove[] value();
 }

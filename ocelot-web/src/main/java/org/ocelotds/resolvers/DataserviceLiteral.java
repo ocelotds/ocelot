@@ -12,6 +12,8 @@ import org.ocelotds.annotations.DataService;
  */
 @SuppressWarnings("AnnotationAsSuperInterface")
 public class DataserviceLiteral extends AnnotationLiteral<DataService> implements DataService {
+	private static final long serialVersionUID = -849762977471230875L;
+	
 
 	@Override
 	public String resolver() {

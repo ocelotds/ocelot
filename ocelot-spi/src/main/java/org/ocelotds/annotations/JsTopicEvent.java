@@ -11,13 +11,16 @@ import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
 
 /**
- * Annotation for specify that the method annotated remove entry cache
- * optional prefix allow to subscribe a sub topic
+ * Annotation for inject Event object for broatcast message to topic programmaticly
  * @author hhfrancois
  */
 @Qualifier
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 public @interface JsTopicEvent {
+	/**
+	 * Topic name
+	 * @return 
+	 */
 	@Nonbinding String value();
 }

@@ -9,7 +9,7 @@ import org.ocelotds.objects.Result;
 import org.ocelotds.test.dataservices.EJBDataService;
 import org.ocelotds.test.dataservices.CDIDataService;
 import org.ocelotds.test.dataservices.SingletonCDIDataService;
-import org.ocelotds.test.dataservices.PojoDataService;
+import org.ocelotds.test.dataservices.CdiDataService2;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ocelotds.Constants;
 import org.ocelotds.OcelotServices;
@@ -22,7 +22,6 @@ import org.ocelotds.resolvers.CdiResolver;
 import org.ocelotds.spi.DataServiceException;
 import org.ocelotds.spi.IDataServiceResolver;
 import org.ocelotds.resolvers.DataServiceResolverIdLitteral;
-import org.ocelotds.resolvers.PojoResolver;
 import org.ocelotds.test.dataservices.GetValue;
 import org.ocelotds.test.dataservices.SessionCDIDataService;
 import org.ocelotds.test.dataservices.SessionEJBDataService;
@@ -71,11 +70,6 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -85,6 +79,11 @@ import org.ocelotds.literals.JsonMarshallerLiteral;
 import org.ocelotds.literals.JsonUnmarshallerLiteral;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  *
@@ -120,7 +119,7 @@ public class OcelotTest {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
 	}
 
-	private final PojoDataService destination = new PojoDataService();
+	private final CdiDataService2 destination = new CdiDataService2();
 
 	/**
 	 * Pour tester l'api dans le contener JEE on crée un war
@@ -580,7 +579,7 @@ public class OcelotTest {
 	@Test
 	public void testJsServiceProvider() {
 		System.out.println("testJsServiceProvider");
-		testServiceProvider(jsProviders, "js");
+		testServiceProvider(jsProviders, Constants.JS);
 	}
 
 	public void testServiceProvider(Instance<FileNameProvider> instances, String ext) {
@@ -588,7 +587,7 @@ public class OcelotTest {
 			Package aPackage = provider.getClass().getPackage();
 			try {
 				String filename = provider.getFilename();
-				assertThat(filename).isEqualTo(aPackage.getName() + "." + ext);
+				assertThat(filename).isEqualTo(aPackage.getName() + ext);
 			} catch (IllegalAccessError ex) {
 			}
 		}
@@ -658,7 +657,7 @@ public class OcelotTest {
 				String inputLine;
 				replaced = false;
 				while ((inputLine = in.readLine()) != null) {
-					assertFalse("Dynamic replacement of " + Constants.CTXPATH + " doen't work", inputLine.contains(Constants.CTXPATH));
+					assertFalse("Dynamic replacement of " + Constants.CTXPATH + " doesn't work", inputLine.contains(Constants.CTXPATH));
 					replaced |= inputLine.contains(CTXPATH);
 				}
 			}
@@ -668,6 +667,23 @@ public class OcelotTest {
 		}
 	}
 
+	/**
+	 * Vérification de la generation du ocelot
+	 */
+	@Test
+	public void testServicesGeneration() {
+		Class clazz = OcelotServices.class;
+		String methodName = "getServices";
+		System.out.println(clazz+"."+methodName);
+		try (Session wssession = createAndGetSession()) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
+			assertEquals(MessageType.RESULT, messageToClient.getType());
+			String result = (String) messageToClient.getResponse();
+			assertThat(result).isNotEmpty();
+		} catch (IOException exception) {
+		}
+		
+	}
 	/**
 	 * Vérification qu'un resolver inconnu remonte bien une exception
 	 */
@@ -684,8 +700,8 @@ public class OcelotTest {
 	public void testGetResolverEjb() {
 		System.out.println("getResolverEjb");
 		IDataServiceResolver resolver = getResolver(Constants.Resolver.EJB);
-		assertNotNull(resolver);
-		assertTrue(CdiResolver.class.isInstance(resolver));
+		assertThat(resolver).isNotNull();
+		assertThat(resolver).isInstanceOf(CdiResolver.class);
 	}
 
 	/**
@@ -736,33 +752,6 @@ public class OcelotTest {
 	public void testGetResultEjbSingleton() {
 		System.out.println("getResultEjbSingleton");
 		testResultSingletonScope(SingletonEJBDataService.class);
-	}
-
-	/**
-	 * Teste de récupération du resolver de POJO
-	 */
-	@Test
-	public void testGetResolverPojo() {
-		System.out.println("getResolverPojo");
-		IDataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
-		assertNotNull(resolver);
-		assertTrue(PojoResolver.class.isInstance(resolver));
-	}
-
-	/**
-	 * Teste de la récupération d'un Pojo
-	 */
-	@Test
-	public void testGetPojo() {
-		System.out.println("getPojo");
-		IDataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
-		try {
-			PojoDataService resolveDataService = resolver.resolveDataService(PojoDataService.class);
-			assertNotNull(resolveDataService);
-			assertEquals(PojoDataService.class, resolveDataService.getClass());
-		} catch (DataServiceException ex) {
-			fail("Pojo not reached");
-		}
 	}
 
 	/**
@@ -846,22 +835,6 @@ public class OcelotTest {
 	public void testGetResultCdiBeanSingleton() {
 		System.out.println("getResultCdiBeanSingleton");
 		testResultSingletonScope(SingletonCDIDataService.class);
-	}
-
-	/**
-	 * Vérifie que le pojo-resolver remonte le bien PojoDataService
-	 */
-	@Test
-	public void testResolvePojoDataService() {
-		System.out.println("resolveDataService");
-		try {
-			IDataServiceResolver resolver = getResolver(Constants.Resolver.POJO);
-			Object dest = resolver.resolveDataService(PojoDataService.class);
-			assertNotNull(dest);
-			assertEquals(PojoDataService.class, dest.getClass());
-		} catch (DataServiceException ex) {
-			fail(ex.getMessage());
-		}
 	}
 
 	/**
@@ -964,11 +937,11 @@ public class OcelotTest {
 		String mapResultJS = getJson(destination.getMapResult());
 		String operation = "methodWithResult";
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":[\"%s\",\"%s\"],\"%s\":[%s,%s]}",
-				  Constants.Message.ID, uuid, Constants.Message.DATASERVICE, PojoDataService.class.getName(), Constants.Message.OPERATION, operation,
+				  Constants.Message.ID, uuid, Constants.Message.DATASERVICE, CdiDataService2.class.getName(), Constants.Message.OPERATION, operation,
 				  Constants.Message.ARGUMENTNAMES, "r", "m", Constants.Message.ARGUMENTS, resultJS, mapResultJS);
 		MessageFromClient result = MessageFromClient.createFromJson(json);
 		assertEquals(uuid, result.getId());
-		assertEquals(PojoDataService.class.getName(), result.getDataService());
+		assertEquals(CdiDataService2.class.getName(), result.getDataService());
 		assertEquals(operation, result.getOperation());
 		List<String> parameters = result.getParameters();
 		assertEquals(resultJS, parameters.get(0));
@@ -1039,7 +1012,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodUnknow() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "getUnknownMethod";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1056,7 +1029,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodNoResult() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "getVoid";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1072,7 +1045,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetString() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "getString";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1089,7 +1062,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetNum() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "getNum";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1106,7 +1079,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetNumber() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "getNumber";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1123,7 +1096,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetBool() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "getBool";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1140,7 +1113,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetBoolean() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "getBoolean";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1162,7 +1135,7 @@ public class OcelotTest {
 		System.out.println("BEFORE = " + before.getTime());
 		try (Session wssession = createAndGetSession()) {
 			Thread.sleep(1000);
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, PojoDataService.class.getName(), "getDate");
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, CdiDataService2.class.getName(), "getDate");
 			assertEquals(MessageType.RESULT, messageToClient.getType());
 			Object result = messageToClient.getResponse();
 			assertNotNull(result);
@@ -1184,7 +1157,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetResult() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "getResult";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1201,7 +1174,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetCollectionInteger() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "getCollectionInteger";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1218,7 +1191,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetCollectionResult() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "getCollectionResult";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1235,7 +1208,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetCollectionOfCollectionResult() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "getCollectionOfCollectionResult";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1252,7 +1225,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testGetMapResult() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "getMapResult";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1269,7 +1242,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithNum() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithNum";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1286,7 +1259,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithNumber() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithNumber";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1303,7 +1276,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithBool() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithBool";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1320,7 +1293,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithBoolean() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithBoolean";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1337,7 +1310,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithDate() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithDate";
 		System.out.println(methodName);
 		Object arg = new Date();
@@ -1355,7 +1328,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithResult() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithResult";
 		System.out.println(methodName);
 		Object arg = new Result(6);
@@ -1373,7 +1346,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithArrayInteger() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithArrayInteger";
 		System.out.println(methodName);
 		Object arg = new Integer[]{1, 2};
@@ -1391,7 +1364,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithCollectionInteger() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithCollectionInteger";
 		System.out.println(methodName);
 		Object arg = destination.getCollectionInteger();
@@ -1409,7 +1382,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithArrayResult() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithArrayResult";
 		System.out.println(methodName);
 		Object arg = new Result[]{new Result(1), new Result(2)};
@@ -1427,7 +1400,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithCollectionResult() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithCollectionResult";
 		System.out.println(methodName);
 		Object arg = destination.getCollectionResult();
@@ -1445,7 +1418,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithMapResult() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithMapResult";
 		System.out.println(methodName);
 		Object arg = destination.getMapResult();
@@ -1463,7 +1436,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithCollectionOfCollectionResult() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithCollectionOfCollectionResult";
 		System.out.println(methodName);
 		Object arg = destination.getCollectionOfCollectionResult();
@@ -1481,7 +1454,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithManyParameters() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithManyParameters";
 		System.out.println(methodName);
 		Collection<String> cl = new ArrayList<>();
@@ -1501,7 +1474,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodThatThrowException() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodThatThrowException";
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
@@ -1518,7 +1491,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithAlmostSameSignature1() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithAlmostSameSignature";
 		System.out.println(methodName + "(int)");
 		try (Session wssession = createAndGetSession()) {
@@ -1535,7 +1508,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithAlmostSameSignature2() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithAlmostSameSignature";
 		System.out.println(methodName + "(string)");
 		try (Session wssession = createAndGetSession()) {
@@ -1553,7 +1526,7 @@ public class OcelotTest {
 	 */
 	@Test
 	public void testMethodWithAlmostSameSignature3() {
-		Class clazz = PojoDataService.class;
+		Class clazz = CdiDataService2.class;
 		String methodName = "methodWithAlmostSameSignature";
 		System.out.println(methodName + "(string, string)");
 		try (Session wssession = createAndGetSession()) {

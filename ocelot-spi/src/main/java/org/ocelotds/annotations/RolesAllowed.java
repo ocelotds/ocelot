@@ -13,7 +13,7 @@ import javax.enterprise.util.Nonbinding;
 import javax.interceptor.InterceptorBinding;
 
 /**
- * Annotation specifies that the method annotated result is publmic to Topic
+ * Annotation specifies that the annotated method is only allowed for listed roles
  * @author hhfrancois
  */
 @Inherited
@@ -21,5 +21,9 @@ import javax.interceptor.InterceptorBinding;
 @Retention(RUNTIME)
 @Target({METHOD, TYPE})
 public @interface RolesAllowed {
+	/**
+	 * Roles allowed
+	 * @return 
+	 */
 	@Nonbinding public String[] value() default {};
 }

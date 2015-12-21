@@ -32,9 +32,6 @@ import org.ocelotds.objects.JsServiceProviderImpl;
 @RunWith(MockitoJUnitRunner.class)
 public class JsFileInitializerTest {
 
-	private String ocelotjspath = null;
-	private String ocelotminjspath = null;
-
 	@Mock
 	private Logger logger;
 
@@ -116,7 +113,7 @@ public class JsFileInitializerTest {
 	public void testCreateOcelotJsFile() throws IOException {
 		System.out.println("createOcelotJsFile");
 		((FakeCDI) jsServicesProviders).add(new JsServiceProviderImpl());
-		instance.OCELOT_CORE_RESOURCE = Constants.SLASH + Constants.OCELOT_CORE + Constants.JS;
+		JsFileInitializer.OCELOT_CORE_RESOURCE = Constants.SLASH + Constants.OCELOT_CORE + Constants.JS;
 		File file = instance.createOcelotJsFile("/");
 		assertThat(file).exists();
 	}
@@ -130,7 +127,7 @@ public class JsFileInitializerTest {
 	public void testWriteOcelotCoreJsFile() throws IOException {
 		System.out.println("writeOcelotCoreJsFile");
 		OutputStream out = mock(OutputStream.class);
-		instance.OCELOT_CORE_RESOURCE = "/badfile";
+		JsFileInitializer.OCELOT_CORE_RESOURCE = "/badfile";
 		instance.writeOcelotCoreJsFile(out, "/");
 	}
 	

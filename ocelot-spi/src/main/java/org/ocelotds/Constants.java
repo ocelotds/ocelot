@@ -83,8 +83,6 @@ public interface Constants {
 	}
 
 	interface Resolver {
-
-		String POJO = "pojo";
 		String CDI = "cdi";
 		String EJB = "cdi";
 		String SPRING = "spring";

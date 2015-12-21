@@ -133,7 +133,7 @@ public class OcelotServices {
 		return result;
 	}
 	
-	private OcelotMethod getOcelotMethod(Method method) {
+	OcelotMethod getOcelotMethod(Method method) {
 		OcelotMethod ocelotMethod = new OcelotMethod(method.getName(), serviceTools.getShortName(serviceTools.getLiteralType(method.getGenericReturnType())));
 		Annotation[][] annotations = method.getParameterAnnotations();
 		Type[] types = method.getGenericParameterTypes();
