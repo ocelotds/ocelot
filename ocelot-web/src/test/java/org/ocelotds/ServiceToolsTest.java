@@ -284,11 +284,39 @@ public class ServiceToolsTest {
 		String result = instance.getTemplateOfClass(cls);
 		assertThat(result).isEqualTo("false");
 
+		cls = Boolean.TYPE;
+		result = instance.getTemplateOfClass(cls);
+		assertThat(result).isEqualTo("false");
+
 		cls = Integer.class;
 		result = instance.getTemplateOfClass(cls);
 		assertThat(result).isEqualTo("0");
 
+		cls = Integer.TYPE;
+		result = instance.getTemplateOfClass(cls);
+		assertThat(result).isEqualTo("0");
+
+		cls = Long.class;
+		result = instance.getTemplateOfClass(cls);
+		assertThat(result).isEqualTo("0");
+
+		cls = Long.TYPE;
+		result = instance.getTemplateOfClass(cls);
+		assertThat(result).isEqualTo("0");
+
 		cls = Float.class;
+		result = instance.getTemplateOfClass(cls);
+		assertThat(result).isEqualTo("0.0");
+
+		cls = Float.TYPE;
+		result = instance.getTemplateOfClass(cls);
+		assertThat(result).isEqualTo("0.0");
+
+		cls = Double.class;
+		result = instance.getTemplateOfClass(cls);
+		assertThat(result).isEqualTo("0.0");
+
+		cls = Double.TYPE;
 		result = instance.getTemplateOfClass(cls);
 		assertThat(result).isEqualTo("0.0");
 
