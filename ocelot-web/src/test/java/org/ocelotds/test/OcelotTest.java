@@ -262,7 +262,7 @@ public class OcelotTest {
 	private String getJson(Object obj) {
 		try {
 			if (String.class.isInstance(obj)) {
-				return "\"" + obj + "\"";
+				return Constants.QUOTE + obj + Constants.QUOTE;
 			}
 			ObjectMapper mapper = new ObjectMapper();
 			return mapper.writeValueAsString(obj);

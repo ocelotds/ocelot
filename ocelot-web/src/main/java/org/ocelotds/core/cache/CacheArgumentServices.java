@@ -62,7 +62,7 @@ public class CacheArgumentServices {
 			String[] path = key.split("\\.");
 			logger.debug("Process '{}' : {} token(s)", key, path.length);
 			String paramName = path[0];
-			int idx = paramNames.indexOf("\"" + paramName + "\"");
+			int idx = paramNames.indexOf(Constants.QUOTE + paramName + Constants.QUOTE);
 			logger.debug("Index of param '{}' : '{}'", paramName, idx);
 			String jsonArg = jsonArgs.get(idx);
 			logger.debug("Param '{}' : '{}'", paramName, jsonArg);

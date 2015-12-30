@@ -14,6 +14,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import org.ocelotds.Constants;
 import org.ocelotds.KeyMaker;
 
 /**
@@ -176,7 +177,7 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 					keys.append(arg);
 				}
 				args.append(arg);
-				paramNames.append("\"").append(arg).append("\"");
+				paramNames.append(Constants.QUOTE).append(arg).append(Constants.QUOTE);
 				if (arguments.hasNext()) {
 					args.append(",");
 					paramNames.append(",");

@@ -29,7 +29,7 @@ public class Fault {
 		this.throwable = t;
 		if (t != null) {
 			if (t.getMessage() != null) {
-				this.message = t.getMessage().replaceAll("\"", "'");
+				this.message = t.getMessage().replaceAll(Constants.QUOTE, "'");
 			}
 			this.classname = t.getClass().getName();
 		}

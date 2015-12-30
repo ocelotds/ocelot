@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.web;
 
+import java.util.Locale;
+import org.ocelotds.Constants;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 
 /**
@@ -13,6 +15,6 @@ public class JsMarshaller implements org.ocelotds.marshalling.JsonMarshaller<Str
 
 	@Override
 	public String toJson(String obj) throws JsonMarshallingException {
-		return "\""+obj.toLowerCase()+"\"";
+		return Constants.QUOTE+obj.toLowerCase(Locale.US)+Constants.QUOTE;
 	}
 }

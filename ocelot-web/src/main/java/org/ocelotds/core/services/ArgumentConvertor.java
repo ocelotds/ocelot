@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.json.stream.JsonParsingException;
+import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
@@ -118,12 +119,12 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	 * @throws IOException 
 	 */
 	void checkStringArgument(Class cls, String arg) throws IOException {
-		if (cls.equals(String.class)) {
-			if(!arg.startsWith("\"") || !arg.endsWith("\"")) { // on cherche une string
+		if(arg.startsWith(Constants.QUOTE)) { // ca ressemble à une string
+			if(!cls.equals(String.class)) { // et on veut pas une string
 				throw new IOException();
 			}
-		} else {
-			if (arg.startsWith("\"") && arg.endsWith("\"")) { // on a une string
+		} else { // ca ressemble pas à une string
+			if(cls.equals(String.class)) { // mais on veut une string
 				throw new IOException();
 			}
 		}
