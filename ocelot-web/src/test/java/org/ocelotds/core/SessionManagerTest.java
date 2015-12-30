@@ -220,16 +220,25 @@ public class SessionManagerTest {
 		Session session = mock(Session.class);
 		Collection<Session> sessions = new ArrayList<>();
 		sessions.add(session);
+		// sessions is null
 		int result = instance.removeSessionToSessions(session, null);
 		assertThat(result).isEqualTo(0);
 		
+		// sessions is empty
 		result = instance.removeSessionToSessions(session, Collections.EMPTY_LIST);
 		assertThat(result).isEqualTo(0);
 
+		// remove session ok
 		result = instance.removeSessionToSessions(session, sessions);
 		assertThat(result).isEqualTo(1);
 		assertThat(sessions).isEmpty();
 
+		// remove session nok
+		result = instance.removeSessionToSessions(session, sessions);
+		assertThat(result).isEqualTo(0);
+		assertThat(sessions).isEmpty();
+
+		// remove session ok
 		sessions.add(session);
 		sessions.add(mock(Session.class));
 		result = instance.removeSessionToSessions(session, sessions);
