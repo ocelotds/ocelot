@@ -5,17 +5,14 @@ package org.ocelotds.security;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.security.Principal;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
-import javax.websocket.server.HandshakeRequest;
-import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
 import org.ocelotds.annotations.RolesAllowed;
-import org.ocelotds.context.ThreadLocalContextHolder;
+import org.ocelotds.context.OcelotContext;
 
 /**
  * This class apply security check
@@ -32,7 +29,7 @@ public class RolesAllowedInterceptor implements Serializable {
 	private transient Logger logger;
 	
 	@Inject
-	private Principal principal;
+	private OcelotContext ocelotContext;
 
 	/**
 	 *
@@ -46,23 +43,12 @@ public class RolesAllowedInterceptor implements Serializable {
 		String methodid = String.format("%s.%s", method.getDeclaringClass().getSimpleName(), method.getName());
 		RolesAllowed rolesAllowedAnno = method.getAnnotation(RolesAllowed.class);
 		String[] rolesAllowed = rolesAllowedAnno.value();
-		HandshakeRequest handshakeRequest = getHandshakeRequest();
-		if(handshakeRequest!=null) {
-			for (String roleAllowed : rolesAllowed) {
-				if(handshakeRequest.isUserInRole(roleAllowed)) {
-					if(logger.isDebugEnabled()) {
-						logger.debug("Check method {} : role {} is allowed", methodid, roleAllowed);
-					}
-					return ctx.proceed();
-				}
+		for (String roleAllowed : rolesAllowed) {
+			if(ocelotContext.isUserInRole(roleAllowed)) {
+				logger.debug("Check method {} : role {} is allowed", methodid, roleAllowed);
+				return ctx.proceed();
 			}
-		} else {
-			throw new NullPointerException("'HandshakeRequest' is not in threadlocal for roles testing : "+methodid);
 		}
-		throw new IllegalAccessException("'"+principal+"' is not allowed to execute "+methodid);
-	}
-
-	HandshakeRequest getHandshakeRequest() {
-		return (HandshakeRequest) ThreadLocalContextHolder.get(Constants.HANDSHAKEREQUEST);
+		throw new IllegalAccessException("'"+ocelotContext.getPrincipal()+"' is not allowed to execute "+methodid);
 	}
 }
