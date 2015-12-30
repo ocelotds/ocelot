@@ -161,14 +161,15 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 			JsCacheResult jcr = methodElement.getAnnotation(JsCacheResult.class);
 			boolean allArgs = true;
 			// if there is a jcr annotation with value diferrent of *, so we dont use all arguments
-			if (null != jcr && null != jcr.keys() && (jcr.keys().length == 0 || (jcr.keys().length > 0 && !"*".equals(jcr.keys()[0])))) {
+			if (considerateNotAllArgs(jcr)) {
 				allArgs = false;
-				for (int i = 0; i < jcr.keys().length; i++) {
-					String arg = jcr.keys()[i];
-					keys.append(getKeyFromArg(arg));
-					if (i < jcr.keys().length - 1) {
+				boolean first = true;
+				for (String arg : jcr.keys()) {
+					if(!first) {
 						keys.append(",");
 					}
+					keys.append(getKeyFromArg(arg));
+					first = false;
 				}
 			}
 			while (arguments.hasNext()) {
@@ -190,6 +191,16 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 		String md5 = keyMaker.getMd5(classname + "." + methodName);
 		writer.append(TAB3).append("var id = ").append(QUOTE).append(md5).append("_").append(QUOTE).append(" + JSON.stringify([").append(keys.toString()).append("]).md5();").append(CR);
 		writer.append(TAB3).append("return OcelotPromiseFactory.createPromise(ds, id, ").append(QUOTE).append(methodName).append(QUOTE).append(", [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");").append(CR);
+	}
+	
+	/**
+	 * Check if we have not to conciderate all arguments
+	 * !jcr(keys={"*"})
+	 * @param jcr
+	 * @return 
+	 */
+	boolean considerateNotAllArgs(JsCacheResult jcr) {
+		return null != jcr && (jcr.keys().length == 0 || (jcr.keys().length > 0 && !"*".equals(jcr.keys()[0])));
 	}
 
 	/**

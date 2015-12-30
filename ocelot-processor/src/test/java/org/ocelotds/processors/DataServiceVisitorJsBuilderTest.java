@@ -325,6 +325,25 @@ public class DataServiceVisitorJsBuilderTest {
 		assertThat(appends.get(16)).isEqualTo("\"a\",\"b\",\"c\",\"d\"");
 		assertThat(appends.get(18)).isEqualTo("a,b,c,d");
 	}
+	
+	@Test
+	public void testConsiderateNotAllArgs() {
+		boolean result = instance.considerateNotAllArgs(null);
+		assertThat(result).isFalse();
+
+		result = instance.considerateNotAllArgs(new JsCacheResultLiteral());
+		assertThat(result).isTrue();
+		
+		result = instance.considerateNotAllArgs(new JsCacheResultLiteral("a"));
+		assertThat(result).isTrue();
+		
+		result = instance.considerateNotAllArgs(new JsCacheResultLiteral("a", "b"));
+		assertThat(result).isTrue();
+
+		result = instance.considerateNotAllArgs(new JsCacheResultLiteral("*"));
+		assertThat(result).isFalse();
+		
+	}
 
 	@Test
 	public void testGetKeyFromArg() {
