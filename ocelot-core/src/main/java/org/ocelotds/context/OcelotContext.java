@@ -58,7 +58,12 @@ public class OcelotContext {
 	}
 
 	public boolean isUserInRole(String role) {
-		return getHandshakeRequest().isUserInRole(role);
+		HandshakeRequest hr = getHandshakeRequest();
+		if(hr!=null) {
+			return hr.isUserInRole(role);
+		}
+		logger.warn("Fail to get userInRole, HandshakeRequest is null in threadLocal");
+		return false;
 	}
 
 	public Principal getPrincipal() {
@@ -69,11 +74,13 @@ public class OcelotContext {
 				return p;
 			}
 		}
-		return new Principal() {
-			@Override
-			public String getName() {
-				return Constants.ANONYMOUS;
-			}
-		};
+		return ANONYMOUS;
 	}
+	
+	private static final Principal ANONYMOUS = new Principal() {
+		@Override
+		public String getName() {
+			return Constants.ANONYMOUS;
+		}
+	};
 }
