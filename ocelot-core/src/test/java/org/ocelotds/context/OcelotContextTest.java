@@ -101,10 +101,12 @@ public class OcelotContextTest {
 
 	@Test
 	public void testIsUserInRole() {
-		when(instance.getHandshakeRequest()).thenReturn(handshakeRequest);
+		when(instance.getHandshakeRequest()).thenReturn(null).thenReturn(handshakeRequest);
 		when(handshakeRequest.isUserInRole("OK")).thenReturn(Boolean.TRUE);
 		when(handshakeRequest.isUserInRole("NOK")).thenReturn(Boolean.FALSE);
 		boolean result = instance.isUserInRole("OK");
+		assertThat(result).isEqualTo(Boolean.FALSE);
+		result = instance.isUserInRole("OK");
 		assertThat(result).isEqualTo(Boolean.TRUE);
 		result = instance.isUserInRole("NOK");
 		assertThat(result).isEqualTo(Boolean.FALSE);

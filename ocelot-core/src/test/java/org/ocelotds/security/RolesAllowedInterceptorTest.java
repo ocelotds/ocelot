@@ -7,7 +7,6 @@ package org.ocelotds.security;
 import java.lang.reflect.Method;
 import java.security.Principal;
 import javax.interceptor.InvocationContext;
-import javax.websocket.server.HandshakeRequest;
 import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
@@ -17,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.RolesAllowed;
+import org.ocelotds.context.OcelotContext;
 import org.slf4j.Logger;
 
 /**
@@ -34,19 +34,16 @@ public class RolesAllowedInterceptorTest {
 	private RolesAllowedInterceptor instance;
 
 	@Mock
-	private HandshakeRequest handshakeRequest;
-
-	@Mock
-	private Principal principal;
+	private OcelotContext ocelotContext;
 
 
 	@Before
 	public void init() {
-		when(instance.getHandshakeRequest()).thenReturn(handshakeRequest);
-		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE).thenReturn(Boolean.FALSE);
-		when(handshakeRequest.isUserInRole("OK")).thenReturn(Boolean.TRUE);
-		when(handshakeRequest.isUserInRole("NOK")).thenReturn(Boolean.FALSE);
-		when(principal.toString()).thenReturn("USERNAME");
+		when(ocelotContext.isUserInRole("OK")).thenReturn(Boolean.TRUE);
+		when(ocelotContext.isUserInRole("NOK")).thenReturn(Boolean.FALSE);
+		Principal p = mock(Principal.class);
+		when(p.getName()).thenReturn("USERNAME");
+		when(ocelotContext.getPrincipal()).thenReturn(p);
 	}
 	/**
 	 * Test of checkRolesAllowed method, of class RolesAllowedInterceptor.
