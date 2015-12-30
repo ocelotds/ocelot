@@ -184,6 +184,32 @@ public class SessionManagerTest {
 		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(0);
 	}
 
+
+	/**
+	 * Test of isInconsistenceContext method, of class SessionManager.
+	 */
+	@Test
+	public void testIsInconsistenceContext() {
+		System.out.println("isInconsistenceContext");
+		Session session = mock(Session.class);
+		boolean result = instance.isInconsistenceContext(null, null);
+		assertThat(result).isTrue();
+		
+		result = instance.isInconsistenceContext(null, session);
+		assertThat(result).isTrue();
+
+		result = instance.isInconsistenceContext("", null);
+		assertThat(result).isTrue();
+
+		result = instance.isInconsistenceContext("", session);
+		assertThat(result).isTrue();
+
+		result = instance.isInconsistenceContext("TOPIC", null);
+		assertThat(result).isTrue();
+
+		result = instance.isInconsistenceContext("TOPIC", session);
+		assertThat(result).isFalse();
+	}
 	/**
 	 * Test of unregisterTopicSession method, of class SessionManager.
 	 * @throws java.lang.IllegalAccessException
@@ -299,6 +325,10 @@ public class SessionManagerTest {
 		instance.removeSessionsToTopic(sessions);
 		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(0);
 		assertThat(instance.getNumberSubscribers(TOPIC2)).isEqualTo(0);
+
+		instance.removeSessionsToTopic(null);
+
+		instance.removeSessionsToTopic(Collections.EMPTY_LIST);
 	}
 
 	/**

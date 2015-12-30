@@ -8,6 +8,7 @@ import org.ocelotds.annotations.JsTopicAccessControl;
 import org.ocelotds.security.JsTopicAccessController;
 import org.ocelotds.security.JsTopicACAnnotationLiteral;
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -89,7 +90,7 @@ public class SessionManager {
 	 * @throws IllegalAccessException
 	 */
 	public int registerTopicSession(String topic, Session session) throws IllegalAccessException {
-		if(null==topic || topic.isEmpty()) {
+		if (isInconsistenceContext(topic, session)) {
 			return 0;
 		}
 		Set<Session> sessions;
@@ -104,7 +105,7 @@ public class SessionManager {
 		}
 		checkAccessTopic(session, topic);
 		logger.debug("'{}' subscribe to '{}'", session.getId(), topic);
-		if(session.isOpen()) {
+		if (session.isOpen()) {
 			sessions.add(session);
 		}
 		return getNumberSubscribers(topic);
@@ -118,7 +119,7 @@ public class SessionManager {
 	 * @return int : number subscribers remaining
 	 */
 	public int unregisterTopicSession(String topic, Session session) {
-		if(null==topic || topic.isEmpty()) {
+		if (isInconsistenceContext(topic, session)) {
 			return 0;
 		}
 		logger.debug("'{}' unsubscribe to '{}'", session.getId(), topic);
@@ -131,16 +132,27 @@ public class SessionManager {
 		}
 		return getNumberSubscribers(topic);
 	}
+
+	/**
+	 * Return if argument is inconsistent for context : topic and session null or empty
+	 * @param topic
+	 * @param session
+	 * @return 
+	 */
+	boolean isInconsistenceContext(String topic, Session session) {
+		return null == topic || null == session || topic.isEmpty();
+	}
 	
 	/**
 	 * Remove session in sessions
+	 *
 	 * @param session
 	 * @param sessions
 	 * @return 1 if session removed else 0
 	 */
-	int removeSessionToSessions(Session session, Collection<Session> sessions){
+	int removeSessionToSessions(Session session, Collection<Session> sessions) {
 		if (sessions != null && sessions.contains(session)) {
-			if(sessions.remove(session)) {
+			if (sessions.remove(session)) {
 				return 1;
 			}
 		}
@@ -154,8 +166,8 @@ public class SessionManager {
 	 * @param sessions
 	 */
 	public void unregisterTopicSessions(String topic, Collection<Session> sessions) {
-		Collection<Session> all = sessionsByTopic.get(topic);
-		if (sessions != null) {
+		if (sessions != null && !sessions.isEmpty()) {
+			Collection<Session> all = sessionsByTopic.get(topic);
 			all.removeAll(sessions);
 		}
 	}
@@ -166,9 +178,11 @@ public class SessionManager {
 	 * @param sessions
 	 */
 	public void removeSessionsToTopic(Collection<Session> sessions) {
-		for (String topic : sessionsByTopic.keySet()) {
-			unregisterTopicSessions(topic, sessions);
-			sendSubscriptionEvent(Constants.Topic.SUBSCRIBERS + Constants.Topic.COLON + topic, getNumberSubscribers(topic));
+		if (sessions != null && !sessions.isEmpty()) {
+			for (String topic : sessionsByTopic.keySet()) {
+				unregisterTopicSessions(topic, sessions);
+				sendSubscriptionEvent(Constants.Topic.SUBSCRIBERS + Constants.Topic.COLON + topic, getNumberSubscribers(topic));
+			}
 		}
 	}
 
@@ -178,8 +192,10 @@ public class SessionManager {
 	 * @param session
 	 */
 	public void removeSessionToTopics(Session session) {
-		for (String topic : sessionsByTopic.keySet()) {
-			sendSubscriptionEvent(Constants.Topic.SUBSCRIBERS + Constants.Topic.COLON + topic, unregisterTopicSession(topic, session));
+		if(session != null) {
+			for (String topic : sessionsByTopic.keySet()) {
+				sendSubscriptionEvent(Constants.Topic.SUBSCRIBERS + Constants.Topic.COLON + topic, unregisterTopicSession(topic, session));
+			}
 		}
 	}
 
@@ -196,11 +212,15 @@ public class SessionManager {
 			messageToClient.setId(topic);
 			messageToClient.setType(MessageType.MESSAGE);
 			messageToClient.setResponse(nb);
+			Collection<Session> sessionsClosed = new ArrayList<>();
 			for (Session session : sessions) {
 				if (session.isOpen()) {
 					session.getAsyncRemote().sendObject(messageToClient);
+				} else {
+					sessionsClosed.add(session);
 				}
 			}
+			removeSessionsToTopic(sessionsClosed);
 		}
 	}
 
