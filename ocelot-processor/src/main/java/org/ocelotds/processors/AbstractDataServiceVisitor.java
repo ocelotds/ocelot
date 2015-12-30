@@ -36,11 +36,11 @@ import org.ocelotds.annotations.DataService;
  */
 public abstract class AbstractDataServiceVisitor implements ElementVisitor<String, Writer> {
 
-	protected final String QUOTE = "\"";
-	protected final String TAB = "\t";
-	protected final String TAB2 = "\t\t";
-	protected final String TAB3 = "\t\t\t";
-	protected final String CR = "\n";
+	protected static final String QUOTE = "\"";
+	protected static final String TAB = "\t";
+	protected static final String TAB2 = TAB+TAB;
+	protected static final String TAB3 = TAB2+TAB;
+	protected static final String CR = "\n";
 
 	protected final ProcessingEnvironment environment;
 	protected final Messager messager;
