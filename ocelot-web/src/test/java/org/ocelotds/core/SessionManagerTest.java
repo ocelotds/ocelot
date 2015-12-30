@@ -7,6 +7,7 @@ import org.ocelotds.objects.FakeCDI;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
 import javax.enterprise.util.AnnotationLiteral;
@@ -47,7 +48,7 @@ public class SessionManagerTest {
 	Instance<JsTopicAccessController> topicAccessController;
 
 	@InjectMocks
-	private SessionManager sessionManager;
+	private SessionManager instance;
 
 	@Before
 	public void init() {
@@ -70,7 +71,7 @@ public class SessionManagerTest {
 		doThrow(IllegalAccessException.class).when(jtac).checkAccess(any(Session.class), anyString());
 		when(topicAccessController.select(DEFAULT_AT)).thenReturn(globalTAC);
 		Session session = mock(Session.class);
-		sessionManager.checkAccessTopic(session, TOPIC1);
+		instance.checkAccessTopic(session, TOPIC1);
 	}
 
 	/**
@@ -85,7 +86,7 @@ public class SessionManagerTest {
 		doNothing().when(jtac).checkAccess(any(Session.class), anyString());
 		when(topicAccessController.select(DEFAULT_AT)).thenReturn(globalTAC);
 		Session session = mock(Session.class);
-		sessionManager.checkAccessTopic(session, TOPIC1);
+		instance.checkAccessTopic(session, TOPIC1);
 	}
 
 	/**
@@ -101,11 +102,11 @@ public class SessionManagerTest {
 		when(topicAccessController.select(new JsTopicACAnnotationLiteral(TOPIC1))).thenReturn(topic1TAC);
 		Session session = mock(Session.class);
 		try {
-			sessionManager.checkAccessTopic(session, TOPIC2);
+			instance.checkAccessTopic(session, TOPIC2);
 		} catch(IllegalAccessException e) {
 			fail("Topic2 should be ok");
 		}
-		sessionManager.checkAccessTopic(session, TOPIC1);
+		instance.checkAccessTopic(session, TOPIC1);
 	}
 
 	/**
@@ -120,7 +121,7 @@ public class SessionManagerTest {
 		doNothing().when(jtac).checkAccess(any(Session.class), eq(TOPIC1));
 		when(topicAccessController.select(new JsTopicACAnnotationLiteral(TOPIC1))).thenReturn(topic1TAC);
 		Session session = mock(Session.class);
-		sessionManager.checkAccessTopic(session, TOPIC1);
+		instance.checkAccessTopic(session, TOPIC1);
 	}
 
 	/**
@@ -132,31 +133,31 @@ public class SessionManagerTest {
 		System.out.println("registerTopicSession");
 		Session session = mock(Session.class);
 		when(session.isOpen()).thenReturn(true);
-		int result = sessionManager.registerTopicSession(null, session);
+		int result = instance.registerTopicSession(null, session);
 		assertThat(result).isEqualTo(0);
 
-		result = sessionManager.registerTopicSession("", session);
+		result = instance.registerTopicSession("", session);
 		assertThat(result).isEqualTo(0);
 
-		result = sessionManager.registerTopicSession(TOPIC1, session);
+		result = instance.registerTopicSession(TOPIC1, session);
 		assertThat(result).isEqualTo(1);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(1);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(1);
 
 		session = mock(Session.class);
 		when(session.isOpen()).thenReturn(true);
-		result = sessionManager.registerTopicSession(TOPIC1, session);
+		result = instance.registerTopicSession(TOPIC1, session);
 		assertThat(result).isEqualTo(2);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(2);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(2);
 
-		result = sessionManager.registerTopicSession(TOPIC1, session);
+		result = instance.registerTopicSession(TOPIC1, session);
 		assertThat(result).isEqualTo(2);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(2);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(2);
 
 		session = mock(Session.class);
 		when(session.isOpen()).thenReturn(false);
-		result = sessionManager.registerTopicSession(TOPIC1, session);
+		result = instance.registerTopicSession(TOPIC1, session);
 		assertThat(result).isEqualTo(2);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(2);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(2);
 	}
 
 	/**
@@ -168,19 +169,19 @@ public class SessionManagerTest {
 		System.out.println("unregisterTopicSession");
 		Session session = mock(Session.class);
 		when(session.isOpen()).thenReturn(true);
-		int result = sessionManager.unregisterTopicSession(null, session);
+		int result = instance.unregisterTopicSession(null, session);
 		assertThat(result).isEqualTo(0);
 
-		result = sessionManager.unregisterTopicSession("", session);
+		result = instance.unregisterTopicSession("", session);
 		assertThat(result).isEqualTo(0);
 
-		result = sessionManager.registerTopicSession(TOPIC1, session);
+		result = instance.registerTopicSession(TOPIC1, session);
 		assertThat(result).isEqualTo(1);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(1);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(1);
 
-		result = sessionManager.unregisterTopicSession(TOPIC1, session);
+		result = instance.unregisterTopicSession(TOPIC1, session);
 		assertThat(result).isEqualTo(0);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(0);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(0);
 	}
 
 	/**
@@ -192,25 +193,48 @@ public class SessionManagerTest {
 		System.out.println("unregisterAllTopicSession");
 		Session session = mock(Session.class);
 		when(session.isOpen()).thenReturn(true);
-		int result = sessionManager.registerTopicSession(TOPIC1, session);
+		int result = instance.registerTopicSession(TOPIC1, session);
 		assertThat(result).isEqualTo(1);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(1);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(1);
 
 		Session session1 = mock(Session.class);
 		when(session1.isOpen()).thenReturn(true);
-		result = sessionManager.registerTopicSession(TOPIC1, session1);
+		result = instance.registerTopicSession(TOPIC1, session1);
 		assertThat(result).isEqualTo(2);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(2);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(2);
 
-		result = sessionManager.registerTopicSession(TOPIC2, session);
+		result = instance.registerTopicSession(TOPIC2, session);
 		assertThat(result).isEqualTo(1);
 
-		sessionManager.unregisterTopicSession("ALL", session);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(1);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC2)).isEqualTo(0);
+		instance.unregisterTopicSession("ALL", session);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(1);
+		assertThat(instance.getNumberSubscribers(TOPIC2)).isEqualTo(0);
 
-		result = sessionManager.unregisterTopicSession(TOPIC1, session1);
+		result = instance.unregisterTopicSession(TOPIC1, session1);
 		assertThat(result).isEqualTo(0);
+	}
+	
+	@Test
+	public void testRemoveSessionToSessions() {
+		System.out.println("removeSessionToSessions");
+		Session session = mock(Session.class);
+		Collection<Session> sessions = new ArrayList<>();
+		sessions.add(session);
+		int result = instance.removeSessionToSessions(session, null);
+		assertThat(result).isEqualTo(0);
+		
+		result = instance.removeSessionToSessions(session, Collections.EMPTY_LIST);
+		assertThat(result).isEqualTo(0);
+
+		result = instance.removeSessionToSessions(session, sessions);
+		assertThat(result).isEqualTo(1);
+		assertThat(sessions).isEmpty();
+
+		sessions.add(session);
+		sessions.add(mock(Session.class));
+		result = instance.removeSessionToSessions(session, sessions);
+		assertThat(result).isEqualTo(1);
+		assertThat(sessions).hasSize(1);
 	}
 
 	/**
@@ -224,20 +248,20 @@ public class SessionManagerTest {
 
 		Session session = mock(Session.class);
 		when(session.isOpen()).thenReturn(true);
-		int result = sessionManager.registerTopicSession(TOPIC1, session);
+		int result = instance.registerTopicSession(TOPIC1, session);
 		assertThat(result).isEqualTo(1);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(1);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(1);
 		sessions.add(session);
 
 		Session session1 = mock(Session.class);
 		when(session1.isOpen()).thenReturn(true);
-		result = sessionManager.registerTopicSession(TOPIC1, session1);
+		result = instance.registerTopicSession(TOPIC1, session1);
 		assertThat(result).isEqualTo(2);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(2);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(2);
 		sessions.add(session1);
 
-		sessionManager.unregisterTopicSessions(TOPIC1, sessions);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(0);
+		instance.unregisterTopicSessions(TOPIC1, sessions);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(0);
 	}
 
 	/**
@@ -252,20 +276,20 @@ public class SessionManagerTest {
 		Session session = mock(Session.class);
 		sessions.add(session);
 		when(session.isOpen()).thenReturn(true);
-		int result = sessionManager.registerTopicSession(TOPIC1, session);
+		int result = instance.registerTopicSession(TOPIC1, session);
 		assertThat(result).isEqualTo(1);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(1);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(1);
 
 		Session session1 = mock(Session.class);
 		sessions.add(session1);
 		when(session1.isOpen()).thenReturn(true);
-		result = sessionManager.registerTopicSession(TOPIC2, session1);
+		result = instance.registerTopicSession(TOPIC2, session1);
 		assertThat(result).isEqualTo(1);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC2)).isEqualTo(1);
+		assertThat(instance.getNumberSubscribers(TOPIC2)).isEqualTo(1);
 
-		sessionManager.removeSessionsToTopic(sessions);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(0);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC2)).isEqualTo(0);
+		instance.removeSessionsToTopic(sessions);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(0);
+		assertThat(instance.getNumberSubscribers(TOPIC2)).isEqualTo(0);
 	}
 
 	/**
@@ -277,29 +301,29 @@ public class SessionManagerTest {
 		System.out.println("removeSessionToTopic");
 		Session session = mock(Session.class);
 		when(session.isOpen()).thenReturn(true);
-		int result = sessionManager.registerTopicSession(TOPIC1, session);
+		int result = instance.registerTopicSession(TOPIC1, session);
 		assertThat(result).isEqualTo(1);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(1);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(1);
 
-		result = sessionManager.registerTopicSession(TOPIC2, session);
+		result = instance.registerTopicSession(TOPIC2, session);
 		assertThat(result).isEqualTo(1);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC2)).isEqualTo(1);
+		assertThat(instance.getNumberSubscribers(TOPIC2)).isEqualTo(1);
 
 		Session session1 = mock(Session.class);
 		when(session1.isOpen()).thenReturn(true);
-		result = sessionManager.registerTopicSession(TOPIC2, session1);
+		result = instance.registerTopicSession(TOPIC2, session1);
 		assertThat(result).isEqualTo(2);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC2)).isEqualTo(2);
-		result = sessionManager.registerTopicSession(SUBTOPIC2, session1);
+		assertThat(instance.getNumberSubscribers(TOPIC2)).isEqualTo(2);
+		result = instance.registerTopicSession(SUBTOPIC2, session1);
 		assertThat(result).isEqualTo(1);
-		assertThat(sessionManager.getNumberSubscribers(SUBTOPIC2)).isEqualTo(1);
+		assertThat(instance.getNumberSubscribers(SUBTOPIC2)).isEqualTo(1);
 
 		RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
 		when(session1.getAsyncRemote()).thenReturn(async);
 
-		sessionManager.removeSessionToTopics(session);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC1)).isEqualTo(0);
-		assertThat(sessionManager.getNumberSubscribers(TOPIC2)).isEqualTo(1);
+		instance.removeSessionToTopics(session);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(0);
+		assertThat(instance.getNumberSubscribers(TOPIC2)).isEqualTo(1);
 		
 		ArgumentCaptor<MessageToClient> captureMsg = ArgumentCaptor.forClass(MessageToClient.class);
 		verify(async).sendObject(captureMsg.capture());

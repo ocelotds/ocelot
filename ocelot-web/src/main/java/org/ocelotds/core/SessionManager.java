@@ -124,17 +124,27 @@ public class SessionManager {
 		logger.debug("'{}' unsubscribe to '{}'", session.getId(), topic);
 		if (Constants.Topic.ALL.equals(topic)) {
 			for (Collection<Session> sessions : sessionsByTopic.values()) {
-				if (sessions != null && sessions.contains(session)) {
-					sessions.remove(session);
-				}
+				removeSessionToSessions(session, sessions);
 			}
 		} else {
-			Collection<Session> sessions = sessionsByTopic.get(topic);
-			if (sessions != null && sessions.contains(session)) {
-				sessions.remove(session);
-			}
+			removeSessionToSessions(session, sessionsByTopic.get(topic));
 		}
 		return getNumberSubscribers(topic);
+	}
+	
+	/**
+	 * Remove session in sessions
+	 * @param session
+	 * @param sessions
+	 * @return 1 if session removed else 0
+	 */
+	int removeSessionToSessions(Session session, Collection<Session> sessions){
+		if (sessions != null && sessions.contains(session)) {
+			if(sessions.remove(session)) {
+				return 1;
+			}
+		}
+		return 0;
 	}
 
 	/**
