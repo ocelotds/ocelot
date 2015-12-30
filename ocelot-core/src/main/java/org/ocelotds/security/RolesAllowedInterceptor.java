@@ -43,18 +43,23 @@ public class RolesAllowedInterceptor implements Serializable {
 	@AroundInvoke
 	public Object checkRolesAllowed(InvocationContext ctx) throws Exception {
 		Method method = ctx.getMethod();
+		String methodid = String.format("%s.%s", method.getDeclaringClass().getSimpleName(), method.getName());
 		RolesAllowed rolesAllowedAnno = method.getAnnotation(RolesAllowed.class);
 		String[] rolesAllowed = rolesAllowedAnno.value();
 		HandshakeRequest handshakeRequest = getHandshakeRequest();
-		for (String roleAllowed : rolesAllowed) {
-			if(handshakeRequest.isUserInRole(roleAllowed)) {
-				if(logger.isDebugEnabled()) {
-					logger.debug("Check method {}.{} : role {} is allowed", method.getDeclaringClass().getSimpleName(), method.getName(), roleAllowed);
+		if(handshakeRequest!=null) {
+			for (String roleAllowed : rolesAllowed) {
+				if(handshakeRequest.isUserInRole(roleAllowed)) {
+					if(logger.isDebugEnabled()) {
+						logger.debug("Check method {} : role {} is allowed", methodid, roleAllowed);
+					}
+					return ctx.proceed();
 				}
-				return ctx.proceed();
 			}
+		} else {
+			throw new NullPointerException("'HandshakeRequest' is not in threadlocal for roles testing : "+methodid);
 		}
-		throw new IllegalAccessException("'"+principal+"' is not allowed to execute "+method.getDeclaringClass().getSimpleName()+"."+method.getName());
+		throw new IllegalAccessException("'"+principal+"' is not allowed to execute "+methodid);
 	}
 
 	HandshakeRequest getHandshakeRequest() {
