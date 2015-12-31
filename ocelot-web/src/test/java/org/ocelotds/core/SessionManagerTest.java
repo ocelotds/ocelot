@@ -22,8 +22,6 @@ import org.ocelotds.security.JsTopicAccessController;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
 import org.mockito.ArgumentCaptor;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
@@ -33,7 +31,6 @@ import org.slf4j.Logger;
  *
  * @author hhfrancois
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(MockitoJUnitRunner.class)
 public class SessionManagerTest {
 	
