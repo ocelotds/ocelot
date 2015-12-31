@@ -77,6 +77,9 @@ public class ServiceToolsTest {
 		System.out.println("getLiteralType");
 		String result = instance.getLiteralType(String.class);
 		assertThat(result).isEqualTo("java.lang.String");
+
+		result = instance.getLiteralType(null);
+		assertThat(result).isEqualTo("");
 	}
 
 	/**
@@ -199,6 +202,10 @@ public class ServiceToolsTest {
 			
 		}
 
+		protected static void staticProtectedMethod() {
+			
+		}
+
 		@Override
 		public int hashCode() {
 			return super.hashCode();
@@ -249,6 +256,10 @@ public class ServiceToolsTest {
 		assertThat(result).isEqualTo(false);
 
 		method = DataService1.class.getMethod("staticMethod");
+		result = instance.isConsiderateMethod(method);
+		assertThat(result).isEqualTo(false);
+		
+		method = DataService1.class.getDeclaredMethod("staticProtectedMethod");
 		result = instance.isConsiderateMethod(method);
 		assertThat(result).isEqualTo(false);
 	}
@@ -368,14 +379,19 @@ public class ServiceToolsTest {
 	@Test
 	public void testGetTemplateOfIterable() throws JsonProcessingException {
 		System.out.println("getTemplateOfIterable");
-		Type[] actualTypeArguments = new Type[] {Result.class};
 		ObjectMapper om = new ObjectMapper();
 		Result r = new Result();
 		String res = om.writeValueAsString(r);
 
 		String expResult = "["+res+","+res+"]";
-		String result = instance.getTemplateOfIterable(actualTypeArguments);
+		String result = instance.getTemplateOfIterable(new Type[] {Result.class});
 		assertThat(result).isEqualTo(expResult);
+		
+		result = instance.getTemplateOfIterable(new Type[] {Result.class, String.class});
+		assertThat(result).isEqualTo(expResult);
+		
+		result = instance.getTemplateOfIterable(new Type[] {});
+		assertThat(result).isEqualTo("[]");
 	}
 
 	/**
