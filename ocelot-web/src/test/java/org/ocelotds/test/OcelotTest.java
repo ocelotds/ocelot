@@ -646,16 +646,12 @@ public class OcelotTest {
 		System.out.println("testJavascriptCoreGeneration");
 		try {
 			HttpURLConnection connection = getConnectionForResource(Constants.OCELOT + Constants.JS, false);
-			boolean replaced;
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), Constants.UTF_8))) {
 				String inputLine;
-				replaced = false;
 				while ((inputLine = in.readLine()) != null) {
 					assertThat(inputLine).doesNotContain(Constants.CTXPATH).as("Dynamic replacement of %s doesn't work", Constants.CTXPATH);
-					replaced |= inputLine.contains(CTXPATH);
 				}
 			}
-			assertThat(replaced).isTrue().as("Dynamic replacement of context doen't work");
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}
