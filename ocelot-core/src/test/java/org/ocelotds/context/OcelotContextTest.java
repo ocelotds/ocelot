@@ -71,12 +71,15 @@ public class OcelotContextTest {
 		Map<String, Object> map = new HashMap<>();
 
 		when(session.getUserProperties()).thenReturn(map);
-		when(instance.getSession()).thenReturn(session);
+		when(instance.getSession()).thenReturn(session).thenReturn(session).thenReturn(null);
 		
 		instance.setLocale(Locale.ITALY);
 		assertThat(map.get(Constants.LOCALE)).isEqualTo(Locale.ITALY);
 		
 		instance.setLocale(Locale.FRANCE);
+		assertThat(map.get(Constants.LOCALE)).isEqualTo(Locale.FRANCE);
+
+		instance.setLocale(Locale.CHINA);
 		assertThat(map.get(Constants.LOCALE)).isEqualTo(Locale.FRANCE);
 	}
 	/**

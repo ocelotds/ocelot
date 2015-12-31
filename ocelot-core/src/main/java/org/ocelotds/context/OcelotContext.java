@@ -47,9 +47,11 @@ public class OcelotContext {
 
 	public void setLocale(Locale locale) {
 		Session session = getSession();
-		session.getUserProperties().remove(Constants.LOCALE);
-		if (locale != null) {
-			session.getUserProperties().put(Constants.LOCALE, locale);
+		if(session!=null) {
+			session.getUserProperties().remove(Constants.LOCALE);
+			if (locale != null) {
+				session.getUserProperties().put(Constants.LOCALE, locale);
+			}
 		}
 	}
 
