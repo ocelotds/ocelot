@@ -342,6 +342,9 @@ public class DataServiceVisitorJsBuilderTest {
 
 		result = instance.considerateNotAllArgs(new JsCacheResultLiteral("*"));
 		assertThat(result).isFalse();
+
+		result = instance.considerateNotAllArgs(new JsCacheResultLiteral("*", "b"));
+		assertThat(result).isFalse();
 		
 	}
 
