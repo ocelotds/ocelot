@@ -69,7 +69,6 @@ import org.jboss.shrinkwrap.api.container.ResourceContainer;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,11 +78,6 @@ import org.ocelotds.literals.JsonMarshallerLiteral;
 import org.ocelotds.literals.JsonUnmarshallerLiteral;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  *
@@ -91,34 +85,34 @@ import static org.junit.Assert.fail;
  */
 @RunWith(Arquillian.class)
 public class OcelotTest {
-
+	
 	private final static Logger logger = LoggerFactory.getLogger(OcelotTest.class);
-
+	
 	private final static long TIMEOUT = 1000;
 	private final static String PORT = "8282";
-
+	
 	private final static String CTXPATH = "ocelot-test";
-
+	
 	@Inject
 	@MessageEvent
 	Event<MessageToClient> wsEvent;
-
+	
 	@Inject
 	@Any
 	@ServiceProvider(Constants.Provider.JAVASCRIPT)
 	private Instance<FileNameProvider> jsProviders;
-
+	
 	@Inject
 	@Any
 	private Instance<IDataServiceResolver> resolvers;
-
+	
 	@Inject
 	TestTopicAccessControler accessControl;
-
+	
 	private IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
 	}
-
+	
 	private final CdiDataService2 destination = new CdiDataService2();
 
 	/**
@@ -199,12 +193,12 @@ public class OcelotTest {
 			resourceContainer.addAsResource(new FileAsset(file), file.getName());
 		}
 	}
-
+	
 	@BeforeClass
 	public static void setUpClass() {
 		System.out.println("===============================================================================================================");
 	}
-
+	
 	@AfterClass
 	public static void tearDownClass() {
 		System.out.println("===============================================================================================================");
@@ -246,7 +240,7 @@ public class OcelotTest {
 		}
 		return messageFromClient;
 	}
-
+	
 	private MessageFromClient getMessageFromClient(Class cls, String operation, String paramNames, String... params) {
 		MessageFromClient messageFromClient = getMessageFromClient(cls.getName(), operation, params);
 		messageFromClient.setParameterNames(Arrays.asList(paramNames.split(",")));
@@ -276,20 +270,20 @@ public class OcelotTest {
 	 * lock
 	 */
 	private static class CountDownMessageHandler implements MessageHandler.Whole<String> {
-
+		
 		private final CountDownLatch lock;
 		private MessageToClient messageToClient = null;
 		private String id = null;
-
+		
 		CountDownMessageHandler(String id, CountDownLatch lock) {
 			this.lock = lock;
 			this.id = id;
 		}
-
+		
 		CountDownMessageHandler(CountDownLatch lock) {
 			this.lock = lock;
 		}
-
+		
 		@Override
 		public void onMessage(String message) {
 			logger.debug("RECEIVE RESPONSE FROM SERVER = {}", message);
@@ -299,7 +293,7 @@ public class OcelotTest {
 				lock.countDown();
 			}
 		}
-
+		
 		public MessageToClient getMessageToClient() {
 			return messageToClient;
 		}
@@ -332,7 +326,7 @@ public class OcelotTest {
 		// send
 		session.getAsyncRemote().sendText(messageFromClient.toJson());
 	}
-
+	
 	private MessageToClient getMessageToClientAfterSendInSession(Session session, String classname, String operation, String... params) {
 		MessageToClient result = null;
 		try {
@@ -350,10 +344,10 @@ public class OcelotTest {
 			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			// lockCount doit être à  zero sinon, on a pas eu le resultat
 			long t1 = System.currentTimeMillis();
-			assertTrue("Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/1 msgs", await);
+			assertThat(await).isTrue().as("Timeout. waiting %f ms. Remain %s/1 msgs", t1 - t0, lock.getCount());
 			// lecture du resultat dans le handler
 			result = messageHandler.getMessageToClient();
-			assertNotNull(result);
+			assertThat(result).isNotNull();
 			session.removeMessageHandler(messageHandler);
 		} catch (InterruptedException ex) {
 			fail("Bean not reached");
@@ -373,35 +367,35 @@ public class OcelotTest {
 			executorService.execute(new CallRunnable(clazz, resolver));
 			executorService.shutdown();
 			GetValue bean2 = resolver.resolveDataService(clazz);
-			assertNotNull(bean2);
-			Assert.assertNotEquals("two instances of session bean should be differents", bean2.getValue(), 500);
+			assertThat(bean2).isNotNull();
+			assertThat(bean2.getValue()).isNotEqualTo(500).as("two instances of session bean should be differents");
 		} catch (DataServiceException ex) {
 			fail(resolverId + " bean not reached");
 		}
 	}
-
+	
 	private static class CallRunnable implements Runnable {
-
+		
 		private final Class<? extends GetValue> clazz;
 		private final IDataServiceResolver resolver;
-
+		
 		public CallRunnable(Class<? extends GetValue> clazz, IDataServiceResolver resolver) {
 			this.clazz = clazz;
 			this.resolver = resolver;
 		}
-
+		
 		@Override
 		public void run() {
 			try {
 				GetValue bean1 = resolver.resolveDataService(clazz);
 				bean1.setValue(500);
 				Thread.sleep(1000);
-				assertNotNull(bean1);
-				assertTrue(clazz.isInstance(bean1));
+				assertThat(bean1).isNotNull();
+				assertThat(bean1).isInstanceOf(clazz);
 			} catch (DataServiceException | InterruptedException ex) {
 			}
 		}
-
+		
 	}
 
 	/**
@@ -412,11 +406,11 @@ public class OcelotTest {
 		try {
 			// deux beans doivent être differents
 			Object bean1 = resolver.resolveDataService(clazz);
-			assertNotNull(bean1);
-			assertTrue(clazz.isInstance(bean1));
+			assertThat(bean1).isNotNull();
+			assertThat(bean1).isInstanceOf(clazz);
 			Object bean2 = resolver.resolveDataService(clazz);
-			assertNotNull(bean2);
-			assertFalse("two instances of request bean should be differents", bean1.equals(bean2));
+			assertThat(bean2).isNotNull();
+			assertThat(bean2).isNotEqualTo(bean1).as("two instances of request bean should be differents");
 		} catch (DataServiceException ex) {
 			fail(resolverId + " bean not reached");
 		}
@@ -441,7 +435,7 @@ public class OcelotTest {
 		} catch (IOException exception) {
 		}
 		// controle
-		Assert.assertNotEquals("two instances of request bean should be differents", firstResult, secondResult); // doit etre different
+		assertThat(firstResult).isNotEqualTo(secondResult).as("two instances of request bean should be differents");// doit etre different
 	}
 
 	/**
@@ -452,9 +446,9 @@ public class OcelotTest {
 		try {
 			// deux singletons doivent être identiques
 			GetValue singleton1 = resolver.resolveDataService(clazz);
-			assertNotNull(singleton1);
+			assertThat(singleton1).isNotNull();
 			GetValue singleton2 = resolver.resolveDataService(clazz);
-			assertNotNull(singleton2);
+			assertThat(singleton2).isNotNull();
 			assertThat(singleton1.getValue()).isEqualTo(singleton2.getValue());
 		} catch (DataServiceException ex) {
 			fail(resolverId + " bean not reached");
@@ -474,7 +468,7 @@ public class OcelotTest {
 			instance = resolver.resolveDataService(clazz);
 		} catch (DataServiceException ex) {
 		}
-		assertThat(instance).isNotNull().describedAs("Instance not reachable, is null");
+		assertThat(instance).isNotNull().as("Instance not reachable, is null");
 	}
 
 	/**
@@ -496,7 +490,7 @@ public class OcelotTest {
 		} catch (IOException exception) {
 		}
 		// controle, doit etre identique
-		assertEquals(firstResult, secondResult);
+		assertThat(firstResult).isEqualTo(secondResult);
 	}
 
 	/**
@@ -507,11 +501,11 @@ public class OcelotTest {
 		try {
 			// hors session, deux beans session scope doivent être differents
 			Object bean1 = resolver.resolveDataService(clazz);
-			assertNotNull(bean1);
-			assertTrue(clazz.isInstance(bean1));
+			assertThat(bean1).isNotNull();
+			assertThat(bean1).isInstanceOf(clazz);
 			Object bean2 = resolver.resolveDataService(clazz);
-			assertNotNull(bean2);
-			assertFalse("two instances of session bean should be differents", bean1.equals(bean2));
+			assertThat(bean2).isNotNull();
+			assertThat(bean1).isNotEqualTo(bean2).as("two instances of session bean should be differents");
 		} catch (DataServiceException ex) {
 			fail(resolverId + " bean not reached");
 		}
@@ -532,7 +526,7 @@ public class OcelotTest {
 		} catch (IOException exception) {
 		}
 		// controle : sur la meme session cela doit se comporter comme un singleton, donc meme resultat
-		assertEquals(secondResult, firstResult);
+		assertThat(secondResult).isEqualTo(firstResult);
 		// troisiement appel sur une session differente
 		Object thirdResult = null;
 		try (Session wssession = createAndGetSession()) {
@@ -540,7 +534,7 @@ public class OcelotTest {
 		} catch (IOException exception) {
 		}
 		// controle : sur != session cela doit etre different
-		Assert.assertNotEquals(secondResult, thirdResult);
+		assertThat(secondResult).isNotEqualTo(thirdResult);
 	}
 
 	/**
@@ -568,7 +562,7 @@ public class OcelotTest {
 		System.out.println("Content-length: " + uc.getContentLength());
 //		connection.setRequestMethod("GET");
 //		connection.connect();
-		assertEquals("'" + sb.toString() + "' is unreachable", 200, uc.getResponseCode());
+		assertThat(uc.getResponseCode()).isEqualTo(200).as("'%s' is unreachable", sb);
 		return uc;
 	}
 
@@ -581,7 +575,7 @@ public class OcelotTest {
 		System.out.println("testJsServiceProvider");
 		testServiceProvider(jsProviders, Constants.JS);
 	}
-
+	
 	public void testServiceProvider(Instance<FileNameProvider> instances, String ext) {
 		for (FileNameProvider provider : instances) {
 			Package aPackage = provider.getClass().getPackage();
@@ -592,7 +586,7 @@ public class OcelotTest {
 			}
 		}
 	}
-
+	
 	private int countByte(InputStream in) throws IOException {
 		int result = 0;
 		byte[] buffer = new byte[1024];
@@ -620,7 +614,7 @@ public class OcelotTest {
 			connection2 = getConnectionForResource(resource, false);
 			int length = countByte(connection2.getInputStream());
 //			traceFile(connection2.getInputStream());
-			assertTrue("Minification of " + resource + " didn't work, same size of file magnifier : " + length + " / minifer : " + minlength, minlength < length);
+			assertThat(minlength).isLessThan(length).as("Minification of %s didn't work, same size of file magnifier : %s / minifer : %s", resource, length, minlength);
 		} catch (IOException e) {
 			fail(e.getMessage());
 		} finally {
@@ -632,7 +626,7 @@ public class OcelotTest {
 			}
 		}
 	}
-
+	
 	private void traceFile(InputStream input) {
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(input, Constants.UTF_8))) {
 			String inputLine;
@@ -657,11 +651,11 @@ public class OcelotTest {
 				String inputLine;
 				replaced = false;
 				while ((inputLine = in.readLine()) != null) {
-					assertFalse("Dynamic replacement of " + Constants.CTXPATH + " doesn't work", inputLine.contains(Constants.CTXPATH));
+					assertThat(inputLine).doesNotContain(Constants.CTXPATH).as("Dynamic replacement of %s doesn't work", Constants.CTXPATH);
 					replaced |= inputLine.contains(CTXPATH);
 				}
 			}
-			assertTrue("Dynamic replacement of context doen't work", replaced);
+			assertThat(replaced).isTrue().as("Dynamic replacement of context doen't work");
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}
@@ -674,16 +668,17 @@ public class OcelotTest {
 	public void testServicesGeneration() {
 		Class clazz = OcelotServices.class;
 		String methodName = "getServices";
-		System.out.println(clazz+"."+methodName);
+		System.out.println(clazz + "." + methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			String result = (String) messageToClient.getResponse();
 			assertThat(result).isNotEmpty();
 		} catch (IOException exception) {
 		}
 		
 	}
+
 	/**
 	 * Vérification qu'un resolver inconnu remonte bien une exception
 	 */
@@ -761,8 +756,8 @@ public class OcelotTest {
 	public void testGetResolverCdi() {
 		System.out.println("getResolverCdi");
 		IDataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
-		assertNotNull(resolver);
-		assertTrue(CdiResolver.class.isInstance(resolver));
+		assertThat(resolver).isNotNull();
+		assertThat(resolver).isInstanceOf(CdiResolver.class);
 	}
 
 	/**
@@ -792,9 +787,9 @@ public class OcelotTest {
 		IDataServiceResolver resolver = getResolver(Constants.Resolver.CDI);
 		try {
 			CDIDataService cdids = resolver.resolveDataService(CDIDataService.class);
-			assertNotNull(cdids);
-			assertEquals(CDIDataService.class, cdids.getClass());
-			assertNotNull(cdids.getBeanManager());
+			assertThat(cdids).isNotNull();
+			assertThat(cdids).isInstanceOf(CDIDataService.class);
+			assertThat(cdids.getBeanManager()).isNotNull();
 		} catch (DataServiceException ex) {
 			fail("Cdi bean not reached");
 		}
@@ -848,11 +843,11 @@ public class OcelotTest {
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
 				  Constants.Message.TYPE, MessageType.RESULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 5, Constants.Message.RESPONSE, expectedResult);
 		MessageToClient result = MessageToClient.createFromJson(json);
-		assertEquals(MessageType.RESULT, result.getType());
-		assertEquals(uuid, result.getId());
-		assertEquals(5, result.getDeadline());
-		assertEquals(MessageType.RESULT, result.getType());
-		assertEquals("" + expectedResult, result.getResponse());
+		assertThat(result.getType()).isEqualTo(MessageType.RESULT);
+		assertThat(result.getId()).isEqualTo(uuid);
+		assertThat(result.getDeadline()).isEqualTo(5);
+		assertThat(result.getType()).isEqualTo(MessageType.RESULT);
+		assertThat(result.getResponse()).isEqualTo("" + expectedResult);
 	}
 
 	/**
@@ -866,10 +861,10 @@ public class OcelotTest {
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
 				  Constants.Message.TYPE, MessageType.MESSAGE, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 5, Constants.Message.RESPONSE, expectedResult);
 		MessageToClient result = MessageToClient.createFromJson(json);
-		assertEquals(MessageType.MESSAGE, result.getType());
-		assertEquals(uuid, result.getId());
-		assertEquals(5, result.getDeadline());
-		assertEquals("" + expectedResult, result.getResponse());
+		assertThat(result.getType()).isEqualTo(MessageType.MESSAGE);
+		assertThat(result.getId()).isEqualTo(uuid);
+		assertThat(result.getDeadline()).isEqualTo(5);
+		assertThat(result.getResponse()).isEqualTo("" + expectedResult);
 	}
 
 	/**
@@ -883,11 +878,11 @@ public class OcelotTest {
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
 				  Constants.Message.TYPE, MessageType.RESULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 10, Constants.Message.RESPONSE, expectedResultJS);
 		MessageToClient result = MessageToClient.createFromJson(json);
-		assertEquals(MessageType.RESULT, result.getType());
-		assertEquals(uuid, result.getId());
-		assertEquals(10, result.getDeadline());
-		assertEquals(MessageType.RESULT, result.getType());
-		assertEquals(expectedResultJS, result.getResponse());
+		assertThat(result.getType()).isEqualTo(MessageType.RESULT);
+		assertThat(result.getId()).isEqualTo(uuid);
+		assertThat(result.getDeadline()).isEqualTo(10);
+		assertThat(result.getType()).isEqualTo(MessageType.RESULT);
+		assertThat(result.getResponse()).isEqualTo(expectedResultJS);
 	}
 
 	/**
@@ -901,11 +896,11 @@ public class OcelotTest {
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
 				  Constants.Message.TYPE, MessageType.RESULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 20, Constants.Message.RESPONSE, expectedResult);
 		MessageToClient result = MessageToClient.createFromJson(json);
-		assertEquals(MessageType.RESULT, result.getType());
-		assertEquals(uuid, result.getId());
-		assertEquals(20, result.getDeadline());
-		assertEquals(MessageType.RESULT, result.getType());
-		assertEquals(expectedResult, result.getResponse());
+		assertThat(result.getType()).isEqualTo(MessageType.RESULT);
+		assertThat(result.getId()).isEqualTo(uuid);
+		assertThat(result.getDeadline()).isEqualTo(20);
+		assertThat(result.getType()).isEqualTo(MessageType.RESULT);
+		assertThat(result.getResponse()).isEqualTo(expectedResult);
 	}
 
 	/**
@@ -919,11 +914,11 @@ public class OcelotTest {
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
 				  Constants.Message.TYPE, MessageType.FAULT, Constants.Message.ID, uuid, Constants.Message.DEADLINE, 0, Constants.Message.RESPONSE, f.toJson());
 		MessageToClient result = MessageToClient.createFromJson(json);
-		assertEquals(MessageType.FAULT, result.getType());
-		assertEquals(uuid, result.getId());
-		assertEquals(0, result.getDeadline());
-		assertEquals(MessageType.FAULT, result.getType());
-		assertEquals(f.getClassname(), ((Fault) result.getResponse()).getClassname());
+		assertThat(result.getType()).isEqualTo(MessageType.FAULT);
+		assertThat(result.getId()).isEqualTo(uuid);
+		assertThat(result.getDeadline()).isEqualTo(0);
+		assertThat(result.getType()).isEqualTo(MessageType.FAULT);
+		assertThat(((Fault) result.getResponse()).getClassname()).isEqualTo(f.getClassname());
 	}
 
 	/**
@@ -940,12 +935,12 @@ public class OcelotTest {
 				  Constants.Message.ID, uuid, Constants.Message.DATASERVICE, CdiDataService2.class.getName(), Constants.Message.OPERATION, operation,
 				  Constants.Message.ARGUMENTNAMES, "r", "m", Constants.Message.ARGUMENTS, resultJS, mapResultJS);
 		MessageFromClient result = MessageFromClient.createFromJson(json);
-		assertEquals(uuid, result.getId());
-		assertEquals(CdiDataService2.class.getName(), result.getDataService());
-		assertEquals(operation, result.getOperation());
+		assertThat(result.getId()).isEqualTo(uuid);
+		assertThat(result.getDataService()).isEqualTo(CdiDataService2.class.getName());
+		assertThat(result.getOperation()).isEqualTo(operation);
 		List<String> parameters = result.getParameters();
-		assertEquals(resultJS, parameters.get(0));
-		assertEquals(mapResultJS, parameters.get(1));
+		assertThat(parameters.get(0)).isEqualTo(resultJS);
+		assertThat(parameters.get(1)).isEqualTo(mapResultJS);
 	}
 
 	/**
@@ -1017,9 +1012,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.FAULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.FAULT);
 			Object fault = messageToClient.getResponse();
-			assertNotNull(fault);
+			assertThat(fault).isNotNull();
 		} catch (IOException exception) {
 		}
 	}
@@ -1034,8 +1029,8 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
-			assertEquals("null", messageToClient.getResponse());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
+			assertThat(messageToClient.getResponse()).isEqualTo("null");
 		} catch (IOException exception) {
 		}
 	}
@@ -1050,9 +1045,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.getString()), result);
+			assertThat(result).isEqualTo(getJson(destination.getString()));
 		} catch (IOException exception) {
 		}
 	}
@@ -1067,9 +1062,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.getNum()), result);
+			assertThat(result).isEqualTo(getJson(destination.getNum()));
 		} catch (IOException exception) {
 		}
 	}
@@ -1084,9 +1079,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.getNumber()), result);
+			assertThat(result).isEqualTo(getJson(destination.getNumber()));
 		} catch (IOException exception) {
 		}
 	}
@@ -1101,9 +1096,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.getBool()), result);
+			assertThat(result).isEqualTo(getJson(destination.getBool()));
 		} catch (IOException exception) {
 		}
 	}
@@ -1118,9 +1113,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.getBoolean()), result);
+			assertThat(result).isEqualTo(getJson(destination.getBoolean()));
 		} catch (IOException exception) {
 		}
 	}
@@ -1136,16 +1131,16 @@ public class OcelotTest {
 		try (Session wssession = createAndGetSession()) {
 			Thread.sleep(1000);
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, CdiDataService2.class.getName(), "getDate");
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertNotNull(result);
+			assertThat(result).isNotNull();
 			Date res = new Date(Long.parseLong(result.toString()));
 			System.out.println("RES = " + res.getTime());
-			assertTrue(before.before(res));
+			assertThat(res).isAfter(before);
 			Thread.sleep(1000);
 			Date after = new Date();
 			System.out.println("AFTER = " + after.getTime());
-			assertTrue(after.after(res));
+			assertThat(res).isBefore(after);
 		} catch (IOException exception) {
 		} catch (InterruptedException ex) {
 			fail(ex.getMessage());
@@ -1162,9 +1157,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.getResult()), result);
+			assertThat(result).isEqualTo(getJson(destination.getResult()));
 		} catch (IOException exception) {
 		}
 	}
@@ -1179,9 +1174,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.getCollectionInteger()), result);
+			assertThat(result).isEqualTo(getJson(destination.getCollectionInteger()));
 		} catch (IOException exception) {
 		}
 	}
@@ -1196,9 +1191,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.getCollectionResult()), result);
+			assertThat(result).isEqualTo(getJson(destination.getCollectionResult()));
 		} catch (IOException exception) {
 		}
 	}
@@ -1213,9 +1208,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.getCollectionOfCollectionResult()), result);
+			assertThat(result).isEqualTo(getJson(destination.getCollectionOfCollectionResult()));
 		} catch (IOException exception) {
 		}
 	}
@@ -1230,9 +1225,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.getMapResult()), result);
+			assertThat(result).isEqualTo(getJson(destination.getMapResult()));
 		} catch (IOException exception) {
 		}
 	}
@@ -1247,9 +1242,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(1));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithNum(1)), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithNum(1)));
 		} catch (IOException exception) {
 		}
 	}
@@ -1264,9 +1259,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(2));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithNumber(2)), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithNumber(2)));
 		} catch (IOException exception) {
 		}
 	}
@@ -1281,9 +1276,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(true));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithBool(true)), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithBool(true)));
 		} catch (IOException exception) {
 		}
 	}
@@ -1298,9 +1293,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(false));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithBoolean(false)), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithBoolean(false)));
 		} catch (IOException exception) {
 		}
 	}
@@ -1316,9 +1311,9 @@ public class OcelotTest {
 		Object arg = new Date();
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithDate((Date) arg)), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithDate((Date) arg)));
 		} catch (IOException exception) {
 		}
 	}
@@ -1334,9 +1329,9 @@ public class OcelotTest {
 		Object arg = new Result(6);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithResult((Result) arg)), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithResult((Result) arg)));
 		} catch (IOException exception) {
 		}
 	}
@@ -1352,9 +1347,9 @@ public class OcelotTest {
 		Object arg = new Integer[]{1, 2};
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithArrayInteger((Integer[]) arg)), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithArrayInteger((Integer[]) arg)));
 		} catch (IOException exception) {
 		}
 	}
@@ -1370,9 +1365,9 @@ public class OcelotTest {
 		Object arg = destination.getCollectionInteger();
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithCollectionInteger((Collection<Integer>) arg)), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithCollectionInteger((Collection<Integer>) arg)));
 		} catch (IOException exception) {
 		}
 	}
@@ -1388,9 +1383,9 @@ public class OcelotTest {
 		Object arg = new Result[]{new Result(1), new Result(2)};
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithArrayResult((Result[]) arg)), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithArrayResult((Result[]) arg)));
 		} catch (IOException exception) {
 		}
 	}
@@ -1406,9 +1401,9 @@ public class OcelotTest {
 		Object arg = destination.getCollectionResult();
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithCollectionResult((Collection<Result>) arg)), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithCollectionResult((Collection<Result>) arg)));
 		} catch (IOException exception) {
 		}
 	}
@@ -1424,9 +1419,9 @@ public class OcelotTest {
 		Object arg = destination.getMapResult();
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithMapResult((Map<String, Result>) arg)), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithMapResult((Map<String, Result>) arg)));
 		} catch (IOException exception) {
 		}
 	}
@@ -1442,9 +1437,9 @@ public class OcelotTest {
 		Object arg = destination.getCollectionOfCollectionResult();
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(arg));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithCollectionOfCollectionResult((Collection<Collection<Result>>) arg)), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithCollectionOfCollectionResult((Collection<Collection<Result>>) arg)));
 		} catch (IOException exception) {
 		}
 	}
@@ -1462,9 +1457,9 @@ public class OcelotTest {
 		cl.add("foo");
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson("foo"), getJson(5), getJson(new Result(3)), getJson(cl));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithManyParameters("foo", 5, new Result(3), cl)), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithManyParameters("foo", 5, new Result(3), cl)));
 		} catch (IOException exception) {
 		}
 	}
@@ -1479,9 +1474,9 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName);
-			assertEquals(MessageType.FAULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.FAULT);
 			Fault fault = (Fault) messageToClient.getResponse();
-			assertEquals(MethodException.class.getName(), fault.getClassname());
+			assertThat(fault.getClassname()).isEqualTo(MethodException.class.getName());
 		} catch (IOException exception) {
 		}
 	}
@@ -1496,9 +1491,9 @@ public class OcelotTest {
 		System.out.println(methodName + "(int)");
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(5));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithAlmostSameSignature(5)), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithAlmostSameSignature(5)));
 		} catch (IOException exception) {
 		}
 	}
@@ -1513,12 +1508,12 @@ public class OcelotTest {
 		System.out.println(methodName + "(string)");
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson("foo"));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithAlmostSameSignature("foo")), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithAlmostSameSignature("foo")));
 		} catch (IOException exception) {
 		}
-
+		
 	}
 
 	/**
@@ -1531,14 +1526,14 @@ public class OcelotTest {
 		System.out.println(methodName + "(string, string)");
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson("foo"), getJson("foo"));
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			Object result = messageToClient.getResponse();
-			assertEquals(getJson(destination.methodWithAlmostSameSignature("foo", "foo")), result);
+			assertThat(result).isEqualTo(getJson(destination.methodWithAlmostSameSignature("foo", "foo")));
 		} catch (IOException exception) {
 		}
-
+		
 	}
-
+	
 	final int NB_SIMUL_METHODS = 200;
 
 	/**
@@ -1563,7 +1558,7 @@ public class OcelotTest {
 			}
 			boolean await = lock.await(10L * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
-			assertTrue("Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nb + " msgs", await);
+			assertThat(await).isTrue().as("Timeout. waiting %f ms. Remain %s/%s msgs", t1-t0, lock.getCount(), nb);
 			System.out.println("testCallMultiMethodsMultiSessions Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nb + " msgs");
 		} catch (InterruptedException ex) {
 			fail(ex.getMessage());
@@ -1598,7 +1593,7 @@ public class OcelotTest {
 			}
 			boolean await = lock.await(10L * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
-			assertTrue("Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nb + " msgs", await);
+			assertThat(await).isTrue().as("Timeout. waiting %f ms. Remain %s/%s msgs", t1-t0, lock.getCount(), nb);
 			System.out.println("testCallMultiMethodsMonoSessions Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nb + " msgs");
 		} catch (IOException | InterruptedException ex) {
 			fail(ex.getMessage());
@@ -1606,24 +1601,24 @@ public class OcelotTest {
 			executorService.shutdown();
 		}
 	}
-
+	
 	private class TestThread implements Runnable {
-
+		
 		private final Class clazz;
 		private final String methodName;
 		private final Session wsSession;
-
+		
 		public TestThread(Class clazz, String methodName, Session wsSession) {
 			this.clazz = clazz;
 			this.methodName = methodName;
 			this.wsSession = wsSession;
 		}
-
+		
 		@Override
 		public void run() {
 			checkMessageAfterSendInSession(wsSession, clazz.getName(), methodName);
 		}
-
+		
 	}
 
 	/**
@@ -1639,8 +1634,8 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(topic));
-			System.out.println(""+messageToClient.getResponse());
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			System.out.println("" + messageToClient.getResponse());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			long t0 = System.currentTimeMillis();
 			MessageFromClient messageFromClient = getMessageFromClient(EJBDataService.class, "generateCleanCacheMessage", "\"a\",\"r\"", getJson(""), getJson(new Result(5)));
 			CountDownLatch lock = new CountDownLatch(2);
@@ -1653,7 +1648,7 @@ public class OcelotTest {
 			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			// lockCount doit être à  zero sinon, on a pas eu le resultat
 			long t1 = System.currentTimeMillis();
-			assertTrue("Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/2 msgs", await);
+			assertThat(await).isTrue().as("Timeout. waiting %f ms. Remain %s/%s msgs", t1-t0, lock.getCount(), 2);
 			wssession.removeMessageHandler(messageHandler);
 		} catch (InterruptedException | IOException ex) {
 			fail(ex.getMessage());
@@ -1673,15 +1668,15 @@ public class OcelotTest {
 		System.out.println(methodName);
 		try (Session wssession = createAndGetSession()) {
 			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz.getName(), methodName, getJson(topic));
-			System.out.println(""+messageToClient.getResponse());
-			assertEquals(MessageType.RESULT, messageToClient.getType());
+			System.out.println("" + messageToClient.getResponse());
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			long t0 = System.currentTimeMillis();
 //			Thread.sleep(TIMEOUT);
 			int nbMsg = 10;
 			CountDownLatch lock = new CountDownLatch(nbMsg);
 			CountDownMessageHandler messageHandler = new CountDownMessageHandler(topic, lock);
 			wssession.addMessageHandler(messageHandler);
-
+			
 			MessageToClient toTopic = new MessageToClient();
 			toTopic.setId(topic);
 			for (int i = 0; i < nbMsg; i++) {
@@ -1691,7 +1686,7 @@ public class OcelotTest {
 			}
 			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
-			assertTrue("Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nbMsg + " msgs", await);
+			assertThat(await).isTrue().as("Timeout. waiting %f ms. Remain %s/%s msgs", t1-t0, lock.getCount(), nbMsg);
 			wssession.removeMessageHandler(messageHandler);
 		} catch (InterruptedException | IOException ex) {
 			fail(ex.getMessage());
