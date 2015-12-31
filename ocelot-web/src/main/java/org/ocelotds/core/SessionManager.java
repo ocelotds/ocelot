@@ -8,7 +8,6 @@ import org.ocelotds.annotations.JsTopicAccessControl;
 import org.ocelotds.security.JsTopicAccessController;
 import org.ocelotds.security.JsTopicACAnnotationLiteral;
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -151,7 +150,7 @@ public class SessionManager {
 	 * @return 1 if session removed else 0
 	 */
 	int removeSessionToSessions(Session session, Collection<Session> sessions) {
-		if (sessions != null && sessions.contains(session)) {
+		if (sessions != null) {
 			if (sessions.remove(session)) {
 				return 1;
 			}
@@ -164,12 +163,14 @@ public class SessionManager {
 	 *
 	 * @param topic
 	 * @param sessions
+	 * @return 
 	 */
-	public void unregisterTopicSessions(String topic, Collection<Session> sessions) {
+	public boolean unregisterTopicSessions(String topic, Collection<Session> sessions) {
 		if (sessions != null && !sessions.isEmpty()) {
 			Collection<Session> all = sessionsByTopic.get(topic);
-			all.removeAll(sessions);
+			return all.removeAll(sessions);
 		}
+		return false;
 	}
 
 	/**
@@ -205,7 +206,7 @@ public class SessionManager {
 	 * @param topic
 	 * @param session
 	 */
-	private void sendSubscriptionEvent(String topic, int nb) {
+	void sendSubscriptionEvent(String topic, int nb) {
 		Collection<Session> sessions = getSessionsForTopic(topic);
 		if (!sessions.isEmpty()) {
 			MessageToClient messageToClient = new MessageToClient();
