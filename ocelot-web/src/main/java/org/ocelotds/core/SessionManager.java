@@ -212,15 +212,15 @@ public class SessionManager {
 			messageToClient.setId(topic);
 			messageToClient.setType(MessageType.MESSAGE);
 			messageToClient.setResponse(nb);
-			Collection<Session> sessionsClosed = new ArrayList<>();
+//			Collection<Session> sessionsClosed = new ArrayList<>(); // throws java.lang.StackOverflowError
 			for (Session session : sessions) {
 				if (session.isOpen()) {
 					session.getAsyncRemote().sendObject(messageToClient);
-				} else {
-					sessionsClosed.add(session);
+//				} else {
+//					sessionsClosed.add(session);
 				}
 			}
-			removeSessionsToTopic(sessionsClosed);
+//			removeSessionsToTopic(sessionsClosed);
 		}
 	}
 
