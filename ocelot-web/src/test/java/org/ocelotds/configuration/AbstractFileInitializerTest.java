@@ -40,10 +40,10 @@ public class AbstractFileInitializerTest {
 		File f = File.createTempFile("test", "tmp");
 		String filename = f.getAbsolutePath();
 		boolean result = instance.deleteFile("unknownfile");
-		assertThat(result).isEqualTo(false);
+		assertThat(result).isFalse();
 		
 		result = instance.deleteFile(filename);		
-		assertThat(result).isEqualTo(true);
+		assertThat(result).isTrue();
 		assertThat(f).doesNotExist();
 	}
 

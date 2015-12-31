@@ -241,27 +241,27 @@ public class ServiceToolsTest {
 		System.out.println("isConsiderateMethod");
 		Method method = DataService1.class.getMethod("publicMethod");
 		boolean result = instance.isConsiderateMethod(method);
-		assertThat(result).isEqualTo(true);
+		assertThat(result).isTrue();
 
-		method = DataService1.class.getMethod("hashCode");
+		method = DataService1.class.getMethod("hashCode"); // this method is overrided
 		result = instance.isConsiderateMethod(method);
-		assertThat(result).isEqualTo(true);
+		assertThat(result).isTrue();
 
 		method = DataService1.class.getMethod("toString");
 		result = instance.isConsiderateMethod(method);
-		assertThat(result).isEqualTo(false);
+		assertThat(result).isFalse();
 
 		method = DataService1.class.getMethod("transientMethod");
 		result = instance.isConsiderateMethod(method);
-		assertThat(result).isEqualTo(false);
+		assertThat(result).isFalse();
 
 		method = DataService1.class.getMethod("staticMethod");
 		result = instance.isConsiderateMethod(method);
-		assertThat(result).isEqualTo(false);
+		assertThat(result).isFalse();
 		
 		method = DataService1.class.getDeclaredMethod("staticProtectedMethod");
 		result = instance.isConsiderateMethod(method);
-		assertThat(result).isEqualTo(false);
+		assertThat(result).isFalse();
 	}
 
 	/**
