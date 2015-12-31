@@ -181,7 +181,7 @@ public class JsFileInitializerTest {
 	@Test
 	public void testMinifyJs() throws IOException {
 		System.out.println("minifyJs");
-		URL js = this.getClass().getResource(OCELOT_CORE_RESOURCE);
+		URL js = JsFileInitializerTest.class.getResource(Constants.SLASH + Constants.OCELOT_CORE + Constants.JS);
 
 		File minifyJs = instance.minifyJs(js.getFile());
 		
