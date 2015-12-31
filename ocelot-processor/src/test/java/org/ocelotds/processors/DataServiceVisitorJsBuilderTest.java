@@ -331,6 +331,9 @@ public class DataServiceVisitorJsBuilderTest {
 		boolean result = instance.considerateNotAllArgs(null);
 		assertThat(result).isFalse();
 
+		result = instance.considerateNotAllArgs(new JsCacheResultLiteral(new String[] {}));
+		assertThat(result).isTrue();
+
 		result = instance.considerateNotAllArgs(new JsCacheResultLiteral());
 		assertThat(result).isTrue();
 		
