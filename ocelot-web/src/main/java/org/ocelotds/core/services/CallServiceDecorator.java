@@ -46,7 +46,7 @@ public abstract class CallServiceDecorator implements CallService {
 
 			final Locale locale = (Locale) sessionProperties.get(Constants.LOCALE);
 			logger.debug("Decorate CallService for add context to session Principal : {}, Locale : {}", principal, locale);
+			callSercice.sendMessageToClient(message, session);
 		}
-		callSercice.sendMessageToClient(message, session);
 	}
 }

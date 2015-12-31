@@ -29,7 +29,7 @@ public class RolesAllowedInterceptor implements Serializable {
 	private transient Logger logger;
 	
 	@Inject
-	private OcelotContext ocelotContext;
+	private transient OcelotContext ocelotContext;
 
 	/**
 	 *

@@ -39,7 +39,10 @@ public class ServiceTools {
 	 * @return
 	 */
 	public String getShortName(String fullformat) {
-		return fullformat.replaceAll("(\\w)*\\.", "");
+		if (fullformat != null) {
+			return fullformat.replaceAll("(\\w)*\\.", "");
+		}
+		return "";
 	}
 
 	/**
@@ -49,13 +52,15 @@ public class ServiceTools {
 	 * @return
 	 */
 	public String getLiteralType(Type type) {
-		String result;
-		if (ParameterizedType.class.isAssignableFrom(type.getClass())) {
-			ParameterizedType parameterizedType = (ParameterizedType) type;
-			result = parameterizedType.toString();
-		} else {
-			result = ((Class) type).getCanonicalName();
-		}
+		String result = "";
+		if(type != null) {
+			if (ParameterizedType.class.isAssignableFrom(type.getClass())) {
+				ParameterizedType parameterizedType = (ParameterizedType) type;
+				result = parameterizedType.toString();
+			} else {
+				result = ((Class) type).getCanonicalName();
+			}
+		} 
 		return result;
 	}
 
@@ -122,7 +127,7 @@ public class ServiceTools {
 		}
 		return proxy;
 	}
-	
+
 	/**
 	 * Method is expose to frontend ?
 	 *
@@ -207,7 +212,7 @@ public class ServiceTools {
 		String res = "[";
 		for (Type actualTypeArgument : actualTypeArguments) {
 			String template = _getTemplateOfType(actualTypeArgument);
-			res += template+","+template;
+			res += template + "," + template;
 			break;
 		}
 		return res + "]";
@@ -242,10 +247,11 @@ public class ServiceTools {
 	String getInstanceName(String clsName) {
 		return clsName.substring(0, 1).toLowerCase(Locale.ENGLISH) + clsName.substring(1);
 	}
-	
+
 	/**
 	 * Expose objectMapper
-	 * @return 
+	 *
+	 * @return
 	 */
 	ObjectMapper getObjectMapper() {
 		return objectMapper;
@@ -254,7 +260,7 @@ public class ServiceTools {
 	/**
 	 * Get class without proxy CDI based on $ separator
 	 *
-	 * @param proxyname 
+	 * @param proxyname
 	 * @return
 	 * @throws java.lang.ClassNotFoundException
 	 */

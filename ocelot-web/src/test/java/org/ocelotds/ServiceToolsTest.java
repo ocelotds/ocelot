@@ -64,6 +64,9 @@ public class ServiceToolsTest {
 		String expResult = "Collection<Map<String, Collection<Integer>>>";
 		String result = instance.getShortName(fullname);
 		assertThat(result).isEqualTo(expResult);
+		
+		result = instance.getShortName(null);
+		assertThat(result).isEqualTo("");
 	}
 	
 	/**
