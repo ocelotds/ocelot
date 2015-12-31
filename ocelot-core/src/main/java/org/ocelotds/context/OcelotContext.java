@@ -5,6 +5,7 @@ package org.ocelotds.context;
 
 import java.security.Principal;
 import java.util.Locale;
+import java.util.Map;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.websocket.Session;
@@ -29,17 +30,14 @@ public class OcelotContext {
 	}
 
 	public Locale getLocale() {
+		Locale locale = Locale.US;
 		Session session = getSession();
-		Locale locale;
-		if (session == null) {
-			locale = Locale.US;
-		} else {
-			locale = (Locale) session.getUserProperties().get(Constants.LOCALE);
-			if (null == locale) {
-				locale = new Locale("en", "US");
-				logger.debug("Get locale from OcelotServices : default : {}", locale);
-			} else {
+		if (session != null) {
+			if (session.getUserProperties().containsKey(Constants.LOCALE)) {
+				locale = (Locale) session.getUserProperties().get(Constants.LOCALE);
 				logger.debug("Get locale from OcelotServices : {}", locale);
+			} else {
+				logger.debug("Get locale from OcelotServices : default : {}", locale);
 			}
 		}
 		return locale;
@@ -48,9 +46,10 @@ public class OcelotContext {
 	public void setLocale(Locale locale) {
 		Session session = getSession();
 		if(session!=null) {
-			session.getUserProperties().remove(Constants.LOCALE);
+			Map<String,Object> userProps =session.getUserProperties();
+			userProps.remove(Constants.LOCALE);
 			if (locale != null) {
-				session.getUserProperties().put(Constants.LOCALE, locale);
+				userProps.put(Constants.LOCALE, locale);
 			}
 		}
 	}
