@@ -71,11 +71,14 @@ public class OcelotContextTest {
 		Map<String, Object> map = new HashMap<>();
 
 		when(session.getUserProperties()).thenReturn(map);
-		when(instance.getSession()).thenReturn(session).thenReturn(session).thenReturn(null);
+		when(instance.getSession()).thenReturn(session).thenReturn(session).thenReturn(session).thenReturn(null);
 		
 		instance.setLocale(Locale.ITALY);
 		assertThat(map.get(Constants.LOCALE)).isEqualTo(Locale.ITALY);
 		
+		instance.setLocale(null);
+		assertThat(map).doesNotContainKey(Constants.LOCALE);
+
 		instance.setLocale(Locale.FRANCE);
 		assertThat(map.get(Constants.LOCALE)).isEqualTo(Locale.FRANCE);
 
@@ -93,13 +96,16 @@ public class OcelotContextTest {
 
 		when(p.getName()).thenReturn(expResult);
 		when(session.getUserPrincipal()).thenReturn(null).thenReturn(p);
-		when(instance.getSession()).thenReturn(session);
+		when(instance.getSession()).thenReturn(session).thenReturn(session).thenReturn(null);
 
 		String result = instance.getPrincipal().getName();
 		assertThat(result).isEqualTo(Constants.ANONYMOUS);
 
 		result = instance.getPrincipal().getName();
 		assertThat(result).isEqualTo(expResult);
+		
+		result = instance.getPrincipal().getName();
+		assertThat(result).isEqualTo(Constants.ANONYMOUS);
 	}
 
 	@Test
