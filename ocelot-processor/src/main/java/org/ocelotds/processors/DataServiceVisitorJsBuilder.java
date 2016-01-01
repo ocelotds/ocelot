@@ -7,8 +7,10 @@ package org.ocelotds.processors;
 import org.ocelotds.annotations.JsCacheResult;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.StringJoiner;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
@@ -16,6 +18,10 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import org.ocelotds.Constants;
 import org.ocelotds.KeyMaker;
+import org.ocelotds.processors.stringDecorators.KeyForArgDecorator;
+import org.ocelotds.processors.stringDecorators.NothingDecorator;
+import org.ocelotds.processors.stringDecorators.QuoteDecorator;
+import org.ocelotds.processors.stringDecorators.StringDecorator;
 
 /**
  * Visitor of class annoted org.ocelotds.annotations.DataService<br>
@@ -80,7 +86,7 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 		}
 		writer.append(") {").append(CR);
 
-		createMethodBody(classname, methodElement, arguments.iterator(), writer);
+		createMethodBody(classname, methodElement, arguments, writer);
 
 		writer.append(TAB2).append("}");
 	}
@@ -152,83 +158,65 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 * @param writer
 	 * @throws IOException
 	 */
-	void createMethodBody(String classname, ExecutableElement methodElement, Iterator<String> arguments, Writer writer) throws IOException {
+	void createMethodBody(String classname, ExecutableElement methodElement, List<String> arguments, Writer writer) throws IOException {
 		String methodName = methodElement.getSimpleName().toString();
-		StringBuilder args = getStringBuilder();
-		StringBuilder paramNames = getStringBuilder();
-		StringBuilder keys = getStringBuilder();
-		if (arguments != null && arguments.hasNext()) {
+		String args = "";
+		String paramNames = "";
+		String keys = "";
+		if (arguments != null && !arguments.isEmpty()) {
 			JsCacheResult jcr = methodElement.getAnnotation(JsCacheResult.class);
-			boolean allArgs = true;
+			// TODO 1.8 use args = String.join(",", arguments);
+			keys = args = stringJoinAndDecorate(arguments, ",", new NothingDecorator());
+			paramNames = stringJoinAndDecorate(arguments, ",", new QuoteDecorator());
 			// if there is a jcr annotation with value diferrent of *, so we dont use all arguments
-			if (considerateNotAllArgs(jcr)) {
-				allArgs = false;
-				boolean first = true;
-				for (String arg : jcr.keys()) {
-					if(!first) {
-						keys.append(",");
-					}
-					keys.append(getKeyFromArg(arg));
-					first = false;
-				}
-			}
-			while (arguments.hasNext()) {
-				String arg = arguments.next();
-				if (allArgs) {
-					keys.append(arg);
-				}
-				args.append(arg);
-				paramNames.append(Constants.QUOTE).append(arg).append(Constants.QUOTE);
-				if (arguments.hasNext()) {
-					args.append(",");
-					paramNames.append(",");
-					if (allArgs) {
-						keys.append(",");
-					}
-				}
+			if (!considerateAllArgs(jcr)) {
+				keys = stringJoinAndDecorate(Arrays.asList(jcr.keys()), ",", new KeyForArgDecorator());
 			}
 		}
 		String md5 = keyMaker.getMd5(classname + "." + methodName);
-		writer.append(TAB3).append("var id = ").append(QUOTE).append(md5).append("_").append(QUOTE).append(" + JSON.stringify([").append(keys.toString()).append("]).md5();").append(CR);
-		writer.append(TAB3).append("return OcelotPromiseFactory.createPromise(ds, id, ").append(QUOTE).append(methodName).append(QUOTE).append(", [").append(paramNames.toString()).append("], [").append(args.toString()).append("]").append(");").append(CR);
-	}
-	
-	/**
-	 * Check if we have not to conciderate all arguments
-	 * !jcr(keys={"*"})
-	 * @param jcr
-	 * @return 
-	 */
-	boolean considerateNotAllArgs(JsCacheResult jcr) {
-		return null != jcr && (jcr.keys().length == 0 || (jcr.keys().length > 0 && !"*".equals(jcr.keys()[0])));
+		writer.append(TAB3).append("var id = ").append(QUOTE).append(md5).append("_").append(QUOTE).append(" + JSON.stringify([").append(keys).append("]).md5();").append(CR);
+		writer.append(TAB3).append("return OcelotPromiseFactory.createPromise(ds, id, ").append(QUOTE).append(methodName).append(QUOTE).append(", [").append(paramNames).append("], [").append(args).append("]").append(");").append(CR);
 	}
 
 	/**
-	 * Transform arg to valid key. protect js NPE<br>
-	 * considers if arg or subfield is null<br>
-	 * example : if arg == c return c<br>
-	 * if arg == c.user return (c)?c.user:null<br>
-	 * if arg == c.user.u_id return (c&&c.user)?c.user.u_id:null<br>
+	 * Join list and separate by sep, each elements is decorate by 'decorator'
 	 *
-	 * @param arg
+	 * @param list
+	 * @param decoration
 	 * @return
 	 */
-	String getKeyFromArg(String arg) {
-		String[] objs = arg.split("\\.");
-		StringBuilder result = getStringBuilder();
-		if (objs.length > 1) {
-			StringBuilder obj = getStringBuilder();
-			obj.append(objs[0]);
-			result.append("(").append(obj);
-			for (int i = 1; i < objs.length - 1; i++) {
-				result.append("&&");
-				obj.append(".").append(objs[i]);
-				result.append(obj);
-			}
-			result.append(")?").append(arg).append(":null");
-		} else {
-			result.append(arg);
+	String stringJoinAndDecorate(final List<String> list, final String sep, StringDecorator decorator) {
+		if (decorator == null) {
+			decorator = new NothingDecorator();
 		}
-		return result.toString();
+		StringBuilder sb = new StringBuilder();
+		if (list != null) {
+			boolean first = true;
+			for (String argument : list) {
+				if (!first) {
+					sb.append(sep);
+				}
+				sb.append(decorator.decorate(argument));
+				first = false;
+			}
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Check if we have not to conciderate all arguments !jcr(keys={"*"})
+	 *
+	 * @param jcr
+	 * @return
+	 */
+	boolean considerateAllArgs(JsCacheResult jcr) {
+		if (null == jcr) {
+			return true;
+		}
+		if (jcr.keys().length == 0) {
+			return false;
+		}
+		return "*".equals(jcr.keys()[0]);
+//		return null != jcr && (jcr.keys().length == 0 || !"*".equals(jcr.keys()[0]));
 	}
 }
