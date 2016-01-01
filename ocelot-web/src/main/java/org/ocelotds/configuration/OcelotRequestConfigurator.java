@@ -42,9 +42,7 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 		List<String> accepts = headers.get(HttpHeaders.ACCEPT_LANGUAGE);
 		logger.debug("Get accept-language from client headers : {}", accepts);
 		if (null != accepts) {
-			Iterator<String> iterator = accepts.iterator();
-			while (iterator.hasNext()) {
-				String accept = iterator.next();
+			for (String accept : accepts) {
 				Pattern pattern = Pattern.compile(".*(\\w\\w)-(\\w\\w).*");
 				Matcher matcher = pattern.matcher(accept);
 				if (matcher.matches() && matcher.groupCount() == 2) {
