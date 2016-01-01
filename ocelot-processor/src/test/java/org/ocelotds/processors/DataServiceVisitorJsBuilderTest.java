@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -29,6 +27,7 @@ import static org.mockito.Mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.KeyMaker;
 import org.ocelotds.annotations.JsCacheResult;
+import org.ocelotds.processors.stringDecorators.StringDecorator;
 
 /**
  *
@@ -108,17 +107,17 @@ public class DataServiceVisitorJsBuilderTest {
 		List<String> arguments = new ArrayList<>();
 
 		doNothing().when(instance).createMethodComment(any(ExecutableElement.class), anyList(), anyList(), any(TypeMirror.class), any(Writer.class));
-		doNothing().when(instance).createMethodBody(eq(classname), any(ExecutableElement.class), any(Iterator.class), any(Writer.class));
+		doNothing().when(instance).createMethodBody(eq(classname), any(ExecutableElement.class), anyListOf(String.class), any(Writer.class));
 		when(methodElement.getSimpleName()).thenReturn(name);
 		when(name.toString()).thenReturn("ClassName");
 		doReturn(argumentsType).when(instance).getArgumentsType(eq(methodElement));
 		doReturn(arguments).when(instance).getArguments(eq(methodElement));
 		when(methodElement.getReturnType()).thenReturn(tm);
-		
+
 		instance.visitMethodElement(0, classname, methodElement, writer);
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
 		verify(writer, times(7)).append(captureAppend.capture());
-		
+
 		writer = getMockWriter();
 		argumentsType.add(String.class.getName());
 		arguments.add("str");
@@ -271,12 +270,11 @@ public class DataServiceVisitorJsBuilderTest {
 		when(methodElement.getSimpleName()).thenReturn(name);
 		when(methodElement.getAnnotation(eq(JsCacheResult.class))).thenReturn(jcr);
 
-		Collection<String> arguments = Arrays.asList("a", "b", "c", "d");
-		Iterator<String> iterator = arguments.iterator();
+		List<String> arguments = Arrays.asList("a", "b", "c", "d");
 
 		Writer writer = getMockWriter();
 
-		instance.createMethodBody(classname, methodElement, iterator, writer);
+		instance.createMethodBody(classname, methodElement, arguments, writer);
 
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
 		verify(writer, times(22)).append(captureAppend.capture());
@@ -309,12 +307,11 @@ public class DataServiceVisitorJsBuilderTest {
 		when(methodElement.getSimpleName()).thenReturn(name);
 		when(methodElement.getAnnotation(eq(JsCacheResult.class))).thenReturn(jcr);
 
-		Collection<String> arguments = Arrays.asList("a", "b", "c", "d");
-		Iterator<String> iterator = arguments.iterator();
+		List<String> arguments = Arrays.asList("a", "b", "c", "d");
 
 		Writer writer = getMockWriter();
 
-		instance.createMethodBody(classname, methodElement, iterator, writer);
+		instance.createMethodBody(classname, methodElement, arguments, writer);
 
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
 		verify(writer, times(22)).append(captureAppend.capture());
@@ -325,42 +322,56 @@ public class DataServiceVisitorJsBuilderTest {
 		assertThat(appends.get(16)).isEqualTo("\"a\",\"b\",\"c\",\"d\"");
 		assertThat(appends.get(18)).isEqualTo("a,b,c,d");
 	}
-	
+
 	@Test
 	public void testConsiderateNotAllArgs() {
-		boolean result = instance.considerateNotAllArgs(null);
+		boolean result = instance.considerateAllArgs(null);
+		assertThat(result).isTrue();
+
+		result = instance.considerateAllArgs(new JsCacheResultLiteral(new String[]{}));
 		assertThat(result).isFalse();
 
-		result = instance.considerateNotAllArgs(new JsCacheResultLiteral(new String[] {}));
-		assertThat(result).isTrue();
-
-		result = instance.considerateNotAllArgs(new JsCacheResultLiteral());
-		assertThat(result).isTrue();
-		
-		result = instance.considerateNotAllArgs(new JsCacheResultLiteral("a"));
-		assertThat(result).isTrue();
-		
-		result = instance.considerateNotAllArgs(new JsCacheResultLiteral("a", "b"));
-		assertThat(result).isTrue();
-
-		result = instance.considerateNotAllArgs(new JsCacheResultLiteral("*"));
+		result = instance.considerateAllArgs(new JsCacheResultLiteral());
 		assertThat(result).isFalse();
 
-		result = instance.considerateNotAllArgs(new JsCacheResultLiteral("*", "b"));
+		result = instance.considerateAllArgs(new JsCacheResultLiteral("a"));
 		assertThat(result).isFalse();
-		
+
+		result = instance.considerateAllArgs(new JsCacheResultLiteral("a", "b"));
+		assertThat(result).isFalse();
+
+		result = instance.considerateAllArgs(new JsCacheResultLiteral("*"));
+		assertThat(result).isTrue();
+
+		result = instance.considerateAllArgs(new JsCacheResultLiteral("*", "b"));
+		assertThat(result).isTrue();
+
 	}
 
 	@Test
-	public void testGetKeyFromArg() {
-		String result = instance.getKeyFromArg("c");
-		assertThat(result).isEqualTo("c");
-		result = instance.getKeyFromArg("c.user");
-		assertThat(result).isEqualTo("(c)?c.user:null");
-		result = instance.getKeyFromArg("c.user.id");
-		assertThat(result).isEqualTo("(c&&c.user)?c.user.id:null");
+	public void testComputeArgumentsFromListAndDecorateWith() {
+		List<String> list = Arrays.asList("a", "b", "c", "d");
+		String result = instance.stringJoinAndDecorate(null, ",", null);
+		assertThat(result).isEqualTo("");
+		
+		result = instance.stringJoinAndDecorate(list, ",", null);
+		assertThat(result).isEqualTo("a,b,c,d");
+
+		result = instance.stringJoinAndDecorate(list, " ", null);
+		assertThat(result).isEqualTo("a b c d");
+
+		result = instance.stringJoinAndDecorate(list, ",", new UnderscoreDecorator());
+		assertThat(result).isEqualTo("_a_,_b_,_c_,_d_");
 	}
 	
+	private static class UnderscoreDecorator implements StringDecorator {
+
+		@Override
+		public String decorate(String str) {
+				return "_"+str+"_";
+		}
+	}
+
 	Writer getMockWriter() throws IOException {
 		Writer writer = mock(Writer.class);
 		when(writer.append(anyString())).thenReturn(writer);
