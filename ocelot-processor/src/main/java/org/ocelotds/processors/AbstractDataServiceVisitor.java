@@ -10,6 +10,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -100,7 +101,7 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	 * @return
 	 */
 	String getJsInstancename(String classname) {
-		return classname.substring(0, 1).toLowerCase()+classname.substring(1);
+		return classname.substring(0, 1).toLowerCase(Locale.US)+classname.substring(1);
 	}
 
 	/**
