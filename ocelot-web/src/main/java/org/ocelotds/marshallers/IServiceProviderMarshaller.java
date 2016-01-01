@@ -26,7 +26,7 @@ public class IServiceProviderMarshaller implements JsonMarshaller<Instance<IServ
 	@Override
 	public String toJson(Instance<IServicesProvider> jsonServicesProviders) throws JsonMarshallingException {
 		if (jsonServicesProviders != null) {
-			try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+			try (ByteArrayOutputStream out = getByteArrayOutputStream()) {
 				out.write("[".getBytes(Constants.UTF_8));
 				boolean first = true;
 				for (IServicesProvider servicesProvider : jsonServicesProviders) {
@@ -43,5 +43,9 @@ public class IServiceProviderMarshaller implements JsonMarshaller<Instance<IServ
 			}
 		}
 		return "[]";
+	}
+	
+	ByteArrayOutputStream getByteArrayOutputStream() {
+		return new ByteArrayOutputStream();
 	}
 }

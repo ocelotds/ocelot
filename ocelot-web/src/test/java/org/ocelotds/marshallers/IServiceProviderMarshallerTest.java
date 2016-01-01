@@ -3,12 +3,17 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.marshallers;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import javax.enterprise.inject.Instance;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.IServicesProvider;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.objects.FakeCDI;
@@ -17,9 +22,13 @@ import org.ocelotds.objects.FakeCDI;
  *
  * @author hhfrancois
  */
+@RunWith(MockitoJUnitRunner.class)
 public class IServiceProviderMarshallerTest {
 
-	private IServiceProviderMarshaller instance = new IServiceProviderMarshaller();
+	
+	@InjectMocks
+	@Spy
+	private IServiceProviderMarshaller instance;
 
 	@Spy
 	private Instance<IServicesProvider> jsonServicesProviders = new FakeCDI<>();
@@ -45,6 +54,23 @@ public class IServiceProviderMarshallerTest {
 		assertThat(result).isEqualTo("[,\n]");
 
 		result = instance.toJson(jsonServicesProviders);
+		assertThat(result).isEqualTo("[]");
+	}
+
+	/**
+	 * Test of toJson method, of class LocaleMarshaller.
+	 *
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
+	 */
+	@Test
+	public void testToJsonFail() throws JsonMarshallingException {
+		System.out.println("toJson");
+		IServicesProvider provider0 = mock(IServicesProvider.class);
+		((FakeCDI) jsonServicesProviders).add(provider0);
+		ByteArrayOutputStream out = mock(ByteArrayOutputStream.class);
+		doThrow(IOException.class).when(out).write(anyByte());
+		
+		String result = instance.toJson(jsonServicesProviders);
 		assertThat(result).isEqualTo("[]");
 	}
 
