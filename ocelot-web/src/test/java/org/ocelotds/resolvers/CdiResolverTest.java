@@ -7,6 +7,7 @@ import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Set;
 import javax.ejb.Stateful;
+import javax.ejb.Stateless;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.Bean;
@@ -95,6 +96,9 @@ public class CdiResolverTest {
 		Scope expResult = Scope.MANAGED;
 		Scope result = cdiResolver.getScope(CDIBeanManaged.class);
 		assertThat(result).isEqualTo(expResult);
+
+		result = cdiResolver.getScope(EJBBeanManaged.class);
+		assertThat(result).isEqualTo(expResult);
 	}
 
 	@DataService(resolver = "CDI")
@@ -104,6 +108,10 @@ public class CdiResolverTest {
 	@DataService(resolver = "cdi")
 	@Stateful
 	public static class EJBBeanSession {}
+
+	@DataService(resolver = "cdi")
+	@Stateless
+	public static class EJBBeanManaged {}
 
 	@DataService(resolver = "CDI")
 	public static class CDIBeanManaged {}
