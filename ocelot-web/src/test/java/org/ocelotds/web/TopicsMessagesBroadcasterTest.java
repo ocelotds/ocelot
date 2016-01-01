@@ -53,7 +53,7 @@ public class TopicsMessagesBroadcasterTest {
 	 * Test of sendMessageToTopic method, of class TopicsMessagesBroadcaster.
 	 */
 	@Test
-	public void testSendMessageToTopicFor1Session() {
+	public void testSendMessageToTopicFor1OpenedSession() {
 		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
 		System.out.println("sendMessageToTopicFor1Session");
 		Collection<Session> sessions = new ArrayList<>();
@@ -71,7 +71,8 @@ public class TopicsMessagesBroadcasterTest {
 		msg.setId(id);
 		String expResult = "RESULT";
 		msg.setResult(expResult);
-		instance.sendMessageToTopic(msg);
+		int result = instance.sendMessageToTopic(msg);
+		assertThat(result).isEqualTo(1);
 
 		ArgumentCaptor<MessageToClient> captureMsg = ArgumentCaptor.forClass(MessageToClient.class);
 		verify(async).sendObject(captureMsg.capture());
@@ -81,6 +82,34 @@ public class TopicsMessagesBroadcasterTest {
 		assertThat(captureMsg.getValue().getDeadline()).isEqualTo(0L);
 	}
 	
+	/**
+	 * Test of sendMessageToTopic method, of class TopicsMessagesBroadcaster.
+	 */
+	@Test
+	public void testSendMessageToTopicFor2Session() {
+		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
+		System.out.println("sendMessageToTopicFor1Session");
+		Collection<Session> sessions = new ArrayList<>();
+		Session session1 = mock(Session.class);
+		RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
+		when(session1.isOpen()).thenReturn(true);
+		when(session1.getAsyncRemote()).thenReturn(async);
+		sessions.add(session1);
+		Session session2 = mock(Session.class);
+		when(session2.isOpen()).thenReturn(true);
+		when(session2.getAsyncRemote()).thenReturn(async);
+		sessions.add(session2);
+		when(sessionManager.getSessionsForTopic(anyString())).thenReturn(sessions);
+
+		MessageToClient msg = new MessageToClient();
+		String id = UUID.randomUUID().toString();
+		msg.setId(id);
+		String expResult = "RESULT";
+		msg.setResult(expResult);
+		int result = instance.sendMessageToTopic(msg);
+		assertThat(result).isEqualTo(2);
+	}
+
 	/**
 	 * Test of sendMessageToTopic method, of class TopicsMessagesBroadcaster.
 	 */
@@ -96,8 +125,9 @@ public class TopicsMessagesBroadcasterTest {
 		msg.setId(id);
 		String expResult = "RESULT";
 		msg.setResult(expResult);
-		instance.sendMessageToTopic(msg);
+		int result = instance.sendMessageToTopic(msg);
 		assertThat(msg.getType()).isEqualTo(MessageType.MESSAGE);
+		assertThat(result).isEqualTo(0);
 	}
 
 	/**
@@ -114,8 +144,27 @@ public class TopicsMessagesBroadcasterTest {
 		msg.setId(id);
 		String expResult = "RESULT";
 		msg.setResult(expResult);
-		instance.sendMessageToTopic(msg);
+		int result = instance.sendMessageToTopic(msg);
 		assertThat(msg.getType()).isEqualTo(MessageType.MESSAGE);
+		assertThat(result).isEqualTo(0);
+	}
+
+	/**
+	 * Test of sendMessageToTopic method, of class TopicsMessagesBroadcaster.
+	 */
+	@Test
+	public void testSendMessageToTopicForNullSessions() {
+		System.out.println("sendMessageToTopicForNullSession");
+		when(sessionManager.getSessionsForTopic(anyString())).thenReturn(null);
+
+		MessageToClient msg = new MessageToClient();
+		String id = UUID.randomUUID().toString();
+		msg.setId(id);
+		String expResult = "RESULT";
+		msg.setResult(expResult);
+		int result = instance.sendMessageToTopic(msg);
+		assertThat(msg.getType()).isEqualTo(MessageType.MESSAGE);
+		assertThat(result).isEqualTo(0);
 	}
 
 	/**

@@ -70,8 +70,9 @@ public class TopicsMessagesBroadcaster {
 		return null;
 	}
 
-	public void sendMessageToTopic(@Observes @MessageEvent MessageToClient msg) {
+	public int sendMessageToTopic(@Observes @MessageEvent MessageToClient msg) {
 		msg.setType(MessageType.MESSAGE);
+		int sended = 0;
 		logger.debug("Sending message to topic {}...", msg);
 		Collection<Session> sessions = sessionManager.getSessionsForTopic(msg.getId());
 		if (sessions != null && !sessions.isEmpty()) {
@@ -80,6 +81,7 @@ public class TopicsMessagesBroadcaster {
 				if (session != null) {
 					if (session.isOpen()) {
 						session.getAsyncRemote().sendObject(msg);
+						sended++;
 					} else {
 						sessionsClosed.add(session);
 					}
@@ -95,5 +97,6 @@ public class TopicsMessagesBroadcaster {
 		} else {
 			logger.debug("No client for topic '{}'", msg.getId());
 		}
+		return sended;
 	}
 }
