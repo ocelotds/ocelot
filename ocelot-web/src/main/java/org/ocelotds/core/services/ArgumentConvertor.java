@@ -11,8 +11,11 @@ import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.SimpleType;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.Collection;
 import java.util.Map;
 import javax.inject.Inject;
@@ -92,7 +95,7 @@ public class ArgumentConvertor implements IArgumentConvertor {
 			return result;
 		}
 		logger.debug("Try to convert {} : param = {} : {}", new Object[]{arg, paramType, paramType.getClass()});
-		try {
+		try { // GenericArrayType, ParameterizedType, TypeVariable<D>, WildcardType, Class
 			if (ParameterizedType.class.isInstance(paramType)) {
 				JavaType javaType = getJavaType(paramType);
 				logger.debug("Try to convert '{}' to JavaType : '{}'", arg, paramType);
@@ -104,6 +107,8 @@ public class ArgumentConvertor implements IArgumentConvertor {
 				checkStringArgument(cls, arg);
 				result = getObjectMapper().readValue(arg, cls);
 				logger.debug("Conversion of '{}' to '{}' : OK", arg, paramType);
+			} else { // GenericArrayType, TypeVariable<D>, WildcardType
+				logger.warn("Conversion of '{}' to '{}' not yet supported", arg, paramType);
 			}
 		} catch (IOException ex) {
 			logger.debug("Conversion of '{}' to '{}' failed", arg, paramType);

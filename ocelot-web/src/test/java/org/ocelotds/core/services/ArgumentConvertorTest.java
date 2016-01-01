@@ -6,12 +6,16 @@ package org.ocelotds.core.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.enterprise.util.AnnotationLiteral;
@@ -21,6 +25,7 @@ import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.*;
@@ -126,6 +131,19 @@ public class ArgumentConvertorTest {
 	 * Test of convertArgument method, of class ArgumentConvertor.
 	 */
 	@Test
+	public void testConvertArgumentNull() throws IllegalArgumentException {
+		System.out.println("convertArgument");
+		Object result = instance.convertArgument(null, Result.class);
+		assertThat(result).isNull();
+		result = instance.convertArgument("null", Result.class);
+		assertThat(result).isNull();
+		
+	}
+
+	/**
+	 * Test of convertArgument method, of class ArgumentConvertor.
+	 */
+	@Test
 	public void testConvertArgument() throws IllegalArgumentException {
 		System.out.println("convertArgument");
 		Iterator<String> args = Arrays.asList("\"toto\"", "5", "[\"a\",\"b\"]", "[[\"a\", \"b\"],[\"c\", \"d\"]]",
@@ -153,8 +171,32 @@ public class ArgumentConvertorTest {
 				}
 			});
 		}
-		Object result = instance.convertArgument(null, Result.class);
+	}
+	
+	/**
+	 * Test of convertArgument method, of class ArgumentConvertor.
+	 */
+	@Test
+	public void testConvertArgumentUnsupportedTypes() {
+		Type type = mock(WildcardType.class);
+		Object result = instance.convertArgument("", type);
 		assertThat(result).isNull();
+
+		type = mock(GenericArrayType.class);
+		result = instance.convertArgument("", type);
+		assertThat(result).isNull();
+
+		type = mock(TypeVariable.class);
+		result = instance.convertArgument("", type);
+		assertThat(result).isNull();
+
+		ArgumentCaptor<Type> types = ArgumentCaptor.forClass(Type.class);
+		verify(logger, times(3)).warn(anyString(), anyString(), types.capture());
+		List<Type> results = types.getAllValues();
+		assertThat(results).hasSize(3);
+		assertThat(results.get(0)).isInstanceOf(WildcardType.class);
+		assertThat(results.get(1)).isInstanceOf(GenericArrayType.class);
+		assertThat(results.get(2)).isInstanceOf(TypeVariable.class);
 	}
 	
 	@Test
