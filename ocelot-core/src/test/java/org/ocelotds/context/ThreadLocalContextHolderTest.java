@@ -4,7 +4,6 @@
 package org.ocelotds.context;
 
 import java.lang.reflect.Constructor;
-import org.junit.Before;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.ocelotds.Constants;
@@ -15,12 +14,7 @@ import org.ocelotds.Constants;
  */
 public class ThreadLocalContextHolderTest {
 	
-	private final String EXPECTED = "fr";
-	
-	@Before
-	public void setUp() {
-		ThreadLocalContextHolder.put(Constants.PRINCIPAL, EXPECTED);
-	}
+	private static final String NAME = "francois";
 	
 	/**
 	 * Test constructor is private
@@ -38,25 +32,40 @@ public class ThreadLocalContextHolderTest {
 	}
 
 	/**
-	 * Test constructor is private
-	 * @throws java.lang.InstantiationException
-	 * @throws java.lang.IllegalAccessException
+	 * Test of put method, of class ThreadLocalContextHolder.
 	 */
 	@Test
-	public void testPrivateConstructor1() throws InstantiationException, IllegalAccessException  {
+	public void testPut() {
+		System.out.println("put");
+		ThreadLocalContextHolder.put(Constants.PRINCIPAL, NAME);
+		Object result = ThreadLocalContextHolder.get(Constants.PRINCIPAL);
+		assertThat(result).isEqualTo(NAME);
 	}
 
 	/**
 	 * Test of put method, of class ThreadLocalContextHolder.
 	 */
 	@Test
-	public void testPut() {
+	public void testCleanExist() {
 		System.out.println("put");
-		Object result = ThreadLocalContextHolder.get(Constants.PRINCIPAL);
-		assertThat(result).isEqualTo(EXPECTED);
+		ThreadLocalContextHolder.put(Constants.PRINCIPAL, NAME);
 		ThreadLocalContextHolder.put(Constants.PRINCIPAL, null);
-		result = ThreadLocalContextHolder.get(Constants.PRINCIPAL);
+		Object result = ThreadLocalContextHolder.get(Constants.PRINCIPAL);
 		assertThat(result).isEqualTo(null);
+	}
+
+	/**
+	 * Test of put method, of class ThreadLocalContextHolder.
+	 */
+	@Test
+	public void testCleanNotExist() {
+		System.out.println("put");
+		ThreadLocalContextHolder.put(Constants.PRINCIPAL, NAME);
+		ThreadLocalContextHolder.put("FOO", null);
+		Object result = ThreadLocalContextHolder.get("FOO");
+		assertThat(result).isEqualTo(null);
+		result = ThreadLocalContextHolder.get(Constants.PRINCIPAL);
+		assertThat(result).isEqualTo(NAME);		
 	}
 
 	/**
@@ -65,9 +74,10 @@ public class ThreadLocalContextHolderTest {
 	@Test
 	public void testCleanupThread() {
 		System.out.println("cleanupThread");
+		ThreadLocalContextHolder.put(Constants.PRINCIPAL, NAME);
 		ThreadLocalContextHolder.cleanupThread();
-		Object locale = ThreadLocalContextHolder.get(Constants.PRINCIPAL);
-		assertThat(locale).isNull();
+		Object result = ThreadLocalContextHolder.get(Constants.PRINCIPAL);
+		assertThat(result).isNull();
 	}
 	
 }
