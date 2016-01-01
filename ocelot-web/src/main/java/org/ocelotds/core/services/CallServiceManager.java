@@ -114,10 +114,12 @@ public class CallServiceManager implements CallService {
 	 *
 	 * @param message
 	 * @param client
+	 * @return 
 	 */
 	@Override
-	public void sendMessageToClient(MessageFromClient message, Session client) {
+	public boolean sendMessageToClient(MessageFromClient message, Session client) {
 		client.getAsyncRemote().sendObject(createMessageToClient(message, client));
+		return true;
 	}
 
 	/**

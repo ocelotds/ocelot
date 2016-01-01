@@ -11,5 +11,5 @@ import org.ocelotds.messaging.MessageFromClient;
  * @author hhfrancois
  */
 public interface CallService {
-	void sendMessageToClient(MessageFromClient message, Session client);
+	boolean sendMessageToClient(MessageFromClient message, Session client);
 }

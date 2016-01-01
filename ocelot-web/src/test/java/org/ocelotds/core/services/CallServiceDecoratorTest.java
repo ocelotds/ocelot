@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
 import org.ocelotds.context.ThreadLocalContextHolder;
+import org.ocelotds.messaging.MessageFromClient;
 import org.slf4j.Logger;
 
 /**
@@ -50,11 +51,24 @@ public class CallServiceDecoratorTest {
 
 		when(session.getUserPrincipal()).thenReturn(p);
 		when(session.getUserProperties()).thenReturn(sessionProperties);
+		when(callSercice.sendMessageToClient(any(MessageFromClient.class), any(Session.class))).thenReturn(Boolean.TRUE);
 		
-		instance.sendMessageToClient(null, session);
+		boolean result = instance.sendMessageToClient(null, session);
 		assertThat(ThreadLocalContextHolder.get(Constants.PRINCIPAL)).isEqualTo(p);
+		assertThat(result).isTrue();
 	}
-	
+
+	/**
+	 * Test of decorrate method sendMessageToClient, of class CallServiceDecorator.
+	 */
+	@Test
+	public void testDecoratorDoNothing() {
+		System.out.println("Decorate sendMessageToClient");
+		instance.sendMessageToClient(null, null);
+		boolean result = instance.sendMessageToClient(null, null);
+		assertThat(result).isFalse();
+	}
+
 	private static class CallServiceDecoratorImpl extends CallServiceDecorator {
 		
 	}

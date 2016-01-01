@@ -5,17 +5,13 @@ package org.ocelotds.core.services;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import javax.enterprise.inject.Instance;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import org.ocelotds.messaging.MessageFromClient;
-import org.assertj.core.data.Offset;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -33,9 +29,7 @@ import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.ocelotds.Constants;
 import org.ocelotds.core.CacheManager;
-import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
-import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.resolvers.CdiResolver;
 import org.slf4j.Logger;
 
@@ -47,20 +41,19 @@ import org.slf4j.Logger;
 public class CallServiceManagerTest {
 
 	@Mock
-	private Instance<IDataServiceResolver> resolvers;
-
-	@Mock
-	private ArgumentServices argumentServices;
-
-	@Spy
-	@InjectMocks
-	private CacheManager cacheManager = new CacheManager();
-
-	@Mock
 	private Logger logger;
 
 	@Mock
+	private Instance<IDataServiceResolver> resolvers;
+
+	@Mock
+	private CacheManager cacheManager;
+
+	@Mock
 	private MethodServices methodServices;
+
+	@Mock
+	private ArgumentServices argumentServices;
 
 	@Mock
 	private FaultServices faultServices;
@@ -294,77 +287,23 @@ public class CallServiceManagerTest {
 	}
 
 	/**
-	 * Test of createMessageToClient method, of class CallServiceManager.
-	 *
-	 * @throws org.ocelotds.spi.DataServiceException
-	 * @throws java.lang.NoSuchMethodException
-	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
+	 * Test of sendMessageToClient method, of class CallServiceManager.
 	 */
-//	@Test
-	public void testCreateMessageToClient02() throws DataServiceException, NoSuchMethodException, JsonMarshallingException {
-		System.out.println("createMessageToClient");
-		Class cls = ClassAsDataService.class;
-		MessageFromClient message = new MessageFromClient();
-		message.setDataService(cls.getName());
-		message.setOperation("methodReturnString");
-		message.setParameterNames(Arrays.asList("a"));
-		message.setParameters(Arrays.asList("\"v\""));
-		message.setId(UUID.randomUUID().toString());
+	@Test
+	public void testSendMessageToClient() {
+		System.out.println("sendMessageToClient");
 		Session client = mock(Session.class);
-
-
+		MessageToClient mtc = mock(MessageToClient.class);
 		RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
 		when(client.getAsyncRemote()).thenReturn(async);
-
-		IDataServiceResolver resolver = mock(IDataServiceResolver.class);
-		when(resolver.getScope(any(Class.class))).thenReturn(Scope.MANAGED);
-		when(resolver.resolveDataService(cls)).thenReturn(new ClassAsDataService());
-		doReturn(resolver).when(instance).getResolver("TEST");
-
-		instance.sendMessageToClient(message, client);
-		// Method with Session injection
-		message.setOperation("methodReturnString2");
-		instance.sendMessageToClient(message, client);
-
-		message.setOperation("methodReturnCachedString");
-		instance.sendMessageToClient(message, client);
-
-		message.setOperation("methodUnknown");
-		instance.sendMessageToClient(message, client);
-
-		message.setOperation("methodThrowException");
-		instance.sendMessageToClient(message, client);
-
-		doThrow(NoSuchMethodException.class).when(methodServices).getNonProxiedMethod(cls, "methodReturnString", String.class);
-		message.setOperation("methodReturnString");
-		instance.sendMessageToClient(message, client);
-
-		message.setOperation("methodWithMarshaller");
-		instance.sendMessageToClient(message, client);
+		doReturn(mtc).when(instance).createMessageToClient(any(MessageFromClient.class), any(Session.class));
+		
+		boolean result = instance.sendMessageToClient(new MessageFromClient(), client);
 
 		ArgumentCaptor<MessageToClient> captureMsg = ArgumentCaptor.forClass(MessageToClient.class);
-		verify(async, times(7)).sendObject(captureMsg.capture());
-		List<MessageToClient> result = captureMsg.getAllValues();
-		assertThat(result.get(0).getResponse()).isEqualTo(new ClassAsDataService().methodReturnString("e"));
-		assertThat(result.get(1).getResponse()).isEqualTo(new ClassAsDataService().methodReturnString2("e"));
-		assertThat(result.get(2).getResponse()).isEqualTo(new ClassAsDataService().methodReturnCachedString("e"));
-		Calendar deadline = Calendar.getInstance();
-		deadline.add(Calendar.YEAR, 1);
-		assertThat(result.get(2).getDeadline()).isCloseTo(deadline.getTime().getTime(), Offset.offset(1000L));
-		Fault fault;
-		try {
-			throw new NoSuchMethodException("class org.ocelotds.core.CallServiceManagerTest$ClassAsDataService.methodUnknown");
-		} catch (NoSuchMethodException e) {
-			fault = new Fault(e, 0);
-		}
-		assertThat(result.get(3).getResponse()).isEqualTo(fault);
-		try {
-			throw new AbstractMethodError("MyMessage");
-		} catch (AbstractMethodError e) {
-			fault = new Fault(e, 0);
-		}
-		assertThat(result.get(4).getResponse()).isEqualTo(fault);
-		assertThat(result.get(5).getResponse()).isEqualTo(new ClassAsDataService().methodReturnString("e"));
-		assertThat(result.get(6).getJson()).isEqualTo(new LocaleMarshaller().toJson(new Locale("fr", "FR")));
+		verify(async).sendObject(captureMsg.capture());
+		
+		assertThat(captureMsg.getValue()).isEqualTo(mtc);
+		assertThat(result).isTrue();
 	}
 }

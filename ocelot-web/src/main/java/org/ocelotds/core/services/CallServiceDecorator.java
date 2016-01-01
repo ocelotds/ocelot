@@ -34,7 +34,7 @@ public abstract class CallServiceDecorator implements CallService {
 	private Logger logger;
 
 	@Override
-	public void sendMessageToClient(MessageFromClient message, Session session) {
+	public boolean sendMessageToClient(MessageFromClient message, Session session) {
 		if (null != session) {
 			Map<String, Object> sessionProperties = session.getUserProperties();
 			// Get subject from config and set in session
@@ -46,7 +46,8 @@ public abstract class CallServiceDecorator implements CallService {
 
 			final Locale locale = (Locale) sessionProperties.get(Constants.LOCALE);
 			logger.debug("Decorate CallService for add context to session Principal : {}, Locale : {}", principal, locale);
-			callSercice.sendMessageToClient(message, session);
+			return callSercice.sendMessageToClient(message, session);
 		}
+		return false;
 	}
 }
