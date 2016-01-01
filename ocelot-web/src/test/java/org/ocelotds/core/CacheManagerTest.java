@@ -102,7 +102,7 @@ public class CacheManagerTest {
 		Method method = this.getClass().getMethod("jsCacheRemoveAnnotatedMethodWithAllArgs", Integer.TYPE, String.class);
 		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
 		instance.processCleanCacheAnnotations(method, null, null);
-		verify(logger).debug(anyString(), anyString(), anyString(), anyString());
+		verify(logger).debug(anyString(), anyString(), eq(""), eq("y"));
 	}
 
 	/**
@@ -127,7 +127,20 @@ public class CacheManagerTest {
 		Method method = this.getClass().getMethod("jsCacheRemovesAnnotatedMethod", Integer.TYPE, Result.class);
 		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
 		instance.processCleanCacheAnnotations(method, null, null);
-		verify(logger).debug(anyString(), anyString(), anyString(), anyString());
+		verify(logger).debug(anyString(), anyString(), eq("s"), eq("ies"));
+	}
+
+	/**
+	 * Test of processCleanCacheAnnotations method, of class CacheManager.
+	 * @throws java.lang.NoSuchMethodException
+	 */
+	@Test
+	public void testProcessCleanCacheAnnotations_JsCacheRemoveAndJsCacheRemoves_debug() throws NoSuchMethodException {
+		System.out.println("processCleanCacheAnnotations");
+		Method method = this.getClass().getMethod("jsCacheRemoveAndjsCacheRemovesAnnotatedMethod", Integer.TYPE, Result.class);
+		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
+		instance.processCleanCacheAnnotations(method, null, null);
+		verify(logger).debug(anyString(), anyString(), eq("s"), eq("ies"));
 	}
 
 	@JsCacheResult
@@ -154,6 +167,15 @@ public class CacheManagerTest {
 		@JsCacheRemove(cls=CacheManagerTest.class, methodName = "methodName")
 	})
 	public void jsCacheRemovesAnnotatedMethod(int a, Result b) {
+		
+	}
+
+	@JsCacheRemoves({
+		@JsCacheRemove(cls=CacheManagerTest.class, methodName = "methodName", keys={"b.i"}),
+		@JsCacheRemove(cls=CacheManagerTest.class, methodName = "methodName")
+	})
+	@JsCacheRemove(cls=CacheManagerTest.class, methodName = "methodName")
+	public void jsCacheRemoveAndjsCacheRemovesAnnotatedMethod(int a, Result b) {
 		
 	}
 
