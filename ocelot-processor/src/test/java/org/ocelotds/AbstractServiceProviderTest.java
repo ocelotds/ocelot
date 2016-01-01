@@ -58,12 +58,34 @@ public class AbstractServiceProviderTest {
 	 * @throws java.io.IOException
 	 */
 	@Test
-	public void testStreamJavascriptServicesIOException() throws IOException {
+	public void testStreamJavascriptServicesIOExceptionWhenWrite() throws IOException {
 		System.out.println("streamJavascriptServices");
 		OutputStream out = mock(OutputStream.class);
 		Logger logger = mock(Logger.class);
 
 		doThrow(IOException.class).when(out).write(any(byte[].class), anyInt(), anyInt());
+		doReturn(logger).when(instance).getLogger();
+
+		instance.streamJavascriptServices(out);
+		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
+		ArgumentCaptor<Throwable> captureError = ArgumentCaptor.forClass(Throwable.class);
+		verify(logger).error(captureString.capture(), captureError.capture());
+		assertThat(captureString.getValue()).isEqualTo("Generation of '"+AbstractServiceProviderImpl.FILENAME+"' failed.");
+	}
+
+	/**
+	 * Test of streamJavascriptServices method, of class AbstractServiceProvider.
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testStreamJavascriptServicesIOExceptionWhenRead() throws IOException {
+		System.out.println("streamJavascriptServices");
+		OutputStream out = mock(OutputStream.class);
+		InputStream in = mock(InputStream.class);
+		Logger logger = mock(Logger.class);
+		
+		doReturn(in).when(instance).getJsStream(anyString());
+		when(in.read(any(byte[].class))).thenThrow(IOException.class);
 		doReturn(logger).when(instance).getLogger();
 
 		instance.streamJavascriptServices(out);
