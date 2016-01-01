@@ -143,6 +143,20 @@ public class CacheManagerTest {
 		verify(logger).debug(anyString(), anyString(), eq("s"), eq("ies"));
 	}
 
+	/**
+	 * Test of processCleanCacheAnnotations method, of class CacheManager.
+	 * @throws java.lang.NoSuchMethodException
+	 */
+	@Test
+	public void testProcessCleanCacheAnnotations_JsCacheRemoveAndJsCacheRemoves() throws NoSuchMethodException {
+		System.out.println("processCleanCacheAnnotations");
+		Method method = this.getClass().getMethod("jsCacheRemoveAndjsCacheRemovesAnnotatedMethod", Integer.TYPE, Result.class);
+		when(logger.isDebugEnabled()).thenReturn(Boolean.FALSE);
+		instance.processCleanCacheAnnotations(method, null, null);
+		verify(logger).isDebugEnabled();
+		verifyNoMoreInteractions(logger);
+	}
+
 	@JsCacheResult
 	public void jsCacheResultAnnotatedMethod() {
 		
