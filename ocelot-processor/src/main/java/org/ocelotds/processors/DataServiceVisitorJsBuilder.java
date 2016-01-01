@@ -202,19 +202,19 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	}
 
 	/**
-	 * Check if we have not to conciderate all arguments !jcr(keys={"*"})
+	 * Check if we have to considerate all arguments jcr(keys={"*"})
 	 *
 	 * @param jcr
 	 * @return
 	 */
 	boolean considerateAllArgs(JsCacheResult jcr) {
-		if (null == jcr) {
-			return true;
-		}
-		if (jcr.keys().length == 0) {
-			return false;
-		}
-		return "*".equals(jcr.keys()[0]);
-//		return null != jcr && (jcr.keys().length == 0 || !"*".equals(jcr.keys()[0]));
+//		if (null == jcr) {
+//			return true;
+//		}
+//		if (jcr.keys().length == 0) {
+//			return false;
+//		}
+//		return "*".equals(jcr.keys()[0]);
+		return null == jcr || (jcr.keys().length != 0 && "*".equals(jcr.keys()[0]));
 	}
 }
