@@ -10,11 +10,11 @@ package org.ocelotds.processors.stringDecorators;
 public class KeyForArgDecorator implements StringDecorator {
 
 	/**
-	 * Transform arg to valid key. protect js NPE<br>
-	 * considers if arg or subfield is null<br>
-	 * example : if arg == c return c<br>
-	 * if arg == c.user return (c)?c.user:null<br>
-	 * if arg == c.user.u_id return (c&&c.user)?c.user.u_id:null<br>
+	 * Transform arg to valid key. protect js NPE <br>
+	 * considers if arg or subfield is null <br>
+	 * example : if arg == c return c <br>
+	 * if arg == c.user return (c)?c.user:null <br>
+	 * if arg == c.user.u_id return (c&amp;&amp;c.user)?c.user.u_id:null <br>
 	 *
 	 * @param str
 	 * @return
