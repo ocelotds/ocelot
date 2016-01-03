@@ -24,7 +24,6 @@ import javax.servlet.ServletContext;
 import org.ocelotds.Constants;
 import org.ocelotds.IServicesProvider;
 import org.ocelotds.annotations.OcelotLogger;
-import org.ocelotds.annotations.ServiceProvider;
 import org.slf4j.Logger;
 
 /**
@@ -40,7 +39,6 @@ public class JsFileInitializer extends AbstractFileInitializer {
 
 	@Any
 	@Inject
-	@ServiceProvider(Constants.Provider.JAVASCRIPT)
 	private Instance<IServicesProvider> jsServicesProviders;
 
 	public void initOcelotJsFile(@Observes @Initialized(ApplicationScoped.class) ServletContext sc) {
