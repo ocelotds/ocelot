@@ -94,12 +94,10 @@ public interface Constants {
 		String CLEANCACHE_TOPIC = "ocelot-cleancache";
 		String ALL = "ALL";
 		String USE_ALL_ARGUMENTS = "*";
-		String ARGS_NOT_CONSIDERATED = "-";
 	}
 	
 	interface Provider {
 		String JAVASCRIPT = "JS";
-		String JSON = "JSON";
 	}
 	
 	interface BeanManager {
