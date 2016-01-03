@@ -6,7 +6,6 @@ package org.ocelotds.configuration;
 
 import java.io.File;
 import java.io.IOException;
-import javax.enterprise.inject.Instance;
 import javax.servlet.ServletContext;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
@@ -18,9 +17,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
-import org.ocelotds.IServicesProvider;
-import org.ocelotds.objects.FakeCDI;
-import org.ocelotds.objects.HtmlServiceProviderImpl;
 import org.slf4j.Logger;
 
 /**
@@ -34,9 +30,6 @@ public class HtmlFileInitializerTest {
 	private Logger logger;
 
 	private String ocelothtmlpath = null;
-
-	@Spy
-	private Instance<IServicesProvider> htmlServicesProviders = new FakeCDI<>();
 
 	@InjectMocks
 	@Spy
@@ -103,31 +96,5 @@ public class HtmlFileInitializerTest {
 		ArgumentCaptor<String> captureLog = ArgumentCaptor.forClass(String.class);
 		verify(logger).error(captureLog.capture(), any(IOException.class));
 		assertThat(captureLog.getValue()).isEqualTo("Fail to create ocelot.html.");
-	}
-	
-	/**
-	 * Test of createOcelotHtmlFile method, of class ContextListener.
-	 *
-	 * @throws java.io.IOException
-	 */
-	@Test
-	public void testCreateOcelotHtmlFile() throws IOException {
-		System.out.println("createOcelotHtmlFile");
-		((FakeCDI) htmlServicesProviders).add(new HtmlServiceProviderImpl());
-		File file = instance.createOcelotHtmlFile("/");
-		assertThat(file).exists();
-	}
-
-	/**
-	 * Test of createOcelotHtmlFile method, of class ContextListener.
-	 *
-	 * @throws java.io.IOException
-	 */
-	@Test(expected = IOException.class)
-	public void testCreateOcelotHtmlFileFail() throws IOException {
-		System.out.println("createOcelotHtmlFileFail");
-		doReturn(null).when(instance).getContentURL(anyString());
-		((FakeCDI) htmlServicesProviders).add(new HtmlServiceProviderImpl());
-		instance.createOcelotHtmlFile("/");
 	}
 }
