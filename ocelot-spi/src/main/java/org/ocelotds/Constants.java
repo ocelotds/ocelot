@@ -96,10 +96,6 @@ public interface Constants {
 		String USE_ALL_ARGUMENTS = "*";
 	}
 	
-	interface Provider {
-		String JAVASCRIPT = "JS";
-	}
-	
 	interface BeanManager {
 		String BEANMANAGER_JEE = "java:comp/BeanManager";
 		String BEANMANAGER_ALT = "java:comp/env/BeanManager";
