@@ -20,6 +20,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
+import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -30,7 +31,6 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.DataService;
 import org.slf4j.Logger;
-import static org.ocelotds.processors.OcelotProcessor.ProviderType;
 
 /**
  *
@@ -108,7 +108,7 @@ public class OcelotProcessorTest {
 		doReturn(js).when(instance).createJSServicesProvider();
 		Writer writerjs = mock(Writer.class);
 		when(writerjs.append(anyString())).thenReturn(writerjs);
-		doReturn(writerjs).when(instance).getOpendResourceFileObjectWriter(eq(js), eq(ProviderType.JAVASCRIPT));
+		doReturn(writerjs).when(instance).getOpendResourceFileObjectWriter(eq(js));
 		
 		Set<? extends TypeElement> annotations = mock(Set.class);
 		Set elements = new HashSet<>();
@@ -154,7 +154,7 @@ public class OcelotProcessorTest {
 	@Test
 	public void testCreateJSServicesProvider() throws IOException {
 		System.out.println("createJSServicesProvider");
-		doNothing().when(instance).createServicesProvider(anyString(), any(ProviderType.class));
+		doNothing().when(instance).createServicesProvider(anyString());
 		String result = instance.createJSServicesProvider();
 		assertThat(result).startsWith("srv_");
 	}
@@ -162,23 +162,25 @@ public class OcelotProcessorTest {
 	@Test
 	public void testCreateServicesProviderJs() throws IOException {
 		System.out.println("createServicesProviderJs");
-		testCreateServicesProvider(ProviderType.JAVASCRIPT);
+		testCreateServicesProvider();
 	}
 
-	private void testCreateServicesProvider(ProviderType type) throws IOException {
+	private void testCreateServicesProvider() throws IOException {
 		Writer writer = mock(Writer.class);
 		when(writer.append(anyString())).thenReturn(writer);
 		doReturn(writer).when(instance).getOpendSourceFileObjectWriter(anyString());
-		String prefix = "srv_1234";
-		instance.createServicesProvider(prefix, type);
+		final String prefix = "srv_1234";
+		instance.createServicesProvider(prefix);
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(18)).append(captureString.capture());
+		verify(writer, times(13)).append(captureString.capture());
 		List<String> allValues = captureString.getAllValues();
 		assertThat(allValues).isNotEmpty();
-		assertThat(allValues.get(1)).isEqualTo(prefix);
-		assertThat(allValues.get(6)).isEqualTo(type.name());
-		assertThat(allValues.get(12)).isEqualTo(prefix);
-		assertThat(allValues.get(14)).isEqualTo(type.getExtension());
+		assertThat(allValues).areExactly(2, new Condition<String>(){
+			@Override
+			public boolean matches(String t) {
+				return prefix.equals(t);
+			}
+		});
 	}
 
 	@Test
@@ -187,7 +189,7 @@ public class OcelotProcessorTest {
 		Writer writer = mock(Writer.class);
 		when(writer.append(any(CharSequence.class))).thenThrow(new IOException("ERROR"));
 		doReturn(writer).when(instance).getOpendSourceFileObjectWriter(anyString());
-		instance.createServicesProvider("srv_1234", ProviderType.JAVASCRIPT);
+		instance.createServicesProvider("srv_1234");
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Diagnostic.Kind> captureKind = ArgumentCaptor.forClass(Diagnostic.Kind.class);
 		verify(messager).printMessage(captureKind.capture(), captureString.capture());
@@ -213,7 +215,7 @@ public class OcelotProcessorTest {
 		Writer writer = mock(Writer.class);
 		when(filer.createResource(eq(StandardLocation.CLASS_OUTPUT), anyString(), anyString())).thenReturn(fileObject);
 		when(fileObject.openWriter()).thenReturn(writer);
-		Writer result = instance.getOpendResourceFileObjectWriter("test", ProviderType.JAVASCRIPT);
+		Writer result = instance.getOpendResourceFileObjectWriter("test");
 		assertThat(result).isEqualTo(writer);
 	}
 
