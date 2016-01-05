@@ -70,6 +70,7 @@ public class OcelotServices {
 	 */
 	@JsCacheRemove(cls = OcelotServices.class, methodName = "getLocale", keys = {})
 	public void setLocale(@JsonUnmarshaller(LocaleUnmarshaller.class) Locale locale) {
+		logger.debug("Receive setLocale call from client. {}", locale);
 		ocelotContext.setLocale(locale);
 	}
 
@@ -91,6 +92,7 @@ public class OcelotServices {
 	 * @return
 	 */
 	public String getUsername() {
+		logger.debug("Receive getUsername call from client.");
 		return ocelotContext.getPrincipal().getName();
 	}
 
@@ -137,10 +139,11 @@ public class OcelotServices {
 		OcelotMethod ocelotMethod = new OcelotMethod(method.getName(), serviceTools.getShortName(serviceTools.getLiteralType(method.getGenericReturnType())));
 		Annotation[][] annotations = method.getParameterAnnotations();
 		Type[] types = method.getGenericParameterTypes();
+		// TODO 1.8 use method.getParameters() for get the name of parameter;
 		int index = 0;
 		for (Type type : types) {
 			ocelotMethod.getArgtypes().add(serviceTools.getShortName(serviceTools.getLiteralType(type)));
-			ocelotMethod.getArgnames().add("arg"+index);
+			ocelotMethod.getArgnames().add("arg"+index); 
 			ocelotMethod.getArgtemplates().add(serviceTools.getTemplateOfType(type, serviceTools.getJsonUnmarshaller(annotations[index])));
 			index++;
 		}
