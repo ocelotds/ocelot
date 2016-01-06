@@ -6,6 +6,7 @@ package org.ocelotds.configuration;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import javax.servlet.ServletContext;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
@@ -97,4 +98,33 @@ public class HtmlFileInitializerTest {
 		verify(logger).error(captureLog.capture(), any(IOException.class));
 		assertThat(captureLog.getValue()).isEqualTo("Fail to create ocelot.html.");
 	}
+	
+	/**
+	 * Test of writeOcelotContentHTMLFile method, of class ContextListener.
+	 *
+	 * @throws java.io.IOException
+	 */
+	@Test(expected = IOException.class)
+	public void testWriteOcelotContentHTMLFileFail() throws IOException {
+		System.out.println("writeOcelotContentHTMLFileFail");
+		OutputStream out = mock(OutputStream.class);
+		String ctxPath = "/";
+		doReturn(null).when(instance).getContentURL(anyString());
+		instance.writeOcelotContentHTMLFile(out, ctxPath);
+	}	
+
+	/**
+	 * Test of writeOcelotContentHTMLFile method, of class ContextListener.
+	 *
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testWriteOcelotContentHTMLFile() throws IOException {
+		System.out.println("writeOcelotContentHTMLFile");
+		OutputStream out = mock(OutputStream.class);
+		String ctxPath = "/";
+		instance.writeOcelotContentHTMLFile(out, ctxPath);
+		verify(out, atLeast(2)).write(any(byte[].class));
+		
+	}	
 }
