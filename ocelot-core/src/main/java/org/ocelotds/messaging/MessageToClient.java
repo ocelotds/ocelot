@@ -42,6 +42,11 @@ public class MessageToClient {
 	protected String json = null;
 
 	/**
+	 * execution time
+	 */
+	protected long time = 0L;
+
+	/**
 	 * validity limit
 	 */
 	protected long deadline = 0L;
@@ -99,6 +104,14 @@ public class MessageToClient {
 		this.deadline = deadline;
 	}
 
+	public long getTime() {
+		return time;
+	}
+
+	public void setTime(long time) {
+		this.time = time;
+	}
+
 	@Override
 	public int hashCode() {
 		int hash = 7;
@@ -129,6 +142,7 @@ public class MessageToClient {
 			JsonObject root = reader.readObject();
 			MessageToClient message = new MessageToClient();
 			message.setId(root.getString(Constants.Message.ID));
+			message.setTime(root.getInt(Constants.Message.TIME));
 			message.setType(MessageType.valueOf(root.getString(Constants.Message.TYPE)));
 			message.setDeadline(root.getInt(Constants.Message.DEADLINE));
 			if (MessageType.FAULT.equals(message.getType())) {
@@ -154,8 +168,8 @@ public class MessageToClient {
 		} catch (JsonProcessingException ex) {
 			jsonResponse = new Fault(ex, 0).toJson();
 		}
-		return String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
-				  Constants.Message.TYPE, this.getType(), Constants.Message.ID, this.getId(), 
+		return String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.TYPE, this.getType(), Constants.Message.ID, this.getId(), Constants.Message.TIME, this.getTime(),
 				  Constants.Message.DEADLINE, this.getDeadline(), Constants.Message.RESPONSE, jsonResponse);
 	}
 

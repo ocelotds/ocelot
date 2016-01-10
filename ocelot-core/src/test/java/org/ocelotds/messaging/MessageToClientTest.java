@@ -110,17 +110,31 @@ public class MessageToClientTest {
 	}
 
 	/**
+	 * Test of getTime method, of class MessageToClient.
+	 */
+	@Test
+	public void testGetSetTime() {
+		System.out.println("getSetTime");
+		MessageToClient instance = new MessageToClient();
+		long expResult = new Random().nextInt(200);
+		instance.setTime(expResult);
+		long result = instance.getTime();
+		assertThat(result).isEqualTo(expResult);
+	}
+
+	/**
 	 * Test of createFromJson method, of class MessageToClient.
 	 */
 	@Test
 	public void testCreateFromResultJson() throws JsonProcessingException {
 		System.out.println("testCreateFromResultJson");
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s,\"%s\":%s}",
 				  Constants.Message.TYPE, MessageType.RESULT, Constants.Message.ID, "111", 
-				  Constants.Message.DEADLINE, 0, Constants.Message.RESPONSE, "\"Result\"");
+				  Constants.Message.TIME, 5, Constants.Message.DEADLINE, 0, Constants.Message.RESPONSE, "\"Result\"");
 		MessageToClient msg = MessageToClient.createFromJson(json);
 		assertThat(msg.getId()).isEqualTo("111");
 		assertThat(msg.getDeadline()).isEqualTo(0);
+		assertThat(msg.getTime()).isEqualTo(5);
 		assertThat(msg.getType()).isEqualTo(MessageType.RESULT);
 		assertThat(msg.getResponse()).isEqualTo("\"Result\"");
 	}
@@ -137,12 +151,13 @@ public class MessageToClientTest {
 		} catch (Exception e) {
 			fault = new Fault(e, 0);
 		}
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s,\"%s\":%s}",
 				  Constants.Message.TYPE, MessageType.FAULT, Constants.Message.ID, "111", 
-				  Constants.Message.DEADLINE, 0, Constants.Message.RESPONSE, fault.toJson());
+				  Constants.Message.TIME, 5, Constants.Message.DEADLINE, 0, Constants.Message.RESPONSE, fault.toJson());
 		MessageToClient msg = MessageToClient.createFromJson(json);
 		assertThat(msg.getId()).isEqualTo("111");
 		assertThat(msg.getDeadline()).isEqualTo(0);
+		assertThat(msg.getTime()).isEqualTo(5);
 		assertThat(msg.getType()).isEqualTo(MessageType.FAULT);
 		String expResult = "{\"classname\":\"java.lang.Exception\",\"message\":\"ErrorMessage\",\"stacktrace\":[]}";
 		assertThat(""+msg.getResponse()).isEqualTo(expResult);
@@ -164,13 +179,14 @@ public class MessageToClientTest {
 			fault = new Fault(e, 5);
 		}
 		msg.setFault(fault);
+		msg.setTime(5);
 		String id = UUID.randomUUID().toString();
 		msg.setId(id);
 		ObjectMapper mapper = new ObjectMapper();
 		String jsonResponse = mapper.writeValueAsString(fault);
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s,\"%s\":%s}",
 				  Constants.Message.TYPE, msg.getType(), Constants.Message.ID, msg.getId(), 
-				  Constants.Message.DEADLINE, msg.getDeadline(), Constants.Message.RESPONSE, jsonResponse);
+				  Constants.Message.TIME, msg.getTime(), Constants.Message.DEADLINE, msg.getDeadline(), Constants.Message.RESPONSE, jsonResponse);
 		assertThat(msg.toJson()).isEqualTo(json);
 		assertThat(msg.toString()).isEqualTo(json);
 
@@ -178,18 +194,18 @@ public class MessageToClientTest {
 		msg.setResult("Result");
 
 		jsonResponse = mapper.writeValueAsString("Result");
-		json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+		json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s,\"%s\":%s}",
 				  Constants.Message.TYPE, msg.getType(), Constants.Message.ID, msg.getId(), 
-				  Constants.Message.DEADLINE, msg.getDeadline(), Constants.Message.RESPONSE, jsonResponse);
+				  Constants.Message.TIME, 5, Constants.Message.DEADLINE, msg.getDeadline(), Constants.Message.RESPONSE, jsonResponse);
 		assertThat(msg.toJson()).isEqualTo(json);
 		assertThat(msg.toString()).isEqualTo(json);
 
 		ObjectMapper mapperThrowException = mock(ObjectMapper.class);
 		when(mapperThrowException.writeValueAsString(anyString())).thenThrow(JsonProcessingException.class);
 		when(msg.getObjectMapper()).thenReturn(mapperThrowException);
-		json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":",
+		json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s,\"%s\":",
 				  Constants.Message.TYPE, msg.getType(), Constants.Message.ID, msg.getId(), 
-				  Constants.Message.DEADLINE, msg.getDeadline(), Constants.Message.RESPONSE);
+				  Constants.Message.TIME, 5, Constants.Message.DEADLINE, msg.getDeadline(), Constants.Message.RESPONSE);
 		String res = msg.toJson();
 		assertThat(res.startsWith(json)).isTrue();
 	}
