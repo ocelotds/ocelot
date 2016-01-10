@@ -25,8 +25,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.MessageHandler;
@@ -199,11 +197,24 @@ public abstract class AbstractOcelotTest {
 	 * @return
 	 */
 	protected Session createAndGetSession() {
+		return createAndGetSession(false);
+		
+	}
+	
+	/**
+	 * Create session
+	 *
+	 * @param monitor
+	 * @return
+	 */
+	protected Session createAndGetSession(boolean monitor) {
 		WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 		try {
 			StringBuilder sb = new StringBuilder("ws://localhost:");
 			sb.append(PORT).append(Constants.SLASH).append(CTXPATH).append(Constants.SLASH).append("ocelot-endpoint");
-			sb.append("?option=monitor&option=debug");
+			if(monitor) {
+				sb.append("?option=monitor");
+			}
 			URI uri = new URI(sb.toString());
 			return container.connectToServer(OcelotClientEnpoint.class, uri);
 		} catch (URISyntaxException | DeploymentException | IOException ex) {

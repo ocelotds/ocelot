@@ -55,11 +55,13 @@ public class OcelotEndpoint {
 	public void handleOpenConnexion(Session session, EndpointConfig config) throws IOException {
 		Map<String, Object> configProperties = config.getUserProperties();
 		Map<String, Object> sessionProperties = session.getUserProperties();
-		// Get subject from config and set in session, only one time by connexion
+		// Get infos from config and set in session, only one time by connexion
 		sessionProperties.put(Constants.SESSION_BEANS, configProperties.get(Constants.SESSION_BEANS));
 		sessionProperties.put(Constants.HANDSHAKEREQUEST, configProperties.get(Constants.HANDSHAKEREQUEST));
 		sessionProperties.put(Constants.LOCALE, configProperties.get(Constants.LOCALE));
+		sessionProperties.put(Constants.Options.MONITOR, configProperties.get(Constants.Options.MONITOR));
 	}
+
 	@OnError
 	public void onError(Session session, Throwable t) {
 		getLogger().error("Unknow error for session " + session.getId(), t);
@@ -116,7 +118,7 @@ public class OcelotEndpoint {
 		}
 		return callServiceManager;
 	}
-	
+
 	CdiBeanResolver getCdiBeanResolver() {
 		return new CdiBeanResolver();  // Tomcat exploit
 	}

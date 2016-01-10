@@ -4,6 +4,7 @@
        xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd"
        bean-discovery-mode="all">
 	<decorators>
+		<class>org.ocelotds.core.services.MonitorDecorator</class>
 		<class>org.ocelotds.core.services.CallServiceDecorator</class>
 		<class>org.ocelotds.core.services.ArgCleanerDecorator</class>
 	</decorators>

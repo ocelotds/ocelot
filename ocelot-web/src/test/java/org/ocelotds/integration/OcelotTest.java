@@ -58,9 +58,12 @@ import org.ocelotds.spi.IDataServiceResolver;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import org.ocelotds.annotations.JsTopicAccessControl;
+import org.ocelotds.integration.dataservices.monitor.MonitorDataService;
 import org.ocelotds.integration.dataservices.topic.TopicAccessControler;
 import org.ocelotds.integration.dataservices.topic.TopicDataService;
 import org.ocelotds.security.JsTopicAccessController;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  *
@@ -315,13 +318,7 @@ public class OcelotTest extends AbstractOcelotTest {
 		Class clazz = OcelotServices.class;
 		String methodName = "getServices";
 		System.out.println(clazz + "." + methodName);
-		try (Session wssession = createAndGetSession()) {
-			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName);
-			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
-			String result = (String) messageToClient.getResponse();
-			assertThat(result).isNotEmpty();
-		} catch (IOException exception) {
-		}
+		testCallWithoutResult(OcelotServices.class, "getServices");
 	}
 
 	/**
@@ -548,6 +545,25 @@ public class OcelotTest extends AbstractOcelotTest {
 	}
 
 	/**
+	 * Check monitor works
+	 */
+	@Test
+	public void testGetTime() {
+		Class clazz = MonitorDataService.class;
+		String methodName = "testMonitor";
+		System.out.println(clazz + "." + methodName);
+		try (Session wssession = createAndGetSession(true)) {
+			MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, getJson(500));
+			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
+			long result = messageToClient.getTime();
+			assertThat(result).isNotZero();
+			assertThat(result).isGreaterThan(500);
+			assertThat(result).isLessThan(600);
+		} catch (IOException exception) {
+		}
+	}
+
+	/**
 	 * Test send message that generate a cleancache message
 	 */
 	@Test
@@ -644,6 +660,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testReceiveMessageToMyTopic() {
 		System.out.println("receiveMessageToMyTopic");
 		final String topic = "mytopic";
+		((TopicAccessControler) topicAccessControler).setAccess(true);
 		((MyTopicAccessControler) myTopicAccessControler).setAccess(true);
 		try (Session wssession = createAndGetSession()) {
 			subscribeToTopicInSession(wssession, topic);
@@ -666,6 +683,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testReceiveMessageToDynTopic() {
 		System.out.println("receiveMessageToDynTopic");
 		final String topic = "FOO";
+		((TopicAccessControler) topicAccessControler).setAccess(true);
 		((MyTopicAccessControler) myTopicAccessControler).setAccess(true);
 		try (Session wssession = createAndGetSession()) {
 			subscribeToTopicInSession(wssession, topic);
@@ -688,6 +706,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testReceiveXMessagesToMyTopic() {
 		System.out.println("receiveXMessagesToMyTopic");
 		final String topic = "mytopic";
+		((TopicAccessControler) topicAccessControler).setAccess(true);
 		((MyTopicAccessControler) myTopicAccessControler).setAccess(true);
 		try (Session wssession = createAndGetSession()) {
 			subscribeToTopicInSession(wssession, topic);
@@ -711,6 +730,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testReceiveXMessagesToDynTopic() {
 		System.out.println("receiveXMessagesToDynTopic");
 		final String topic = "FOO";
+		((TopicAccessControler) topicAccessControler).setAccess(true);
 		((MyTopicAccessControler) myTopicAccessControler).setAccess(true);
 		try (Session wssession = createAndGetSession()) {
 			subscribeToTopicInSession(wssession, topic);
