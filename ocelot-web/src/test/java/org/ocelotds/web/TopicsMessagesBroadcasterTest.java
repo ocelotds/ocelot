@@ -201,10 +201,10 @@ public class TopicsMessagesBroadcasterTest {
 		List<MessageToClient> allValues = captureMtC.getAllValues();
 		MessageToClient value = allValues.get(0);
 		String json = value.toJson();
-		assertThat(json).isEqualTo("{\"type\":\"MESSAGE\",\"id\":\"TOPIC\",\"deadline\":0,\"response\":\"payload\"}");
+		assertThat(json).isEqualTo("{\"type\":\"MESSAGE\",\"id\":\"TOPIC\",\"t\":0,\"deadline\":0,\"response\":\"payload\"}");
 		value = allValues.get(1);
 		json = value.toJson();
-		assertThat(json).isEqualTo("{\"type\":\"MESSAGE\",\"id\":\"TOPIC\",\"deadline\":0,\"response\":\"PAYLOAD\"}");
+		assertThat(json).isEqualTo("{\"type\":\"MESSAGE\",\"id\":\"TOPIC\",\"t\":0,\"deadline\":0,\"response\":\"PAYLOAD\"}");
 	}
 	
 	@Test
