@@ -13,7 +13,6 @@ if ("WebSocket" in window) {
          CLEANCACHE = "ocelot-cleancache", STATUS = "ocelot-status", OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe",
          stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], promises = {}, openHandlers = [], closeHandlers = [], errorHandlers = [], ws;
       function createEventFromPromise(type, promise, msgToClient) {
-         var t = 0;
          var evt = document.createEvent(EVT);
          evt.initEvent(type, true, false);
          evt.dataservice = promise.dataservice;
