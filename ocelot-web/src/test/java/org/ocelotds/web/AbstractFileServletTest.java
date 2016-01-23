@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
+import org.junit.After;
+import org.junit.Before;
 import org.mockito.ArgumentCaptor;
 import org.ocelotds.Constants;
 
@@ -32,6 +34,7 @@ public class AbstractFileServletTest {
 	
 	private String filepath;
 	
+	@Before
 	public void init() throws IOException {
 		File file = File.createTempFile("ocelot", ".txt");
 		try(FileWriter writer = new FileWriter(file)) {
@@ -42,6 +45,14 @@ public class AbstractFileServletTest {
 		response = mock(HttpServletResponse.class);
 		out = new ByteArrayOutputStream();
 		when(response.getWriter()).thenReturn(new PrintWriter(out));
+	}
+	
+	@After
+	public void after() {
+		File file = new File(filepath);
+		if(file.exists()) {
+			file.delete();
+		}
 	}
 	
 	public void test() throws IOException {
@@ -62,7 +73,6 @@ public class AbstractFileServletTest {
 	@Test
 	public void testProcessRequest() throws Exception {
 		System.out.println("processRequest");
-		init();
 		instance.processRequest(request, response);
 		test();
 	}
@@ -74,7 +84,6 @@ public class AbstractFileServletTest {
 	@Test
 	public void testDoGet() throws Exception {
 		System.out.println("doGet");
-		init();
 		instance.doGet(request, response);
 		test();
 	}
@@ -86,7 +95,6 @@ public class AbstractFileServletTest {
 	@Test
 	public void testDoPost() throws Exception {
 		System.out.println("doPost");
-		init();
 		instance.doPost(request, response);
 		test();
 	}
@@ -107,7 +115,6 @@ public class AbstractFileServletTest {
 	@Test
 	public void testGetProtocol() throws IOException {
 		System.out.println("getServletInfo");
-		init();
 		when(request.isSecure()).thenReturn(false).thenReturn(true);
 
 		String protocol = instance.getProtocol(request);
