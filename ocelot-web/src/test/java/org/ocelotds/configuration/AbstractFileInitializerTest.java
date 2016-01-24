@@ -7,20 +7,11 @@ package org.ocelotds.configuration;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
-import org.slf4j.Logger;
 
 /**
  *

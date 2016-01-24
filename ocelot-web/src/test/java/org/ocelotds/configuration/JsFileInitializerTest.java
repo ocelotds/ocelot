@@ -22,7 +22,6 @@ import org.ocelotds.IServicesProvider;
 import org.ocelotds.objects.FakeCDI;
 import org.slf4j.Logger;
 import org.ocelotds.Constants;
-import static org.ocelotds.configuration.JsFileInitializer.OCELOT_CORE_RESOURCE;
 import org.ocelotds.objects.JsServiceProviderImpl;
 
 /**
