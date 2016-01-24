@@ -24,6 +24,7 @@ public class AbstractFileInitializerTest {
 
 	/**
 	 * Test of deleteFile method, of class AbstractFileInitializer.
+	 * @throws java.io.IOException
 	 */
 	@Test
 	public void testDeleteFile() throws IOException {
