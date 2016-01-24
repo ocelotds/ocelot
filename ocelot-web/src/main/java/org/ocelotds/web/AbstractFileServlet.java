@@ -51,6 +51,7 @@ public abstract class AbstractFileServlet extends HttpServlet {
 					count += result.length();
 				}
 			}
+			writer.flush();
 		}
 		response.setContentLength(count);
 	}
