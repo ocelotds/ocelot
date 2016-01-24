@@ -553,7 +553,7 @@ public class OcelotTest extends AbstractOcelotTest {
 			assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 			long result = messageToClient.getTime();
 			assertThat(result).isNotZero();
-			assertThat(result).isGreaterThan(500);
+			assertThat(result).isGreaterThanOrEqualTo(500);
 			assertThat(result).isLessThan(600);
 		} catch (IOException exception) {
 		}
