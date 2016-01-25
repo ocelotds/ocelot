@@ -115,6 +115,7 @@ public class JsFileInitializerTest {
 		JsFileInitializer.OCELOT_CORE_RESOURCE = Constants.SLASH + Constants.OCELOT_CORE + Constants.JS;
 		File file = instance.createOcelotJsFile("/");
 		assertThat(file).exists();
+		file.delete();
 	}
 
 	/**
@@ -187,5 +188,6 @@ public class JsFileInitializerTest {
 		assertThat(minifyJs).isFile();
 		assertThat(minifyJs).exists();
 		assertThat(minifyJs.getAbsolutePath()).isNotEqualTo(js.getFile());
+		minifyJs.delete();
 	}
 }

@@ -57,6 +57,7 @@ public class HtmlFileInitializerTest {
 
 		File ocelothtml = new File(ocelothtmlpath);
 		assertThat(ocelothtml).exists();
+		ocelothtml.delete();
 	}
 
 	/**
@@ -90,7 +91,7 @@ public class HtmlFileInitializerTest {
 		System.out.println("createHtmlFile");
 		ServletContext sc = mock(ServletContext.class);
 		when(sc.getContextPath()).thenReturn("/");
-		when(instance.createOcelotHtmlFile(anyString())).thenThrow(IOException.class);
+		doThrow(IOException.class).when(instance).createOcelotHtmlFile(anyString());
 
 		instance.initHtmlFile(sc);
 
