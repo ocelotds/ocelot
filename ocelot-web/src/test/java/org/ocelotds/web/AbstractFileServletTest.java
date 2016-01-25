@@ -6,8 +6,10 @@ package org.ocelotds.web;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,17 +18,29 @@ import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
+import org.slf4j.Logger;
 
 /**
  *
  * @author hhfrancois
  */
+@RunWith(MockitoJUnitRunner.class)
 public class AbstractFileServletTest {
 	private final String EXPECTED = "line1;\nline2;\nline3;";
 
-	private final AbstractFileServlet instance = new AbstractServletImpl();
+	@Mock
+	private Logger logger;
+
+	@InjectMocks
+	@Spy
+	private AbstractFileServlet instance = new AbstractServletImpl();
 
 	HttpServletRequest request;
 	HttpServletResponse response;
@@ -77,6 +91,40 @@ public class AbstractFileServletTest {
 		test();
 	}
 
+	/**
+	 * Test of processRequest method, of class AbstractFileServlet.
+	 * @throws java.lang.Exception
+	 */
+	@Test(expected = FileNotFoundException.class)
+	public void testProcessRequestFailed() throws Exception {
+		System.out.println("processRequestFailed");
+		doThrow(FileNotFoundException.class).when(instance).getInputStream(any(HttpServletRequest.class));
+		instance.processRequest(request, response);
+	}
+
+	/**
+	 * Test of getInputStream method, of class AbstractFileServlet.
+	 * @throws java.io.FileNotFoundException
+	 */
+	@Test
+	public void testGetInputStream() throws FileNotFoundException, IOException {
+		System.out.println("getInputStream");
+		try (InputStream inputStream = instance.getInputStream(request)) {
+			assertThat(inputStream).isNotNull();
+		}
+	}
+	
+	/**
+	 * Test of getInputStream method, of class AbstractFileServlet.
+	 * @throws java.io.FileNotFoundException
+	 */
+	@Test(expected = FileNotFoundException.class)
+	public void testGetInputStreamFailed() throws FileNotFoundException {
+		System.out.println("getInputStreamFailed");
+		after(); // remove file before launch
+		instance.getInputStream(request);
+	}
+	
 	/**
 	 * Test of doGet method, of class AbstractFileServlet.
 	 * @throws java.lang.Exception
