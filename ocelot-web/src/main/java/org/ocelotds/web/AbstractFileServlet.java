@@ -110,6 +110,7 @@ public abstract class AbstractFileServlet extends HttpServlet {
 	 */
 	InputStream getInputStream(HttpServletRequest request) throws FileNotFoundException {
 		String filename = getFilename(request);
+		System.out.println("FILENAME = "+filename);
 		logger.debug("Get stream :  {}", filename);
 		return new FileInputStream(filename);
 	}
