@@ -565,9 +565,8 @@ public class OcelotTest extends AbstractOcelotTest {
 	@Test
 	public void testSendRemoveCacheMessage() {
 		System.out.println("sendRemoveCacheMessage");
-		final String topic = "ocelot-cleancache";
 		try (Session wssession = createAndGetSession()) {
-			subscribeToTopicInSession(wssession, topic);
+			subscribeToTopicInSession(wssession, Constants.Cache.CLEANCACHE_TOPIC);
 			long t0 = System.currentTimeMillis();
 			MessageFromClient messageFromClient = getMessageFromClientWithParamNames(CacheDataService.class, "generateCleanCacheMessage", "\"a\",\"r\"", getJson(""), getJson(new Result(5)));
 			CountDownLatch lock = new CountDownLatch(2);

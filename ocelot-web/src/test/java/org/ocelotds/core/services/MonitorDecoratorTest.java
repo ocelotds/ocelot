@@ -14,7 +14,6 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -70,7 +69,7 @@ public class MonitorDecoratorTest {
 		map.put(Constants.Options.MONITOR, true);
 		MessageToClient result = instance.createMessageToClient(message, client);
 		assertThat(result.getTime()).isGreaterThanOrEqualTo(WAIT);
-		assertThat(result.getTime()).isLessThan(WAIT+5);
+		assertThat(result.getTime()).isLessThan(WAIT+10);
 	}
 
 	/**
