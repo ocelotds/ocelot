@@ -69,7 +69,6 @@ public class MonitorDecoratorTest {
 		map.put(Constants.Options.MONITOR, true);
 		MessageToClient result = instance.createMessageToClient(message, client);
 		assertThat(result.getTime()).isGreaterThanOrEqualTo(WAIT);
-		assertThat(result.getTime()).isLessThan(WAIT+10);
 	}
 
 	/**
