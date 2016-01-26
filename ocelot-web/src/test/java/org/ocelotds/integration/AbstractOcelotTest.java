@@ -147,11 +147,9 @@ public abstract class AbstractOcelotTest {
 		URL url = new URL(sb.toString());
 		HttpURLConnection uc = (HttpURLConnection) url.openConnection();
 		System.out.println("Content-type: " + uc.getContentType());
-		System.out.println("Content-encoding: " + uc.getContentEncoding());
 		System.out.println("Date: " + new Date(uc.getDate()));
 		System.out.println("Last modified: " + new Date(uc.getLastModified()));
 		System.out.println("Expiration date: " + new Date(uc.getExpiration()));
-		System.out.println("Content-length: " + uc.getContentLength());
 		assertThat(uc.getResponseCode()).isEqualTo(200).as("'%s' is unreachable", sb);
 		return uc;
 	}
