@@ -4,6 +4,7 @@
 package org.ocelotds.configuration;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -43,26 +44,6 @@ public class OcelotRequestConfiguratorTest {
 	 * Test of modifyHandshake method, of class OcelotRequestConfigurator.
 	 */
 	@Test
-	public void testModifyHandshakeWithDefaultAccept() {
-		System.out.println("testModifyHandshakeWithDefaultAccept");
-		ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
-		HandshakeRequest request = mock(HandshakeRequest.class);
-		HandshakeResponse response = mock(HandshakeResponse.class);
-		Map<String, Object> userProperties = new HashMap<>();
-		Map<String, List<String>> headers = new HashMap<>();
-
-		when(sec.getUserProperties()).thenReturn(userProperties);
-		when(request.getHeaders()).thenReturn(headers);
-
-		instance.modifyHandshake(sec, request, response);
-		Locale result = (Locale) sec.getUserProperties().get(Constants.LOCALE);
-		assertThat(result).isEqualTo(new Locale("en", "US"));
-	}
-
-	/**
-	 * Test of modifyHandshake method, of class OcelotRequestConfigurator.
-	 */
-	@Test
 	public void testModifyHandshake() {
 		System.out.println("testModifyHandshake");
 		ServerEndpointConfig sec = mock(ServerEndpointConfig.class);
@@ -72,17 +53,70 @@ public class OcelotRequestConfiguratorTest {
 		Map<String, List<String>> headers = new HashMap<>();
 		List<String> accepts = Arrays.asList("fr", "fr-FR;q=1");
 		headers.put(HttpHeaders.ACCEPT_LANGUAGE, accepts);
+		Map map = new HashMap<>();
 
 		when(sec.getUserProperties()).thenReturn(userProperties);
 		when(request.getHeaders()).thenReturn(headers);
+		doReturn(map).when(instance).getSessionBeansMap(anyObject());
+		doReturn(new Locale("fr", "FR")).when(instance).getLocale(any(HandshakeRequest.class));
+		doReturn(true).when(instance).isMonitored(any(HandshakeRequest.class));
 
 		instance.modifyHandshake(sec, request, response);
-		Locale result = (Locale) sec.getUserProperties().get(Constants.LOCALE);
+
+		assertThat(sec.getUserProperties().get(Constants.SESSION_BEANS)).isEqualTo(map);
+		assertThat(sec.getUserProperties().get(Constants.HANDSHAKEREQUEST)).isEqualTo(request);
+		assertThat(sec.getUserProperties().get(Constants.LOCALE)).isEqualTo(new Locale("fr", "FR"));
+		assertThat(sec.getUserProperties().get(Constants.Options.MONITOR)).isEqualTo(Boolean.TRUE);
+	}
+
+	/**
+	 * Test of getLocale method, of class OcelotRequestConfigurator.
+	 */
+	@Test
+	public void testGetLocale() {
+		System.out.println("testGetLocale");
+		HandshakeRequest request = mock(HandshakeRequest.class);
+		Map<String, List<String>> map = mock(Map.class);
+		List<String> with = Arrays.asList("fr", "fr-FR;q=1");
+
+		when(map.get(eq(HttpHeaders.ACCEPT_LANGUAGE))).thenReturn(null).thenReturn(Collections.EMPTY_LIST).thenReturn(with);
+		when(request.getHeaders()).thenReturn(map);
+
+		Locale result = instance.getLocale(request);
+		assertThat(result).isEqualTo(new Locale("en", "US"));
+		result = instance.getLocale(request);
+		assertThat(result).isEqualTo(new Locale("en", "US"));
+		result = instance.getLocale(request);
 		assertThat(result).isEqualTo(new Locale("fr", "FR"));
 	}
 
+	/**
+	 * Test of isMonitored method, of class OcelotRequestConfigurator.
+	 */
+	@Test
+	public void testIsMonitored() {
+		System.out.println("testIsMonitored");
+		HandshakeRequest request = mock(HandshakeRequest.class);
+		Map<String, List<String>> map = mock(Map.class);
+		List<String> with = Arrays.asList(Constants.Options.MONITOR);
+
+		when(request.getParameterMap()).thenReturn(map);
+		when(map.get(eq("option"))).thenReturn(null).thenReturn(Collections.EMPTY_LIST).thenReturn(with);
+
+		boolean result = instance.isMonitored(request);
+		assertThat(result).isFalse();
+		result = instance.isMonitored(request);
+		assertThat(result).isFalse();
+		result = instance.isMonitored(request);
+		assertThat(result).isTrue();
+	}
+
+	/**
+	 * Test of getSessionBeansMap method, of class OcelotRequestConfigurator.
+	 */
 	@Test
 	public void testGetSessionBeansMap() {
+		System.out.println("testGetSessionBeansMap");
 		HttpSession session = mock(HttpSession.class);
 		Object result = instance.getSessionBeansMap(null);
 		assertThat(result).isInstanceOf(Map.class);

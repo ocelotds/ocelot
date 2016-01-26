@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
+import org.ocelotds.objects.AbstractServletImpl;
 import org.slf4j.Logger;
 
 /**
@@ -53,6 +54,7 @@ public class AbstractFileServletTest {
 			writer.write(EXPECTED);
 		}
 		filepath = file.getAbsolutePath();
+		((AbstractServletImpl)instance).setFilename(filepath);
 		request = mock(HttpServletRequest.class);
 		response = mock(HttpServletResponse.class);
 		out = new ByteArrayOutputStream();
@@ -134,17 +136,5 @@ public class AbstractFileServletTest {
 		
 		protocol = instance.getProtocol(request);
 		assertThat(protocol).isEqualTo(Constants.WSS);
-	}
-	
-	public class AbstractServletImpl extends AbstractFileServlet {
-		@Override
-		protected String getFilename(HttpServletRequest request) {
-			return filepath;
-		}
-
-		@Override
-		protected String getMimetype(HttpServletRequest request) {
-			return "text/plain";
-		}
 	}
 }

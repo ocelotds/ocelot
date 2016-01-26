@@ -36,12 +36,20 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 	 */
 	@Override
 	public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
+		sec.getUserProperties().put(Constants.SESSION_BEANS, getSessionBeansMap(request.getHttpSession()));
+		sec.getUserProperties().put(Constants.HANDSHAKEREQUEST, request);
+		sec.getUserProperties().put(Constants.LOCALE, getLocale(request));
+		sec.getUserProperties().put(Constants.Options.MONITOR, isMonitored(request));
+		super.modifyHandshake(sec, request, response);
+	}
+	
+	/**
+	 * Return locale of client
+	 * @param request
+	 * @return 
+	 */
+	Locale getLocale(HandshakeRequest request) {
 		Map<String, List<String>> headers = request.getHeaders();
-		List<String> options = request.getParameterMap().get("option");
-		boolean monitor = false;
-		if (options != null && !options.isEmpty()) {
-			monitor = options.contains(Constants.Options.MONITOR);
-		}
 		Locale locale = new Locale("en", "US");
 		List<String> accepts = headers.get(HttpHeaders.ACCEPT_LANGUAGE);
 		logger.debug("Get accept-language from client headers : {}", accepts);
@@ -55,11 +63,23 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 				}
 			}
 		}
-		sec.getUserProperties().put(Constants.SESSION_BEANS, getSessionBeansMap(request.getHttpSession()));
-		sec.getUserProperties().put(Constants.HANDSHAKEREQUEST, request);
-		sec.getUserProperties().put(Constants.LOCALE, locale);
-		sec.getUserProperties().put(Constants.Options.MONITOR, monitor);
-		super.modifyHandshake(sec, request, response);
+		return locale;
+	}
+
+	/**
+	 * Check if option monitor is enabled
+	 * @param request
+	 * @return 
+	 */
+	boolean isMonitored(HandshakeRequest request) {
+		boolean monitor = false;
+		if (request != null) {
+			List<String> options = request.getParameterMap().get("option");
+			if (options != null && !options.isEmpty()) {
+				monitor = options.contains(Constants.Options.MONITOR);
+			}
+		}
+		return monitor;
 	}
 
 	/**

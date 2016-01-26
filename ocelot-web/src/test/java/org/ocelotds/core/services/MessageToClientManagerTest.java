@@ -7,6 +7,7 @@ package org.ocelotds.core.services;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.enterprise.inject.Instance;
@@ -301,5 +302,17 @@ public class MessageToClientManagerTest {
 		MessageToClient result = instance.createMessageToClient(message, client);
 
 		assertThat(result.getResponse()).isEqualTo(fault);
+	}
+
+	/**
+	 * Test of createMessageToClient method, of class MessageToClientManager.
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void testGetArrayList() throws Exception {
+		System.out.println("getArrayList");
+		List<Object> arrayList = instance.getArrayList();
+		assertThat(arrayList).isNotNull();
 	}
 }

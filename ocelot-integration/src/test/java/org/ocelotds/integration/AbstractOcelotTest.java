@@ -63,7 +63,6 @@ public abstract class AbstractOcelotTest {
 
 	protected final static String CTXPATH = "ocelot-test";
 
-//	protected final static ExecutorService executor = Executors.newFixedThreadPool(100);
 	@BeforeClass
 	public static void setUpClass() {
 		System.out.println("===============================================================================================================");
@@ -72,7 +71,6 @@ public abstract class AbstractOcelotTest {
 	@AfterClass
 	public static void tearDownClass() {
 		System.out.println("===============================================================================================================");
-//		executor.shutdown();		// Check that at least one time results are diferent
 	}
 
 	/**
@@ -85,8 +83,7 @@ public abstract class AbstractOcelotTest {
 		File localeFr = new File("src/test/resources/test_fr_FR.properties");
 		File localeUs = new File("src/test/resources/test_en_US.properties");
 		WebArchive webArchive = ShrinkWrap.create(WebArchive.class, CTXPATH + ".war")
-				  .addPackages(true, OcelotTest.class.getPackage())
-				  .addClass(Result.class).addClass(JsonMarshallerLiteral.class).addClass(JsonUnmarshallerLiteral.class)
+				  .addPackages(true, "org.ocelotds.integration")
 				  .addAsResource(logback).addAsResource(localeUs).addAsResource(localeFr)
 				  .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
 		addOcelotJar(webArchive);
@@ -100,8 +97,7 @@ public abstract class AbstractOcelotTest {
 	 * @param webArchive
 	 */
 	public static void addOcelotJar(WebArchive webArchive) {
-		String version = "2.7.1-SNAPSHOT";
-		File[] imports = Maven.resolver().resolve("org.ocelotds:ocelot-web:" + version, "org.ocelotds:ocelot-core:" + version).withTransitivity().asFile();
+		File[] imports = Maven.resolver().loadPomFromFile("pom.xml").importCompileAndRuntimeDependencies().resolve().withTransitivity().asFile();
 		webArchive.addAsLibraries(imports);
 	}
 
