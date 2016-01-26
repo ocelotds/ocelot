@@ -127,7 +127,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	 * Check minification javascripts
 	 *
 	 */
-	@Test
+//	@Test
 	public void testJavascriptCoreMinification() {
 		System.out.println("testJavascriptCoreMinification");
 		String resource = Constants.OCELOT + Constants.JS;
