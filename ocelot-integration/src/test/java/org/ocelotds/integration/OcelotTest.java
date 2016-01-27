@@ -660,11 +660,11 @@ public class OcelotTest extends AbstractOcelotTest {
 		try (Session wssession = createAndGetSession()) {
 			subscribeToTopicInSession(wssession, topic);
 			testWaitXMessageToTopic(wssession, 1, topic, new Runnable() {
-					@Override
-					public void run() {
-			 			testCallWithoutResult(TopicDataService.class, "sendMessageInMyTopic");
-					}
+				@Override
+				public void run() {
+					testCallWithoutResult(TopicDataService.class, "sendMessageInMyTopic");
 				}
+			}
 			);
 		} catch (IOException ex) {
 			fail(ex.getMessage());
@@ -683,11 +683,11 @@ public class OcelotTest extends AbstractOcelotTest {
 		try (Session wssession = createAndGetSession()) {
 			subscribeToTopicInSession(wssession, topic);
 			testWaitXMessageToTopic(wssession, 1, topic, new Runnable() {
-					@Override
-					public void run() {
-			 			testCallWithoutResult(TopicDataService.class, "sendMessageInDynTopic", getJson(topic));
-					}
+				@Override
+				public void run() {
+					testCallWithoutResult(TopicDataService.class, "sendMessageInDynTopic", getJson(topic));
 				}
+			}
 			);
 		} catch (IOException ex) {
 			fail(ex.getMessage());
@@ -707,11 +707,11 @@ public class OcelotTest extends AbstractOcelotTest {
 			subscribeToTopicInSession(wssession, topic);
 			final int nbMsg = 10;
 			testWaitXMessageToTopic(wssession, nbMsg, topic, new Runnable() {
-					@Override
-					public void run() {
-			 			testCallWithoutResult(TopicDataService.class, "sendXMessageInMyTopic", getJson(nbMsg));
-					}
+				@Override
+				public void run() {
+					testCallWithoutResult(TopicDataService.class, "sendXMessageInMyTopic", getJson(nbMsg));
 				}
+			}
 			);
 		} catch (IOException ex) {
 			fail(ex.getMessage());
@@ -731,11 +731,11 @@ public class OcelotTest extends AbstractOcelotTest {
 			subscribeToTopicInSession(wssession, topic);
 			final int nbMsg = 10;
 			testWaitXMessageToTopic(wssession, nbMsg, topic, new Runnable() {
-					@Override
-					public void run() {
-			 			testCallWithoutResult(TopicDataService.class, "sendXMessageInDynTopic", getJson(nbMsg), getJson(topic));
-					}
+				@Override
+				public void run() {
+					testCallWithoutResult(TopicDataService.class, "sendXMessageInDynTopic", getJson(nbMsg), getJson(topic));
 				}
+			}
 			);
 		} catch (IOException ex) {
 			fail(ex.getMessage());

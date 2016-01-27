@@ -9,7 +9,4 @@
 			<property name="bindHttpPort">8282</property>			
 		</configuration>
 	</container>
-	<extension qualifier="webdriver">
-		<property name="browser">phantomjs</property>
-	</extension>
 </arquillian>

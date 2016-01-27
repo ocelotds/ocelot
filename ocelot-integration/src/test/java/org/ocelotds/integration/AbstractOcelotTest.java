@@ -32,7 +32,6 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import org.assertj.core.api.Condition;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.FileAsset;
@@ -44,13 +43,11 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.ocelotds.Constants;
 import org.ocelotds.OcelotServices;
-import org.ocelotds.literals.JsonMarshallerLiteral;
-import org.ocelotds.literals.JsonUnmarshallerLiteral;
+import org.ocelotds.integration.conditions.AreAtLeastOneDifferent;
 import org.ocelotds.messaging.Fault;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
-import org.ocelotds.objects.Result;
 
 /**
  *
@@ -311,25 +308,6 @@ public abstract class AbstractOcelotTest {
 		}
 		assertThat(results).areAtLeastOne(new AreAtLeastOneDifferent(results));
 		executor.shutdown();
-	}
-
-	class AreAtLeastOneDifferent extends Condition<Object> {
-
-		final Object[] ref;
-
-		public AreAtLeastOneDifferent(Object[] ref) {
-			this.ref = ref;
-		}
-
-		@Override
-		public boolean matches(Object t) {
-			for (Object object : ref) {
-				if (!object.equals(t)) {
-					return true;
-				}
-			}
-			return false;
-		}
 	}
 
 	/**
