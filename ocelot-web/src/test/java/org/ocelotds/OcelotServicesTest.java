@@ -64,8 +64,8 @@ public class OcelotServicesTest {
 	@Test
 	public void testGetLocale() {
 		System.out.println("getLocale");
-		Locale l = new Locale("fr", "FR");
-		Locale l2 = new Locale("en", "US");
+		Locale l = Locale.FRANCE;
+		Locale l2 = Locale.US;
 
 		when(ocelotContext.getLocale()).thenReturn(l).thenReturn(l2);
 
@@ -79,8 +79,8 @@ public class OcelotServicesTest {
 	@Test
 	public void testSetLocale() {
 		System.out.println("setLocale");
-		Locale l = new Locale("fr", "FR");
-		Locale l2 = new Locale("en", "US");
+		Locale l = Locale.FRANCE;
+		Locale l2 = Locale.US;
 
 		instance.setLocale(l);
 		instance.setLocale(l2);

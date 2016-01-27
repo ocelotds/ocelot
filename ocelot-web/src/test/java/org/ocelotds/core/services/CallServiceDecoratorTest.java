@@ -46,8 +46,7 @@ public class CallServiceDecoratorTest {
 		Session session = mock(Session.class);
 		Map<String, Object> sessionProperties = new HashMap<>();
 		Principal p = mock(Principal.class);
-		Locale l = new Locale("fr", "FR");
-		sessionProperties.put(Constants.LOCALE, l);
+		sessionProperties.put(Constants.LOCALE, Locale.FRANCE);
 
 		when(session.getUserPrincipal()).thenReturn(p);
 		when(session.getUserProperties()).thenReturn(sessionProperties);

@@ -29,9 +29,8 @@ public class LocaleUnmarshallerTest {
 	public void testToJava() throws Exception {
 		System.out.println("toJava");
 		String json = "{\"language\":\"fr\",\"country\":\"FR\"}";
-		Locale expResult = new Locale("FR", "fr");
 		Locale result = instance.toJava(json);
-		assertThat(result).isEqualTo(expResult);
+		assertThat(result).isEqualTo(Locale.FRANCE);
 	}
 
 	/**

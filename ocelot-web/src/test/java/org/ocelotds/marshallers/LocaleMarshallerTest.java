@@ -24,9 +24,8 @@ public class LocaleMarshallerTest {
 	@Test
 	public void testToJson() throws JsonMarshallingException {
 		System.out.println("toJson");
-		Locale obj = new Locale("fr", "FR");
 		String expResult = "{\"country\":\"FR\",\"language\":\"fr\"}";
-		String result = instance.toJson(obj);
+		String result = instance.toJson(Locale.FRANCE);
 		assertThat(result).isEqualTo(expResult);
 	}
 

@@ -58,14 +58,14 @@ public class OcelotRequestConfiguratorTest {
 		when(sec.getUserProperties()).thenReturn(userProperties);
 		when(request.getHeaders()).thenReturn(headers);
 		doReturn(map).when(instance).getSessionBeansMap(anyObject());
-		doReturn(new Locale("fr", "FR")).when(instance).getLocale(any(HandshakeRequest.class));
+		doReturn(Locale.FRANCE).when(instance).getLocale(any(HandshakeRequest.class));
 		doReturn(true).when(instance).isMonitored(any(HandshakeRequest.class));
 
 		instance.modifyHandshake(sec, request, response);
 
 		assertThat(sec.getUserProperties().get(Constants.SESSION_BEANS)).isEqualTo(map);
 		assertThat(sec.getUserProperties().get(Constants.HANDSHAKEREQUEST)).isEqualTo(request);
-		assertThat(sec.getUserProperties().get(Constants.LOCALE)).isEqualTo(new Locale("fr", "FR"));
+		assertThat(sec.getUserProperties().get(Constants.LOCALE)).isEqualTo(Locale.FRANCE);
 		assertThat(sec.getUserProperties().get(Constants.Options.MONITOR)).isEqualTo(Boolean.TRUE);
 	}
 
@@ -83,11 +83,11 @@ public class OcelotRequestConfiguratorTest {
 		when(request.getHeaders()).thenReturn(map);
 
 		Locale result = instance.getLocale(request);
-		assertThat(result).isEqualTo(new Locale("en", "US"));
+		assertThat(result).isEqualTo(Locale.US);
 		result = instance.getLocale(request);
-		assertThat(result).isEqualTo(new Locale("en", "US"));
+		assertThat(result).isEqualTo(Locale.US);
 		result = instance.getLocale(request);
-		assertThat(result).isEqualTo(new Locale("fr", "FR"));
+		assertThat(result).isEqualTo(Locale.FRANCE);
 	}
 
 	/**

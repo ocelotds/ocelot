@@ -50,7 +50,6 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 	 */
 	Locale getLocale(HandshakeRequest request) {
 		Map<String, List<String>> headers = request.getHeaders();
-		Locale locale = new Locale("en", "US");
 		List<String> accepts = headers.get(HttpHeaders.ACCEPT_LANGUAGE);
 		logger.debug("Get accept-language from client headers : {}", accepts);
 		if (null != accepts) {
@@ -58,12 +57,11 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 				Pattern pattern = Pattern.compile(".*(\\w\\w)-(\\w\\w).*");
 				Matcher matcher = pattern.matcher(accept);
 				if (matcher.matches() && matcher.groupCount() == 2) {
-					locale = new Locale(matcher.group(1), matcher.group(2));
-					break;
+					return new Locale(matcher.group(1), matcher.group(2));
 				}
 			}
 		}
-		return locale;
+		return Locale.US;
 	}
 
 	/**

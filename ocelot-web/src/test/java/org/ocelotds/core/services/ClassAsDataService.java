@@ -48,7 +48,7 @@ public class ClassAsDataService {
 
 	@JsonMarshaller(LocaleMarshaller.class)
 	public Locale methodWithMarshaller(String a) {
-		return new Locale("fr", "FR");
+		return Locale.FRANCE;
 	}
 
 	public void methodWithBadUnmarshaller(@JsonUnmarshaller(BadUnmarshaller.class) String a) {

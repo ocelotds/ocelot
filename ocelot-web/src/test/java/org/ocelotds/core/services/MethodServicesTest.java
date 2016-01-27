@@ -98,7 +98,7 @@ public class MethodServicesTest {
 		List<Object> arguments = new ArrayList<>();
 		Method expResult = dsClass.getMethod("methodWithUnmarshaller", new Class<?>[]{Locale.class});
 		
-		when(argumentsServices.convertJsonToJava(eq(json), any(Type.class), any(Annotation[].class))).thenReturn(new Locale("fr", "FR"));
+		when(argumentsServices.convertJsonToJava(eq(json), any(Type.class), any(Annotation[].class))).thenReturn(Locale.FRANCE);
 		
 		Method result = instance.getMethodFromDataService(dsClass, message, arguments);
 		assertThat(result).isEqualTo(expResult);
