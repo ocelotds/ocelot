@@ -8,7 +8,6 @@ import org.ocelotds.spi.DataServiceException;
 import org.ocelotds.spi.DataServiceResolver;
 import org.ocelotds.spi.IDataServiceResolver;
 import org.ocelotds.Constants;
-import org.ocelotds.annotations.DataService;
 import org.ocelotds.spi.Scope;
 import java.lang.annotation.Annotation;
 import java.util.Set;
@@ -44,7 +43,7 @@ public class CdiResolver implements IDataServiceResolver {
 		for (Annotation anno : clazz.getAnnotations()) {
 			String annoName = anno.annotationType().getName();
 			switch (annoName) {
-				case "javax.enterprise.context.Dependent":
+				case "javax.enterprise.context.Dependent": 
 					return Scope.SESSION;
 				case "javax.ejb.Stateful":
 					return Scope.SESSION;
