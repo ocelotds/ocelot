@@ -4,6 +4,7 @@
 package org.ocelotds.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.enterprise.security.ee.auth.login.ProgrammaticLogin;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -25,13 +27,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Resource;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
+import javax.xml.bind.DatatypeConverter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import org.glassfish.embeddable.CommandResult;
+import org.glassfish.embeddable.CommandRunner;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.FileAsset;
@@ -40,6 +49,7 @@ import org.jboss.shrinkwrap.api.container.ResourceContainer;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.ocelotds.Constants;
 import org.ocelotds.OcelotServices;
@@ -70,6 +80,30 @@ public abstract class AbstractOcelotTest {
 		System.out.println("===============================================================================================================");
 	}
 
+	@Resource(mappedName = "org.glassfish.embeddable.CommandRunner")
+	CommandRunner commandRunner;
+
+	private static boolean INITIALIZED = false;
+
+	@Before
+	public void configureLoginRealm() {
+		if (!INITIALIZED) {
+			System.out.println("**************************************************************************************************************");
+			INITIALIZED = true;
+			File keyfile = new File("src/test/resources/glassfish/keyfile");
+			String keyfilepath = keyfile.getAbsolutePath().replace("\\", "\\\\").replace(":", "\\:");
+			System.out.println("KEYFILE : " + keyfilepath);
+			CommandResult commandResult = commandRunner.run("create-auth-realm", "--classname=com.sun.enterprise.security.auth.realm.file.FileRealm",
+				"--property=jaas-context=fileRealm:file=" + keyfilepath, "test-file");
+			System.out.println(commandResult.getExitStatus().toString() + " " + commandResult.getOutput());
+			commandResult = commandRunner.run("list-auth-realms");
+			System.out.println(commandResult.getExitStatus().toString() + " " + commandResult.getOutput());
+			commandResult = commandRunner.run("list-file-users", "--authrealmname=test-file");
+			System.out.println(commandResult.getExitStatus().toString() + " " + commandResult.getOutput());
+			System.out.println("**************************************************************************************************************");
+		}
+	}
+
 	/**
 	 * For test api in JEE container, create war
 	 *
@@ -77,12 +111,16 @@ public abstract class AbstractOcelotTest {
 	 */
 	public static WebArchive createWarArchive() {
 		File logback = new File("src/test/resources/logback.xml");
+		File webxml = new File("src/test/resources/web.xml");
+		File glwebxml = new File("src/test/resources/glassfish/glassfish-web.xml");
 		File localeFr = new File("src/test/resources/test_fr_FR.properties");
 		File localeUs = new File("src/test/resources/test_en_US.properties");
 		WebArchive webArchive = ShrinkWrap.create(WebArchive.class, CTXPATH + ".war")
-				  .addPackages(true, "org.ocelotds.integration")
-				  .addAsResource(logback).addAsResource(localeUs).addAsResource(localeFr)
-				  .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+			.addPackages(true, "org.ocelotds.integration")
+			.addAsResource(logback).addAsResource(localeUs).addAsResource(localeFr)
+			.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
+			.addAsWebInfResource(webxml, "web.xml")
+			.addAsWebInfResource(glwebxml, "glassfish-web.xml");
 		addOcelotJar(webArchive);
 		addJSAndProvider("target/test-classes", webArchive, webArchive);
 		return webArchive;
@@ -131,7 +169,7 @@ public abstract class AbstractOcelotTest {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	protected HttpURLConnection getConnectionForResource(String resource, boolean min) throws MalformedURLException, IOException {
+	protected HttpURLConnection getConnectionForResource(String resource, boolean min, boolean auth) throws MalformedURLException, IOException {
 		StringBuilder sb = new StringBuilder("http://localhost:");
 		sb.append(PORT).append(Constants.SLASH).append(CTXPATH).append(Constants.SLASH).append(resource);
 		if (!min) {
@@ -139,10 +177,16 @@ public abstract class AbstractOcelotTest {
 		}
 		URL url = new URL(sb.toString());
 		HttpURLConnection uc = (HttpURLConnection) url.openConnection();
+		if (auth) {
+			String basicAuth = "Basic " + javax.xml.bind.DatatypeConverter.printBase64Binary("demo:demo".getBytes());
+			System.out.println(basicAuth);
+			uc.setRequestProperty("Authorization", basicAuth);
+		}
 		System.out.println("Content-type: " + uc.getContentType());
 		System.out.println("Date: " + new Date(uc.getDate()));
 		System.out.println("Last modified: " + new Date(uc.getLastModified()));
 		System.out.println("Expiration date: " + new Date(uc.getExpiration()));
+		System.out.println("Response code: " + uc.getResponseCode());
 		assertThat(uc.getResponseCode()).isEqualTo(200).as("'%s' is unreachable", sb);
 		return uc;
 	}
@@ -189,9 +233,9 @@ public abstract class AbstractOcelotTest {
 	 */
 	protected Session createAndGetSession() {
 		return createAndGetSession(false);
-		
+
 	}
-	
+
 	/**
 	 * Create session
 	 *
@@ -199,19 +243,45 @@ public abstract class AbstractOcelotTest {
 	 * @return
 	 */
 	protected Session createAndGetSession(boolean monitor) {
+		return createAndGetSession("user:user", monitor);
+	}
+
+	/**
+	 * Create session
+	 *
+	 * @param userpwd
+	 * @param monitor
+	 * @return
+	 */
+	protected Session createAndGetSession(String userpwd, boolean monitor) {
 		WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 		try {
 			StringBuilder sb = new StringBuilder("ws://localhost:");
 			sb.append(PORT).append(Constants.SLASH).append(CTXPATH).append(Constants.SLASH).append("ocelot-endpoint");
-			if(monitor) {
+			if (monitor) {
 				sb.append("?option=monitor");
 			}
 			URI uri = new URI(sb.toString());
-			return container.connectToServer(OcelotClientEnpoint.class, uri);
+			return container.connectToServer(new Endpoint() {
+				@Override
+				public void onOpen(Session session, EndpointConfig config) {
+				}
+			}, createClientEndpointConfigWithAuth(userpwd), uri);
 		} catch (URISyntaxException | DeploymentException | IOException ex) {
+			ex.printStackTrace();
 			fail("CONNEXION FAILED " + ex.getMessage());
 		}
 		return null;
+	}
+
+	private ClientEndpointConfig createClientEndpointConfigWithAuth(final String userpwd) {
+		ClientEndpointConfig.Configurator configurator = new ClientEndpointConfig.Configurator() {
+			@Override
+			public void beforeRequest(Map<String, List<String>> headers) {
+				headers.put("Authorization", Arrays.asList("Basic " + DatatypeConverter.printBase64Binary(userpwd.getBytes())));
+			}
+		};
+		return ClientEndpointConfig.Builder.create().configurator(configurator).build();
 	}
 
 	/**
@@ -331,8 +401,8 @@ public abstract class AbstractOcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'un bean session, on le récupere deux fois et on check que le resultat soit identique pour une meme session, puis on crée une new session cela doit donner un resultat
-	 * different
+	 * Teste de la récupération d'un bean session, on le récupere deux fois et on check que le resultat soit identique pour une meme session, puis on crée une
+	 * new session cela doit donner un resultat different
 	 *
 	 * @param clazz
 	 */
@@ -354,7 +424,8 @@ public abstract class AbstractOcelotTest {
 	}
 
 	/**
-	 * Teste de la récupération d'un Singleton On excecute une methode via 2 session distincte sur le même bean. le resultat stocké  l'interieur du bean doit etre identique
+	 * Teste de la récupération d'un Singleton On excecute une methode via 2 session distincte sur le même bean. le resultat stocké  l'interieur du bean doit
+	 * etre identique
 	 *
 	 * @param clazz
 	 */
@@ -392,8 +463,8 @@ public abstract class AbstractOcelotTest {
 	protected void testCallWithResultInSession(Session wssession, Class clazz, String methodName, String expected, String... params) {
 		System.out.println(clazz + "." + methodName);
 		MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, params);
-		assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 		Object result = messageToClient.getResponse();
+		assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 		assertThat(result).isEqualTo(expected);
 	}
 
@@ -497,10 +568,11 @@ public abstract class AbstractOcelotTest {
 
 	/**
 	 * Test reception of X msg triggered by call Runnable
+	 *
 	 * @param wssession
 	 * @param nbMsg
 	 * @param topic
-	 * @param trigger 
+	 * @param trigger
 	 */
 	protected void testWaitXMessageToTopic(Session wssession, int nbMsg, String topic, Runnable trigger) {
 		try {
@@ -513,14 +585,14 @@ public abstract class AbstractOcelotTest {
 			long t1 = System.currentTimeMillis();
 			assertThat(await).as("Timeout. waiting %d ms. Remain %d/%d msgs", t1 - t0, lock.getCount(), nbMsg).isTrue();
 			wssession.removeMessageHandler(messageHandler);
- 		} catch (IllegalStateException | InterruptedException ex) {
+		} catch (IllegalStateException | InterruptedException ex) {
 			fail(ex.getMessage());
 		}
 	}
 
 	/**
-	 * Handler de message de type result Si le handler compte un id, il decomptera le lock uniquement s'il arrive à  récuperer un message avec le bon id Sinon la récupération d'un message décompte le
-	 * lock
+	 * Handler de message de type result Si le handler compte un id, il decomptera le lock uniquement s'il arrive à  récuperer un message avec le bon id Sinon la
+	 * récupération d'un message décompte le lock
 	 */
 	protected static class CountDownMessageHandler implements MessageHandler.Whole<String> {
 

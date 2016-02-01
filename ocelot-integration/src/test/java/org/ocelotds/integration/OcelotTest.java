@@ -60,6 +60,7 @@ import org.ocelotds.integration.dataservices.topic.TopicDataService;
 import org.ocelotds.security.JsTopicAccessController;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import org.ocelotds.integration.dataservices.security.AccessDataService;
 
 /**
  *
@@ -134,9 +135,9 @@ public class OcelotTest extends AbstractOcelotTest {
 		HttpURLConnection connection1 = null;
 		HttpURLConnection connection2 = null;
 		try {
-			connection1 = getConnectionForResource(resource, true);
+			connection1 = getConnectionForResource(resource, true, false);
 			int minlength = countByte(connection1.getInputStream());
-			connection2 = getConnectionForResource(resource, false);
+			connection2 = getConnectionForResource(resource, false, false);
 			int length = countByte(connection2.getInputStream());
 			assertThat(minlength).isLessThan(length).as("Minification of %s didn't work, same size of file magnifier : %s / minifer : %s", resource, length, minlength);
 		} catch (IOException e) {
@@ -158,7 +159,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testJavascriptGeneration() {
 		System.out.println("testJavascriptCoreGeneration");
 		try {
-			HttpURLConnection connection = getConnectionForResource(Constants.OCELOT + Constants.JS, false);
+			HttpURLConnection connection = getConnectionForResource(Constants.OCELOT + Constants.JS, false, false);
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), Constants.UTF_8))) {
 				String inputLine;
 				while ((inputLine = in.readLine()) != null) {
@@ -322,7 +323,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 	@Test
 	public void testGetUsername() {
-		testCallWithResult(OcelotServices.class, "getUsername", getJson("ANONYMOUS"));
+		testCallWithResult(OcelotServices.class, "getUsername", getJson("user"));
 	}
 
 	/**
@@ -540,6 +541,35 @@ public class OcelotTest extends AbstractOcelotTest {
 		testCallThrowException(ArgumentTypeDataService.class, "methodThatThrowException", MethodException.class);
 	}
 
+	/**
+	 * SECURITY
+	 */
+	@Test
+	public void testPrincipal() {
+		try (Session wssession = createAndGetSession("demo:demo", false)) {
+			testCallWithResultInSession(wssession, AccessDataService.class, "getUsername", getJson("demo"));
+		} catch (IOException exception) {
+		}
+	}
+	@Test
+	public void testMethodAllowedToTest() {
+		try (Session wssession = createAndGetSession("test:test", false)) {
+			testCallWithResultInSession(wssession, AccessDataService.class, "getUsername", getJson("test"));
+			testCallWithoutResultInSession(wssession, AccessDataService.class, "methodAllowedToTest");
+			testCallThrowExceptionInSession(wssession, AccessDataService.class, "methodAllowedToAdmin", IllegalAccessException.class);
+		} catch (IOException exception) {
+		}
+	}
+//	@Test
+	public void testMethodAllowedToAdmin() {
+		try (Session wssession = createAndGetSession("admin:admin", false)) {
+			testCallWithResultInSession(wssession, AccessDataService.class, "getUsername", getJson("admin"));
+			testCallWithoutResultInSession(wssession, AccessDataService.class, "methodAllowedToAdmin");
+			testCallThrowExceptionInSession(wssession, AccessDataService.class, "methodAllowedToTest", IllegalAccessException.class);
+		} catch (IOException exception) {
+		}
+	}
+	
 	/**
 	 * Check monitor works
 	 */
