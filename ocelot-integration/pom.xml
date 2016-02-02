@@ -65,12 +65,10 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.19.1</version>
 				<configuration>
-					<forkCount>10</forkCount>
 					<systemProperties>
-						<argLine>-Djava.security.auth.login.config=src\test\resources\glassfish\login.conf</argLine>
 						<property>
 							<name>java.security.auth.login.config</name>
-							<value>src\test\resources\glassfish\login.conf</value>
+							<value>src/test/resources/glassfish/login.conf</value>
 						</property>
 					</systemProperties>
 				</configuration>
