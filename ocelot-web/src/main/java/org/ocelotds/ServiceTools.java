@@ -70,7 +70,7 @@ public class ServiceTools {
 	 * @param annotations
 	 * @return
 	 */
-	public org.ocelotds.marshalling.JsonUnmarshaller getJsonUnmarshallerFromAnnotations(Annotation[] annotations) {
+	public org.ocelotds.marshalling.JsonUnmarshaller getJsonUnmarshaller(Annotation[] annotations) {
 		if (annotations != null) {
 			for (Annotation annotation : annotations) {
 				if (JsonUnmarshaller.class.isAssignableFrom(annotation.annotationType())) {
