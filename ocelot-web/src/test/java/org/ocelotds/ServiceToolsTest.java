@@ -101,7 +101,7 @@ public class ServiceToolsTest {
 	@Test
 	public void testGetJsonUnmarshallerFromAnnotationsNullArgument() {
 		System.out.println("getJsonUnmarshallerFromAnnotationsNullArgument");
-		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshallerFromAnnotations(null);
+		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshaller(null);
 		assertThat(result).isNull();
 	}
 
@@ -112,7 +112,7 @@ public class ServiceToolsTest {
 	public void testGetJsonUnmarshallerFromAnnotationsNoAnnotation() {
 		System.out.println("getJsonUnmarshallerFromAnnotationsNoAnnotation");
 		Annotation[] annotations = new Annotation[0];
-		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshallerFromAnnotations(annotations);
+		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshaller(annotations);
 		assertThat(result).isNull();
 	}
 
@@ -128,7 +128,7 @@ public class ServiceToolsTest {
 		Class anno = JsonUnmarshaller.class;
 		when(ju.annotationType()).thenReturn(anno);
 		Annotation[] annotations = new Annotation[] {ju};
-		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshallerFromAnnotations(annotations);
+		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshaller(annotations);
 		assertThat(result).isNull();
 	}
 
@@ -145,7 +145,7 @@ public class ServiceToolsTest {
 		when(ju.annotationType()).thenReturn(anno);
 		Annotation[] annotations = new Annotation[] {ju};
 		// getJsonUnmarshallerFromAnnotation return JsonUnmarshaller
-		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshallerFromAnnotations(annotations);
+		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshaller(annotations);
 		assertThat(result).isEqualTo(ju1);
 	}
 
