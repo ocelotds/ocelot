@@ -53,33 +53,47 @@ public class ServiceTools {
 	 */
 	public String getLiteralType(Type type) {
 		String result = "";
-		if(type != null) {
+		if (type != null) {
 			if (ParameterizedType.class.isAssignableFrom(type.getClass())) {
 				ParameterizedType parameterizedType = (ParameterizedType) type;
 				result = parameterizedType.toString();
 			} else {
 				result = ((Class) type).getCanonicalName();
 			}
-		} 
+		}
 		return result;
 	}
 
 	/**
-	 * The parameter is Annotation JsonUnmarshaller present
+	 * Return JsonUnmarshaller instance if annotation JsonUnmarshaller is present
 	 *
 	 * @param annotations
 	 * @return
 	 */
-	public org.ocelotds.marshalling.JsonUnmarshaller getJsonUnmarshaller(Annotation[] annotations) {
-		for (Annotation annotation : annotations) {
-			if (JsonUnmarshaller.class.isAssignableFrom(annotation.annotationType())) {
-				JsonUnmarshaller jua = (JsonUnmarshaller) annotation;
-				Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> juCls = jua.value();
-				try {
-					return juCls.newInstance();
-				} catch (InstantiationException | IllegalAccessException ex) {
-					logger.error("Fail to instanciate " + juCls.getName(), ex);
+	public org.ocelotds.marshalling.JsonUnmarshaller getJsonUnmarshallerFromAnnotations(Annotation[] annotations) {
+		if (annotations != null) {
+			for (Annotation annotation : annotations) {
+				if (JsonUnmarshaller.class.isAssignableFrom(annotation.annotationType())) {
+					return getJsonUnmarshallerFromAnnotation((JsonUnmarshaller) annotation);
 				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Return JsonUnmarshaller instance from annotation JsonUnmarshaller
+	 *
+	 * @param jua
+	 * @return
+	 */
+	public org.ocelotds.marshalling.JsonUnmarshaller getJsonUnmarshallerFromAnnotation(JsonUnmarshaller jua) {
+		if (jua != null) {
+			Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> juCls = jua.value();
+			try {
+				return juCls.newInstance();
+			} catch (InstantiationException | IllegalAccessException ex) {
+				logger.error("Fail to instanciate " + juCls.getName(), ex);
 			}
 		}
 		return null;

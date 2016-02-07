@@ -1,7 +1,6 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 package org.ocelotds;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -43,18 +42,19 @@ public class ServiceToolsTest {
 	@InjectMocks
 	@Spy
 	private ServiceTools instance;
-	
+
 	@Mock
 	ObjectMapper objectMapper;
 
 	@Before
-	public void init () throws JsonProcessingException {
+	public void init() throws JsonProcessingException {
 		ObjectMapper om = new ObjectMapper();
 		doReturn(om).when(instance).getObjectMapper();
 	}
 
 	/**
 	 * Test of getShortName method, of class ServiceTools.
+	 *
 	 * @throws java.lang.NoSuchMethodException
 	 */
 	@Test
@@ -64,11 +64,11 @@ public class ServiceToolsTest {
 		String expResult = "Collection<Map<String, Collection<Integer>>>";
 		String result = instance.getShortName(fullname);
 		assertThat(result).isEqualTo(expResult);
-		
+
 		result = instance.getShortName(null);
 		assertThat(result).isEqualTo("");
 	}
-	
+
 	/**
 	 * Test of getLiteralType method, of class ServiceTools.
 	 */
@@ -96,7 +96,61 @@ public class ServiceToolsTest {
 	}
 
 	/**
-	 * Test of getJsonUnmarshaller method, of class ServiceTools.
+	 * Test of getJsonUnmarshallerFromAnnotations method, of class ServiceTools.
+	 */
+	@Test
+	public void testGetJsonUnmarshallerFromAnnotationsNullArgument() {
+		System.out.println("getJsonUnmarshallerFromAnnotationsNullArgument");
+		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshallerFromAnnotations(null);
+		assertThat(result).isNull();
+	}
+
+	/**
+	 * Test of getJsonUnmarshallerFromAnnotations method, of class ServiceTools.
+	 */
+	@Test
+	public void testGetJsonUnmarshallerFromAnnotationsNoAnnotation() {
+		System.out.println("getJsonUnmarshallerFromAnnotationsNoAnnotation");
+		Annotation[] annotations = new Annotation[0];
+		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshallerFromAnnotations(annotations);
+		assertThat(result).isNull();
+	}
+
+	/**
+	 * Test of getJsonUnmarshallerFromAnnotations method, of class ServiceTools.
+	 */
+	@Test
+	public void testGetJsonUnmarshallerFromAnnotationsNoUnmarshaller() {
+		System.out.println("getJsonUnmarshallerFromAnnotationsNoUnmarshaller");
+		org.ocelotds.marshalling.JsonUnmarshaller ju1 = mock(org.ocelotds.marshalling.JsonUnmarshaller.class);
+		doReturn(null).when(instance).getJsonUnmarshallerFromAnnotation(any(JsonUnmarshaller.class));
+		JsonUnmarshaller ju = mock(JsonUnmarshaller.class);
+		Class anno = JsonUnmarshaller.class;
+		when(ju.annotationType()).thenReturn(anno);
+		Annotation[] annotations = new Annotation[] {ju};
+		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshallerFromAnnotations(annotations);
+		assertThat(result).isNull();
+	}
+
+	/**
+	 * Test of getJsonUnmarshallerFromAnnotations method, of class ServiceTools.
+	 */
+	@Test
+	public void testGetJsonUnmarshallerFromAnnotations() {
+		System.out.println("getJsonUnmarshallerFromAnnotations");
+		org.ocelotds.marshalling.JsonUnmarshaller ju1 = mock(org.ocelotds.marshalling.JsonUnmarshaller.class);
+		doReturn(ju1).when(instance).getJsonUnmarshallerFromAnnotation(any(JsonUnmarshaller.class));
+		JsonUnmarshaller ju = mock(JsonUnmarshaller.class);
+		Class anno = JsonUnmarshaller.class;
+		when(ju.annotationType()).thenReturn(anno);
+		Annotation[] annotations = new Annotation[] {ju};
+		// getJsonUnmarshallerFromAnnotation return JsonUnmarshaller
+		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshallerFromAnnotations(annotations);
+		assertThat(result).isEqualTo(ju1);
+	}
+
+	/**
+	 * Test of getJsonUnmarshallerFromAnnotation method, of class ServiceTools.
 	 */
 	@Test
 	public void testGetJsonUnmarshallerAnnotationPresent() {
@@ -104,15 +158,12 @@ public class ServiceToolsTest {
 		JsonUnmarshaller ju = mock(JsonUnmarshaller.class);
 		Class cls = LocaleUnmarshaller.class;
 		when(ju.value()).thenReturn(cls);
-		Class anno = JsonUnmarshaller.class;
-		when(ju.annotationType()).thenReturn(anno);
-		Annotation[] annotations = new Annotation[]{ju};
-		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshaller(annotations);
+		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshallerFromAnnotation(ju);
 		assertThat(result).isInstanceOf(cls);
 	}
 
 	/**
-	 * Test of getJsonUnmarshaller method, of class ServiceTools.
+	 * Test of getJsonUnmarshallerFromAnnotation method, of class ServiceTools.
 	 */
 	@Test
 	public void testGetBadJsonUnmarshaller() {
@@ -120,34 +171,30 @@ public class ServiceToolsTest {
 		JsonUnmarshaller ju = mock(JsonUnmarshaller.class);
 		Class cls = BadUnmarshaller.class;
 		when(ju.value()).thenReturn(cls);
-		Class anno = JsonUnmarshaller.class;
-		when(ju.annotationType()).thenReturn(anno);
-		Annotation[] annotations = new Annotation[]{ju};
-		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshaller(annotations);
+		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshallerFromAnnotation(ju);
 		assertThat(result).isNull();
 	}
 
 	static class BadUnmarshaller implements org.ocelotds.marshalling.JsonUnmarshaller<String> {
-		
+
 		public BadUnmarshaller(String t) {
-			
+
 		}
 
 		@Override
 		public String toJava(String json) throws JsonUnmarshallingException {
 			return null;
 		}
-		
+
 	}
 
 	/**
-	 * Test of getJsonUnmarshaller method, of class ServiceTools.
+	 * Test of getJsonUnmarshallerFromAnnotation method, of class ServiceTools.
 	 */
 	@Test
 	public void testGetJsonUnmarshallerAnnotationNotPresent() {
 		System.out.println("getJsonUnmarshallerNotPresent");
-		Annotation[] annotations = new Annotation[]{};
-		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshaller(annotations);
+		org.ocelotds.marshalling.JsonUnmarshaller result = instance.getJsonUnmarshallerFromAnnotation(null);
 		assertThat(result).isNull();
 	}
 
@@ -162,7 +209,7 @@ public class ServiceToolsTest {
 		doReturn(expResult).when(instance)._getTemplateOfType(type);
 		String result = instance.getTemplateOfType(type, null);
 		assertThat(result).isEqualTo(expResult);
-		
+
 		org.ocelotds.marshalling.JsonUnmarshaller ju = mock(org.ocelotds.marshalling.JsonUnmarshaller.class);
 		result = instance.getTemplateOfType(type, ju);
 		assertThat(result).isEqualTo(expResult);
@@ -177,7 +224,7 @@ public class ServiceToolsTest {
 		String result = instance.getInstanceNameFromDataservice(DataService1.class);
 		assertThat(result).isEqualTo("dataService1");
 	}
-	
+
 	/**
 	 * Test of getInstanceNameFromDataservice method, of class ServiceTools.
 	 */
@@ -190,20 +237,22 @@ public class ServiceToolsTest {
 
 	@DataService(resolver = "")
 	static class DataService1 {
+
 		public void publicMethod() {
-			
+
 		}
+
 		@TransientDataService
 		public void transientMethod() {
-			
+
 		}
 
 		public static void staticMethod() {
-			
+
 		}
 
 		protected static void staticProtectedMethod() {
-			
+
 		}
 
 		@Override
@@ -214,11 +263,12 @@ public class ServiceToolsTest {
 
 	@DataService(resolver = "", name = "DS2")
 	static class DataService2 {
-		
+
 	}
 
 	/**
 	 * Test of getRealClass method, of class ServiceTools.
+	 *
 	 * @throws java.lang.ClassNotFoundException
 	 */
 	@Test
@@ -234,6 +284,7 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of isConsiderateMethod method, of class ServiceTools.
+	 *
 	 * @throws java.lang.NoSuchMethodException
 	 */
 	@Test
@@ -258,7 +309,7 @@ public class ServiceToolsTest {
 		method = DataService1.class.getMethod("staticMethod");
 		result = instance.isConsiderateMethod(method);
 		assertThat(result).isFalse();
-		
+
 		method = DataService1.class.getDeclaredMethod("staticProtectedMethod");
 		result = instance.isConsiderateMethod(method);
 		assertThat(result).isFalse();
@@ -279,13 +330,14 @@ public class ServiceToolsTest {
 
 		String result = instance._getTemplateOfType(type);
 		assertThat(result).isEqualTo(expResult1);
-		
+
 		result = instance._getTemplateOfType(ptype);
 		assertThat(result).isEqualTo(expResult2);
 	}
 
 	/**
 	 * Test of getTemplateOfClass method, of class ServiceTools.
+	 *
 	 * @throws com.fasterxml.jackson.core.JsonProcessingException
 	 */
 	@Test
@@ -344,7 +396,7 @@ public class ServiceToolsTest {
 
 		cls = Result[].class;
 		result = instance.getTemplateOfClass(cls);
-		assertThat(result).isEqualTo("["+expResult+","+expResult+"]");
+		assertThat(result).isEqualTo("[" + expResult + "," + expResult + "]");
 
 		cls = Locale.class;
 		result = instance.getTemplateOfClass(cls);
@@ -364,7 +416,7 @@ public class ServiceToolsTest {
 
 		String result = instance.getTemplateOfParameterizedType(parameterizedType);
 		assertThat(result).isEqualTo("Iterable");
-		
+
 		result = instance.getTemplateOfParameterizedType(parameterizedType);
 		assertThat(result).isEqualTo("Map");
 
@@ -374,6 +426,7 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getTemplateOfIterable method, of class ServiceTools.
+	 *
 	 * @throws com.fasterxml.jackson.core.JsonProcessingException
 	 */
 	@Test
@@ -383,30 +436,31 @@ public class ServiceToolsTest {
 		Result r = new Result();
 		String res = om.writeValueAsString(r);
 
-		String expResult = "["+res+","+res+"]";
-		String result = instance.getTemplateOfIterable(new Type[] {Result.class});
+		String expResult = "[" + res + "," + res + "]";
+		String result = instance.getTemplateOfIterable(new Type[]{Result.class});
 		assertThat(result).isEqualTo(expResult);
-		
-		result = instance.getTemplateOfIterable(new Type[] {Result.class, String.class});
+
+		result = instance.getTemplateOfIterable(new Type[]{Result.class, String.class});
 		assertThat(result).isEqualTo(expResult);
-		
-		result = instance.getTemplateOfIterable(new Type[] {});
+
+		result = instance.getTemplateOfIterable(new Type[]{});
 		assertThat(result).isEqualTo("[]");
 	}
 
 	/**
 	 * Test of getTemplateOfMap method, of class ServiceTools.
+	 *
 	 * @throws com.fasterxml.jackson.core.JsonProcessingException
 	 */
 	@Test
 	public void testGetTemplateOfMap() throws JsonProcessingException {
 		System.out.println("getTemplateOfMap");
-		Type[] actualTypeArguments = new Type[] {String.class, Result.class};
+		Type[] actualTypeArguments = new Type[]{String.class, Result.class};
 		ObjectMapper om = new ObjectMapper();
 		Result r = new Result();
 		String res = om.writeValueAsString(r);
 
-		String expResult = "{\"\":"+res+"}";
+		String expResult = "{\"\":" + res + "}";
 		String result = instance.getTemplateOfMap(actualTypeArguments);
 		assertThat(result).isEqualTo(expResult);
 	}
@@ -436,27 +490,29 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getRealClassname method, of class ServiceTools.
+	 *
 	 * @throws java.lang.ClassNotFoundException
 	 */
 	@Test
 	public void testGetRealClassname() throws ClassNotFoundException {
 		System.out.println("getRealClassname");
 		String proxyname = "java.lang.String$Proxy";
-		
+
 		String result = instance.getRealClassname(proxyname);
 		assertThat(result).isEqualTo("java.lang.String");
-		
+
 	}
 
 	/**
 	 * Test of getRealClassname method, of class ServiceTools.
+	 *
 	 * @throws java.lang.ClassNotFoundException
 	 */
 	@Test(expected = ClassNotFoundException.class)
 	public void testGetRealClassnameNotProxy() throws ClassNotFoundException {
 		System.out.println("getRealClassname");
 		String proxyname = "java.lang.String";
-		
+
 		instance.getRealClassname(proxyname);
 	}
 }
