@@ -29,6 +29,7 @@ import org.ocelotds.literals.JsonMarshallerLiteral;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
+import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.ocelotds.messaging.MessageType;
 import org.slf4j.Logger;
 
@@ -235,7 +236,7 @@ public class TopicsMessagesBroadcasterTest {
 		assertThat(result).isEqualTo(null);
 	}
 
-	private class BadMarshaller implements org.ocelotds.marshalling.JsonMarshaller {
+	private class BadMarshaller implements org.ocelotds.marshalling.IJsonMarshaller {
 		
 		public BadMarshaller(String s) {
 			
@@ -245,10 +246,15 @@ public class TopicsMessagesBroadcasterTest {
 		public String toJson(Object obj) throws JsonMarshallingException {
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
+
+		@Override
+		public Object toJava(String json) throws JsonUnmarshallingException {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
 		
 	}
 	
-	private class BadMarshaller2 implements org.ocelotds.marshalling.JsonMarshaller {
+	private class BadMarshaller2 implements org.ocelotds.marshalling.IJsonMarshaller {
 		
 		private BadMarshaller2() {
 			
@@ -258,7 +264,11 @@ public class TopicsMessagesBroadcasterTest {
 		public String toJson(Object obj) throws JsonMarshallingException {
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
+
+		@Override
+		public Object toJava(String json) throws JsonUnmarshallingException {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
 		
 	}
-
 }

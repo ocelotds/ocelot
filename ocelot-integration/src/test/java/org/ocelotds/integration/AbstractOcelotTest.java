@@ -494,6 +494,9 @@ public abstract class AbstractOcelotTest {
 	protected void testCallWithoutResultInSession(Session wssession, Class clazz, String methodName, String... params) {
 		System.out.println(clazz + "." + methodName);
 		MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, params);
+		if(MessageType.FAULT.equals(messageToClient.getType())) {
+			System.out.println("FAULT : "+messageToClient.getResponse());
+		}
 		assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 	}
 

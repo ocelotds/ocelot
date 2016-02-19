@@ -14,14 +14,14 @@ import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 public class JsonUnmarshallerLiteral extends AnnotationLiteral<JsonUnmarshaller> implements JsonUnmarshaller {
 
 	private static final long serialVersionUID = 1L;
-	private final Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> value;
+	private final Class<? extends org.ocelotds.marshalling.IJsonMarshaller> value;
 
-	public JsonUnmarshallerLiteral(Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> value) {
+	public JsonUnmarshallerLiteral(Class<? extends org.ocelotds.marshalling.IJsonMarshaller> value) {
 		this.value = value;
 	}
 
 	@Override
-	public Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> value() {
+	public Class<? extends org.ocelotds.marshalling.IJsonMarshaller> value() {
 		return value;
 	}
 }

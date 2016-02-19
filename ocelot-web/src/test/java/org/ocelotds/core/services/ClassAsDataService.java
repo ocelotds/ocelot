@@ -9,9 +9,9 @@ import java.util.Map;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheResult;
 import org.ocelotds.marshallers.LocaleMarshaller;
-import org.ocelotds.marshallers.LocaleUnmarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
+import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 
 /**
@@ -51,15 +51,15 @@ public class ClassAsDataService {
 		return Locale.FRANCE;
 	}
 
-	public void methodWithBadUnmarshaller(@JsonUnmarshaller(BadUnmarshaller.class) String a) {
+	public void methodWithBadUnmarshaller(@JsonUnmarshaller(BadMarshaller.class) String a) {
 	}
 
-	public void methodWithUnmarshaller(@JsonUnmarshaller(LocaleUnmarshaller.class) Locale l) {
+	public void methodWithUnmarshaller(@JsonUnmarshaller(LocaleMarshaller.class) Locale l) {
 	}
 
-	static class BadUnmarshaller implements org.ocelotds.marshalling.JsonUnmarshaller<String> {
+	static class BadMarshaller implements org.ocelotds.marshalling.IJsonMarshaller<String> {
 
-		public BadUnmarshaller(String t) {
+		public BadMarshaller(String t) {
 
 		}
 
@@ -68,5 +68,9 @@ public class ClassAsDataService {
 			return "";
 		}
 
+		@Override
+		public String toJson(String obj) throws JsonMarshallingException {
+			return null;
+		}
 	}
 }

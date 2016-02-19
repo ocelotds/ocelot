@@ -58,9 +58,9 @@ public class TopicsMessagesBroadcaster {
 	}
 	
 	String getJsonFromMarshaller(Object object, JsonMarshaller jma) {
-		Class<? extends org.ocelotds.marshalling.JsonMarshaller> marshallerCls = jma.value();
+		Class<? extends org.ocelotds.marshalling.IJsonMarshaller> marshallerCls = jma.value();
 		try {
-			org.ocelotds.marshalling.JsonMarshaller marshaller = marshallerCls.newInstance();
+			org.ocelotds.marshalling.IJsonMarshaller marshaller = marshallerCls.newInstance();
 			return marshaller.toJson(object);
 		} catch (InstantiationException | IllegalAccessException ex) {
 			logger.error(marshallerCls+" can't be instantiate", ex);

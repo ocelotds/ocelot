@@ -25,7 +25,6 @@ import org.ocelotds.annotations.JsTopicName;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.context.OcelotContext;
 import org.ocelotds.marshallers.LocaleMarshaller;
-import org.ocelotds.marshallers.LocaleUnmarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.objects.OcelotMethod;
@@ -69,7 +68,7 @@ public class OcelotServices {
 	 * @param locale
 	 */
 	@JsCacheRemove(cls = OcelotServices.class, methodName = "getLocale", keys = {})
-	public void setLocale(@JsonUnmarshaller(LocaleUnmarshaller.class) Locale locale) {
+	public void setLocale(@JsonUnmarshaller(LocaleMarshaller.class) Locale locale) {
 		logger.debug("Receive setLocale call from client. {}", locale);
 		ocelotContext.setLocale(locale);
 	}
@@ -144,7 +143,7 @@ public class OcelotServices {
 		for (Type type : types) {
 			ocelotMethod.getArgtypes().add(serviceTools.getShortName(serviceTools.getLiteralType(type)));
 			ocelotMethod.getArgnames().add("arg"+index); 
-			ocelotMethod.getArgtemplates().add(serviceTools.getTemplateOfType(type, serviceTools.getJsonUnmarshaller(annotations[index])));
+			ocelotMethod.getArgtemplates().add(serviceTools.getTemplateOfType(type, serviceTools.getJsonMarshaller(annotations[index])));
 			index++;
 		}
 		return ocelotMethod;

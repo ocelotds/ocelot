@@ -6,17 +6,21 @@ package org.ocelotds;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Locale;
 import java.util.Map;
+import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.annotations.TransientDataService;
+import org.ocelotds.marshallers.TemplateMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
+import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.slf4j.Logger;
 
 /**
@@ -31,6 +35,9 @@ public class ServiceTools {
 
 	@Inject
 	private ObjectMapper objectMapper;
+	
+	@Inject
+	private TemplateMarshaller templateMarshaller;
 
 	/**
 	 * Return classname but in short formal java.lang.Collection&lt;java.lang.String&gt; to Collection&lt;String&gt;
@@ -70,11 +77,11 @@ public class ServiceTools {
 	 * @param annotations
 	 * @return
 	 */
-	public org.ocelotds.marshalling.JsonUnmarshaller getJsonUnmarshaller(Annotation[] annotations) {
+	public org.ocelotds.marshalling.IJsonMarshaller getJsonMarshaller(Annotation[] annotations) {
 		if (annotations != null) {
 			for (Annotation annotation : annotations) {
 				if (JsonUnmarshaller.class.isAssignableFrom(annotation.annotationType())) {
-					return getJsonUnmarshallerFromAnnotation((JsonUnmarshaller) annotation);
+					return getJsonMarshallerFromAnnotation((JsonUnmarshaller) annotation);
 				}
 			}
 		}
@@ -87,14 +94,10 @@ public class ServiceTools {
 	 * @param jua
 	 * @return
 	 */
-	public org.ocelotds.marshalling.JsonUnmarshaller getJsonUnmarshallerFromAnnotation(JsonUnmarshaller jua) {
+	public org.ocelotds.marshalling.IJsonMarshaller getJsonMarshallerFromAnnotation(JsonUnmarshaller jua) {
 		if (jua != null) {
-			Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> juCls = jua.value();
-			try {
-				return juCls.newInstance();
-			} catch (InstantiationException | IllegalAccessException ex) {
-				logger.error("Fail to instanciate " + juCls.getName(), ex);
-			}
+			Class<? extends org.ocelotds.marshalling.IJsonMarshaller> juCls = jua.value();
+			return getCDICurrentSelect(juCls);
 		}
 		return null;
 	}
@@ -103,14 +106,14 @@ public class ServiceTools {
 	 * Get template for unknown type (class or parameterizedType)
 	 *
 	 * @param type
-	 * @param jsonUnmarshaller
+	 * @param jsonMarshaller
 	 * @return
 	 */
-	public String getTemplateOfType(Type type, org.ocelotds.marshalling.JsonUnmarshaller jsonUnmarshaller) {
-		if (jsonUnmarshaller != null) {
-			logger.debug("Class {} is annotated with jsonUnmarshaller {}", type, jsonUnmarshaller);
+	public String getTemplateOfType(Type type, org.ocelotds.marshalling.IJsonMarshaller jsonMarshaller) {
+		if(jsonMarshaller==null) {
+			jsonMarshaller = templateMarshaller;
 		}
-		return _getTemplateOfType(type);
+		return _getTemplateOfType(type, jsonMarshaller);
 	}
 
 	/**
@@ -160,41 +163,96 @@ public class ServiceTools {
 	 * Get template for unknown type (class or parameterizedType)
 	 *
 	 * @param type
+	 * @return
+	 */
+//	String _getTemplateOfType(Type type) {
+//		if (ParameterizedType.class.isAssignableFrom(type.getClass())) {
+//			return getTemplateOfParameterizedType((ParameterizedType) type);
+//		}
+//		return getTemplateOfClass((Class) type);
+//	}
+
+	/**
+	 * Get template for unknown type (class or parameterizedType)
+	 *
+	 * @param type
 	 * @param jsonUnmarshaller
 	 * @return
 	 */
-	String _getTemplateOfType(Type type) {
+	String _getTemplateOfType(Type type, org.ocelotds.marshalling.IJsonMarshaller jsonMarshaller) {
 		if (ParameterizedType.class.isAssignableFrom(type.getClass())) {
-			return getTemplateOfParameterizedType((ParameterizedType) type);
+			return getTemplateOfParameterizedType((ParameterizedType) type, jsonMarshaller);
 		}
-		return getTemplateOfClass((Class) type);
+		try {
+			return jsonMarshaller.toJson(getInstanceOfClass((Class) type));
+		} catch (JsonMarshallingException ex) {
+		}
+		return ((Class) type).getSimpleName().toLowerCase(Locale.ENGLISH);
+	}
+
+	/**
+	 * Get instance for classic class
+	 *
+	 * @param cls
+	 * @return
+	 */
+	Object getInstanceOfClass(Class cls) {
+		if (Boolean.class.isAssignableFrom(cls) || Boolean.TYPE.isAssignableFrom(cls)) {
+			return Boolean.FALSE;
+		} else if (Integer.TYPE.isAssignableFrom(cls) || Short.TYPE.isAssignableFrom(cls) || Integer.class.isAssignableFrom(cls) || Short.class.isAssignableFrom(cls)) {
+			return 0;
+		} else if (Long.TYPE.isAssignableFrom(cls) || Long.class.isAssignableFrom(cls)) {
+			return 0L;
+		} else if (Float.TYPE.isAssignableFrom(cls) || Float.class.isAssignableFrom(cls)) {
+			return 0.1F;
+		} else if (Double.TYPE.isAssignableFrom(cls) || Double.class.isAssignableFrom(cls)) {
+			return 0.1D;
+		} else if (cls.isArray()) {
+			Class<?> comp = cls.getComponentType();
+			Object instance = getInstanceOfClass(comp);
+			return new Object[]{instance, instance};
+		} else {
+			try {
+				return cls.newInstance();
+			} catch (InstantiationException | IllegalAccessException ex) {
+				Field[] fields = cls.getFields();
+				for (Field field : fields) {
+					if (Modifier.isStatic(field.getModifiers()) && field.getType().isAssignableFrom(cls)) {
+						try {
+							return field.get(null);
+						} catch (IllegalArgumentException | IllegalAccessException ex1) {
+						}
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	/**
 	 * Get template for classic class
 	 *
 	 * @param cls
-	 * @param jsonUnmarshaller
 	 * @return
 	 */
-	String getTemplateOfClass(Class cls) {
-		if (Boolean.class.isAssignableFrom(cls) || Boolean.TYPE.isAssignableFrom(cls)) {
-			return "false";
-		} else if (Integer.TYPE.isAssignableFrom(cls) || Long.TYPE.isAssignableFrom(cls) || Integer.class.isAssignableFrom(cls) || Long.class.isAssignableFrom(cls)) {
-			return "0";
-		} else if (Float.TYPE.isAssignableFrom(cls) || Double.TYPE.isAssignableFrom(cls) || Float.class.isAssignableFrom(cls) || Double.class.isAssignableFrom(cls)) {
-			return "0.0";
-		} else if (cls.isArray()) {
-			String template = getTemplateOfClass(cls.getComponentType());
-			return "[" + template + "," + template + "]";
-		} else {
-			try {
-				return getObjectMapper().writeValueAsString(cls.newInstance());
-			} catch (InstantiationException | IllegalAccessException | JsonProcessingException ex) {
-			}
-		}
-		return cls.getSimpleName().toLowerCase(Locale.ENGLISH);
-	}
+//	String getTemplateOfClass(Class cls) {
+//		if (Boolean.class.isAssignableFrom(cls) || Boolean.TYPE.isAssignableFrom(cls)) {
+//			return "false";
+//		} else if (Integer.TYPE.isAssignableFrom(cls) || Long.TYPE.isAssignableFrom(cls) || Integer.class.isAssignableFrom(cls) || Long.class.isAssignableFrom(cls)) {
+//			return "0";
+//		} else if (Float.TYPE.isAssignableFrom(cls) || Double.TYPE.isAssignableFrom(cls) || Float.class.isAssignableFrom(cls) || Double.class.isAssignableFrom(cls)) {
+//			return "0.0";
+//		} else if (cls.isArray()) {
+//			String template = getTemplateOfClass(cls.getComponentType());
+//			return "[" + template + "," + template + "]";
+//		} else {
+//			try {
+//				return getObjectMapper().writeValueAsString(cls.newInstance());
+//			} catch (InstantiationException | IllegalAccessException | JsonProcessingException ex) {
+//			}
+//		}
+//		return cls.getSimpleName().toLowerCase(Locale.ENGLISH);
+//	}
 
 	/**
 	 * Get template from parameterizedType
@@ -202,14 +260,14 @@ public class ServiceTools {
 	 * @param parameterizedType
 	 * @return
 	 */
-	String getTemplateOfParameterizedType(ParameterizedType parameterizedType) {
+	String getTemplateOfParameterizedType(ParameterizedType parameterizedType, org.ocelotds.marshalling.IJsonMarshaller jsonMarshaller) {
 		Class cls = (Class) parameterizedType.getRawType();
 		Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
 		String res;
 		if (Iterable.class.isAssignableFrom(cls)) {
-			res = getTemplateOfIterable(actualTypeArguments);
+			res = getTemplateOfIterable(actualTypeArguments, jsonMarshaller);
 		} else if (Map.class.isAssignableFrom(cls)) {
-			res = getTemplateOfMap(actualTypeArguments);
+			res = getTemplateOfMap(actualTypeArguments, jsonMarshaller);
 		} else {
 			res = cls.getSimpleName().toLowerCase(Locale.ENGLISH);
 		}
@@ -222,10 +280,10 @@ public class ServiceTools {
 	 * @param actualTypeArguments
 	 * @return
 	 */
-	String getTemplateOfIterable(Type[] actualTypeArguments) {
+	String getTemplateOfIterable(Type[] actualTypeArguments, org.ocelotds.marshalling.IJsonMarshaller jsonMarshaller) {
 		String res = "[";
 		for (Type actualTypeArgument : actualTypeArguments) {
-			String template = _getTemplateOfType(actualTypeArgument);
+			String template = _getTemplateOfType(actualTypeArgument, jsonMarshaller);
 			res += template + "," + template;
 			break;
 		}
@@ -238,14 +296,14 @@ public class ServiceTools {
 	 * @param actualTypeArguments
 	 * @return
 	 */
-	String getTemplateOfMap(Type[] actualTypeArguments) {
+	String getTemplateOfMap(Type[] actualTypeArguments, org.ocelotds.marshalling.IJsonMarshaller jsonMarshaller) {
 		StringBuilder res = new StringBuilder("{");
 		boolean first = true;
 		for (Type actualTypeArgument : actualTypeArguments) {
 			if (!first) {
 				res.append(":");
 			}
-			res.append(_getTemplateOfType(actualTypeArgument));
+			res.append(_getTemplateOfType(actualTypeArgument, jsonMarshaller));
 			first = false;
 		}
 		res.append("}");
@@ -285,5 +343,9 @@ public class ServiceTools {
 		} else {
 			throw new ClassNotFoundException();
 		}
+	}
+	
+	<T> T getCDICurrentSelect(Class<T> cls) {
+		return CDI.current().select(cls).get();
 	}
 }

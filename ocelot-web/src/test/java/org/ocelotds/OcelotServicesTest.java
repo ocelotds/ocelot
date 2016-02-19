@@ -23,9 +23,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.context.OcelotContext;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.core.UpdatedCacheManager;
-import org.ocelotds.marshalling.JsonUnmarshaller;
 import org.ocelotds.objects.OcelotMethod;
 import org.slf4j.Logger;
+import org.ocelotds.marshalling.IJsonMarshaller;
 
 /**
  *
@@ -200,7 +200,7 @@ public class OcelotServicesTest {
 		System.out.println("getOcelotMethod");
 		Method method = this.getClass().getDeclaredMethod("methodWith2Args", String.class, String.class);
 		when(serviceTools.getShortName(anyString())).thenReturn("returntype").thenReturn("argtype");
-		when(serviceTools.getTemplateOfType(any(Type.class), any(JsonUnmarshaller.class))).thenReturn("template");
+		when(serviceTools.getTemplateOfType(any(Type.class), any(IJsonMarshaller.class))).thenReturn("template");
 		OcelotMethod result = instance.getOcelotMethod(method);
 		assertThat(result).isNotNull();
 		assertThat(result.getName()).isEqualTo("methodWith2Args");

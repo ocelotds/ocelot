@@ -6,15 +6,22 @@ package org.ocelotds.marshallers;
 import java.util.Locale;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 
 /**
  *
  * @author hhfrancois
  */
+@RunWith(MockitoJUnitRunner.class)
 public class LocaleMarshallerTest {
 
-	private LocaleMarshaller instance = new LocaleMarshaller();
+	@InjectMocks
+	@Spy
+	private LocaleMarshaller instance;
 
 	/**
 	 * Test of toJson method, of class LocaleMarshaller.
@@ -41,4 +48,38 @@ public class LocaleMarshallerTest {
 		assertThat(result).isEqualTo("null");
 	}
 
+	/**
+	 * Test of toJava method, of class LocaleUnmarshaller.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	public void testToJava() throws Exception {
+		System.out.println("toJava");
+		String json = "{\"language\":\"fr\",\"country\":\"FR\"}";
+		Locale result = instance.toJava(json);
+		assertThat(result).isEqualTo(Locale.FRANCE);
+	}
+
+	/**
+	 * Test of toJava method, of class LocaleUnmarshaller.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	public void testToNullJava() throws Exception {
+		System.out.println("toJava");
+		Locale result = instance.toJava(null);
+		assertThat(result).isNull();
+	}
+
+	/**
+	 * Test of toJava method, of class LocaleUnmarshaller.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	public void testToJavaFail() throws Exception {
+		System.out.println("toJava");
+		String json = "{\"language\":\"fr\"}";
+		Locale result = instance.toJava(json);
+		assertThat(result).isNull();
+	}
 }

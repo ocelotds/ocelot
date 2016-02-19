@@ -34,7 +34,6 @@ public class AccessDataService {
 	}
 	
 	public String getUsername() {
-		System.out.println("PRINCIPAL "+principal);
 		return principal.getName();
 	}
 }

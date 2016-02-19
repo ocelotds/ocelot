@@ -15,5 +15,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})
 public @interface JsonUnmarshaller {
-	Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> value();
+	Class<? extends org.ocelotds.marshalling.IJsonMarshaller> value();
 }

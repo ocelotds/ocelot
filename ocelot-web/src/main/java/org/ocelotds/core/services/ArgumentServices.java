@@ -22,8 +22,8 @@ public class ArgumentServices {
 	 * @throws IllegalAccessException 
 	 */
 	public String getJsonResultFromSpecificMarshaller(JsonMarshaller jm, Object result) throws JsonMarshallingException, InstantiationException, IllegalAccessException {
-		Class<? extends org.ocelotds.marshalling.JsonMarshaller> marshallerCls = jm.value();
-		org.ocelotds.marshalling.JsonMarshaller marshaller = marshallerCls.newInstance();
+		Class<? extends org.ocelotds.marshalling.IJsonMarshaller> marshallerCls = jm.value();
+		org.ocelotds.marshalling.IJsonMarshaller marshaller = marshallerCls.newInstance();
 		return marshaller.toJson(result);
 	}
 }

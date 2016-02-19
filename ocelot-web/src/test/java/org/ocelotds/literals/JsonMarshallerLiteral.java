@@ -13,14 +13,14 @@ import org.ocelotds.marshalling.annotations.JsonMarshaller;
 @SuppressWarnings("AnnotationAsSuperInterface")
 public class JsonMarshallerLiteral extends AnnotationLiteral<JsonMarshaller> implements JsonMarshaller {
 
-	private final Class<? extends org.ocelotds.marshalling.JsonMarshaller> value;
+	private final Class<? extends org.ocelotds.marshalling.IJsonMarshaller> value;
 
-	public JsonMarshallerLiteral(Class<? extends org.ocelotds.marshalling.JsonMarshaller> cls) {
+	public JsonMarshallerLiteral(Class<? extends org.ocelotds.marshalling.IJsonMarshaller> cls) {
 		value = cls;
 	}
 
 	@Override
-	public Class<? extends org.ocelotds.marshalling.JsonMarshaller> value() {
+	public Class<? extends org.ocelotds.marshalling.IJsonMarshaller> value() {
 		return value;
 	}
 }

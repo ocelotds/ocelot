@@ -33,7 +33,7 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.TransientDataService;
 import org.ocelotds.literals.JsonUnmarshallerLiteral;
-import org.ocelotds.marshallers.LocaleUnmarshaller;
+import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.ocelotds.objects.Result;
 import org.ocelotds.spi.DataServiceException;
@@ -53,7 +53,7 @@ public class ArgumentConvertorTest {
 	@Spy
 	private ArgumentConvertor instance;
 
-	private final Annotation JSONUNMARSHALLER = new JsonUnmarshallerLiteral(LocaleUnmarshaller.class);
+	private final Annotation JSONUNMARSHALLER = new JsonUnmarshallerLiteral(LocaleMarshaller.class);
 	private final Annotation TRANSIENTDATASERVICE = new AnnotationLiteral<TransientDataService>() {
 	};
 
@@ -70,7 +70,7 @@ public class ArgumentConvertorTest {
 	@Test
 	public void testConvertNullJsonToJava() throws JsonUnmarshallingException {
 		System.out.println("convertNullJsonToJava");
-		doReturn(null).when(instance).getUnMarshallerAnnotation(any(Annotation[].class));
+		doReturn(null).when(instance).getMarshallerAnnotation(any(Annotation[].class));
 		Object result = instance.convertJsonToJava("null", String.class, new Annotation[]{});
 		assertThat(result).isEqualTo(null);
 	}
@@ -83,7 +83,7 @@ public class ArgumentConvertorTest {
 	@Test
 	public void testConvertJsonToJava() throws JsonUnmarshallingException {
 		System.out.println("convertJsonToJava");
-		doReturn(null).when(instance).getUnMarshallerAnnotation(any(Annotation[].class));
+		doReturn(null).when(instance).getMarshallerAnnotation(any(Annotation[].class));
 		doReturn("result").when(instance).convertArgument(anyString(), any(Type.class));
 		Object result = instance.convertJsonToJava("\"result\"", String.class, new Annotation[]{});
 		assertThat(result).isEqualTo("result");
@@ -97,33 +97,33 @@ public class ArgumentConvertorTest {
 	@Test
 	public void testConvertJsonToJavaWithUnmarshaller() throws JsonUnmarshallingException {
 		System.out.println("convertJsonToJavaWithUnmarshaller");
-		doReturn(LocaleUnmarshaller.class).when(instance).getUnMarshallerAnnotation(any(Annotation[].class));
+		doReturn(LocaleMarshaller.class).when(instance).getMarshallerAnnotation(any(Annotation[].class));
 
 		Object result = instance.convertJsonToJava("{\"language\":\"fr\",\"country\":\"FR\"}", String.class, new Annotation[]{});
 		assertThat(result).isInstanceOf(Locale.class);
 	}
 
 	/**
-	 * Test of getUnMarshallerAnnotation method, of class ArgumentConvertor.
+	 * Test of getMarshallerAnnotation method, of class ArgumentConvertor.
 	 *
 	 * @throws java.lang.NoSuchMethodException
 	 */
 	@Test
-	public void testGetUnMarshallerAnnotation() throws NoSuchMethodException {
-		System.out.println("getUnMarshallerAnnotation");
-		Class result = instance.getUnMarshallerAnnotation(new Annotation[]{TRANSIENTDATASERVICE, JSONUNMARSHALLER, TRANSIENTDATASERVICE});
-		assertThat(result).isEqualTo(LocaleUnmarshaller.class);
+	public void testGetMarshallerAnnotation() throws NoSuchMethodException {
+		System.out.println("getMarshallerAnnotation");
+		Class result = instance.getMarshallerAnnotation(new Annotation[]{TRANSIENTDATASERVICE, JSONUNMARSHALLER, TRANSIENTDATASERVICE});
+		assertThat(result).isEqualTo(LocaleMarshaller.class);
 	}
 
 	/**
-	 * Test of getUnMarshallerAnnotation method, of class ArgumentConvertor.
+	 * Test of getMarshallerAnnotation method, of class ArgumentConvertor.
 	 *
 	 * @throws java.lang.NoSuchMethodException
 	 */
 	@Test
-	public void testNotGetUnMarshallerAnnotation() throws NoSuchMethodException {
-		System.out.println("getUnMarshallerAnnotation");
-		Class result = instance.getUnMarshallerAnnotation(new Annotation[]{});
+	public void testNotGetMarshallerAnnotation() throws NoSuchMethodException {
+		System.out.println("getMarshallerAnnotation");
+		Class result = instance.getMarshallerAnnotation(new Annotation[]{});
 		assertThat(result).isEqualTo(null);
 	}
 

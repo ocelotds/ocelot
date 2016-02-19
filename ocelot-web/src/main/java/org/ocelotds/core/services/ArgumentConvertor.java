@@ -48,10 +48,10 @@ public class ArgumentConvertor implements IArgumentConvertor {
 		if("null".equals(jsonArg)) {
 			return null;
 		}
-		Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> unmarshaller = getUnMarshallerAnnotation(parameterAnnotations);
-		if (null != unmarshaller) {
+		Class<? extends org.ocelotds.marshalling.IJsonMarshaller> marshaller = getMarshallerAnnotation(parameterAnnotations);
+		if (null != marshaller) {
 			try {
-				org.ocelotds.marshalling.JsonUnmarshaller newInstance = unmarshaller.newInstance();
+				org.ocelotds.marshalling.IJsonMarshaller newInstance = marshaller.newInstance();
 				return newInstance.toJava(jsonArg);
 			} catch (JsonParsingException | InstantiationException | IllegalAccessException ex) {
 				throw new JsonUnmarshallingException(jsonArg);
@@ -68,7 +68,7 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	 * @param paramType
 	 * @return
 	 */
-	Class<? extends org.ocelotds.marshalling.JsonUnmarshaller> getUnMarshallerAnnotation(Annotation[] annotations) {
+	Class<? extends org.ocelotds.marshalling.IJsonMarshaller> getMarshallerAnnotation(Annotation[] annotations) {
 		for (Annotation annotation : annotations) {
 			if (JsonUnmarshaller.class.isInstance(annotation)) {
 				JsonUnmarshaller unmarshallerAnnotation = (JsonUnmarshaller) annotation;
