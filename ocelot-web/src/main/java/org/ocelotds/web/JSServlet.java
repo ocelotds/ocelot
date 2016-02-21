@@ -17,7 +17,7 @@ import org.slf4j.Logger;
  *
  * @author hhfrancois
  */
-@WebServlet(urlPatterns = {Constants.SLASH_OCELOT_JS})
+@WebServlet(urlPatterns = {Constants.SLASH_OCELOT, Constants.SLASH_OCELOT_JS})
 public class JSServlet extends AbstractFileServlet {
 
 	private static final long serialVersionUID = 1973549844535787671L;
@@ -36,6 +36,7 @@ public class JSServlet extends AbstractFileServlet {
 		}
 		return filename;
 	}
+
 	@Override
 	protected String getMimetype(HttpServletRequest request) {
 		return Constants.JSTYPE;

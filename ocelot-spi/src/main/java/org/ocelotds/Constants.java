@@ -30,8 +30,9 @@ public interface Constants {
 	String OCELOT_CORE = OCELOT + "-core";
 	String OCELOT_HTML = OCELOT + "-html";
 	String OCELOT_MIN = OCELOT + "-min";
-	String SLASH_OCELOT_JS = SLASH + OCELOT + JS;
-	String SLASH_OCELOT_HTML = SLASH + OCELOT + HTML;
+	String SLASH_OCELOT = SLASH + OCELOT;
+	String SLASH_OCELOT_JS = SLASH_OCELOT + JS;
+	String SLASH_OCELOT_HTML = SLASH_OCELOT + HTML;
 
 	String MINIFY_PARAMETER = "minify";
 	String JSTYPE = "text/javascript;charset=UTF-8";
