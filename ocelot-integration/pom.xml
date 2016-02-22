@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.ocelotds</groupId>
 		<artifactId>ocelot</artifactId>
-		<version>2.7.2</version>
+		<version>2.7.3-SNAPSHOT</version>
 	</parent>
 	<artifactId>ocelot-integration</artifactId>
 	<name>ocelot-integration</name>
