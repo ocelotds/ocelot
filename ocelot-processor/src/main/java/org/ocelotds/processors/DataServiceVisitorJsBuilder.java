@@ -157,23 +157,53 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 * @throws IOException
 	 */
 	void createMethodBody(String classname, ExecutableElement methodElement, List<String> arguments, Writer writer) throws IOException {
-		String methodName = methodElement.getSimpleName().toString();
-		String args = "";
-		String paramNames = "";
-		String keys = "";
+		String methodName = getMethodName(methodElement);
+		String args = stringJoinAndDecorate(arguments, ",", new NothingDecorator());
+		String paramNames = stringJoinAndDecorate(arguments, ",", new QuoteDecorator());
+		String keys = computeKeys(methodElement, arguments);
+		createReturnOcelotPromiseFactory(classname, methodName, paramNames, args, keys, writer);
+	}
+	
+	/**
+	 * Return method name from Excecutable element
+	 * @param methodElement
+	 * @return 
+	 */
+	String getMethodName(ExecutableElement methodElement) {
+		return methodElement.getSimpleName().toString();
+	}
+	
+	/**
+	 * Generate key part for variable part of md5
+	 * @param methodElement
+	 * @param arguments
+	 * @return 
+	 */
+	String computeKeys(ExecutableElement methodElement, List<String> arguments) {
+		String keys = stringJoinAndDecorate(arguments, ",", new NothingDecorator());
 		if (arguments != null && !arguments.isEmpty()) {
 			JsCacheResult jcr = methodElement.getAnnotation(JsCacheResult.class);
-			// TODO 1.8 use args = String.join(",", arguments);
-			keys = args = stringJoinAndDecorate(arguments, ",", new NothingDecorator());
-			paramNames = stringJoinAndDecorate(arguments, ",", new QuoteDecorator());
 			// if there is a jcr annotation with value diferrent of *, so we dont use all arguments
 			if (!considerateAllArgs(jcr)) {
 				keys = stringJoinAndDecorate(Arrays.asList(jcr.keys()), ",", new KeyForArgDecorator());
 			}
 		}
+		return keys;
+	}
+	
+	/**
+	 * Return body js line that return the OcelotPromise
+	 * @param classname
+	 * @param methodName
+	 * @param paramNames
+	 * @param args
+	 * @param keys
+	 * @param writer
+	 * @throws IOException 
+	 */
+	void createReturnOcelotPromiseFactory(String classname, String methodName, String paramNames, String args, String keys, Writer writer) throws IOException {
 		String md5 = keyMaker.getMd5(classname + "." + methodName);
-		writer.append(TAB3).append("var id = ").append(QUOTE).append(md5).append("_").append(QUOTE).append(" + JSON.stringify([").append(keys).append("]).md5();").append(CR);
-		writer.append(TAB3).append("return OcelotPromiseFactory.createPromise(ds, id, ").append(QUOTE).append(methodName).append(QUOTE).append(", [").append(paramNames).append("], [").append(args).append("]").append(");").append(CR);
+		writer.append(TAB3).append("return OcelotPromiseFactory.createPromise(ds, ").append(QUOTE).append(md5).append("_").append(QUOTE).append(" + JSON.stringify([").append(keys).append("]).md5()").append(", ").append(QUOTE).append(methodName).append(QUOTE).append(", [").append(paramNames).append("], [").append(args).append("]").append(");").append(CR);
 	}
 
 	/**

@@ -4,6 +4,7 @@
 package org.ocelotds.processors;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +28,8 @@ import static org.mockito.Mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.KeyMaker;
 import org.ocelotds.annotations.JsCacheResult;
+import org.ocelotds.processors.stringDecorators.NothingDecorator;
+import org.ocelotds.processors.stringDecorators.QuoteDecorator;
 import org.ocelotds.processors.stringDecorators.StringDecorator;
 
 /**
@@ -257,41 +260,99 @@ public class DataServiceVisitorJsBuilderTest {
 	@Test
 	public void testCreateMethodBody() throws IOException {
 		System.out.println("createMethodBody");
-		String classname = "packageName.ClassName";
-		String methodname = "methodName";
+		String classname = "CLASSNAME";
+		ExecutableElement executableElement = mock(ExecutableElement.class);
+		List<String> arguments = mock(List.class);
+		Writer writer = mock(Writer.class);
+		
+		doReturn("METHODNAME").when(instance).getMethodName(eq(executableElement));
+		doReturn("ARGS").when(instance).stringJoinAndDecorate(eq(arguments), eq(","), any(NothingDecorator.class));
+		doReturn("PARAMNAMES").when(instance).stringJoinAndDecorate(eq(arguments), eq(","), any(QuoteDecorator.class));
+		doReturn("KEYS").when(instance).computeKeys(eq(executableElement), eq(arguments));
+		doNothing().when(instance).createReturnOcelotPromiseFactory(any(String.class), any(String.class), any(String.class), any(String.class), any(String.class), any(Writer.class));
+		
+		instance.createMethodBody(classname, executableElement, arguments, writer);
+		verify(instance).createReturnOcelotPromiseFactory(any(String.class), any(String.class), any(String.class), any(String.class), any(String.class), any(Writer.class));
+	}
+	
+	/**
+	 * Test of getMethodName method, of class DataServiceVisitorJsBuilder.
+	 */
+	@Test
+	public void testGetMethodName() {
+		System.out.println("getMethodName");
+		ExecutableElement executableElement = mock(ExecutableElement.class);
 		Name name = mock(Name.class);
-		when(name.toString()).thenReturn(methodname);
-		String classMethodHash = new KeyMaker().getMd5(classname + "." + methodname);
+		String expectResult = "METHODNAME";
+		when(executableElement.getSimpleName()).thenReturn(name);
+		when(name.toString()).thenReturn(expectResult);
+		
+		String result = instance.getMethodName(executableElement);
+		assertThat(result).isEqualTo(expectResult);
+	}
+	
+	/**
+	 * Test of computeKeys method, of class DataServiceVisitorJsBuilder.
+	 *
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testComputeKeysFromSpecificArgs() throws IOException {
+		System.out.println("computeKeys");
+		List<String> arguments = Arrays.asList("a", "b", "c", "d");
 
 		JsCacheResult jcr = mock(JsCacheResult.class);
 		when(jcr.keys()).thenReturn(new String[]{"a.c", "b.i", "d"});
 
 		ExecutableElement methodElement = mock(ExecutableElement.class);
-		when(methodElement.getSimpleName()).thenReturn(name);
 		when(methodElement.getAnnotation(eq(JsCacheResult.class))).thenReturn(jcr);
+		doReturn(false).when(instance).considerateAllArgs(any(JsCacheResult.class));
 
-		List<String> arguments = Arrays.asList("a", "b", "c", "d");
+		String result = instance.computeKeys(methodElement, arguments);
 
-		Writer writer = getMockWriter();
-
-		instance.createMethodBody(classname, methodElement, arguments, writer);
-
-		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(22)).append(captureAppend.capture());
-		List<String> appends = captureAppend.getAllValues();
-		assertThat(appends.get(3)).isEqualTo(classMethodHash);
-		assertThat(appends.get(7)).isEqualTo("(a)?a.c:null,(b)?b.i:null,d");
-		assertThat(appends.get(13)).isEqualTo(methodname);
-		assertThat(appends.get(16)).isEqualTo("\"a\",\"b\",\"c\",\"d\"");
-		assertThat(appends.get(18)).isEqualTo("a,b,c,d");
+		assertThat(result).isEqualTo("(a)?a.c:null,(b)?b.i:null,d");
 	}
 
+	/**
+	 * Test of computeKeys method, of class DataServiceVisitorJsBuilder.
+	 *
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testComputeKeysFromallArgs() throws IOException {
+		System.out.println("computeKeys");
+		List<String> arguments = Arrays.asList("a", "b", "c", "d");
+
+		JsCacheResult jcr = mock(JsCacheResult.class);
+
+		ExecutableElement methodElement = mock(ExecutableElement.class);
+		when(methodElement.getAnnotation(eq(JsCacheResult.class))).thenReturn(jcr);
+		doReturn(true).when(instance).considerateAllArgs(any(JsCacheResult.class));
+
+		String result = instance.computeKeys(methodElement, arguments);
+
+		assertThat(result).isEqualTo("a,b,c,d");
+	}
+
+	/**
+	 * Test of createReturnOcelotPromiseFactory method, of class DataServiceVisitorJsBuilder.
+	 * @throws IOException 
+	 */
+	@Test
+	public void testCreateReturnOcelotPromiseFactory() throws IOException {
+		System.out.println("createReturnOcelotPromiseFactory");
+		StringWriter writer = new StringWriter();
+		instance.createReturnOcelotPromiseFactory("CLSNAME", "METHODNAME", "PARAMNAMES", "ARGS", "KEYS", writer);
+		String result = writer.toString();
+		assertThat(result).isEqualTo("\t\t\treturn OcelotPromiseFactory.createPromise(ds, \"c4746bbdace1d5712da7b6fabe58fb9c_\" + JSON.stringify([KEYS]).md5(), \"METHODNAME\", [PARAMNAMES], [ARGS]);\n");
+	}
+	
 	/**
 	 * Test of createMethodBody method, of class DataServiceVisitorJsBuilder.
 	 *
 	 * @throws java.io.IOException
 	 */
-	@Test
+//	@Test
 	public void testCreateMethodBodyAllArg() throws IOException {
 		System.out.println("createMethodBody");
 		String classname = "packageName.ClassName";
