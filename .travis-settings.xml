@@ -16,9 +16,7 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<gpg.defaultKeyring>false</gpg.defaultKeyring>
-				<gpg.publicKeyring>${project.basedir}/local.pubring.gpg</gpg.publicKeyring>
-				<gpg.secretKeyring>${project.basedir}/local.secring.gpg</gpg.secretKeyring>
+				<gpg.secretKeyring>${project.basedir}/oss.gpg</gpg.secretKeyring>
 				<gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
 			</properties>
 		</profile>  
