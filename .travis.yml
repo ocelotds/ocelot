@@ -4,7 +4,8 @@ jdk: oraclejdk7
 before_install:
    - openssl aes-256-cbc -K $encrypted_9112fb2807d4_key -iv $encrypted_9112fb2807d4_iv -in oss.gpg.enc -out oss.gpg -d
    - gpg --version
-   - y | gpg --import oss.gpg
+   - gpg2 --version
+   - gpg --import oss.gpg
    - pip install --user codecov
    - mvn clean install -DskipTests=true
 install: mvn deploy --settings .travis-settings.xml
