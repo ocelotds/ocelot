@@ -3,7 +3,6 @@ language: java
 jdk: oraclejdk7
 before_install:
    - openssl aes-256-cbc -K $encrypted_9112fb2807d4_key -iv $encrypted_9112fb2807d4_iv -in oss.gpg.enc -out oss.gpg -d
-   - openssl aes-256-cbc -K $encrypted_9112fb2807d4_key -iv $encrypted_9112fb2807d4_iv -in oss.asc.enc -out oss.asc -d
    - pip install --user codecov
    - mvn clean install -DskipTests=true
 install: mvn deploy --settings .travis-settings.xml
