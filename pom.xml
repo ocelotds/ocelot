@@ -202,12 +202,12 @@
 						<goals>
 							<goal>report</goal>
 						</goals>
+						<configuration>
+							<defaultKeyring>false</defaultKeyring>
+							<secretKeyring>oss.gpg</secretKeyring>
+							<passphrase>${env.GPG_PASSPHRASE}</passphrase>
+						</configuration>
 					</execution>
-					<configuration>
-						<defaultKeyring>false</defaultKeyring>
-						<secretKeyring>oss.gpg</secretKeyring>
-						<passphrase>${env.GPG_PASSPHRASE}</passphrase>
-					</configuration>
 				</executions>
 			</plugin>
 		</plugins>
