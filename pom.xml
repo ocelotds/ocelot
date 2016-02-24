@@ -204,7 +204,8 @@
 						</goals>
 						<configuration>
 							<defaultKeyring>false</defaultKeyring>
-							<secretKeyring>oss.gpg</secretKeyring>
+							<secretKeyring>${project.basedir}/oss.gpg</secretKeyring>
+							<publicKeyring>${project.basedir}/oss.asc</publicKeyring>
 							<passphrase>${env.GPG_PASSPHRASE}</passphrase>
 						</configuration>
 					</execution>
