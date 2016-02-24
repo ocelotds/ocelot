@@ -204,8 +204,8 @@
 						</goals>
 						<configuration>
 							<defaultKeyring>false</defaultKeyring>
-							<secretKeyring>${project.basedir}/secring.gpg</secretKeyring>
-							<publicKeyring>${project.basedir}/pubring.gpg</publicKeyring>
+							<secretKeyring>${env.TRAVIS_BUILD_DIR}/secring.gpg</secretKeyring>
+							<publicKeyring>${env.TRAVIS_BUILD_DIR}/pubring.gpg</publicKeyring>
 							<passphrase>${env.GPG_PASSPHRASE}</passphrase>
 						</configuration>
 					</execution>

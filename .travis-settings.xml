@@ -17,8 +17,8 @@
 			</activation>
 			<properties>
 				<gpg.defaultKeyring>false</gpg.defaultKeyring>
-				<gpg.secretKeyring>${project.basedir}/secring.gpg</gpg.secretKeyring>
-				<gpg.publicKeyring>${project.basedir}/pubring.gpg</gpg.publicKeyring>
+				<gpg.secretKeyring>${env.TRAVIS_BUILD_DIR}/secring.gpg</gpg.secretKeyring>
+				<gpg.publicKeyring>${env.TRAVIS_BUILD_DIR}/pubring.gpg</gpg.publicKeyring>
 				<gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
 			</properties>
 		</profile>  
