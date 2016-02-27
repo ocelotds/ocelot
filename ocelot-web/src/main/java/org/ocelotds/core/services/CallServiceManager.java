@@ -4,12 +4,11 @@
  */
 package org.ocelotds.core.services;
 
+import java.security.Principal;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageToClient;
 import javax.inject.Inject;
 import javax.websocket.Session;
-import org.ocelotds.annotations.OcelotLogger;
-import org.slf4j.Logger;
 
 /**
  * Abstract class of OcelotDataService
@@ -19,12 +18,8 @@ import org.slf4j.Logger;
 public class CallServiceManager implements CallService {
 
 	@Inject
-	@OcelotLogger
-	private Logger logger;
-
-	@Inject
 	private MessageToClientService messageToClientService;
-
+	
 	/**
 	 * Build and send response messages after call request
 	 *
