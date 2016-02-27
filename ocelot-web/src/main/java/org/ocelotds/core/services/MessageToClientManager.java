@@ -107,7 +107,7 @@ public class MessageToClientManager implements MessageToClientService {
 	}
 
 	/**
-	 * create a MessageToClient from MessageFromClient for client
+	 * Create a MessageToClient from MessageFromClient for client
 	 * @param message
 	 * @param client
 	 * @return 
