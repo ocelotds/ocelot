@@ -12,5 +12,12 @@ import org.ocelotds.messaging.MessageToClient;
  * @author hhfrancois
  */
 public interface MessageToClientService {
+
+	/**
+	 * Create a MessageToClient from MessageFromClient for client
+	 * @param message
+	 * @param client
+	 * @return
+	 */
 	MessageToClient createMessageToClient(MessageFromClient message, Session client);
 }
