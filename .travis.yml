@@ -8,8 +8,6 @@ before_install:
    - ./deployOrPerform.sh
 #   - mvn clean install -DskipTests=true -Dgpg.skip=true
 #install: mvn deploy --settings .travis-settings.xml
-deploy : 
-  - echo "ok"
 after_success: 
    - codecov
 branches:
