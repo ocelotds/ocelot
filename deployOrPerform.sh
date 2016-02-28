@@ -6,7 +6,7 @@ echo "releaseVersion = "$releaseVersion
 echo "developmentVersion = "$developmentVersion
 if [ "$CURRENT_VERSION" = "$releaseVersion-SNAPSHOT" ]; then
 echo PERFORM
-# mvn --B -Dtag=$tag-$releaseVersion release:prepare -DreleaseVersion=$releaseVersion -DdevelopmentVersion=$developmentVersion
+mvn --B release:prepare -Dtag=$tag-$releaseVersion -DreleaseVersion=$releaseVersion -DdevelopmentVersion=$developmentVersion
 else
 echo DEPLOY
 mvn deploy --settings .travis-settings.xml
