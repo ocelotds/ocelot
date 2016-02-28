@@ -9,7 +9,7 @@ before_install:
 install: mvn clean install -DskipTests=true -Dgpg.skip=true
 #install: mvn deploy --settings .travis-settings.xml
 after_success: 
-   - echo "===================================================="
+   - echo "$PROJECT_NAME PERFORM : $PERFORM ===================================================="
    - codecov
 branches:
   only:
