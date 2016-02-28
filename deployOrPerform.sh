@@ -1,13 +1,15 @@
 CURRENT_VERSION=`python -c "import xml.etree.ElementTree as ET; print(ET.parse(open('pom.xml')).getroot().find('{http://maven.apache.org/POM/4.0.0}version').text)"`
+tag=`python -c "import xml.etree.ElementTree as ET; print(ET.parse(open('pom.xml')).getroot().find('{http://maven.apache.org/POM/4.0.0}artifactId').text)"`-$releaseVersion
 echo "CURRENT_VERSION = "$CURRENT_VERSION
+echo "tag = "$tag
 echo "releaseVersion = "$releaseVersion
-PERFORM=false
+echo "developmentVersion = "$developmentVersion
 if [ "$CURRENT_VERSION" = "$releaseVersion-SNAPSHOT" ]; then
-PERFORM=true
+echo "PERFORM "$releaseVersion
+git config --global user.email "ocelotds.francois@gmail.com"
+git config --global user.name "Travis-CI"
+mvn --B release:clean release:prepare release:perform -Dtag=$tag-$releaseVersion -DreleaseVersion=$releaseVersion -DdevelopmentVersion=$developmentVersion --settings .travis-settings.xml
+else
+echo "DEPLOY "$CURRENT_VERSION
+mvn deploy --settings .travis-settings.xml
 fi
-echo "PERFORM = "$PERFORM
-PROJECT_NAME=`python -c "import xml.etree.ElementTree as ET; print(ET.parse(open('pom.xml')).getroot().find('{http://maven.apache.org/POM/4.0.0}artifactId').text)"`
-echo "PROJECT_NAME = "$PROJECT_NAME
-# mvn --B -Dtag=$PROJECT_NAME-$releaseVersion release:prepare \
-#                 -DreleaseVersion=$releaseVersion \
-#                 -DdevelopmentVersion=$developmentVersion
