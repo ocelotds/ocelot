@@ -6,9 +6,10 @@ before_install:
    - pip install --user codecov
    - chmod ugo+x deployOrPerform.sh
    - ./deployOrPerform.sh
-#   - mvn clean install -DskipTests=true -Dgpg.skip=true
+install: mvn clean install -DskipTests=true -Dgpg.skip=true
 #install: mvn deploy --settings .travis-settings.xml
 after_success: 
+   - echo "===================================================="
    - codecov
 branches:
   only:
