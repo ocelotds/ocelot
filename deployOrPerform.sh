@@ -6,6 +6,8 @@ echo "releaseVersion = "$releaseVersion
 echo "developmentVersion = "$developmentVersion
 if [ "$CURRENT_VERSION" = "$releaseVersion-SNAPSHOT" ]; then
 echo "PERFORM "$releaseVersion
+git config --global user.email "ocelotds.francois@gmail.com"
+git config --global user.name "Travis-CI"
 mvn --B release:clean release:prepare release:perform -Dtag=$tag-$releaseVersion -DreleaseVersion=$releaseVersion -DdevelopmentVersion=$developmentVersion --settings .travis-settings.xml
 else
 echo "DEPLOY "$CURRENT_VERSION
