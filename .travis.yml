@@ -4,13 +4,13 @@ jdk: oraclejdk7
 before_install:
    - openssl aes-256-cbc -K $encrypted_9112fb2807d4_key -iv $encrypted_9112fb2807d4_iv -in secring.gpg.enc -out secring.gpg -d
    - pip install --user codecov
-   - cp deployOrPerform.sh $TRAVIS_BUILD_DIR/deployOrPerform.sh
-   - chmod ugo+x $TRAVIS_BUILD_DIR/deployOrPerform.sh
+   - cp deployOrPerform.sh /tmp/deployOrPerform.sh
+   - chmod ugo+x /tmp/deployOrPerform.sh
 #install: true
 install: mvn clean install -DskipTests=true -Dgpg.skip=true
 #install: mvn deploy --settings .travis-settings.xml
 script:
-   - $TRAVIS_BUILD_DIR/deployOrPerform.sh
+   - /tmp/deployOrPerform.sh
 after_success: 
    - codecov
 branches:
