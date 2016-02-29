@@ -90,19 +90,30 @@ public class MessageToClientManagerTest {
 		Map<String, Object> userProperties = new HashMap<>();
 		Map<String, Object> sessions = new HashMap<>();
 		userProperties.put(Constants.SESSION_BEANS, sessions);
-		
+		ClassAsDataService ds1 = new ClassAsDataService();
+		ClassAsDataService ds2 = new ClassAsDataService();
+		ClassAsDataService ds3 = new ClassAsDataService();
 		when(resolver.getScope(any(Class.class))).thenReturn(Scope.MANAGED).thenReturn(Scope.SESSION);
-		when(resolver.resolveDataService(cls)).thenReturn(new ClassAsDataService());
+		when(resolver.resolveDataService(cls)).thenReturn(ds1).thenReturn(ds2).thenReturn(ds3);
 		doReturn(resolver).when(instance).getResolver("TEST");
 		when(client.getUserProperties()).thenReturn(userProperties);
 
+		// normal scope
 		Object result = instance._getDataService(client, cls);
-		assertThat(result).isInstanceOf(cls);
+		assertThat(result).isEqualTo(ds1);
 		assertThat(sessions).doesNotContainKey(cls.getName());
 
+		// session scope
 		result = instance._getDataService(client, cls);
-		assertThat(result).isInstanceOf(cls);
+		assertThat(result).isEqualTo(ds2);
 		assertThat(sessions).containsKey(cls.getName());
+		result = instance._getDataService(client, cls);
+		assertThat(result).isEqualTo(ds2);
+		assertThat(sessions).containsKey(cls.getName());
+
+		// no client
+		result = instance._getDataService(null, cls);
+		assertThat(result).isEqualTo(ds3);
 	}
 
 	@Test

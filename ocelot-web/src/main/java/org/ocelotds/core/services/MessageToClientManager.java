@@ -90,15 +90,18 @@ public class MessageToClientManager implements MessageToClientService {
 		IDataServiceResolver resolver = getResolver(dataServiceAnno.resolver());
 		Scope scope = resolver.getScope(cls);
 		Object dataService = null;
-		Map sessionBeans = (Map) client.getUserProperties().get(Constants.SESSION_BEANS);
+		Map sessionBeans = null;
+		if(client != null) {
+			sessionBeans = (Map) client.getUserProperties().get(Constants.SESSION_BEANS);
+		}
 		logger.debug("{} : scope : {}", dataServiceClassName, scope);
-		if (scope.equals(Scope.SESSION)) {
+		if (scope.equals(Scope.SESSION) && sessionBeans != null) {
 			dataService = sessionBeans.get(dataServiceClassName);
 			logger.debug("{} : scope : session is in session : {}", dataServiceClassName, (dataService != null));
 		}
 		if (dataService == null) {
 			dataService = resolver.resolveDataService(cls);
-			if (scope.equals(Scope.SESSION)) {
+			if (scope.equals(Scope.SESSION) && sessionBeans != null) {
 				logger.debug("Store {} scope session in session", dataServiceClassName);
 				sessionBeans.put(dataServiceClassName, dataService);
 			}
