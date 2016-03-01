@@ -6,10 +6,7 @@ before_install:
    - pip install --user codecov
    - cp deployOrPerform.sh /tmp/deployOrPerform.sh
    - chmod ugo+x /tmp/deployOrPerform.sh
-   - git checkout master
-#install: true
 install: mvn clean install -DskipTests=true -Dgpg.skip=true
-#install: mvn deploy --settings .travis-settings.xml
 script:
    - /tmp/deployOrPerform.sh
 after_success: 
@@ -17,7 +14,6 @@ after_success:
 branches:
   only:
    - master
-   - release
    - coverity_scan
 env:
   global:
@@ -37,6 +33,6 @@ addons:
          description: "Build submitted via Travis CI"
       notification_email: "francois.achache@gmail.com"
       build_command_prepend: "mvn clean"
-      build_command: "mvn compile -DskipTests=true -Dgpg.skip=true"
+      build_command: "mvn compile -Dgpg.skip=true"
       branch_pattern: coverity_scan
 
