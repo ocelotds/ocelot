@@ -183,7 +183,7 @@ public class MessageToClientTest {
 		String id = UUID.randomUUID().toString();
 		msg.setId(id);
 		ObjectMapper mapper = new ObjectMapper();
-		String jsonResponse = mapper.writeValueAsString(fault);
+		String jsonResponse = fault.toJson();
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s,\"%s\":%s}",
 				  Constants.Message.TYPE, msg.getType(), Constants.Message.ID, msg.getId(), 
 				  Constants.Message.TIME, msg.getTime(), Constants.Message.DEADLINE, msg.getDeadline(), Constants.Message.RESPONSE, jsonResponse);
