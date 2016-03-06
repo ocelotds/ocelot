@@ -68,7 +68,7 @@ import org.ocelotds.messaging.MessageType;
 @RunWith(Arquillian.class)
 public class OcelotTest extends AbstractOcelotTest {
 
-	final int NB_SIMUL_METHODS = 50;
+	final int NB_SIMUL_METHODS = 10;
 
 	@Inject
 	@MessageEvent
@@ -268,7 +268,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	/**
 	 * Check service getServices return not empty list
 	 */
-	@Test
+//	@Test
 	public void testGetServices() {
 		Class clazz = OcelotServices.class;
 		String methodName = "getServices";
