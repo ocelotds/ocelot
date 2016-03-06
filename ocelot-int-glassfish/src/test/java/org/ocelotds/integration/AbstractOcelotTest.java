@@ -106,7 +106,7 @@ public abstract class AbstractOcelotTest {
 			String keyfilepath = keyfile.getAbsolutePath().replace("\\", "\\\\").replace(":", "\\:");
 			System.out.println("KEYFILE : " + keyfilepath);
 			CommandResult commandResult = commandRunner.run("create-auth-realm", "--classname=com.sun.enterprise.security.auth.realm.file.FileRealm",
-				"--property=jaas-context=fileRealm:file=" + keyfilepath, "test-file");
+					  "--property=jaas-context=fileRealm:file=" + keyfilepath, "test-file");
 			System.out.println(commandResult.getExitStatus().toString() + " " + commandResult.getOutput());
 			commandResult = commandRunner.run("list-auth-realms");
 			System.out.println(commandResult.getExitStatus().toString() + " " + commandResult.getOutput());
@@ -128,11 +128,11 @@ public abstract class AbstractOcelotTest {
 		File localeFr = new File("src/test/resources/test_fr_FR.properties");
 		File localeUs = new File("src/test/resources/test_en_US.properties");
 		WebArchive webArchive = ShrinkWrap.create(WebArchive.class, CTXPATH + ".war")
-			.addPackages(true, "org.ocelotds.integration")
-			.addAsResource(logback).addAsResource(localeUs).addAsResource(localeFr)
-			.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-			.addAsWebInfResource(webxml, "web.xml")
-			.addAsWebInfResource(glwebxml, "glassfish-web.xml");
+				  .addPackages(true, "org.ocelotds.integration")
+				  .addAsResource(logback).addAsResource(localeUs).addAsResource(localeFr)
+				  .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
+				  .addAsWebInfResource(webxml, "web.xml")
+				  .addAsWebInfResource(glwebxml, "glassfish-web.xml");
 		addOcelotJar(webArchive);
 		addJSAndProvider("target/test-classes", webArchive, webArchive);
 		return webArchive;
@@ -247,51 +247,108 @@ public abstract class AbstractOcelotTest {
 
 	/**
 	 * Check call without result
+	 *
 	 * @param clazz
 	 * @param operation
 	 * @param params
-	 * @return 
+	 * @return
 	 */
 	MessageToClient testRSCallWithoutResult(Class clazz, String operation, String... params) {
-		return testRSCallWithoutResult(getClient(), clazz, operation, MessageType.RESULT, params);
+		Client client = null;
+		try {
+			client = getClient();
+			return testRSCallWithoutResult(client, clazz, operation, MessageType.RESULT, params);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
+
 	MessageToClient testRSCallWithoutResult(String user, String pwd, Class clazz, String operation, String... params) {
-		return testRSCallWithoutResult(getClient(user, pwd), clazz, operation, MessageType.RESULT, params);
+		Client client = null;
+		try {
+			client = getClient(user, pwd);
+			return testRSCallWithoutResult(client, clazz, operation, MessageType.RESULT, params);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
+
 	MessageToClient testRSCallWithoutResult(Client client, Class clazz, String operation, String... params) {
 		return testRSCallWithoutResult(client, clazz, operation, MessageType.RESULT, params);
 	}
-	
+
 	/**
 	 * Check call failed
+	 *
 	 * @param clazz
 	 * @param operation
 	 * @param params
-	 * @return 
+	 * @return
 	 */
 	MessageToClient testRSCallFailed(Class clazz, String operation, String... params) {
-		return testRSCallWithoutResult(getClient(), clazz, operation, MessageType.FAULT, params);
+		Client client = null;
+		try {
+			client = getClient();
+			return testRSCallWithoutResult(client, clazz, operation, MessageType.FAULT, params);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
+
 	MessageToClient testRSCallFailed(String user, String pwd, Class clazz, String operation, String... params) {
-		return testRSCallWithoutResult(getClient(user, pwd), clazz, operation, MessageType.FAULT, params);
+		Client client = null;
+		try {
+			client = getClient(user, pwd);
+			return testRSCallWithoutResult(client, clazz, operation, MessageType.FAULT, params);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
+
 	MessageToClient testRSCallFailed(Client client, Class clazz, String operation, String... params) {
 		return testRSCallWithoutResult(client, clazz, operation, MessageType.FAULT, params);
 	}
 
 	/**
 	 * Check call failed with check exception
+	 *
 	 * @param clazz
 	 * @param operation
 	 * @param expected
-	 * @param params 
+	 * @param params
 	 */
 	void testRSCallThrowException(Class clazz, String operation, Class<? extends Exception> expected, String... params) {
-		testRSCallThrowException(getClient(), clazz, operation, expected, params);
+		Client client = null;
+		try {
+			client = getClient();
+			testRSCallThrowException(client, clazz, operation, expected, params);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
+
 	void testRSCallThrowException(String user, String pwd, Class clazz, String operation, Class<? extends Exception> expected, String... params) {
-		testRSCallThrowException(getClient(user, pwd), clazz, operation, expected, params);
+		Client client = null;
+		try {
+			client = getClient(user, pwd);
+			testRSCallThrowException(client, clazz, operation, expected, params);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
+
 	void testRSCallThrowException(Client client, Class clazz, String operation, Class<? extends Exception> expected, String... params) {
 		MessageToClient mtc = testRSCallWithoutResult(client, clazz, operation, MessageType.FAULT, params);
 		Fault fault = (Fault) mtc.getResponse();
@@ -300,17 +357,36 @@ public abstract class AbstractOcelotTest {
 
 	/**
 	 * Check call with result
+	 *
 	 * @param clazz
 	 * @param operation
 	 * @param expected
-	 * @param params 
+	 * @param params
 	 */
 	void testRSCallWithResult(Class clazz, String operation, String expected, String... params) {
-		testRSCallWithResult(getClient(), clazz, operation, expected, params);
+		Client client = null;
+		try {
+			client = getClient();
+			testRSCallWithResult(client, clazz, operation, expected, params);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
+
 	void testRSCallWithResult(String user, String pwd, Class clazz, String operation, String expected, String... params) {
-		testRSCallWithResult(getClient(user, pwd), clazz, operation, expected, params);
+		Client client = null;
+		try {
+			client = getClient(user, pwd);
+			testRSCallWithResult(client, clazz, operation, expected, params);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
+
 	void testRSCallWithResult(Client client, Class clazz, String operation, String expected, String... params) {
 		MessageToClient mtc = testRSCallWithoutResult(client, clazz, operation, MessageType.RESULT, params);
 		assertThat(mtc.getResponse()).isEqualTo(expected);
@@ -320,9 +396,9 @@ public abstract class AbstractOcelotTest {
 		MessageFromClient mfc = getMessageFromClient(clazz, operation, params);
 		return testRSCallWithoutResult(client, mfc, resType);
 	}
-	
+
 	MessageToClient testRSCallWithoutResult(Client client, MessageFromClient mfc, MessageType resType) {
-		WebTarget target = client.target("http://localhost:"+PORT+"/"+CTXPATH+"/ocelot");
+		WebTarget target = client.target("http://localhost:" + PORT + "/" + CTXPATH + "/ocelot");
 		Form form = new Form("mfc", mfc.toJson());
 		Response res = target.path("endpoint").queryParam("monitor", true)
 				  .request(MediaType.APPLICATION_FORM_URLENCODED).accept(MediaType.APPLICATION_JSON)
@@ -332,7 +408,7 @@ public abstract class AbstractOcelotTest {
 		try {
 			mtc = MessageToClient.createFromJson(result);
 			assertThat(mtc.getType()).isEqualTo(resType);
-		} catch(Throwable t) {
+		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 		return mtc;
@@ -340,16 +416,19 @@ public abstract class AbstractOcelotTest {
 
 	/**
 	 * Return REST client with user:user authentication
-	 * @return 
+	 *
+	 * @return
 	 */
 	Client getClient() {
 		return getClient("user", "user");
 	}
+
 	/**
 	 * REturn REST client with specific authentication
+	 *
 	 * @param user
 	 * @param pwd
-	 * @return 
+	 * @return
 	 */
 	Client getClient(String user, String pwd) {
 		ClientConfig clientConfig = new ClientConfig();
@@ -497,7 +576,7 @@ public abstract class AbstractOcelotTest {
 				Callable callable = new Callable<Void>() {
 					@Override
 					public Void call() {
-						if(client == null) {
+						if (client == null) {
 							testRSCallWithoutResult(clazz, methodName);
 						} else {
 							testRSCallWithoutResult(client, clazz, methodName);
@@ -518,8 +597,8 @@ public abstract class AbstractOcelotTest {
 			boolean await = lock.await(10L * nb, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
 			assertThat(await).isTrue().as("Timeout. waiting %f ms. Remain %s/%s msgs", t1 - t0, lock.getCount(), nb);
-			System.out.println(testname+" Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nb + " msgs");
-		}catch (InterruptedException ie) {
+			System.out.println(testname + " Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nb + " msgs");
+		} catch (InterruptedException ie) {
 			fail(ie.getMessage());
 		} finally {
 			executor.shutdown();
@@ -657,8 +736,8 @@ public abstract class AbstractOcelotTest {
 	protected void testCallWithoutResultInSession(Session wssession, Class clazz, String methodName, String... params) {
 		System.out.println(clazz + "." + methodName);
 		MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, params);
-		if(MessageType.FAULT.equals(messageToClient.getType())) {
-			System.out.println("FAULT : "+messageToClient.getResponse());
+		if (MessageType.FAULT.equals(messageToClient.getType())) {
+			System.out.println("FAULT : " + messageToClient.getResponse());
 		}
 		assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 	}
