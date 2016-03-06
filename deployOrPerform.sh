@@ -9,7 +9,7 @@ if [ "$CURRENT_VERSION" = "$releaseVersion-SNAPSHOT" ]; then
 echo "PERFORM "$releaseVersion
 git checkout master
 git config --global user.email "ocelotds.francois@gmail.com"
-git config --global user.name "Travis-CI"
+git config --global user.name "travis-ci"
 mvn --B release:clean release:prepare release:perform -Dtag=$tag-$releaseVersion -DreleaseVersion=$releaseVersion -DdevelopmentVersion=$developmentVersion --settings .travis-settings.xml
 else
 echo "DEPLOY "$CURRENT_VERSION
