@@ -6,7 +6,9 @@ before_install:
    - tar xvf secret.tar
    - ls -lta
    - mv travis-ci_rsa ~/.ssh/travis-ci_rsa 
+   - cp travis-ci_rsa.pub ~/.ssh/travis-ci_rsa.pub
    - chmod 600 ~/.ssh/travis-ci_rsa
+   - chmod 600 ~/.ssh/travis-ci_rsa.pub
    - pip install --user codecov
    - cp deployOrPerform.sh /tmp/deployOrPerform.sh
    - chmod ugo+x /tmp/deployOrPerform.sh
