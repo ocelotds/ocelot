@@ -609,27 +609,35 @@ public abstract class AbstractOcelotTest {
 		int nb = 50;
 		ExecutorService executor = Executors.newFixedThreadPool(nb);
 		final List<Future<Object>> futures = new ArrayList<>();
-		final Client client = getClient();
-		for (int i = 0; i < nb; i++) {
-			Callable callable = new Callable<Object>() {
-				@Override
-				public Object call() {
-					return testRSCallWithoutResult(client, clazz, "getValue").getResponse();
+		Client client = null;
+		try {
+			client = getClient();
+			final Client cl = client;
+			for (int i = 0; i < nb; i++) {
+				Callable callable = new Callable<Object>() {
+					@Override
+					public Object call() {
+						return testRSCallWithoutResult(cl, clazz, "getValue").getResponse();
+					}
+				};
+				futures.add(executor.submit(callable));
+			}
+			final Object[] results = new Object[nb];
+			int i = 0;
+			for (Future<Object> fut : futures) {
+				try {
+					Object result = fut.get();
+					results[i++] = result;
+				} catch (InterruptedException | ExecutionException e) {
 				}
-			};
-			futures.add(executor.submit(callable));
-		}
-		final Object[] results = new Object[nb];
-		int i = 0;
-		for (Future<Object> fut : futures) {
-			try {
-				Object result = fut.get();
-				results[i++] = result;
-			} catch (InterruptedException | ExecutionException e) {
+			}
+			assertThat(results).areAtLeastOne(new AreAtLeastOneDifferent(results));
+			executor.shutdown();
+		} finally {
+			if (client != null) {
+				client.close();
 			}
 		}
-		assertThat(results).areAtLeastOne(new AreAtLeastOneDifferent(results));
-		executor.shutdown();
 	}
 
 	/**
@@ -643,11 +651,18 @@ public abstract class AbstractOcelotTest {
 	 */
 	protected Object[] getResultsXTimesInOneSession(Class clazz, int nb, String operation, String... params) {
 		Object[] results = new Object[nb];
-		Client client = getClient();
-		for (int i = 0; i < nb; i++) {
-			results[i] = testRSCallWithoutResult(client, clazz, operation, params).getResponse();
+		Client client = null;
+		try {
+			client = getClient();
+			for (int i = 0; i < nb; i++) {
+				results[i] = testRSCallWithoutResult(client, clazz, operation, params).getResponse();
+			}
+			return results;
+		} finally {
+			if (client != null) {
+				client.close();
+			}
 		}
-		return results;
 	}
 
 	/**
@@ -680,17 +695,24 @@ public abstract class AbstractOcelotTest {
 	 * @param clazz
 	 */
 	public void testResultSingletonScope(Class clazz) {
-		Client client = getClient();
-		// premiere requete 
-		Object firstResult = testRSCallWithoutResult(client, clazz, "getValue").getResponse();
-		// deuxieme requete 
-		Object secondResult = testRSCallWithoutResult(client, clazz, "getValue").getResponse();
-		// controle : sur la meme session cela doit se comporter comme un singleton, donc meme resultat
-		assertThat(secondResult).isEqualTo(firstResult);
-		// troisieme appel sur une session differente
-		Object thirdResult = testRSCallWithoutResult(client, clazz, "getValue").getResponse();
-		// controle, doit etre identique
-		assertThat(firstResult).isEqualTo(thirdResult);
+		Client client = null;
+		try {
+			client = getClient();
+			// premiere requete 
+			Object firstResult = testRSCallWithoutResult(client, clazz, "getValue").getResponse();
+			// deuxieme requete 
+			Object secondResult = testRSCallWithoutResult(client, clazz, "getValue").getResponse();
+			// controle : sur la meme session cela doit se comporter comme un singleton, donc meme resultat
+			assertThat(secondResult).isEqualTo(firstResult);
+			// troisieme appel sur une session differente
+			Object thirdResult = testRSCallWithoutResult(client, clazz, "getValue").getResponse();
+			// controle, doit etre identique
+			assertThat(firstResult).isEqualTo(thirdResult);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
 
 	/**
