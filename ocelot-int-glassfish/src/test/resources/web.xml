@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
+    <security-constraint>
+        <display-name>authentication</display-name>
+        <web-resource-collection>
+            <web-resource-name>secure</web-resource-name>
+            <url-pattern>/ocelot-endpoint</url-pattern>
+        </web-resource-collection>
+        <web-resource-collection>
+            <web-resource-name>secure</web-resource-name>
+            <url-pattern>/ocelot/endpoint</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <description/>
+            <role-name>USERR</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>test-file</realm-name>
+    </login-config>
+    <security-role>
+        <description/>
+        <role-name>TESTR</role-name>
+    </security-role>
+    <security-role>
+        <description/>
+        <role-name>USERR</role-name>
+    </security-role>
+    <security-role>
+        <description/>
+        <role-name>ADMINR</role-name>
+    </security-role>
+</web-app>
