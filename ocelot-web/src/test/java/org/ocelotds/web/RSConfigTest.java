@@ -12,9 +12,7 @@ import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -56,4 +54,14 @@ public class RSConfigTest {
 		assertThat(set).contains(RSEndpoint.class);
 	}
 
+	/**
+	 * Test of getHashSet method, of class RSConfig.
+	 */
+	@Test
+	public void testGEtHashSet() {
+		System.out.println("getHashSet");
+		Set<Class<?>> result = instance.getHashSet();
+		assertThat(result).isInstanceOf(Set.class);
+	}
+	
 }

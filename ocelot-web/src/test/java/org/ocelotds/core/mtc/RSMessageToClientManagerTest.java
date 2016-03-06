@@ -16,6 +16,8 @@ import static org.mockito.Mockito.mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
+import org.ocelotds.messaging.MessageFromClient;
+import org.ocelotds.messaging.MessageToClient;
 
 /**
  *
@@ -44,5 +46,18 @@ public class RSMessageToClientManagerTest {
 		result = instance.getSessionBeans(session);
 		verify(session, times(1)).setAttribute(eq(Constants.SESSION_BEANS), any(Map.class));
 		assertThat(result).isEqualTo(map);
+	}
+	
+	/**
+	 * Test of createMessageToClient method, of class WSMessageToClientManager.
+	 */
+	@Test
+	public void testCreateMessageToClient() {
+		System.out.println("createMessageToClient");
+		HttpSession session = mock(HttpSession.class);
+		MessageFromClient mfc = mock(MessageFromClient.class);
+		doReturn(null).when((MessageToClientManager) instance)._createMessageToClient(any(MessageFromClient.class), any(HttpSession.class));
+		MessageToClient mtc = instance.createMessageToClient(mfc, session);
+		assertThat(mtc).isNull();
 	}
 }

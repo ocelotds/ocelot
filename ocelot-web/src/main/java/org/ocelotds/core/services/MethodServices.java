@@ -29,16 +29,8 @@ public class MethodServices {
 	@Inject
 	private ArgumentConvertor argumentConvertor;
 
-	private static final Comparator COMPARATOR = new Comparator<Method>() {
-		@Override
-		public int compare(Method o1, Method o2) {
-			int res = o1.getParameterTypes().length - o2.getParameterTypes().length;
-			if (res == 0) {
-				return -1;
-			}
-			return res;
-		}
-	};
+	@Inject
+	private MethodComparator comparator;
 
 	/**
 	 * Get pertinent method and fill the argument list from message arguments
@@ -145,7 +137,7 @@ public class MethodServices {
 				candidates.add(method);
 			}
 		}
-		Collections.sort(candidates, COMPARATOR);
+		Collections.sort(candidates, comparator);
 		return candidates;
 	}
 }

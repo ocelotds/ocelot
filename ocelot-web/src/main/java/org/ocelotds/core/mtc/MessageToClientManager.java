@@ -117,6 +117,16 @@ public abstract class MessageToClientManager<T> {
 	 * @return 
 	 */
 	public MessageToClient createMessageToClient(MessageFromClient message, T session) {
+		return _createMessageToClient(message, session);
+	}
+	/**
+	 * Create a MessageToClient from MessageFromClient for session
+	 * Only for available test use case
+	 * @param message
+	 * @param session
+	 * @return 
+	 */
+	MessageToClient _createMessageToClient(MessageFromClient message, T session) {
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(message.getId());
 		try {
@@ -138,8 +148,6 @@ public abstract class MessageToClientManager<T> {
 			logger.debug("Method {} proceed messageToClient : {}.", method.getName(), messageToClient);
 		} catch (InvocationTargetException ex) {
 			messageToClient.setFault(faultServices.buildFault(ex.getCause()));
-		} catch (RuntimeException ex) {
-			messageToClient.setFault(faultServices.buildFault(ex));
 		} catch (Throwable ex) {
 			messageToClient.setFault(faultServices.buildFault(ex));
 		}
