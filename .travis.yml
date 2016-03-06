@@ -2,7 +2,8 @@ sudo: false
 language: java
 jdk: oraclejdk7
 before_install:
-   - openssl aes-256-cbc -K $encrypted_9112fb2807d4_key -iv $encrypted_9112fb2807d4_iv -in secring.gpg.enc -out secring.gpg -d
+   - openssl aes-256-cbc -K $encrypted_9112fb2807d4_key -iv $encrypted_9112fb2807d4_iv -in secrets.tar.enc -out secrets.tar -d
+   - tar xvf secrets.tar
    - pip install --user codecov
    - cp deployOrPerform.sh /tmp/deployOrPerform.sh
    - chmod ugo+x /tmp/deployOrPerform.sh
