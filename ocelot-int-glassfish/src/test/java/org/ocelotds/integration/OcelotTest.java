@@ -68,7 +68,7 @@ import org.ocelotds.messaging.MessageType;
 @RunWith(Arquillian.class)
 public class OcelotTest extends AbstractOcelotTest {
 
-	final int NB_SIMUL_METHODS = 200;
+	final int NB_SIMUL_METHODS = 50;
 
 	@Inject
 	@MessageEvent
