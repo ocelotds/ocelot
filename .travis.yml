@@ -2,8 +2,11 @@ sudo: false
 language: java
 jdk: oraclejdk7
 before_install:
-   - openssl aes-256-cbc -K $encrypted_9112fb2807d4_key -iv $encrypted_9112fb2807d4_iv -in secrets.tar.enc -out secrets.tar -d
-   - tar xvf secrets.tar
+   - openssl aes-256-cbc -K $encrypted_9112fb2807d4_key -iv $encrypted_9112fb2807d4_iv -in secret.tar.enc -out secret.tar -d
+   - tar xvf secret.tar
+   - ls -lta
+   - mv travis-ci_rsa ~/.ssh/travis-ci_rsa 
+   - chmod 600 ~/.ssh/travis-ci_rsa
    - pip install --user codecov
    - cp deployOrPerform.sh /tmp/deployOrPerform.sh
    - chmod ugo+x /tmp/deployOrPerform.sh
