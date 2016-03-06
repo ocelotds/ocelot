@@ -242,18 +242,24 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 	@Test
 	public void testCallMultiMethodsMultiSessions() {
-		final Client client = null;
+		Client client = null;
 		testCallMultiMethodsInClient("testCallMultiMethodsMultiSessions", NB_SIMUL_METHODS, client);
 	}
-
 
 	/**
 	 * Test multi call in same session
 	 */
 	@Test
 	public void testCallMultiMethodsMonoSessions() {
-		final Client client = getClient();
-		testCallMultiMethodsInClient("testCallMultiMethodsMonoSessions", NB_SIMUL_METHODS, client);
+		Client client = null;
+		try {
+			client = getClient();
+			testCallMultiMethodsInClient("testCallMultiMethodsMonoSessions", NB_SIMUL_METHODS, client);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
 
 	/**
@@ -283,16 +289,28 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 	@Test
 	public void testGetSetLocale() {
-		Client client = getClient();
-		// default locale is US
-		testRSCallWithResult(client, OcelotServices.class, "getLocale", "{\"country\":\"US\",\"language\":\"en\"}");
-		// switch to French
-		testRSCallWithoutResult(client, OcelotServices.class, "setLocale", "{\"country\":\"FR\",\"language\":\"fr\"}");
-		// check
-		testRSCallWithResult(client, OcelotServices.class, "getLocale", "{\"country\":\"FR\",\"language\":\"fr\"}");
-
-		client = getClient();
-		testRSCallWithResult(client, OcelotServices.class, "getLocale", "{\"country\":\"US\",\"language\":\"en\"}");
+		Client client = null;
+		try {
+			client = getClient();
+			// default locale is US
+			testRSCallWithResult(client, OcelotServices.class, "getLocale", "{\"country\":\"US\",\"language\":\"en\"}");
+			// switch to French
+			testRSCallWithoutResult(client, OcelotServices.class, "setLocale", "{\"country\":\"FR\",\"language\":\"fr\"}");
+			// check
+			testRSCallWithResult(client, OcelotServices.class, "getLocale", "{\"country\":\"FR\",\"language\":\"fr\"}");
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
+		try {
+			client = getClient();
+			testRSCallWithResult(client, OcelotServices.class, "getLocale", "{\"country\":\"US\",\"language\":\"en\"}");
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
 
 	/**
@@ -300,13 +318,20 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 	@Test
 	public void testSetLocale() {
-		Client client = getClient();
+		Client client = null;
+		try {
+			client = getClient();
 			// default locale is US
-		testRSCallWithResult(client, LocaleMsgDataService.class, "getLocaleHello", "\"Hello François\"", getJson("François"));
-		// switch to French
-		testRSCallWithoutResult(client, OcelotServices.class, "setLocale", "{\"country\":\"FR\",\"language\":\"fr\"}");
-		// locale is French
-		testRSCallWithResult(client, LocaleMsgDataService.class, "getLocaleHello", "\"Bonjour François\"", getJson("François"));
+			testRSCallWithResult(client, LocaleMsgDataService.class, "getLocaleHello", "\"Hello François\"", getJson("François"));
+			// switch to French
+			testRSCallWithoutResult(client, OcelotServices.class, "setLocale", "{\"country\":\"FR\",\"language\":\"fr\"}");
+			// locale is French
+			testRSCallWithResult(client, LocaleMsgDataService.class, "getLocaleHello", "\"Bonjour François\"", getJson("François"));
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
 
 	/**
@@ -492,55 +517,97 @@ public class OcelotTest extends AbstractOcelotTest {
 	@Test
 	public void testEJBPrincipal() {
 		System.out.println("testEJBPrincipal");
-		Client client = getClient("demo", "demo");
-		testRSCallWithResult(client, AccessEJBDataService.class, "getPrincipalName", getJson("demo"));
-		testRSCallWithResult(client, AccessEJBDataService.class, "getCallerName", getJson("demo"));
+		Client client = null;
+		try {
+			client = getClient("demo", "demo");
+			testRSCallWithResult(client, AccessEJBDataService.class, "getPrincipalName", getJson("demo"));
+			testRSCallWithResult(client, AccessEJBDataService.class, "getCallerName", getJson("demo"));
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
 
 	@Test
 	public void testEJBMethodAllowedToTest() {
 		System.out.println("testEJBMethodAllowedToTest");
-		Client client = getClient("test", "test");
-		testRSCallWithResult(client, AccessEJBDataService.class, "getPrincipalName", getJson("test"));
-		testRSCallWithResult(client, AccessEJBDataService.class, "getCallerName", getJson("test"));
-		testRSCallWithoutResult(client, AccessEJBDataService.class, "methodAllowedToTest");
-		testRSCallThrowException(client, AccessEJBDataService.class, "methodAllowedToAdmin", EJBAccessException.class);
+		Client client = null;
+		try {
+			client = getClient("test", "test");
+			testRSCallWithResult(client, AccessEJBDataService.class, "getPrincipalName", getJson("test"));
+			testRSCallWithResult(client, AccessEJBDataService.class, "getCallerName", getJson("test"));
+			testRSCallWithoutResult(client, AccessEJBDataService.class, "methodAllowedToTest");
+			testRSCallThrowException(client, AccessEJBDataService.class, "methodAllowedToAdmin", EJBAccessException.class);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
 
 	@Test
 	public void testEJBMethodAllowedToAdmin() {
 		System.out.println("testEJBMethodAllowedToAdmin");
-		Client client = getClient("admin", "admin");
-		testRSCallWithResult(client, AccessEJBDataService.class, "getPrincipalName", getJson("admin"));
-		testRSCallWithResult(client, AccessEJBDataService.class, "getCallerName", getJson("admin"));
-		testRSCallWithoutResult(client, AccessEJBDataService.class, "methodAllowedToAdmin");
-		testRSCallThrowException(client, AccessEJBDataService.class, "methodAllowedToTest", EJBAccessException.class);
+		Client client = null;
+		try {
+			client = getClient("admin", "admin");
+			testRSCallWithResult(client, AccessEJBDataService.class, "getPrincipalName", getJson("admin"));
+			testRSCallWithResult(client, AccessEJBDataService.class, "getCallerName", getJson("admin"));
+			testRSCallWithoutResult(client, AccessEJBDataService.class, "methodAllowedToAdmin");
+			testRSCallThrowException(client, AccessEJBDataService.class, "methodAllowedToTest", EJBAccessException.class);
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
 
 	@Test
 	public void testEJBIsCallerInRole() {
 		System.out.println("testEJBIsCallerInRole");
-		Client client = getClient("admin", "admin");
-		testRSCallWithResult(client, AccessEJBDataService.class, "isCallerInRole", getJson(true), getJson("ADMINR"));
-		testRSCallWithResult(client, AccessEJBDataService.class, "isCallerInRole", getJson(true), getJson("USERR"));
-		testRSCallWithResult(client, AccessEJBDataService.class, "isCallerInRole", getJson(false), getJson("TESTR"));
+		Client client = null;
+		try {
+			client = getClient("admin", "admin");
+			testRSCallWithResult(client, AccessEJBDataService.class, "isCallerInRole", getJson(true), getJson("ADMINR"));
+			testRSCallWithResult(client, AccessEJBDataService.class, "isCallerInRole", getJson(true), getJson("USERR"));
+			testRSCallWithResult(client, AccessEJBDataService.class, "isCallerInRole", getJson(false), getJson("TESTR"));
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
 
 	@Test
 	public void testCDIPrincipal() {
 		System.out.println("testCDIPrincipal");
-		Client client = getClient("demo", "demo");
-		testRSCallWithResult(client, AccessCDIDataService.class, "getPrincipalName", getJson("demo"));
-		testRSCallWithResult(client, AccessCDIDataService.class, "getOcelotContextName", getJson("demo"));
+		Client client = null;
+		try {
+			client = getClient("demo", "demo");
+			testRSCallWithResult(client, AccessCDIDataService.class, "getPrincipalName", getJson("demo"));
+			testRSCallWithResult(client, AccessCDIDataService.class, "getOcelotContextName", getJson("demo"));
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
 
 	@Test
 	public void testCDIIsUserInRole() {
 		System.out.println("testCDIIsUserInRole");
-		Client client = getClient("admin", "admin");
-		testRSCallWithResult(client, AccessCDIDataService.class, "isUserInRole", getJson(true), getJson("ADMINR"));
-		testRSCallWithResult(client, AccessCDIDataService.class, "isUserInRole", getJson(true), getJson("USERR"));
-		testRSCallWithResult(client, AccessCDIDataService.class, "isUserInRole", getJson(false), getJson("TESTR"));
+		Client client = null;
+		try {
+			client = getClient("admin", "admin");
+			testRSCallWithResult(client, AccessCDIDataService.class, "isUserInRole", getJson(true), getJson("ADMINR"));
+			testRSCallWithResult(client, AccessCDIDataService.class, "isUserInRole", getJson(true), getJson("USERR"));
+			testRSCallWithResult(client, AccessCDIDataService.class, "isUserInRole", getJson(false), getJson("TESTR"));
+		} finally {
+			if (client != null) {
+				client.close();
+			}
+		}
 	}
 
 	/**
@@ -572,10 +639,17 @@ public class OcelotTest extends AbstractOcelotTest {
 				public void run() {
 					MessageFromClient mfc = getMessageFromClient(CacheDataService.class, "generateCleanCacheMessage", getJson(""), getJson(new Result(5)));
 					mfc.setParameterNames(Arrays.asList("\"a\"", "\"r\""));
-					testRSCallWithoutResult(getClient(), mfc, MessageType.RESULT);
+					Client client = null;
+					try {
+						client = getClient();
+						testRSCallWithoutResult(client, mfc, MessageType.RESULT);
+					} finally {
+						if (client != null) {
+							client.close();
+						}
+					}
 				}
-			}
-			);
+			});
 		} catch (IOException ex) {
 			fail(ex.getMessage());
 		}
@@ -601,6 +675,7 @@ public class OcelotTest extends AbstractOcelotTest {
 			fail(ex.getMessage());
 		}
 	}
+
 	/**
 	 * Test send message to topic
 	 */
