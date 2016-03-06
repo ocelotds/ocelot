@@ -6,15 +6,10 @@
 package org.ocelotds.web;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.ws.rs.core.HttpHeaders;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
@@ -25,10 +20,8 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
-import org.ocelotds.configuration.LocaleExtractor;
 import org.ocelotds.context.ThreadLocalContextHolder;
 import org.ocelotds.core.mtc.RSMessageToClientManager;
-import org.ocelotds.exceptions.LocaleNotFoundException;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageToClient;
 import org.slf4j.Logger;
@@ -66,7 +59,7 @@ public class RSEndpointTest {
 		MessageToClient mtc = mock(MessageToClient.class);
 		HttpSession session = mock(HttpSession.class);
 		when(request.getSession()).thenReturn(session);
-		doNothing().when(instance).setContext(any(HttpSession.class));
+		doNothing().when(instance).setContext(any(HttpSession.class), anyBoolean());
 		List<String> args = new ArrayList<>();
 		args.add("\"arg\"");
 		List<String> argNames = new ArrayList<>();
@@ -80,10 +73,11 @@ public class RSEndpointTest {
 		
 		when(messageToClientService.createMessageToClient(any(MessageFromClient.class), any(HttpSession.class))).thenReturn(mtc);
 		when(mtc.toJson()).thenReturn("RESULT");
-		String result = instance.getMessageToClient(mfc.toJson());
+		String result = instance.getMessageToClient(mfc.toJson(), true);
 		assertThat(result).isEqualTo("RESULT");
 		ArgumentCaptor<MessageFromClient> argument = ArgumentCaptor.forClass(MessageFromClient.class);
 		verify(messageToClientService).createMessageToClient(argument.capture(), any(HttpSession.class));
+		assertThat(argument.getValue()).isEqualTo(mfc);
 	}
 
 	/**
@@ -93,8 +87,14 @@ public class RSEndpointTest {
 	public void testSetContext() {
 		System.out.println("setContext");
 		HttpSession session = mock(HttpSession.class);
-		instance.setContext(session);
+		instance.setContext(session, true);
+		instance.setContext(session, false);
+		ArgumentCaptor<Boolean> argument = ArgumentCaptor.forClass(Boolean.class);
+		verify(session, times(2)).setAttribute(eq(Constants.Options.MONITOR), argument.capture());
 		assertThat(ThreadLocalContextHolder.get(Constants.HTTPSESSION)).isEqualTo(session);
 		assertThat(ThreadLocalContextHolder.get(Constants.HTTPREQUEST)).isEqualTo(request);
+		List<Boolean> monitors = argument.getAllValues();
+		assertThat(monitors.get(0)).isEqualTo(true);
+		assertThat(monitors.get(1)).isEqualTo(false);
 	}
 }

@@ -43,13 +43,8 @@ public class HttpSessionsObserver {
 	void setContext(HttpSession httpSession) {
 //		Session wsSession = requestManager.getSessionByHttpSession(httpSession);
 //		System.out.println("WS Ocelot Session associate with request : "+wsSession);
-		httpSession.setAttribute(Constants.Options.MONITOR, isMonitored());
 		httpSession.setAttribute(Constants.LOCALE, getLocale());
 		ThreadLocalContextHolder.put(Constants.HTTPSESSION, httpSession);
-	}
-
-	boolean isMonitored() {
-		return Boolean.valueOf(request.getParameter(Constants.Options.MONITOR));
 	}
 
 	/**

@@ -56,6 +56,7 @@ public class HttpSessionsObserverTest {
 		HttpSession session = mock(HttpSession.class);
 		instance.processSessionScopedInit(session);
 		doNothing().when(instance).setContext(eq(session));
+		verify(instance).setContext(any(HttpSession.class));
 	}
 
 	/**
@@ -65,35 +66,12 @@ public class HttpSessionsObserverTest {
 	public void testSetContext() {
 		System.out.println("setContext");
 		HttpSession session = mock(HttpSession.class);
-		doReturn(true).when(instance).isMonitored();
 		doReturn(Locale.US).when(instance).getLocale();
 		instance.setContext(session);
-		verify(session).setAttribute(eq(Constants.Options.MONITOR), eq(true));
 		verify(session).setAttribute(eq(Constants.LOCALE), eq(Locale.US));
 		assertThat(ThreadLocalContextHolder.get(Constants.HTTPSESSION)).isEqualTo(session);
 	}
 
-	/**
-	 * Test of isMonitored method, of class HttpSessionsObserver.
-	 */
-	@Test
-	public void testIsMonitored() {
-		when(request.getParameter(eq(Constants.Options.MONITOR)))
-				  .thenReturn("").thenReturn("foo").thenReturn("false").thenReturn("FALSE")
-				  .thenReturn("true").thenReturn("TRUE");
-		boolean result = instance.isMonitored();
-		assertThat(result).isFalse();
-		result = instance.isMonitored();
-		assertThat(result).isFalse();
-		result = instance.isMonitored();
-		assertThat(result).isFalse();
-		result = instance.isMonitored();
-		assertThat(result).isFalse();
-		result = instance.isMonitored();
-		assertThat(result).isTrue();
-		result = instance.isMonitored();
-		assertThat(result).isTrue();
-	}
 	/**
 	 * Test of getLocale method, of class RSEndpoint.
 	 */
