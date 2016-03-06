@@ -42,17 +42,17 @@ public class OcelotConfigurationTest {
 		// given
 		ServletContext sc = mock(ServletContext.class);
 		// when
-		when(sc.getInitParameter(eq(Constants.Options.STACKTRACE_LENGTH))).thenReturn(null).thenReturn("20");
+		when(sc.getInitParameter(eq(Constants.Options.STACKTRACE_LENGTH))).thenReturn(null).thenReturn("10");
 		when(ocelotConfigurationsStack.isUnsatisfied()).thenReturn(true);
 		
 		// then
 		ocelotConfiguration.readStacktraceConfig(sc);
 		int result = ocelotConfiguration.getStacktracelength();
-		assertThat(result).isEqualTo(50);
+		assertThat(result).isEqualTo(20);
 
 		ocelotConfiguration.readStacktraceConfig(sc);
 		result = ocelotConfiguration.getStacktracelength();
-		assertThat(result).isEqualTo(20);
+		assertThat(result).isEqualTo(10);
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class OcelotConfigurationTest {
 	@Test
 	public void testGetSetStacktracelength() {
 		System.out.println("testGetSetStacktracelength");
-		int expResult = 50;
+		int expResult = 20;
 		int result = ocelotConfiguration.getStacktracelength();
 		assertThat(result).isEqualTo(expResult);
 		expResult = 10;
