@@ -22,7 +22,7 @@ import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.slf4j.Logger;
 
 /**
- * Singleton that send push messages
+ * Bean that send push messages
  *
  * @author hhfrancois
  */

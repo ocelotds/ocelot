@@ -5,11 +5,11 @@ package org.ocelotds.context;
 
 import java.security.Principal;
 import java.util.Locale;
-import java.util.Map;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
-import javax.websocket.server.HandshakeRequest;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
@@ -24,64 +24,66 @@ public class OcelotContext {
 	@OcelotLogger
 	private Logger logger;
 
+	@Inject
+	private Principal principal;
+
 	@Produces
 	Session getSession() {
 		return (Session) ThreadLocalContextHolder.get(Constants.SESSION);
 	}
 
+//	@Produces
+	HttpSession getHttpSession() {
+		return (HttpSession) ThreadLocalContextHolder.get(Constants.HTTPSESSION);
+	}
+
 	public Locale getLocale() {
-		Locale locale = Locale.US;
-		Session session = getSession();
-		if (session != null) {
-			if (session.getUserProperties().containsKey(Constants.LOCALE)) {
-				locale = (Locale) session.getUserProperties().get(Constants.LOCALE);
-				logger.debug("Get locale from OcelotServices : {}", locale);
-			} else {
-				logger.debug("Get locale from OcelotServices : default : {}", locale);
-			}
+		Locale locale = getLocaleFromHttpSession();
+		if(locale == null) {
+			locale = Locale.US;
 		}
 		return locale;
 	}
-
+	
+	Locale getLocaleFromHttpSession() {
+		Locale locale = null;
+		HttpSession httpSession = getHttpSession();
+		if (httpSession != null) {
+			locale = (Locale) httpSession.getAttribute(Constants.LOCALE);
+		}
+		return locale;
+	}
+	
 	public void setLocale(Locale locale) {
-		Session session = getSession();
-		if(session!=null) {
-			Map<String,Object> userProps =session.getUserProperties();
-			userProps.remove(Constants.LOCALE);
+		setLocaleToHttpSession(locale);
+	}
+
+	public void setLocaleToHttpSession(Locale locale) {
+		HttpSession session = getHttpSession();
+		if (session != null) {
+			session.removeAttribute(Constants.LOCALE);
 			if (locale != null) {
-				userProps.put(Constants.LOCALE, locale);
+				session.setAttribute(Constants.LOCALE, locale);
 			}
+		} else {
+			logger.warn("HttpSession seems not associating with local thread, locale not set in.");
 		}
 	}
 
-	HandshakeRequest getHandshakeRequest() {
-		return (HandshakeRequest) ThreadLocalContextHolder.get(Constants.HANDSHAKEREQUEST);
+	HttpServletRequest getRequest() {
+		return (HttpServletRequest) ThreadLocalContextHolder.get(Constants.HTTPREQUEST);
 	}
 
 	public boolean isUserInRole(String role) {
-		HandshakeRequest hr = getHandshakeRequest();
-		if(hr!=null) {
-			return hr.isUserInRole(role);
+		HttpServletRequest request = getRequest();
+		if (request != null) {
+			return request.isUserInRole(role);
 		}
-		logger.warn("Fail to get userInRole, HandshakeRequest is null in threadLocal");
+		logger.warn("Fail to get userInRole, HttpServletRequest is null in threadLocal");
 		return false;
 	}
 
 	public Principal getPrincipal() {
-		Session session = getSession();
-		if (null != session) {
-			Principal p = session.getUserPrincipal();
-			if (null != p) {
-				return p;
-			}
-		}
-		return ANONYMOUS;
+		return principal;
 	}
-	
-	private static final Principal ANONYMOUS = new Principal() {
-		@Override
-		public String getName() {
-			return Constants.ANONYMOUS;
-		}
-	};
 }

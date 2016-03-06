@@ -2,13 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
  */
-package org.ocelotds.core.services;
+package org.ocelotds.core.ws;
 
-import java.security.Principal;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageToClient;
 import javax.inject.Inject;
 import javax.websocket.Session;
+import org.ocelotds.core.mtc.WSMessageToClientManager;
 
 /**
  * Abstract class of OcelotDataService
@@ -18,7 +18,7 @@ import javax.websocket.Session;
 public class CallServiceManager implements CallService {
 
 	@Inject
-	private MessageToClientService messageToClientService;
+	private WSMessageToClientManager messageToClientService;
 	
 	/**
 	 * Build and send response messages after call request

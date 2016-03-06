@@ -7,7 +7,7 @@ package org.ocelotds.web;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.Constants;
 import org.ocelotds.configuration.OcelotRequestConfigurator;
-import org.ocelotds.core.services.CallServiceManager;
+import org.ocelotds.core.ws.CallServiceManager;
 import org.ocelotds.encoders.MessageToClientEncoder;
 import java.io.IOException;
 import org.ocelotds.messaging.MessageFromClient;
@@ -20,6 +20,7 @@ import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
+import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpoint;
 import org.ocelotds.core.CdiBeanResolver;
 import org.ocelotds.annotations.OcelotLogger;
@@ -32,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * @author hhfrancois
  */
 @ServerEndpoint(value = "/ocelot-endpoint", encoders = {MessageToClientEncoder.class}, configurator = OcelotRequestConfigurator.class)
-public class OcelotEndpoint {
+public class WSEndpoint {
 
 	@Inject
 	@OcelotLogger
@@ -43,6 +44,9 @@ public class OcelotEndpoint {
 
 	@Inject
 	private CallServiceManager callServiceManager;
+	
+	@Inject
+	private RequestManager requestManager;
 
 	/**
 	 * A connection is open
@@ -54,17 +58,18 @@ public class OcelotEndpoint {
 	@OnOpen
 	public void handleOpenConnexion(Session session, EndpointConfig config) throws IOException {
 		Map<String, Object> configProperties = config.getUserProperties();
-		Map<String, Object> sessionProperties = session.getUserProperties();
 		// Get infos from config and set in session, only one time by connexion
-		sessionProperties.put(Constants.SESSION_BEANS, configProperties.get(Constants.SESSION_BEANS));
-		sessionProperties.put(Constants.HANDSHAKEREQUEST, configProperties.get(Constants.HANDSHAKEREQUEST));
-		sessionProperties.put(Constants.LOCALE, configProperties.get(Constants.LOCALE));
-		sessionProperties.put(Constants.Options.MONITOR, configProperties.get(Constants.Options.MONITOR));
+		HandshakeRequest request = (HandshakeRequest) configProperties.get(Constants.HANDSHAKEREQUEST);
+		getRequestManager().addSession(request, session);
 	}
 
 	@OnError
 	public void onError(Session session, Throwable t) {
 		getLogger().error("Unknow error for session " + session.getId(), t);
+		if (!session.isOpen()) {
+			getRequestManager().removeSession(session);
+			getSessionManager().removeSessionToTopics(session);
+		}
 	}
 
 	/**
@@ -81,8 +86,9 @@ public class OcelotEndpoint {
 				session.close();
 			} catch (IllegalStateException | IOException ex) {
 			}
-			getSessionManager().removeSessionToTopics(session);
 		}
+		getRequestManager().removeSession(session);
+		getSessionManager().removeSessionToTopics(session);
 	}
 
 	/**
@@ -100,7 +106,7 @@ public class OcelotEndpoint {
 
 	Logger getLogger() {
 		if (null == logger) {
-			logger = LoggerFactory.getLogger(OcelotEndpoint.class);
+			logger = LoggerFactory.getLogger(WSEndpoint.class);
 		}
 		return logger;
 	}
@@ -110,6 +116,13 @@ public class OcelotEndpoint {
 			sessionManager = getCdiBeanResolver().getBean(SessionManager.class);
 		}
 		return sessionManager;
+	}
+
+	RequestManager getRequestManager() {
+		if (null == requestManager) {
+			requestManager = getCdiBeanResolver().getBean(RequestManager.class);
+		}
+		return requestManager;
 	}
 
 	CallServiceManager getCallServiceManager() {

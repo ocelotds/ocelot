@@ -53,7 +53,7 @@
 		<module>ocelot-spi</module>
 		<module>ocelot-extra-spring</module>
 		<module>ocelot-processor</module>
-		<module>ocelot-integration</module>
+		<module>ocelot-int-glassfish</module>
 	</modules>
 	<dependencies>		
 		<dependency>

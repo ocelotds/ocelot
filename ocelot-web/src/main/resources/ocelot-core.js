@@ -79,17 +79,17 @@ if ("WebSocket" in window) {
          }
          return false;
       }
+      function isSubscription(promise) {
+         return promise.dataservice === OSRV && promise.operation === SUB;
+      }
       function isTopicSubscription(promise, topic) {
-         if (promise.dataservice === OSRV && promise.operation === SUB) {
-            return isTopic(promise, topic);
-         }
-         return false;
+         return isSubscription(promise) && isTopic(promise, topic)
+      }
+      function isUnsubscription(promise) {
+         return promise.dataservice === OSRV && promise.operation === UNSUB;
       }
       function isTopicUnsubscription(promise, topic) {
-         if (promise.dataservice === OSRV && promise.operation === UNSUB) {
-            return isTopic(promise, topic);
-         }
-         return false;
+         return isUnsubscription(promise) && isTopic(promise, topic)
       }
       function isTopic(promise, topic) {
          return topic ? (promise.args[0] === topic) : true;
@@ -103,53 +103,76 @@ if ("WebSocket" in window) {
            }
          });         
       }
+      function sendMfc(promise) {
+         var msgToClient, xhttp, mfc = JSON.stringify(promise.json);
+         if(!addPromiseToId(promise, promise.id)) {
+            // Subscription or unsubscription to topic, use websocket
+            if (isSubscription(promise) || isUnsubscription(promise)) {
+               if(ws.readyState === 1) {
+                  ws.send(mfc);
+               } else {
+						// TODO A VOIR car le subscriber n'est pas remove
+                  promise.response = createFaultEventFromPromise(promise, {"response":{"classname": "Websocket", "message": "Websocket is not ready : status = " + status, "stacktrace": []},"t":0});
+               }
+            // Commons calls, use http request
+            } else {
+               xhttp = new XMLHttpRequest();
+               xhttp.onreadystatechange = function() {
+                  if (xhttp.readyState === 4) {
+                     if(xhttp.status === 200) {
+                        msgToClient = JSON.parse(xhttp.responseText);
+	                     receiveMtc(msgToClient);
+                     } else {
+		                  promise.response = createFaultEventFromPromise(promise, {"response":{"classname": "XMLHttpRequest", "message": "XMLHttpRequest request failed : code = " + xhttp.status, "stacktrace": []},"t":0});
+                     }
+                  }
+               };
+               xhttp.open("POST", "%CTXPATH%/ocelot/endpoint?monitor="+options.monitor, true);
+               xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+               xhttp.send("mfc="+mfc);
+            }
+         }
+      }
+      function receiveMtc(msgToClient) {
+         var idx, response, msgToClient, promise, apromise = getPromises(msgToClient.id);
+         if (msgToClient.type === RES) { // maybe should be store result in cache
+            // if msgToClient has dead line so we stock in cache
+            ocelotController.cacheManager.putResultInCache(msgToClient);
+         }
+         for (idx = 0; idx < apromise.length; idx++) {
+            promise = apromise[idx];
+            if (msgToClient.type === FAULT) {
+               response = createFaultEventFromPromise(promise, msgToClient);
+            } else if (msgToClient.type === RES) {
+               // if msg is response of subscribe request
+               if (isTopicSubscription(promise)) {
+                  addPromiseToId(promise, promise.args[0]);
+               }
+               else if (isTopicUnsubscription(promise)) {
+                  clearPromisesForId(promise.args[0]);
+               }
+               response = createResultEventFromPromise(promise, msgToClient);
+            } else if (msgToClient.type === MSG) {
+               response = createMessageEventFromPromise(promise, msgToClient);
+            }
+            promise.response = response;
+         }
+         // when receive result or fault, remove handlers, except for topic
+         if(msgToClient.type !== MSG) {
+            clearPromisesForId(msgToClient.id);
+         }
+      }
       function init() {
          console.info("Websocket initialization...");
-         var query = "?", host = document.location.hostname;
+         var host = document.location.hostname;
          if (document.location.port && document.location.port !== "") {
             host = host + ":" + document.location.port;
          }
          extractOptions(document.location.search);
-         if(options.monitor) {
-            console.log("OCELOTDS MONITOR enabled");
-            query += "option=monitor";
-         }
-         if (document.location.href.toString().indexOf(document.location.protocol + "//" + host + "%CTXPATH%") === 0) {
-            ws = new WebSocket("%WSS%://" + host + "%CTXPATH%/ocelot-endpoint"+query);
-         } else {
-            ws = new WebSocket("%WSS%://" + host + "/ocelot-endpoint"+query);
-         }
+         ws = new WebSocket("%WSS%://" + host + "%CTXPATH%/ocelot-endpoint");
          ws.onmessage = function (evt) {
-            var idx, response, msgToClient, promise, apromise;
 //            console.debug(evt.data);
-            msgToClient = JSON.parse(evt.data);
-            apromise = getPromises(msgToClient.id);
-            if (msgToClient.type === RES) { // maybe should be store result in cache
-               // if msgToClient has dead line so we stock in cache
-               ocelotController.cacheManager.putResultInCache(msgToClient);
-            }
-            for (idx = 0; idx < apromise.length; idx++) {
-               promise = apromise[idx];
-               if (msgToClient.type === FAULT) {
-                  response = createFaultEventFromPromise(promise, msgToClient);
-               } else if (msgToClient.type === RES) {
-                  // if msg is response of subscribe request
-                  if (isTopicSubscription(promise)) {
-                     addPromiseToId(promise, promise.args[0]);
-                  }
-                  else if (isTopicUnsubscription(promise)) {
-                     clearPromisesForId(promise.args[0]);
-                  }
-                  response = createResultEventFromPromise(promise, msgToClient);
-               } else if (msgToClient.type === MSG) {
-                  response = createMessageEventFromPromise(promise, msgToClient);
-               }
-               promise.response = response;
-            }
-            // when receive result or fault, remove handlers, except for topic
-            if(msgToClient.type !== MSG) {
-               clearPromisesForId(msgToClient.id);
-            }
+            receiveMtc(JSON.parse(evt.data));
          };
          ws.onopen = function (evt) {
             console.info("Websocket opened");
@@ -277,13 +300,7 @@ if ("WebSocket" in window) {
                return;
             }
             // else call
-            if (ws.readyState === 1) {
-               if(!addPromiseToId(promise, promise.id)) {
-                  ws.send(JSON.stringify(promise.json));
-               }
-            } else {
-               promise.response = createFaultEventFromPromise(promise, {"response":{"classname": "none", "message": "Websocket is not ready : status " + status, "stacktrace": []},"t":0});
-            }
+            sendMfc(promise);
          },
          cacheManager: (function () {
             var LU = "ocelot-lastupdate", addHandlers = [], removeHandlers = [], lastUpdateManager;

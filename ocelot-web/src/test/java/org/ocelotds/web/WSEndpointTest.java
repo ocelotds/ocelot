@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
+import javax.websocket.server.HandshakeRequest;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
@@ -23,7 +24,7 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
 import org.ocelotds.core.CdiBeanResolver;
-import org.ocelotds.core.services.CallServiceManager;
+import org.ocelotds.core.ws.CallServiceManager;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.messaging.MessageFromClient;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ import org.slf4j.LoggerFactory;
  * @author hhfrancois
  */
 @RunWith(MockitoJUnitRunner.class)
-public class OcelotEndpointTest {
+public class WSEndpointTest {
 
 	@Mock
 	private SessionManager sessionManager;
@@ -42,39 +43,41 @@ public class OcelotEndpointTest {
 	@Mock
 	private CallServiceManager callServiceManager;
 
+	@Mock
+	private RequestManager requestManager;
+	
 	@InjectMocks
 	@Spy
-	private OcelotEndpoint ocelotEndpoint;
+	private WSEndpoint instance;
 	
 	@Before
 	public void init() {
-		doReturn(LoggerFactory.getLogger(OcelotEndpoint.class)).when(ocelotEndpoint).getLogger();
+		doReturn(LoggerFactory.getLogger(WSEndpoint.class)).when(instance).getLogger();
 	}
 	
 	/**
-	 * Test of handleOpenConnexion method, of class OcelotEndpoint.
+	 * Test of handleOpenConnexion method, of class WSEndpoint.
 	 *
 	 * @throws java.io.IOException
 	 */
 	@Test
 	public void testHandleOpenConnexionFromBrowser() throws IOException {
 		System.out.println("handleOpenConnexion");
-		Session session = mock(Session.class);
-		Map<String, Object> result = new HashMap<>();
-		when(session.getUserProperties()).thenReturn(result);
+		HandshakeRequest request = mock(HandshakeRequest.class);
 		EndpointConfig config = mock(EndpointConfig.class);
 		Map<String, Object> map = new HashMap<>();
-		map.put(Constants.LOCALE, "LOCALE_RESULT");
-		map.put(Constants.SESSION_BEANS, "SESSION_BEANS");
+		map.put(Constants.HANDSHAKEREQUEST, request);
 		when(config.getUserProperties()).thenReturn(map);
-		ocelotEndpoint.handleOpenConnexion(session, config);
 
-		assertThat(result.get(Constants.LOCALE)).isEqualTo("LOCALE_RESULT");
-		assertThat(result.get(Constants.SESSION_BEANS)).isEqualTo("SESSION_BEANS");
+		Session session = mock(Session.class);
+
+		instance.handleOpenConnexion(session, config);
+
+		verify(requestManager).addSession(any(HandshakeRequest.class), any(Session.class));
 	}
 
 	/**
-	 * Test of onError method, of class OcelotEndpoint.
+	 * Test of onError method, of class WSEndpoint.
 	 */
 	@Test
 	public void testOnError() {
@@ -82,11 +85,11 @@ public class OcelotEndpointTest {
 		Session session = mock(Session.class);
 		when(session.getId()).thenReturn(UUID.randomUUID().toString());
 		Throwable t = new Exception();
-		ocelotEndpoint.onError(session, t);
+		instance.onError(session, t);
 	}
 
 	/**
-	 * Test of handleClosedConnection method, of class OcelotEndpoint.
+	 * Test of handleClosedConnection method, of class WSEndpoint.
 	 *
 	 * @throws java.io.IOException
 	 */
@@ -98,17 +101,17 @@ public class OcelotEndpointTest {
 		when(session.isOpen()).thenReturn(true);
 		CloseReason closeReason = mock(CloseReason.class);
 		when(closeReason.getCloseCode()).thenReturn(CloseReason.CloseCodes.TOO_BIG);
-		ocelotEndpoint.handleClosedConnection(session, closeReason);
+		instance.handleClosedConnection(session, closeReason);
 		doThrow(IOException.class).when(session).close();
-		ocelotEndpoint.handleClosedConnection(session, closeReason);
+		instance.handleClosedConnection(session, closeReason);
 		doThrow(IllegalStateException.class).when(session).close();
-		ocelotEndpoint.handleClosedConnection(session, closeReason);
+		instance.handleClosedConnection(session, closeReason);
 		when(session.isOpen()).thenReturn(false);
-		ocelotEndpoint.handleClosedConnection(session, closeReason);
+		instance.handleClosedConnection(session, closeReason);
 	}
 
 	/**
-	 * Test of receiveCommandMessage method, of class OcelotEndpoint.
+	 * Test of receiveCommandMessage method, of class WSEndpoint.
 	 */
 	@Test
 	public void testReceiveCommandMessage() {
@@ -123,7 +126,7 @@ public class OcelotEndpointTest {
 				  Constants.Message.ARGUMENTNAMES, Arrays.toString(parameterNames),
 				  Constants.Message.ARGUMENTS, Arrays.toString(parameters));
 
-		ocelotEndpoint.receiveCommandMessage(client, json);
+		instance.receiveCommandMessage(client, json);
 
 		ArgumentCaptor<MessageFromClient> captureMsg = ArgumentCaptor.forClass(MessageFromClient.class);
 		ArgumentCaptor<Session> captureSession = ArgumentCaptor.forClass(Session.class);
@@ -140,7 +143,7 @@ public class OcelotEndpointTest {
 	@Test
 	public void testGetSessionManager() {
 		System.out.println("getSessionManager");
-		OcelotEndpoint oe = spy(new OcelotEndpoint());
+		WSEndpoint oe = spy(new WSEndpoint());
 		CdiBeanResolver resolver = mock(CdiBeanResolver.class);
 		when(resolver.getBean(eq(SessionManager.class))).thenReturn(new SessionManager());
 		doReturn(resolver).when(oe).getCdiBeanResolver();
@@ -151,9 +154,22 @@ public class OcelotEndpointTest {
 	}
 	
 	@Test
+	public void testGetRequestManager() {
+		System.out.println("getRequestManager");
+		WSEndpoint oe = spy(new WSEndpoint());
+		CdiBeanResolver resolver = mock(CdiBeanResolver.class);
+		when(resolver.getBean(eq(RequestManager.class))).thenReturn(new RequestManager());
+		doReturn(resolver).when(oe).getCdiBeanResolver();
+
+		RequestManager result = oe.getRequestManager();
+
+		assertThat(result).isInstanceOf(RequestManager.class);
+	}
+
+	@Test
 	public void testGetCallServiceManager() {
 		System.out.println("getCallServiceManager");
-		OcelotEndpoint oe = spy(new OcelotEndpoint());
+		WSEndpoint oe = spy(new WSEndpoint());
 		CdiBeanResolver resolver = mock(CdiBeanResolver.class);
 		when(resolver.getBean(eq(CallServiceManager.class))).thenReturn(new CallServiceManager());
 		doReturn(resolver).when(oe).getCdiBeanResolver();
@@ -166,15 +182,15 @@ public class OcelotEndpointTest {
 	@Test
 	public void testGetCDIBeanResolver() {
 		System.out.println("getCDIBeanResolver");
-		CdiBeanResolver cdiBeanResolver = ocelotEndpoint.getCdiBeanResolver();
+		CdiBeanResolver cdiBeanResolver = instance.getCdiBeanResolver();
 		assertThat(cdiBeanResolver).isInstanceOf(CdiBeanResolver.class);
 	}
 	
 	@Test
 	public void testGetLogger() {
-		doCallRealMethod().when(ocelotEndpoint).getLogger();
-		Logger logger = ocelotEndpoint.getLogger();
+		doCallRealMethod().when(instance).getLogger();
+		Logger logger = instance.getLogger();
 		assertThat(logger).isNotNull();
-		assertThat(logger.getName()).isEqualTo(OcelotEndpoint.class.getName());
+		assertThat(logger.getName()).isEqualTo(WSEndpoint.class.getName());
 	}
 }

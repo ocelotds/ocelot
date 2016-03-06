@@ -33,7 +33,7 @@ public class OcelotConfiguration {
 	/**
 	 * Default size of stacktrace include in messageToClient fault
 	 */
-	private static final String DEFAULTSTACKTRACE = "50";
+	private static final String DEFAULTSTACKTRACE = "20";
 
 	/**
 	 * Read in web.xml the optional STACKTRACE_LENGTH config and set it in OcelotConfiguration
@@ -57,7 +57,7 @@ public class OcelotConfiguration {
 		setStacktracelength(stacktracelenght);
 	}
 
-	private int stacktracelength = 50;
+	private int stacktracelength = 20;
 
 	public int getStacktracelength() {
 		return stacktracelength;

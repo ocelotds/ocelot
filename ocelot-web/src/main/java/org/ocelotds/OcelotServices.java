@@ -19,6 +19,7 @@ import java.util.Map;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
+import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
 import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
@@ -29,6 +30,7 @@ import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.objects.OcelotMethod;
 import org.ocelotds.objects.OcelotService;
+import org.ocelotds.web.RequestManager;
 import org.slf4j.Logger;
 
 /**
@@ -50,7 +52,7 @@ public class OcelotServices {
 
 	@Inject
 	private SessionManager sessionManager;
-
+	
 	@Inject
 	private OcelotContext ocelotContext;
 

@@ -9,9 +9,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
 
@@ -19,7 +19,7 @@ import org.slf4j.Logger;
  *
  * @author hhfrancois
  */
-@Singleton
+@ApplicationScoped
 public class UpdatedCacheManager {
 
 	@Inject

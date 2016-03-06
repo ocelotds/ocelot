@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package org.ocelotds.core.services;
+package org.ocelotds.core.mtc;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -21,8 +21,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ocelotds.Constants;
 import org.ocelotds.core.CacheManager;
+import org.ocelotds.core.services.ArgumentServices;
+import org.ocelotds.core.services.ClassAsDataService;
+import org.ocelotds.core.services.FaultServices;
+import org.ocelotds.core.services.MethodServices;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.messaging.Fault;
 import org.ocelotds.messaging.MessageFromClient;
@@ -62,10 +65,15 @@ public class MessageToClientManagerTest {
 
 	@Spy
 	@InjectMocks
-	private MessageToClientManager instance;
+	private MessageToClientManager instance = new MessageToClientManager() {
+		@Override
+		public Map<String, Object> getSessionBeans(Object session) {
+			return new HashMap<>();
+		}
+	};
 
 	/**
-	 * Test of getResolver method, of class MessageToClientManager.
+	 * Test of getResolver method, of class WSMessageToClientManager.
 	 */
 	@Test
 	public void testGetResolver() {
@@ -77,7 +85,7 @@ public class MessageToClientManagerTest {
 	}
 
 	/**
-	 * Test of getDataService method, of class MessageToClientManager.
+	 * Test of getDataService method, of class WSMessageToClientManager.
 	 *
 	 * @throws org.ocelotds.spi.DataServiceException
 	 */
@@ -86,32 +94,30 @@ public class MessageToClientManagerTest {
 		System.out.println("_getDataService");
 		Class cls = ClassAsDataService.class;
 		IDataServiceResolver resolver = mock(IDataServiceResolver.class);
-		Session client = mock(Session.class);
-		Map<String, Object> userProperties = new HashMap<>();
+		Session session = mock(Session.class);
 		Map<String, Object> sessions = new HashMap<>();
-		userProperties.put(Constants.SESSION_BEANS, sessions);
 		ClassAsDataService ds1 = new ClassAsDataService();
 		ClassAsDataService ds2 = new ClassAsDataService();
 		ClassAsDataService ds3 = new ClassAsDataService();
 		when(resolver.getScope(any(Class.class))).thenReturn(Scope.MANAGED).thenReturn(Scope.SESSION);
 		when(resolver.resolveDataService(cls)).thenReturn(ds1).thenReturn(ds2).thenReturn(ds3);
+		doReturn(sessions).when(instance).getSessionBeans(session);
 		doReturn(resolver).when(instance).getResolver("TEST");
-		when(client.getUserProperties()).thenReturn(userProperties);
 
 		// normal scope
-		Object result = instance._getDataService(client, cls);
+		Object result = instance._getDataService(session, cls);
 		assertThat(result).isEqualTo(ds1);
 		assertThat(sessions).doesNotContainKey(cls.getName());
 
 		// session scope
-		result = instance._getDataService(client, cls);
+		result = instance._getDataService(session, cls);
 		assertThat(result).isEqualTo(ds2);
 		assertThat(sessions).containsKey(cls.getName());
-		result = instance._getDataService(client, cls);
+		result = instance._getDataService(session, cls);
 		assertThat(result).isEqualTo(ds2);
 		assertThat(sessions).containsKey(cls.getName());
 
-		// no client
+		// no session
 		result = instance._getDataService(null, cls);
 		assertThat(result).isEqualTo(ds3);
 	}
@@ -120,17 +126,17 @@ public class MessageToClientManagerTest {
 	public void testGetDataService() throws Exception {
 		System.out.println("getDataService");
 		Class cls = ClassAsDataService.class;
-		Session client = mock(Session.class);
+		Session session = mock(Session.class);
 		ClassAsDataService expected = new ClassAsDataService();
 		
 		doReturn(expected).when(instance)._getDataService(any(Session.class), any(Class.class));
 
-		Object result = instance.getDataService(client, cls);
+		Object result = instance.getDataService(session, cls);
 		
 		assertThat(result).isEqualTo(expected);
 	}
 	/**
-	 * Test of getDataService method, of class MessageToClientManager.
+	 * Test of getDataService method, of class WSMessageToClientManager.
 	 *
 	 * @throws org.ocelotds.spi.DataServiceException
 	 */
@@ -138,13 +144,13 @@ public class MessageToClientManagerTest {
 	public void testGetDataServiceFail() throws DataServiceException {
 		System.out.println("getDataServiceFail");
 		Class cls = ClassAsNotDataService.class;
-		Session client = mock(Session.class);
+		Session session = mock(Session.class);
 		
-		instance.getDataService(client, cls);
+		instance.getDataService(session, cls);
 	}
 
 	/**
-	 * Test of getDataService method, of class MessageToClientManager.
+	 * Test of getDataService method, of class WSMessageToClientManager.
 	 *
 	 * @throws org.ocelotds.spi.DataServiceException
 	 */
@@ -152,25 +158,25 @@ public class MessageToClientManagerTest {
 	public void testGetDataServiceFail2() throws DataServiceException, Exception {
 		System.out.println("getDataServiceFail2");
 		Class cls = ClassAsDataService.class;
-		Session client = mock(Session.class);
+		Session session = mock(Session.class);
 		
 		doThrow(Exception.class).when(instance)._getDataService(any(Session.class), any(Class.class));
 
-		instance.getDataService(client, cls);
+		instance.getDataService(session, cls);
 	}
 
 	private class ClassAsNotDataService {
 	}
 
 	/**
-	 * Test of createMessageToClient method, of class MessageToClientManager.
+	 * Test of _createMessageToClient method, of class WSMessageToClientManager.
 	 *
 	 * @throws Exception
 	 */
 	@Test
 	public void testCreateMessageToClient() throws Exception {
 		String methodname = "methodReturnString";
-		System.out.println("createMessageToClient("+methodname+")");
+		System.out.println("_createMessageToClient("+methodname+")");
 		Class cls = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
 		message.setDataService(cls.getName());
@@ -178,7 +184,7 @@ public class MessageToClientManagerTest {
 		message.setParameterNames(Arrays.asList("a"));
 		message.setParameters(Arrays.asList("\"v\""));
 		message.setId(UUID.randomUUID().toString());
-		Session client = mock(Session.class);
+		Session session = mock(Session.class);
 		Method method = cls.getMethod(methodname, String.class);
 
 		ClassAsDataService obj = new ClassAsDataService();
@@ -188,20 +194,20 @@ public class MessageToClientManagerTest {
 		when(methodServices.getMethodFromDataService(any(Class.class), any(MessageFromClient.class), anyList())).thenReturn(method);
 		when(methodServices.getNonProxiedMethod(any(Class.class), anyString(), any(Class[].class))).thenReturn(method);
 		
-		MessageToClient result = instance.createMessageToClient(message, client);
+		MessageToClient result = instance.createMessageToClient(message, session);
 
 		assertThat(result.getResponse()).isEqualTo(obj.methodReturnString("v"));
 	}
 
 	/**
-	 * Test of createMessageToClient method, of class MessageToClientManager.
+	 * Test of _createMessageToClient method, of class WSMessageToClientManager.
 	 *
 	 * @throws Exception
 	 */
 	@Test
 	public void testCreateMessageToClient2() throws Exception {
 		String methodname = "methodReturnString2";
-		System.out.println("createMessageToClient("+methodname+")");
+		System.out.println("_createMessageToClient("+methodname+")");
 		Class cls = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
 		message.setDataService(cls.getName());
@@ -209,7 +215,7 @@ public class MessageToClientManagerTest {
 		message.setParameterNames(Arrays.asList("a"));
 		message.setParameters(Arrays.asList("\"v\""));
 		message.setId(UUID.randomUUID().toString());
-		Session client = mock(Session.class);
+		Session session = mock(Session.class);
 		Method method = cls.getMethod(methodname, String.class);
 
 		ClassAsDataService obj = new ClassAsDataService();
@@ -219,7 +225,7 @@ public class MessageToClientManagerTest {
 		when(methodServices.getMethodFromDataService(any(Class.class), any(MessageFromClient.class), anyList())).thenReturn(method);
 		when(methodServices.getNonProxiedMethod(any(Class.class), anyString(), any(Class[].class))).thenThrow(NoSuchMethodException.class);
 		
-		MessageToClient result = instance.createMessageToClient(message, client);
+		MessageToClient result = instance.createMessageToClient(message, session);
 
 		assertThat(result.getResponse()).isEqualTo(obj.methodReturnString2("v"));
 
@@ -229,14 +235,14 @@ public class MessageToClientManagerTest {
 	}
 
 	/**
-	 * Test of createMessageToClient method, of class MessageToClientManager.
+	 * Test of _createMessageToClient method, of class WSMessageToClientManager.
 	 *
 	 * @throws Exception
 	 */
 	@Test
 	public void testCreateMessageToClient3() throws Exception {
 		String methodname = "methodWithMarshaller";
-		System.out.println("createMessageToClient("+methodname+")");
+		System.out.println("_createMessageToClient("+methodname+")");
 		Class cls = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
 		message.setDataService(cls.getName());
@@ -244,7 +250,7 @@ public class MessageToClientManagerTest {
 		message.setParameterNames(Arrays.asList("a"));
 		message.setParameters(Arrays.asList("\"v\""));
 		message.setId(UUID.randomUUID().toString());
-		Session client = mock(Session.class);
+		Session session = mock(Session.class);
 		Method method = cls.getMethod(methodname, String.class);
 
 		ClassAsDataService obj = new ClassAsDataService();
@@ -257,20 +263,20 @@ public class MessageToClientManagerTest {
 				  .getJsonResultFromSpecificMarshaller(any(JsonMarshaller.class), any(Object.class)))
 				  .thenReturn("{\"language\":\"fr\",\"country\":\"FR\"}");
 		
-		MessageToClient result = instance.createMessageToClient(message, client);
+		MessageToClient result = instance.createMessageToClient(message, session);
 
 		assertThat(result.getJson()).isEqualTo("{\"language\":\"fr\",\"country\":\"FR\"}");
 	}
 
 	/**
-	 * Test of createMessageToClient method, of class MessageToClientManager.
+	 * Test of _createMessageToClient method, of class WSMessageToClientManager.
 	 *
 	 * @throws Exception
 	 */
 	@Test
 	public void testCreateMessageToClient4() throws Exception {
 		String methodname = "methodThrowException";
-		System.out.println("createMessageToClient("+methodname+")");
+		System.out.println("_createMessageToClient("+methodname+")");
 		Class cls = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
 		message.setDataService(cls.getName());
@@ -279,7 +285,7 @@ public class MessageToClientManagerTest {
 		message.setParameters(Arrays.asList("\"v\""));
 		message.setId(UUID.randomUUID().toString());
 
-		Session client = mock(Session.class);
+		Session session = mock(Session.class);
 		Method method = cls.getMethod(methodname, String.class);
 		Fault fault = mock(Fault.class);
 
@@ -290,33 +296,33 @@ public class MessageToClientManagerTest {
 		when(methodServices.getMethodFromDataService(any(Class.class), any(MessageFromClient.class), anyList())).thenReturn(method);
 		when(faultServices.buildFault(any(Throwable.class))).thenReturn(fault);
 		
-		MessageToClient result = instance.createMessageToClient(message, client);
+		MessageToClient result = instance.createMessageToClient(message, session);
 		assertThat(result.getResponse()).isEqualTo(fault);
 	}
 
 	/**
-	 * Test of createMessageToClient method, of class MessageToClientManager.
+	 * Test of _createMessageToClient method, of class WSMessageToClientManager.
 	 *
 	 * @throws Exception
 	 */
 	@Test
 	public void testCreateMessageToClient5() throws Exception {
 		String methodname = "methodReturnString";
-		System.out.println("createMessageToClient("+methodname+") Failed");
-		Session client = mock(Session.class);
+		System.out.println("_createMessageToClient("+methodname+") Failed");
+		Session session = mock(Session.class);
 		Fault fault = mock(Fault.class);
 		Class cls = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
 		message.setDataService("BadClass");
 		when(faultServices.buildFault(any(Throwable.class))).thenReturn(fault);
 		
-		MessageToClient result = instance.createMessageToClient(message, client);
+		MessageToClient result = instance.createMessageToClient(message, session);
 
 		assertThat(result.getResponse()).isEqualTo(fault);
 	}
 
 	/**
-	 * Test of createMessageToClient method, of class MessageToClientManager.
+	 * Test of getArrayList method, of class WSMessageToClientManager.
 	 *
 	 * @throws Exception
 	 */

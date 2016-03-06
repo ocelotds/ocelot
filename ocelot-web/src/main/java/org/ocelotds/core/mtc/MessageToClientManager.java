@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.core.services;
+package org.ocelotds.core.mtc;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -11,11 +11,12 @@ import java.util.Map;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import javax.websocket.Session;
-import org.ocelotds.Constants;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.core.CacheManager;
+import org.ocelotds.core.services.ArgumentServices;
+import org.ocelotds.core.services.FaultServices;
+import org.ocelotds.core.services.MethodServices;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageToClient;
@@ -28,8 +29,9 @@ import org.slf4j.Logger;
 /**
  *
  * @author hhfrancois
+ * @param <T> Session or HttpSession
  */
-public class MessageToClientManager implements MessageToClientService {
+public abstract class MessageToClientManager<T> {
 	@Inject
 	@OcelotLogger
 	private Logger logger;
@@ -50,6 +52,8 @@ public class MessageToClientManager implements MessageToClientService {
 	@Inject
 	private FaultServices faultServices;
 
+	public abstract Map<String, Object> getSessionBeans(T session);
+
 	IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
 	}
@@ -57,17 +61,17 @@ public class MessageToClientManager implements MessageToClientService {
 	/**
 	 * Get Dataservice, store dataservice in session if session scope.<br>
 	 *
-	 * @param client
+	 * @param session
 	 * @param cls
 	 * @return
 	 * @throws DataServiceException
 	 */
-	Object getDataService(Session client, Class cls) throws DataServiceException {
+	Object getDataService(T session, Class cls) throws DataServiceException {
 		String dataServiceClassName = cls.getName();
 		logger.debug("Looking for dataservice : {}", dataServiceClassName);
 		if (cls.isAnnotationPresent(DataService.class)) {
 			try {
-				return _getDataService(client, cls);
+				return _getDataService(session, cls);
 			} catch (Exception e) {
 				throw new DataServiceException(dataServiceClassName, e);
 			}
@@ -75,33 +79,30 @@ public class MessageToClientManager implements MessageToClientService {
 			throw new DataServiceException(dataServiceClassName);
 		}
 	}
-
+	
 	/**
 	 * Get Dataservice, store dataservice in session if session scope.<br>
 	 *
-	 * @param client
+	 * @param session
 	 * @param cls
 	 * @return
 	 * @throws DataServiceException
 	 */
-	Object _getDataService(Session client, Class cls) throws Exception {
+	Object _getDataService(T session, Class cls) throws Exception {
 		String dataServiceClassName = cls.getName();
 		DataService dataServiceAnno = (DataService) cls.getAnnotation(DataService.class);
 		IDataServiceResolver resolver = getResolver(dataServiceAnno.resolver());
 		Scope scope = resolver.getScope(cls);
 		Object dataService = null;
-		Map sessionBeans = null;
-		if(client != null) {
-			sessionBeans = (Map) client.getUserProperties().get(Constants.SESSION_BEANS);
-		}
+		Map<String, Object> sessionBeans = getSessionBeans(session);
 		logger.debug("{} : scope : {}", dataServiceClassName, scope);
-		if (scope.equals(Scope.SESSION) && sessionBeans != null) {
+		if (scope.equals(Scope.SESSION)) {
 			dataService = sessionBeans.get(dataServiceClassName);
 			logger.debug("{} : scope : session is in session : {}", dataServiceClassName, (dataService != null));
 		}
 		if (dataService == null) {
 			dataService = resolver.resolveDataService(cls);
-			if (scope.equals(Scope.SESSION) && sessionBeans != null) {
+			if (scope.equals(Scope.SESSION)) {
 				logger.debug("Store {} scope session in session", dataServiceClassName);
 				sessionBeans.put(dataServiceClassName, dataService);
 			}
@@ -110,18 +111,17 @@ public class MessageToClientManager implements MessageToClientService {
 	}
 
 	/**
-	 * Create a MessageToClient from MessageFromClient for client
+	 * Create a MessageToClient from MessageFromClient for session
 	 * @param message
-	 * @param client
+	 * @param session
 	 * @return 
 	 */
-	@Override
-	public MessageToClient createMessageToClient(MessageFromClient message, Session client) {
+	public MessageToClient createMessageToClient(MessageFromClient message, T session) {
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(message.getId());
 		try {
 			Class cls = Class.forName(message.getDataService());
-			Object dataService = this.getDataService(client, cls);
+			Object dataService = this.getDataService(session, cls);
 			logger.debug("Process message {}", message);
 			List<Object> arguments = getArrayList();
 			Method method = methodServices.getMethodFromDataService(cls, message, arguments);
@@ -138,6 +138,8 @@ public class MessageToClientManager implements MessageToClientService {
 			logger.debug("Method {} proceed messageToClient : {}.", method.getName(), messageToClient);
 		} catch (InvocationTargetException ex) {
 			messageToClient.setFault(faultServices.buildFault(ex.getCause()));
+		} catch (RuntimeException ex) {
+			messageToClient.setFault(faultServices.buildFault(ex));
 		} catch (Throwable ex) {
 			messageToClient.setFault(faultServices.buildFault(ex));
 		}

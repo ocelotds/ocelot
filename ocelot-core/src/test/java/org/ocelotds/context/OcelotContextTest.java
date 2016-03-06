@@ -5,11 +5,10 @@
 package org.ocelotds.context;
 
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
-import javax.websocket.server.HandshakeRequest;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
@@ -36,10 +35,42 @@ public class OcelotContextTest {
 	private OcelotContext instance;
 	
 	@Mock
-	private Session session;
+	private Principal principal;
 
 	@Mock
-	private HandshakeRequest handshakeRequest;
+	private HttpServletRequest request;
+
+	/**
+	 * Test of getSession method, of class OcelotContext.
+	 */
+	@Test
+	public void testGetSession() {
+		System.out.println("getSession");
+		Session session = mock(Session.class);
+		ThreadLocalContextHolder.cleanupThread();
+		Session result = instance.getSession();
+		assertThat(result).isNull();
+		
+		ThreadLocalContextHolder.put(Constants.SESSION, session);
+		result = instance.getSession();
+		assertThat(result).isEqualTo(session);
+	}
+
+	/**
+	 * Test of getHttpSession method, of class OcelotContext.
+	 */
+	@Test
+	public void testGetHttpSession() {
+		System.out.println("getHttpSession");
+		HttpSession session = mock(HttpSession.class);
+		ThreadLocalContextHolder.cleanupThread();
+		HttpSession result = instance.getHttpSession();
+		assertThat(result).isNull();
+		
+		ThreadLocalContextHolder.put(Constants.HTTPSESSION, session);
+		result = instance.getHttpSession();
+		assertThat(result).isEqualTo(session);
+	}
 
 	/**
 	 * Test of getLocale method, of class OcelotContext.
@@ -47,72 +78,100 @@ public class OcelotContextTest {
 	@Test
 	public void testGetLocale() {
 		System.out.println("getLocale");
-		Map<String, Object> map = new HashMap<>();
-
-		when(session.getUserProperties()).thenReturn(map);
-		when(instance.getSession()).thenReturn(session).thenReturn(session).thenReturn(null);
-
+		doReturn(null).doReturn(Locale.FRANCE).when(instance).getLocaleFromHttpSession();
 		Locale result = instance.getLocale();
 		assertThat(result).isEqualTo(Locale.US);
 
-		map.put(Constants.LOCALE, Locale.FRANCE);
 		result = instance.getLocale();
 		assertThat(result).isEqualTo(Locale.FRANCE);
-
-		result = instance.getLocale();
-		assertThat(result).isEqualTo(Locale.US);
+	}
+	
+	/**
+	 * Test of getLocaleFromHttpSession method, of class OcelotContext.
+	 */
+	@Test
+	public void testGetLocaleFromNullHttpSession() {
+		System.out.println("getLocaleFromHttpSession");
+		doReturn(null).when(instance).getHttpSession();
+		Locale result = instance.getLocaleFromHttpSession();
+		assertThat(result).isNull();
 	}
 
+	/**
+	 * Test of getLocaleToHttpSession method, of class OcelotContext.
+	 */
+	@Test
+	public void testGetLocaleFromHttpSession() {
+		System.out.println("getLocaleFromHttpSession");
+		HttpSession httpSession = mock(HttpSession.class);
+		doReturn(httpSession).when(instance).getHttpSession();
+		when(httpSession.getAttribute(eq(Constants.LOCALE))).thenReturn(Locale.CHINA);
+		Locale result = instance.getLocaleFromHttpSession();
+		assertThat(result).isEqualTo(Locale.CHINA);
+	}
+	
 	/**
 	 * Test of setLocale method, of class OcelotContext.
 	 */
 	@Test
 	public void testSetLocale() {
-		Map<String, Object> map = new HashMap<>();
-
-		when(session.getUserProperties()).thenReturn(map);
-		when(instance.getSession()).thenReturn(session).thenReturn(session).thenReturn(session).thenReturn(null);
-		
-		instance.setLocale(Locale.ITALY);
-		assertThat(map.get(Constants.LOCALE)).isEqualTo(Locale.ITALY);
-		
-		instance.setLocale(null);
-		assertThat(map).doesNotContainKey(Constants.LOCALE);
-
-		instance.setLocale(Locale.FRANCE);
-		assertThat(map.get(Constants.LOCALE)).isEqualTo(Locale.FRANCE);
-
+		System.out.println("setLocale");
 		instance.setLocale(Locale.CHINA);
-		assertThat(map.get(Constants.LOCALE)).isEqualTo(Locale.FRANCE);
+		verify(instance).setLocaleToHttpSession(eq(Locale.CHINA));
 	}
+	
+	
+	/**
+	 * Test of setLocaleToHttpSession method, of class OcelotContext.
+	 */
+	@Test
+	public void testSetLocaleFromNullHttpSession() {
+		System.out.println("setLocaleToHttpSession");
+		doReturn(null).when(instance).getHttpSession();
+		instance.setLocaleToHttpSession(null);
+		verify(logger).warn(anyString());
+	}
+
+	/**
+	 * Test of setLocaleToHttpSession method, of class OcelotContext.
+	 */
+	@Test
+	public void testRemoveLocaleFromHttpSession() {
+		System.out.println("setLocaleToHttpSession");
+		HttpSession httpSession = mock(HttpSession.class);
+		doReturn(httpSession).when(instance).getHttpSession();
+		instance.setLocaleToHttpSession(null);
+		verify(httpSession).removeAttribute(eq(Constants.LOCALE));
+		verify(httpSession, never()).setAttribute(eq(Constants.LOCALE), any(Locale.class));
+	}
+
+	/**
+	 * Test of setLocaleToHttpSession method, of class OcelotContext.
+	 */
+	@Test
+	public void testSetLocaleFromHttpSession() {
+		HttpSession httpSession = mock(HttpSession.class);
+		doReturn(httpSession).when(instance).getHttpSession();
+		instance.setLocaleToHttpSession(Locale.CHINA);
+		verify(httpSession).removeAttribute(eq(Constants.LOCALE));
+		verify(httpSession).setAttribute(eq(Constants.LOCALE), eq(Locale.CHINA));
+	}
+
 	/**
 	 * Test of getPrincipal method, of class OcelotContext.
 	 */
 	@Test
 	public void testGetPrincipal() {
 		System.out.println("getPrincipal");
-		Principal p = mock(Principal.class);
-		String expResult = "username";
-
-		when(p.getName()).thenReturn(expResult);
-		when(session.getUserPrincipal()).thenReturn(null).thenReturn(p);
-		when(instance.getSession()).thenReturn(session).thenReturn(session).thenReturn(null);
-
-		String result = instance.getPrincipal().getName();
-		assertThat(result).isEqualTo(Constants.ANONYMOUS);
-
-		result = instance.getPrincipal().getName();
-		assertThat(result).isEqualTo(expResult);
-		
-		result = instance.getPrincipal().getName();
-		assertThat(result).isEqualTo(Constants.ANONYMOUS);
+		Principal result = instance.getPrincipal();
+		assertThat(result).isEqualTo(principal);
 	}
 
 	@Test
 	public void testIsUserInRole() {
-		when(instance.getHandshakeRequest()).thenReturn(null).thenReturn(handshakeRequest);
-		when(handshakeRequest.isUserInRole("OK")).thenReturn(Boolean.TRUE);
-		when(handshakeRequest.isUserInRole("NOK")).thenReturn(Boolean.FALSE);
+		when(instance.getRequest()).thenReturn(null).thenReturn(request);
+		when(request.isUserInRole("OK")).thenReturn(Boolean.TRUE);
+		when(request.isUserInRole("NOK")).thenReturn(Boolean.FALSE);
 		boolean result = instance.isUserInRole("OK");
 		assertThat(result).isEqualTo(Boolean.FALSE);
 		result = instance.isUserInRole("OK");

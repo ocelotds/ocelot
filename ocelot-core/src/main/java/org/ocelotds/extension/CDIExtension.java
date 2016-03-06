@@ -8,8 +8,6 @@ import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterTypeDiscovery;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.Extension;
-import org.ocelotds.security.OcelotPrincipal;
-import org.ocelotds.security.RolesAllowedInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,10 +23,6 @@ public class CDIExtension implements Extension {
 		List<Class<?>> interceptors = afd.getInterceptors();
 		interceptors.add(JsTopicInterceptor.class);
 		logger.debug("CDI : Add Interceptor {}", JsTopicInterceptor.class);
-		interceptors.add(RolesAllowedInterceptor.class);
-		logger.debug("CDI : Add Interceptor {}", RolesAllowedInterceptor.class);
-		afd.getAlternatives().add(OcelotPrincipal.class);
-		logger.debug("CDI : Add Alternative {}", OcelotPrincipal.class);
 	}
 
 }

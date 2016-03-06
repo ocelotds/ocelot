@@ -26,7 +26,7 @@ public class FaultServices {
 	 * @param ex
 	 * @return 
 	 */
-	Fault buildFault(Throwable ex) {
+	public Fault buildFault(Throwable ex) {
 		Fault fault;
 		int stacktracelength = configuration.getStacktracelength();
 		if (stacktracelength == 0 || logger.isDebugEnabled()) {

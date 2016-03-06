@@ -2,11 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package org.ocelotds.core.services;
+package org.ocelotds.core.ws;
 
-import java.security.Principal;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import javax.websocket.Session;
 import org.junit.Test;
@@ -38,27 +36,21 @@ public class CallServiceDecoratorTest {
 	private CallServiceDecorator instance = new CallServiceDecoratorImpl();
 
 	/**
-	 * Test of decorrate method sendMessageToClient, of class CallServiceDecorator.
+	 * Test of decorate method sendMessageToClient, of class CallServiceDecorator.
 	 */
 	@Test
 	public void testDecorator() {
 		System.out.println("Decorate sendMessageToClient");
 		Session session = mock(Session.class);
-		Map<String, Object> sessionProperties = new HashMap<>();
-		Principal p = mock(Principal.class);
-		sessionProperties.put(Constants.LOCALE, Locale.FRANCE);
-
-		when(session.getUserPrincipal()).thenReturn(p);
-		when(session.getUserProperties()).thenReturn(sessionProperties);
 		when(callSercice.sendMessageToClient(any(MessageFromClient.class), any(Session.class))).thenReturn(Boolean.TRUE);
 		
 		boolean result = instance.sendMessageToClient(null, session);
-		assertThat(ThreadLocalContextHolder.get(Constants.PRINCIPAL)).isEqualTo(p);
 		assertThat(result).isTrue();
+		assertThat(ThreadLocalContextHolder.get(Constants.SESSION)).isEqualTo(session);
 	}
 
 	/**
-	 * Test of decorrate method sendMessageToClient, of class CallServiceDecorator.
+	 * Test of decorate method sendMessageToClient, of class CallServiceDecorator.
 	 */
 	@Test
 	public void testDecoratorDoNothing() {

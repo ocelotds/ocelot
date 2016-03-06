@@ -20,6 +20,8 @@ public interface Constants {
 	String BACKSLASH_N = "\n";
 	String LOCALE = "LOCALE";
 	String SESSION = "SESSION";
+	String HTTPSESSION = "HTTPSESSION";
+	String HTTPREQUEST = "HTTPREQUEST";
 	String HANDSHAKEREQUEST = "HANDSHAKEREQUEST";
 	String SESSION_BEANS = "SESSIONBEANS";
 	String PRINCIPAL = "PRINCIPAL";
@@ -76,6 +78,8 @@ public interface Constants {
 		String RESPONSE = "response";
 		String LANGUAGE = "language";
 		String COUNTRY = "country";
+		String MFC = "mfc";
+		String MTC = "mtc";
 
 		interface Fault {
 

@@ -27,7 +27,7 @@ public class CDIExtensionTest {
 		BeanManager beanManager = null;
 		CDIExtension instance = new CDIExtension();
 		instance.afterTypeDiscovery(afd, beanManager);
-		assertEquals("We add two interceptor", 2, afd.getInterceptors().size());
+		assertEquals("We add two interceptor", 1, afd.getInterceptors().size());
 	}
 	
 }

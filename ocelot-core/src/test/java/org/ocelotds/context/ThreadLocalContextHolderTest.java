@@ -14,7 +14,8 @@ import org.ocelotds.Constants;
  */
 public class ThreadLocalContextHolderTest {
 	
-	private static final String NAME = "francois";
+	private static final String KEY = "KEY";
+	private static final String VALUE = "VALUE";
 	
 	/**
 	 * Test constructor is private
@@ -37,9 +38,9 @@ public class ThreadLocalContextHolderTest {
 	@Test
 	public void testPut() {
 		System.out.println("put");
-		ThreadLocalContextHolder.put(Constants.PRINCIPAL, NAME);
-		Object result = ThreadLocalContextHolder.get(Constants.PRINCIPAL);
-		assertThat(result).isEqualTo(NAME);
+		ThreadLocalContextHolder.put(KEY, VALUE);
+		Object result = ThreadLocalContextHolder.get(KEY);
+		assertThat(result).isEqualTo(VALUE);
 	}
 
 	/**
@@ -48,9 +49,9 @@ public class ThreadLocalContextHolderTest {
 	@Test
 	public void testCleanExist() {
 		System.out.println("put");
-		ThreadLocalContextHolder.put(Constants.PRINCIPAL, NAME);
-		ThreadLocalContextHolder.put(Constants.PRINCIPAL, null);
-		Object result = ThreadLocalContextHolder.get(Constants.PRINCIPAL);
+		ThreadLocalContextHolder.put(KEY, VALUE);
+		ThreadLocalContextHolder.put(KEY, null);
+		Object result = ThreadLocalContextHolder.get(KEY);
 		assertThat(result).isEqualTo(null);
 	}
 
@@ -60,12 +61,12 @@ public class ThreadLocalContextHolderTest {
 	@Test
 	public void testCleanNotExist() {
 		System.out.println("put");
-		ThreadLocalContextHolder.put(Constants.PRINCIPAL, NAME);
+		ThreadLocalContextHolder.put(KEY, VALUE);
 		ThreadLocalContextHolder.put("FOO", null);
 		Object result = ThreadLocalContextHolder.get("FOO");
 		assertThat(result).isEqualTo(null);
-		result = ThreadLocalContextHolder.get(Constants.PRINCIPAL);
-		assertThat(result).isEqualTo(NAME);		
+		result = ThreadLocalContextHolder.get(KEY);
+		assertThat(result).isEqualTo(VALUE);		
 	}
 
 	/**
@@ -74,9 +75,9 @@ public class ThreadLocalContextHolderTest {
 	@Test
 	public void testCleanupThread() {
 		System.out.println("cleanupThread");
-		ThreadLocalContextHolder.put(Constants.PRINCIPAL, NAME);
+		ThreadLocalContextHolder.put(KEY, VALUE);
 		ThreadLocalContextHolder.cleanupThread();
-		Object result = ThreadLocalContextHolder.get(Constants.PRINCIPAL);
+		Object result = ThreadLocalContextHolder.get(KEY);
 		assertThat(result).isNull();
 	}
 	

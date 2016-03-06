@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.core.services;
+package org.ocelotds.core.ws;
 
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
@@ -16,6 +16,7 @@ import org.mockito.Spy;
 import org.ocelotds.messaging.MessageToClient;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
+import org.ocelotds.core.mtc.WSMessageToClientManager;
 import org.slf4j.Logger;
 
 /**
@@ -29,7 +30,7 @@ public class CallServiceManagerTest {
 	private Logger logger;
 
 	@Mock
-	private MessageToClientService messageToClientService;
+	private WSMessageToClientManager messageToClientService;
 
 	@Spy
 	@InjectMocks

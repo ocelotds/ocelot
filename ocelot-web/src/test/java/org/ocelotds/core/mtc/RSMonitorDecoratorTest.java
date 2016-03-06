@@ -2,11 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package org.ocelotds.core.services;
+package org.ocelotds.core.mtc;
 
 import java.util.HashMap;
 import java.util.Map;
-import javax.websocket.Session;
+import javax.servlet.http.HttpSession;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
@@ -27,7 +27,7 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 @RunWith(MockitoJUnitRunner.class)
-public class MonitorDecoratorTest {
+public class RSMonitorDecoratorTest {
 	
 	private final static long WAIT = 1000;
 
@@ -35,17 +35,17 @@ public class MonitorDecoratorTest {
 	private Logger logger;
 
 	@InjectMocks
-	private MonitorDecorator instance = new MonitorDecoratorImpl();
+	private RSMonitorDecorator instance = new MonitorDecoratorImpl();
 
 	@Mock
-	private MessageToClientService messageToClientService;
+	private RSMessageToClientService messageToClientService;
 	
 	/**
 	 * Prepare mocks 
 	 */
 	@Before
 	public void prepareMocks() {
-		when(messageToClientService.createMessageToClient(any(MessageFromClient.class), any(Session.class))).then(new Answer<MessageToClient>() {
+		when(messageToClientService.createMessageToClient(any(MessageFromClient.class), any(HttpSession.class))).then(new Answer<MessageToClient>() {
 			@Override
 			public MessageToClient answer(InvocationOnMock invocation) throws Throwable {
 				Thread.sleep(WAIT);
@@ -55,49 +55,45 @@ public class MonitorDecoratorTest {
 	}
 	
 	/**
-	 * Test of createMessageToClient method, of class MonitorDecorator.
+	 * Test of createMessageToClient method, of class WSMonitorDecorator.
 	 */
 	@Test
 	public void testCreateMessageToClientMonitor() {
 		System.out.println("createMessageToClient");
 		MessageFromClient message = mock(MessageFromClient.class);
-		Session client = mock(Session.class);
-		Map<String, Object> map = new HashMap<>();
+		HttpSession session = mock(HttpSession.class);
+		when(session.getAttribute(Constants.Options.MONITOR)).thenReturn(true);
 
-		when(client.getUserProperties()).thenReturn(map);
-
-		map.put(Constants.Options.MONITOR, true);
-		MessageToClient result = instance.createMessageToClient(message, client);
+		MessageToClient result = instance.createMessageToClient(message, session);
 		assertThat(result.getTime()).isGreaterThanOrEqualTo(WAIT);
 	}
 
 	/**
-	 * Test of createMessageToClient method, of class MonitorDecorator.
+	 * Test of createMessageToClient method, of class WSMonitorDecorator.
 	 */
 	@Test
 	public void testCreateMessageToClientNoMonitor() {
 		System.out.println("createMessageToClient");
 		MessageFromClient message = mock(MessageFromClient.class);
-		Session client = mock(Session.class);
+		HttpSession session = mock(HttpSession.class);
 		Map<String, Object> map = new HashMap<>();
 
-		when(client.getUserProperties()).thenReturn(map);
+		when(session.getAttribute(Constants.Options.MONITOR)).thenReturn(false);
 
-		map.put(Constants.Options.MONITOR, false);
-		MessageToClient result = instance.createMessageToClient(message, client);
+		MessageToClient result = instance.createMessageToClient(message, session);
 		assertThat(result.getTime()).isZero();
 	}
 	/**
-	 * Test of createMessageToClient method, of class MonitorDecorator.
+	 * Test of createMessageToClient method, of class WSMonitorDecorator.
 	 */
 	@Test
 	public void testCreateMessageToClientFail() {
 		System.out.println("createMessageToClient");
 		MessageToClient result = instance.createMessageToClient(null, null);
-		assertThat(result).isNull();
+		assertThat(result.getTime()).isZero();
 	}
 
-	public class MonitorDecoratorImpl extends MonitorDecorator {
+	public class MonitorDecoratorImpl extends RSMonitorDecorator {
 
 	}
 }

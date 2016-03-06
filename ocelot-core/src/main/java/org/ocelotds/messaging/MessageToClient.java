@@ -163,7 +163,11 @@ public class MessageToClient {
 		try {
 			jsonResponse = this.json;
 			if (null == this.json) {
-				jsonResponse = mapper.writeValueAsString(this.getResponse());
+				if(MessageType.FAULT.equals(this.getType())) {
+					jsonResponse = ((Fault) this.getResponse()).toJson();
+				} else {
+					jsonResponse = mapper.writeValueAsString(this.getResponse());
+				}
 			}
 		} catch (JsonProcessingException ex) {
 			jsonResponse = new Fault(ex, 0).toJson();
