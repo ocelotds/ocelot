@@ -2,13 +2,12 @@ sudo: false
 language: java
 jdk: oraclejdk7
 before_install:
-   - openssl aes-256-cbc -K $encrypted_9112fb2807d4_key -iv $encrypted_9112fb2807d4_iv -in secring.gpg.enc -out secring.gpg -d
+   - openssl aes-256-cbc -K $encrypted_9112fb2807d4_key -iv $encrypted_9112fb2807d4_iv -in secrets.tar.enc -out secrets.tar -d
+   - tar xvf secrets.tar
    - pip install --user codecov
    - cp deployOrPerform.sh /tmp/deployOrPerform.sh
    - chmod ugo+x /tmp/deployOrPerform.sh
-#install: true
 install: mvn clean install -DskipTests=true -Dgpg.skip=true
-#install: mvn deploy --settings .travis-settings.xml
 script:
    - /tmp/deployOrPerform.sh
 after_success: 
@@ -35,6 +34,6 @@ addons:
          description: "Build submitted via Travis CI"
       notification_email: "francois.achache@gmail.com"
       build_command_prepend: "mvn clean"
-      build_command: "mvn compile -DskipTests=true -Dgpg.skip=true"
+      build_command: "mvn compile -Dgpg.skip=true"
       branch_pattern: coverity_scan
 
