@@ -606,7 +606,7 @@ public abstract class AbstractOcelotTest {
 	}
 
 	protected void testResultRequestScope(final Class clazz) {
-		int nb = 50;
+		int nb = 10;
 		ExecutorService executor = Executors.newFixedThreadPool(nb);
 		final List<Future<Object>> futures = new ArrayList<>();
 		Client client = null;
