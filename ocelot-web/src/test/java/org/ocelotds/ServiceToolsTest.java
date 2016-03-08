@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -424,6 +425,70 @@ public class ServiceToolsTest {
 		cls = Serializable.class;
 		result = instance.getInstanceOfClass(cls);
 		assertThat(result).isNull();
+	}
+
+	/**
+	 * Test of getObjectFromConstantFields method, of class ServiceTools.
+	 */
+	@Test
+	public void testGetObjectFromConstantFields() {
+		System.out.println("getObjectFromConstantFields");
+		
+		Object result = instance.getObjectFromConstantFields(String.class);
+		assertThat(result).isNull();
+		
+		result = instance.getObjectFromConstantFields(Locale.class);
+		assertThat(result).isInstanceOf(Locale.class);
+	}
+
+	/**
+	 * Test of getObjectFromConstantField method, of class ServiceTools.
+	 * @throws java.lang.NoSuchFieldException
+	 * @throws java.lang.IllegalAccessException
+	 */
+	@Test
+	public void testGetObjectFromConstantField() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+		System.out.println("getObjectFromConstantField");
+		Field badField = Result.class.getDeclaredField("integer");
+		Field goodField = Locale.class.getField("US");
+		
+		Object result = instance.getObjectFromConstantField(Result.class, badField);
+		assertThat(result).isNull();
+		
+		result = instance.getObjectFromConstantField(Locale.class, goodField);
+		assertThat(result).isInstanceOf(Locale.class);
+
+		doThrow(IllegalAccessException.class).doThrow(IllegalArgumentException.class).when(instance).getConstantFromField(any(Field.class));
+		result = instance.getObjectFromConstantField(Locale.class, goodField);
+		assertThat(result).isNull();
+
+		result = instance.getObjectFromConstantField(Locale.class, goodField);
+		assertThat(result).isNull();
+	}
+	
+	/**
+	 * Test of getConstantFromField method, of class ServiceTools.
+	 * @throws java.lang.NoSuchFieldException
+	 * @throws java.lang.IllegalAccessException
+	 */
+	@Test
+	public void testGetConstantFromField() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+		System.out.println("getConstantFromField");
+		Field field = Locale.class.getDeclaredField("US");
+		instance.getConstantFromField(field);
+	}
+	
+	/**
+	 * Test of getConstantFromField method, of class ServiceTools.
+	 * @throws java.lang.NoSuchFieldException
+	 * @throws java.lang.IllegalAccessException
+	 */
+	@Test(expected = IllegalAccessException.class)
+	public void testGetConstantFromFieldFailed1() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+		System.out.println("getConstantFromField");
+		Field field = Result.class.getDeclaredField("fieldOfClass");
+		System.out.println("FIELD = "+field);
+		instance.getConstantFromField(field);
 	}
 
 	/**

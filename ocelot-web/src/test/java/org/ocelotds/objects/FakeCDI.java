@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.CDI;
 import javax.enterprise.util.TypeLiteral;
 
 /**
@@ -15,7 +17,7 @@ import javax.enterprise.util.TypeLiteral;
  * @author hhfrancois
  * @param <T>
  */
-public class FakeCDI<T> implements Instance<T> {
+public class FakeCDI<T> extends CDI<T> implements Instance<T> {
 	private final Collection<T> instances = new ArrayList<>();
 
 	@Override
@@ -60,5 +62,9 @@ public class FakeCDI<T> implements Instance<T> {
 	public void add(T o) {
 		instances.add(o);
 	}
-	
+
+	@Override
+	public BeanManager getBeanManager() {
+		return null;
+	}
 }

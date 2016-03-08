@@ -19,7 +19,6 @@ import java.util.Map;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
-import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
 import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
@@ -30,7 +29,6 @@ import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.objects.OcelotMethod;
 import org.ocelotds.objects.OcelotService;
-import org.ocelotds.web.RequestManager;
 import org.slf4j.Logger;
 
 /**
@@ -126,14 +124,22 @@ public class OcelotServices {
 			Class cls = serviceTools.getRealClass(dataservice.getClass());
 			OcelotService ocelotService = new OcelotService(serviceTools.getInstanceNameFromDataservice(cls));
 			result.add(ocelotService);
-			Method[] methods = cls.getMethods();
-			for (Method method : methods) {
-				if (serviceTools.isConsiderateMethod(method)) {
-					ocelotService.getMethods().add(getOcelotMethod(method));
-				}
-			}
+			addMethodsToMethodsService(cls.getMethods(), ocelotService.getMethods());
 		}
 		return result;
+	}
+
+	/**
+	 * 
+	 * @param methods
+	 * @param ocelotService 
+	 */
+	void addMethodsToMethodsService(Method[] methods,  List<OcelotMethod> methodsService) {
+		for (Method method : methods) {
+			if (serviceTools.isConsiderateMethod(method)) {
+				methodsService.add(getOcelotMethod(method));
+			}
+		}
 	}
 	
 	OcelotMethod getOcelotMethod(Method method) {

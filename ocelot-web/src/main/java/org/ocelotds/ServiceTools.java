@@ -34,7 +34,7 @@ public class ServiceTools {
 
 	@Inject
 	private ObjectMapper objectMapper;
-	
+
 	@Inject
 	private TemplateMarshaller templateMarshaller;
 
@@ -109,7 +109,7 @@ public class ServiceTools {
 	 * @return
 	 */
 	public String getTemplateOfType(Type type, org.ocelotds.marshalling.IJsonMarshaller jsonMarshaller) {
-		if(jsonMarshaller==null) {
+		if (jsonMarshaller == null) {
 			jsonMarshaller = templateMarshaller;
 		}
 		return _getTemplateOfType(type, jsonMarshaller);
@@ -170,7 +170,6 @@ public class ServiceTools {
 //		}
 //		return getTemplateOfClass((Class) type);
 //	}
-
 	/**
 	 * Get template for unknown type (class or parameterizedType)
 	 *
@@ -214,18 +213,42 @@ public class ServiceTools {
 			try {
 				return cls.newInstance();
 			} catch (InstantiationException | IllegalAccessException ex) {
-				Field[] fields = cls.getFields();
-				for (Field field : fields) {
-					if (Modifier.isStatic(field.getModifiers()) && field.getType().isAssignableFrom(cls)) {
-						try {
-							return field.get(null);
-						} catch (IllegalArgumentException | IllegalAccessException ex1) {
-						}
-					}
-				}
+				return getObjectFromConstantFields(cls);
 			}
 		}
-		return null;
+	}
+
+	/**
+	 * If the class has not empty constructor, look static field if it return instance
+	 *
+	 * @param cls
+	 * @return
+	 */
+	Object getObjectFromConstantFields(Class cls) {
+		Field[] fields = cls.getFields();
+		Object instance = null;
+		for (Field field : fields) {
+			instance = getObjectFromConstantField(cls, field);
+			if(instance!=null) {
+				break;
+			}
+		}
+		return instance;
+	}
+
+	Object getObjectFromConstantField(Class cls, Field field) {
+		Object instance = null;
+		if (Modifier.isStatic(field.getModifiers()) && field.getType().isAssignableFrom(cls)) {
+			try {
+				instance = getConstantFromField(field);
+			} catch (IllegalArgumentException | IllegalAccessException ex1) {
+			}
+		}
+		return instance;
+	}
+	
+	Object getConstantFromField(Field field) throws IllegalArgumentException, IllegalAccessException {
+		return field.get(null);
 	}
 
 	/**
@@ -252,7 +275,6 @@ public class ServiceTools {
 //		}
 //		return cls.getSimpleName().toLowerCase(Locale.ENGLISH);
 //	}
-
 	/**
 	 * Get template from parameterizedType
 	 *
@@ -343,7 +365,7 @@ public class ServiceTools {
 			throw new ClassNotFoundException();
 		}
 	}
-	
+
 	<T> T getCDICurrentSelect(Class<T> cls) {
 		return CDI.current().select(cls).get();
 	}

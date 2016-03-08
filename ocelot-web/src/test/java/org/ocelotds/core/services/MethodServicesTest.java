@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.configuration.AbstractFileInitializerImpl;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.ocelotds.messaging.MessageFromClient;
 import org.slf4j.Logger;
@@ -39,7 +40,7 @@ public class MethodServicesTest {
 	private ArgumentConvertor argumentsServices;
 
 	/**
-	 * Test of getMethodFromDataService method, of class CallServiceManager.
+	 * Test of getMethodFromDataService method, of class MethodServices.
 	 *
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
@@ -62,7 +63,7 @@ public class MethodServicesTest {
 	}
 
 	/**
-	 * Test of getMethodFromDataService method, of class CallServiceManager.
+	 * Test of getMethodFromDataService method, of class MethodServices.
 	 *
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
@@ -82,7 +83,7 @@ public class MethodServicesTest {
 	}
 
 	/**
-	 * Test of getMethodFromDataService method, of class CallServiceManager.
+	 * Test of getMethodFromDataService method, of class MethodServices.
 	 *
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
@@ -109,11 +110,38 @@ public class MethodServicesTest {
 	}
 	
 	/**
-	 * Test of getNumberOfNullEnderParameter method, of class CallServiceManager.
+	 * Test of getNonProxiedMethod method, of class MethodServices.
+	 * 
+	 * @throws java.lang.NoSuchMethodException
+	 */
+	@Test
+	public void testGetNonProxiedMethod() throws NoSuchMethodException {
+		System.out.println("getNonProxiedMethod");
+		Method m = instance.getNonProxiedMethod(AbstractFileInitializerImpl.class, "methodTest1");
+		assertThat(m).isNotNull();
+		
+		m = instance.getNonProxiedMethod(AbstractFileInitializerImpl.class, "methodTest2",String.class);
+		assertThat(m).isNotNull();
+	}
+	
+	/**
+	 * Test of getNonProxiedMethod method, of class MethodServices.
+	 * 
+	 * @throws java.lang.NoSuchMethodException
+	 */
+	@Test(expected = NoSuchMethodException.class)
+	public void testGetNonProxiedMethodFailed() throws NoSuchMethodException {
+		System.out.println("getNonProxiedMethod");
+		Method m = instance.getNonProxiedMethod(AbstractFileInitializerImpl.class, "methodTest3");
+	}
+
+	/**
+	 * Test of getNumberOfNullEnderParameter method, of class MethodServices.
 	 * 
 	 */
 	@Test
 	public void testGetNumberOfNullEnderParameter() {
+		System.out.println("getNumberOfNullEnderParameter");
 		List<String> params = Arrays.asList("", "null", "", "null", "null");
 		int result = instance.getNumberOfNullEnderParameter(params);
 		assertThat(result).isEqualTo(2);
@@ -128,7 +156,7 @@ public class MethodServicesTest {
 	}
 	
 	/**
-	 * Test of checkMethod method, of class CallServiceManager.
+	 * Test of checkMethod method, of class MethodServices.
 	 * 
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
@@ -149,7 +177,7 @@ public class MethodServicesTest {
 	}
 
 	/**
-	 * Test of checkMethod method, of class CallServiceManager.
+	 * Test of checkMethod method, of class MethodServices.
 	 * 
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException

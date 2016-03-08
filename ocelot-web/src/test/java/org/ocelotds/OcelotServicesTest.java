@@ -19,13 +19,17 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.context.OcelotContext;
 import org.ocelotds.core.SessionManager;
 import org.ocelotds.core.UpdatedCacheManager;
+import org.ocelotds.core.services.ClassAsDataService;
 import org.ocelotds.objects.OcelotMethod;
 import org.slf4j.Logger;
 import org.ocelotds.marshalling.IJsonMarshaller;
+import org.ocelotds.objects.FakeCDI;
+import org.ocelotds.objects.OcelotService;
 
 /**
  *
@@ -52,10 +56,11 @@ public class OcelotServicesTest {
 	@Mock
 	private ServiceTools serviceTools;
 
-	@Mock
-	private Instance<Object> dataservices;
+	@Spy
+	private Instance<Object> dataservices = new FakeCDI<Object>();
 
 	@InjectMocks
+	@Spy
 	private OcelotServices instance;
 
 	/**
@@ -177,10 +182,28 @@ public class OcelotServicesTest {
 	@Test
 	public void testGetServices() {
 		System.out.println("getServices");
-//		Instance<IServicesProvider> services = instance.getServices();
-//		assertThat(services).isEqualTo(jsonServicesProviders);
+		((FakeCDI)dataservices).add(new ClassAsDataService());
+		when(serviceTools.getRealClass(any(Class.class))).thenReturn(ClassAsDataService.class);
+		when(serviceTools.getInstanceNameFromDataservice(any(Class.class))).thenReturn("ClassAsDataService");
+		doNothing().when(instance).addMethodsToMethodsService(any(Method[].class), any(List.class));
+		List<OcelotService> services = instance.getServices();
+		assertThat(services).hasSize(1);
 	}
 	
+	/**
+	 * Test of addMethodsToMethodsService method, of class OcelotServices.
+	 */
+	@Test
+	public void testAddMethodsToMethodsService() {
+		System.out.println("addMethodsToMethodsService");
+		Method[] methods = ClassAsDataService.class.getDeclaredMethods();
+		List<OcelotMethod> methodsService = mock(List.class);
+		when(serviceTools.isConsiderateMethod(any(Method.class))).thenReturn(Boolean.FALSE).thenReturn(Boolean.TRUE).thenReturn(Boolean.TRUE).thenReturn(Boolean.FALSE);
+		doReturn(mock(OcelotMethod.class)).when(instance).getOcelotMethod(any(Method.class));
+		instance.addMethodsToMethodsService(methods, methodsService);
+		verify(methodsService, times(2)).add(any(OcelotMethod.class));
+	}
+
 	@Test
 	public void testGetOcelotMethod0Arg() throws NoSuchMethodException {
 		System.out.println("getOcelotMethod");

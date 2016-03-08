@@ -10,7 +10,7 @@ package org.ocelotds.objects;
  * @author hhfrancois
  */
 public class Result {
-
+	
 	public Result() {
 	}
 
@@ -19,6 +19,8 @@ public class Result {
 	}
 
 	private int integer;
+	public int fieldOfInstance;
+	private static int fieldOfClass;
 
 	public int getInteger() {
 		return integer;
