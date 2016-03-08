@@ -45,7 +45,7 @@ public class JsFileInitializer extends AbstractFileInitializer {
 		logger.debug("ocelot.js generation...");
 		try {
 			// create tmp/ocelot.js
-			File jsFile = createOcelotJsFile(sc.getContextPath());
+			File jsFile = createOcelotJsFile();
 			setInitParameterAnMinifyJs(sc, jsFile);
 		} catch (IOException ex) {
 			logger.error("Fail to create ocelot.js.", ex);
@@ -64,7 +64,7 @@ public class JsFileInitializer extends AbstractFileInitializer {
 	 * @return
 	 * @throws IOException
 	 */
-	File createOcelotJsFile(String ctxPath) throws IOException {
+	File createOcelotJsFile() throws IOException {
 		File file = File.createTempFile(Constants.OCELOT, Constants.JS);
 		try (OutputStream out = new FileOutputStream(file)) {
 			createLicenceComment(out);
@@ -72,7 +72,7 @@ public class JsFileInitializer extends AbstractFileInitializer {
 				logger.info("javascript provider found {}", servicesProvider);
 				servicesProvider.streamJavascriptServices(out);
 			}
-			writeOcelotCoreJsFile(out, ctxPath);
+			writeOcelotCoreJsFile(out);
 		}
 		return file;
 	}
@@ -142,27 +142,21 @@ public class JsFileInitializer extends AbstractFileInitializer {
 	 * @return
 	 * @throws IOException
 	 */
-	void writeOcelotCoreJsFile(OutputStream out, String ctxPath) throws IOException {
+	boolean writeOcelotCoreJsFile(OutputStream out) throws IOException {
 		URL js = getContentURL(OCELOT_CORE_RESOURCE);
 		if (null == js) {
 			throw new IOException("File " + OCELOT_CORE_RESOURCE + " not found in classpath.");
 		}
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(js.openStream(), Constants.UTF_8))) {
-			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
-				out.write(inputLine.replaceAll(Constants.CTXPATH, ctxPath).getBytes(Constants.UTF_8));
-				out.write(Constants.BACKSLASH_N.getBytes(Constants.UTF_8));
-			}
-		}
+		return writeStreamToOutputStream(js.openStream(), out);
 	}
-
+	
 	/**
 	 * Add MPL 2.0 License
 	 *
 	 * @param out
 	 * @throws IOException
 	 */
-	private void createLicenceComment(OutputStream out) throws IOException {
+	void createLicenceComment(OutputStream out) throws IOException {
 		out.write("'use strict';\n".getBytes(Constants.UTF_8));
 		out.write("/* This Source Code Form is subject to the terms of the Mozilla Public\n".getBytes(Constants.UTF_8));
 		out.write(" * License, v. 2.0. If a copy of the MPL was not distributed with this\n".getBytes(Constants.UTF_8));

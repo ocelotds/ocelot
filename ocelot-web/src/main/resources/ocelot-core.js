@@ -11,7 +11,7 @@ if ("WebSocket" in window) {
    ocelotController = (function () {
       var options = {"monitor":false,"debug":false}, MSG = "MESSAGE", RES = "RESULT", FAULT = "FAULT", ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove",
          CLEANCACHE = "ocelot-cleancache", STATUS = "ocelot-status", OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe",
-         stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], promises = {}, openHandlers = [], closeHandlers = [], errorHandlers = [], ws;
+         stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], promises = {}, openHandlers = [], closeHandlers = [], errorHandlers = [], path, ws;
       function createEventFromPromise(type, promise, msgToClient) {
          var evt = document.createEvent(EVT);
          evt.initEvent(type, true, false);
@@ -111,7 +111,7 @@ if ("WebSocket" in window) {
                if(ws.readyState === 1) {
                   ws.send(mfc);
                } else {
-						// TODO A VOIR car le subscriber n'est pas remove
+                  // TODO A VOIR car le subscriber n'est pas remove
                   promise.response = createFaultEventFromPromise(promise, {"response":{"classname": "Websocket", "message": "Websocket is not ready : status = " + status, "stacktrace": []},"t":0});
                }
             // Commons calls, use http request
@@ -121,13 +121,13 @@ if ("WebSocket" in window) {
                   if (xhttp.readyState === 4) {
                      if(xhttp.status === 200) {
                         msgToClient = JSON.parse(xhttp.responseText);
-	                     receiveMtc(msgToClient);
+                        receiveMtc(msgToClient);
                      } else {
-		                  promise.response = createFaultEventFromPromise(promise, {"response":{"classname": "XMLHttpRequest", "message": "XMLHttpRequest request failed : code = " + xhttp.status, "stacktrace": []},"t":0});
+                        promise.response = createFaultEventFromPromise(promise, {"response":{"classname": "XMLHttpRequest", "message": "XMLHttpRequest request failed : code = " + xhttp.status, "stacktrace": []},"t":0});
                      }
                   }
                };
-               xhttp.open("POST", "%CTXPATH%/ocelot/endpoint?monitor="+options.monitor, true);
+               xhttp.open("POST", "http"+path+"ocelot/endpoint?monitor="+options.monitor, true);
                xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
                xhttp.send("mfc="+mfc);
             }
@@ -165,11 +165,18 @@ if ("WebSocket" in window) {
       function init() {
          console.info("Websocket initialization...");
          var host = document.location.hostname;
-         if (document.location.port && document.location.port !== "") {
-            host = host + ":" + document.location.port;
+         for(var i=0; i<document.scripts.length; i++) {
+            var item = document.scripts[i];
+            if(item.src.indexOf("ocelot.js")!==-1) {
+               path = item.src.replace(/^http/, "").replace(/ocelot.js.*/, "");
+            }
          }
+//         if (document.location.port && document.location.port !== "") {
+//            host = host + ":" + document.location.port;
+//         }
          extractOptions(document.location.search);
-         ws = new WebSocket("%WSS%://" + host + "%CTXPATH%/ocelot-endpoint");
+//         ws = new WebSocket("%WSS%://" + host + "%CTXPATH%/ocelot-endpoint");
+         ws = new WebSocket("ws" + path + "ocelot-endpoint");
          ws.onmessage = function (evt) {
 //            console.debug(evt.data);
             receiveMtc(JSON.parse(evt.data));

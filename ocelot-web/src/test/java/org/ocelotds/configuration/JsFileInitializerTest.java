@@ -51,7 +51,7 @@ public class JsFileInitializerTest {
 		ServletContext sc = mock(ServletContext.class);
 		File file = mock(File.class);
 
-		doReturn(file).when(instance).createOcelotJsFile(anyString());
+		doReturn(file).when(instance).createOcelotJsFile();
 		doNothing().when(instance).setInitParameterAnMinifyJs(any(ServletContext.class), any(File.class));
 
 		instance.initOcelotJsFile(sc);
@@ -69,7 +69,7 @@ public class JsFileInitializerTest {
 		System.out.println("initOcelotJsFileFailed");
 		ServletContext sc = mock(ServletContext.class);
 
-		doThrow(IOException.class).when(instance).createOcelotJsFile(anyString());
+		doThrow(IOException.class).when(instance).createOcelotJsFile();
 		doNothing().when(instance).setInitParameterAnMinifyJs(any(ServletContext.class), any(File.class));
 
 		instance.initOcelotJsFile(sc);
@@ -113,24 +113,12 @@ public class JsFileInitializerTest {
 		System.out.println("createOcelotJsFile");
 		((FakeCDI) jsServicesProviders).add(new JsServiceProviderImpl());
 		JsFileInitializer.OCELOT_CORE_RESOURCE = Constants.SLASH + Constants.OCELOT_CORE + Constants.JS;
-		File file = instance.createOcelotJsFile("/");
+		doNothing().when(instance).createLicenceComment(any(OutputStream.class));
+		File file = instance.createOcelotJsFile();
 		assertThat(file).exists();
 		file.delete();
 	}
 
-	/**
-	 * Test of writeOcelotCoreJsFile method, of class ContextListener.
-	 *
-	 * @throws java.io.IOException
-	 */
-	@Test(expected = IOException.class)
-	public void testWriteOcelotCoreJsFile() throws IOException {
-		System.out.println("writeOcelotCoreJsFile");
-		OutputStream out = mock(OutputStream.class);
-		JsFileInitializer.OCELOT_CORE_RESOURCE = "/badfile";
-		instance.writeOcelotCoreJsFile(out, "/");
-	}
-	
 	@Test
 	public void testSetInitParameterAnMinifyJs() throws IOException {
 		System.out.println("setInitParameterAnMinifyJs");
@@ -189,5 +177,26 @@ public class JsFileInitializerTest {
 		assertThat(minifyJs).exists();
 		assertThat(minifyJs.getAbsolutePath()).isNotEqualTo(js.getFile());
 		minifyJs.delete();
+	}
+
+	/**
+	 * Test of writeOcelotCoreJsFile method, of class ContextListener.
+	 *
+	 * @throws java.io.IOException
+	 */
+	@Test(expected = IOException.class)
+	public void testWriteOcelotCoreJsFile() throws IOException {
+		System.out.println("writeOcelotCoreJsFile");
+		OutputStream out = mock(OutputStream.class);
+		JsFileInitializer.OCELOT_CORE_RESOURCE = "/badfile";
+		instance.writeOcelotCoreJsFile(out);
+	}
+	
+	@Test
+	public void testCreateLicenceComment() throws IOException {
+		System.out.println("createLicenceComment");
+		OutputStream out = mock(OutputStream.class);
+		instance.createLicenceComment(out);
+		verify(out, times(6)).write(any(byte[].class));
 	}
 }
