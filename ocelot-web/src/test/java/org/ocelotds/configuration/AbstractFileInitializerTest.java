@@ -6,12 +6,20 @@ package org.ocelotds.configuration;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import org.junit.Test;
+import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
+import org.slf4j.Logger;
 
 /**
  *
@@ -20,7 +28,12 @@ import org.ocelotds.Constants;
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractFileInitializerTest {
 
-	private AbstractFileInitializer instance = new AbstractFileInitializerImpl();
+	@Mock
+	private Logger logger;
+
+	@InjectMocks
+	@Spy
+	private AbstractFileInitializerImpl instance;
 
 	/**
 	 * Test of deleteFile method, of class AbstractFileInitializer.
@@ -49,7 +62,40 @@ public class AbstractFileInitializerTest {
 		assertThat(result).isNotNull();
 	}
 	
-	final class AbstractFileInitializerImpl extends AbstractFileInitializer {
+	/**
+	 * Test of writeStreamToOutputStream method, of class AbstractFileInitializer.
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testWriteStreamToOutputStreamFailed() throws IOException {
+		System.out.println("writeStreamToOutputStream");
+		OutputStream out = mock(OutputStream.class);
+		InputStream in = mock(InputStream.class);
+		boolean result = instance.writeStreamToOutputStream(null, null);
+		assertThat(result).isFalse();
 		
+		result = instance.writeStreamToOutputStream(in, null);
+		assertThat(result).isFalse();
+
+		result = instance.writeStreamToOutputStream(null, out);
+		assertThat(result).isFalse();		
+
+		when(in.read(any(byte[].class))).thenThrow(IOException.class);
+		result = instance.writeStreamToOutputStream(in, out);
+		assertThat(result).isFalse();		
+	}
+
+	/**
+	 * Test of writeStreamToOutputStream method, of class AbstractFileInitializer.
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testWriteStreamToOutputStream() throws IOException {
+		System.out.println("writeStreamToOutputStream");
+		OutputStream out = mock(OutputStream.class);
+		InputStream in = mock(InputStream.class);
+		when(in.read(any(byte[].class))).thenReturn(5).thenReturn(-1);
+		boolean result = instance.writeStreamToOutputStream(in, out);
+		assertThat(result).isTrue();
 	}
 }
