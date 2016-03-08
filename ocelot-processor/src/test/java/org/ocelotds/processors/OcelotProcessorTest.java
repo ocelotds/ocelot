@@ -172,7 +172,7 @@ public class OcelotProcessorTest {
 		final String prefix = "srv_1234";
 		instance.createServicesProvider(prefix);
 		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(13)).append(captureString.capture());
+		verify(writer, times(12)).append(captureString.capture());
 		List<String> allValues = captureString.getAllValues();
 		assertThat(allValues).isNotEmpty();
 		assertThat(allValues).areExactly(2, new Condition<String>(){

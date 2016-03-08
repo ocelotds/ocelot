@@ -113,7 +113,6 @@ public class OcelotProcessor extends AbstractProcessor {
 		try (Writer writer = getOpendSourceFileObjectWriter(prefix + ".ServiceProvider")) {
 			writer.append("package ").append(prefix).append(";\n");
 			writer.append("import org.ocelotds.AbstractServiceProvider;\n");
-			writer.append("import org.ocelotds.Constants;\n");
 			writer.append("public class ServiceProvider extends AbstractServiceProvider {\n");
 			writer.append("	@Override\n");
 			writer.append("	public String getFilename() {\n");
