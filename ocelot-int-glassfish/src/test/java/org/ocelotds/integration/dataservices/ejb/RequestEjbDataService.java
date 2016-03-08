@@ -37,4 +37,12 @@ public class RequestEjbDataService implements GetValue {
 	public void setValue(double d) {
 		this.d = d;
 	}
+
+	public double getValueTempo() {
+		try {
+			Thread.sleep(200L);
+		} catch (InterruptedException ex) {
+		}
+		return d;
+	}
 }

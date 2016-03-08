@@ -162,7 +162,6 @@ public class OcelotTest extends AbstractOcelotTest {
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), Constants.UTF_8))) {
 				String inputLine;
 				while ((inputLine = in.readLine()) != null) {
-					assertThat(inputLine).doesNotContain(Constants.CTXPATH).as("Dynamic replacement of %s doesn't work", Constants.CTXPATH);
 				}
 			}
 		} catch (Exception e) {

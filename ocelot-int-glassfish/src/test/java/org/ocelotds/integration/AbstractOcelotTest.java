@@ -606,7 +606,7 @@ public abstract class AbstractOcelotTest {
 	}
 
 	protected void testResultRequestScope(final Class clazz) {
-		int nb = 10;
+		int nb = 2;
 		ExecutorService executor = Executors.newFixedThreadPool(nb);
 		final List<Future<Object>> futures = new ArrayList<>();
 		Client client = null;
@@ -617,7 +617,7 @@ public abstract class AbstractOcelotTest {
 				Callable callable = new Callable<Object>() {
 					@Override
 					public Object call() {
-						return testRSCallWithoutResult(cl, clazz, "getValue").getResponse();
+						return testRSCallWithoutResult(cl, clazz, "getValueTempo").getResponse();
 					}
 				};
 				futures.add(executor.submit(callable));
