@@ -5,6 +5,7 @@ package org.ocelotds.core.services;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import javax.annotation.Priority;
 import javax.decorator.Decorator;
 import javax.decorator.Delegate;
 import javax.enterprise.inject.Any;
@@ -17,6 +18,7 @@ import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
  * @author hhfrancois
  */
 @Decorator
+@Priority(0)
 public abstract class ArgCleanerDecorator implements IArgumentConvertor {
 
 	@Inject

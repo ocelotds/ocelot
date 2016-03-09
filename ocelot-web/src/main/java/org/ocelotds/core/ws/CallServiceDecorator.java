@@ -4,7 +4,7 @@
 package org.ocelotds.core.ws;
 
 import java.security.Principal;
-import java.util.Map;
+import javax.annotation.Priority;
 import javax.decorator.Decorator;
 import javax.decorator.Delegate;
 import javax.enterprise.inject.Any;
@@ -21,6 +21,7 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 @Decorator
+@Priority(0)
 public abstract class CallServiceDecorator implements CallService {
 
 	@Inject

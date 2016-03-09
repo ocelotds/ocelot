@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.core.mtc;
 
+import javax.annotation.Priority;
 import javax.decorator.Decorator;
 import javax.decorator.Delegate;
 import javax.enterprise.inject.Any;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 @Decorator
+@Priority(0)
 public abstract class RSMonitorDecorator implements RSMessageToClientService {
 
 	@Inject
