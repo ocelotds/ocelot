@@ -24,7 +24,6 @@ import javax.enterprise.inject.UnsatisfiedResolutionException;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import javax.ws.rs.client.Client;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -55,11 +54,12 @@ import org.ocelotds.integration.dataservices.monitor.MonitorDataService;
 import org.ocelotds.integration.dataservices.topic.TopicAccessControler;
 import org.ocelotds.integration.dataservices.topic.TopicDataService;
 import org.ocelotds.security.JsTopicAccessController;
-import static org.assertj.core.api.Assertions.fail;
 import org.ocelotds.integration.dataservices.security.AccessCDIDataService;
 import org.ocelotds.integration.dataservices.security.AccessEJBDataService;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageType;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  *
@@ -196,13 +196,13 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 	@Test
 	public void testRequestScopeCdi() {
-		System.out.println("testRequestScope");
+		System.out.println("testRequestScopeCdi");
 		testResultRequestScope(RequestCdiDataService.class);
 	}
 
 	@Test
 	public void testRequestScopeEjb() {
-		System.out.println("testRequestScope");
+		System.out.println("testRequestScopeEjb");
 		testResultRequestScope(RequestEjbDataService.class);
 	}
 
@@ -211,13 +211,13 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 	@Test
 	public void testSessionScopeCdi() {
-		System.out.println("testSessionScope");
+		System.out.println("testSessionScopeCdi");
 		testResultSessionScope(SessionCdiDataService.class);
 	}
 
 	@Test
 	public void testSessionScopeEjb() {
-		System.out.println("testSessionScope");
+		System.out.println("testSessionScopeEjb");
 		testResultSessionScope(SessionEjbDataService.class);
 	}
 
@@ -226,13 +226,13 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 	@Test
 	public void testSingletonScopeCdi() {
-		System.out.println("testSingletonScope");
+		System.out.println("testSingletonScopeCdi");
 		testResultSingletonScope(SingletonCdiDataService.class);
 	}
 
 	@Test
 	public void testSingletonScopeEjb() {
-		System.out.println("testSingletonScope");
+		System.out.println("testSingletonScopeEjb");
 		testResultSingletonScope(SingletonEjbDataService.class);
 	}
 
@@ -386,7 +386,7 @@ public class OcelotTest extends AbstractOcelotTest {
 
 	@Test
 	public void testReturnTypeGetResult() {
-		testCallWithResult(ReturnTypeDataService.class, "getResult", getJson(returnTypeDataService.getResult()));
+		testRSCallWithResult(ReturnTypeDataService.class, "getResult", getJson(returnTypeDataService.getResult()));
 	}
 
 	@Test

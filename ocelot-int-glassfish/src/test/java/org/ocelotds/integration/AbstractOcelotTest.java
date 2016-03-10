@@ -17,6 +17,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -24,11 +25,14 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.annotation.Resource;
+import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
@@ -45,8 +49,6 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.DatatypeConverter;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import org.glassfish.embeddable.CommandResult;
 import org.glassfish.embeddable.CommandRunner;
 import org.glassfish.jersey.client.ClientConfig;
@@ -70,6 +72,9 @@ import org.ocelotds.messaging.Fault;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import org.ocelotds.objects.ResultMonitored;
 
 /**
  *
@@ -81,6 +86,9 @@ public abstract class AbstractOcelotTest {
 	protected final static String PORT = "8282";
 
 	protected final static String CTXPATH = "ocelot-test";
+
+	@Resource(lookup = "java:comp/DefaultManagedExecutorService")
+	ManagedExecutorService managedExecutor;
 
 	@BeforeClass
 	public static void setUpClass() {
@@ -243,6 +251,23 @@ public abstract class AbstractOcelotTest {
 		} catch (IOException ex) {
 			return null;
 		}
+	}
+
+	/**
+	 * Transforme un json en object java
+	 *
+	 * @param <T>
+	 * @param cls
+	 * @param json
+	 * @return
+	 */
+	protected <T> T getJava(Class<T> cls, String json) {
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			return mapper.readValue(json, cls);
+		} catch (IOException ex) {
+		}
+		return null;
 	}
 
 	/**
@@ -558,86 +583,70 @@ public abstract class AbstractOcelotTest {
 		return messageFromClient;
 	}
 
-	protected MessageFromClient getMessageFromClientWithParamNames(Class cls, String operation, String paramNames, String... params) {
-		MessageFromClient messageFromClient = getMessageFromClient(cls, operation, params);
-		messageFromClient.setParameterNames(Arrays.asList(paramNames.split(",")));
-		return messageFromClient;
-	}
-
 	public void testCallMultiMethodsInClient(String testname, int nb, final Client client) {
-		ExecutorService executor = Executors.newFixedThreadPool(nb);
-		try {
-			final List<Future<Object>> futures = new ArrayList<>();
-			final Class clazz = RequestCdiDataService.class;
-			final String methodName = "getValue";
-			long t0 = System.currentTimeMillis();
-			final CountDownLatch lock = new CountDownLatch(nb);
-			for (int i = 0; i < nb; i++) {
-				Callable callable = new Callable<Void>() {
-					@Override
-					public Void call() {
-						if (client == null) {
-							testRSCallWithoutResult(clazz, methodName);
-						} else {
-							testRSCallWithoutResult(client, clazz, methodName);
-						}
-						lock.countDown();
-						return null;
-					}
-				};
-				futures.add(executor.submit(callable));
-			}
-			int i = 0;
-			for (Future<Object> fut : futures) {
-				try {
-					fut.get();
-				} catch (InterruptedException | ExecutionException e) {
-				}
-			}
-			boolean await = lock.await(10L * nb, TimeUnit.MILLISECONDS);
-			long t1 = System.currentTimeMillis();
-			assertThat(await).isTrue().as("Timeout. waiting %f ms. Remain %s/%s msgs", t1 - t0, lock.getCount(), nb);
-			System.out.println(testname + " Timeout. waiting " + (t1 - t0) + " ms. Remain " + lock.getCount() + "/" + nb + " msgs");
-		} catch (InterruptedException ie) {
-			fail(ie.getMessage());
-		} finally {
-			executor.shutdown();
-		}
+		testCallMultiMethodsInClient(nb, client, Double.class, RequestCdiDataService.class, "getValue");
 	}
 
 	protected void testResultRequestScope(final Class clazz) {
-		int nb = 2;
-		ExecutorService executor = Executors.newFixedThreadPool(nb);
-		final List<Future<Object>> futures = new ArrayList<>();
 		Client client = null;
 		try {
 			client = getClient();
-			final Client cl = client;
-			for (int i = 0; i < nb; i++) {
-				Callable callable = new Callable<Object>() {
-					@Override
-					public Object call() {
-						return testRSCallWithoutResult(cl, clazz, "getValueTempo").getResponse();
-					}
-				};
-				futures.add(executor.submit(callable));
-			}
-			final Object[] results = new Object[nb];
-			int i = 0;
-			for (Future<Object> fut : futures) {
-				try {
-					Object result = fut.get();
-					results[i++] = result;
-				} catch (InterruptedException | ExecutionException e) {
-				}
-			}
+			Collection<Double> results = testCallMultiMethodsInClient(2, client, Double.class, clazz, "getValueTempo");
 			assertThat(results).areAtLeastOne(new AreAtLeastOneDifferent(results));
-			executor.shutdown();
 		} finally {
 			if (client != null) {
 				client.close();
 			}
 		}
+	}
+
+	/**
+	 * 
+	 * @param <T>
+	 * @param nb
+	 * @param client
+	 * @param returnClass
+	 * @param ds
+	 * @param methodName
+	 * @param params
+	 * @return 
+	 */
+	protected <T> Collection<T> testCallMultiMethodsInClient(int nb, final Client client, final Class<T> returnClass, final Class ds, final String methodName, final String... params) {
+		ExecutorCompletionService<ResultMonitored<T>> executorCompletionService = new ExecutorCompletionService(managedExecutor);
+		Collection<T> results = new ArrayList<>();
+		long t0 = System.currentTimeMillis();
+		for (int i = 0; i < nb; i++) {
+			final int num = i;
+			Callable<ResultMonitored<T>> task = new Callable() {
+				@Override
+				public ResultMonitored<T> call() {
+					Client cl = client;
+					if (cl == null) {
+						cl = getClient();
+					}
+					long t0 = System.currentTimeMillis();
+					T result = getJava(returnClass, (String) testRSCallWithoutResult(cl, ds, methodName, params).getResponse());
+					ResultMonitored resultMonitored = new ResultMonitored(result, num);
+					long t1 = System.currentTimeMillis();
+					resultMonitored.setTime(t1 - t0);
+					return resultMonitored;
+				}
+			};
+			executorCompletionService.submit(task);
+		}
+		for (int i = 0; i < nb; i++) {
+			try {
+				Future<ResultMonitored<T>> fut = executorCompletionService.take();
+				ResultMonitored<T> res = fut.get();
+//				System.out.println("Time of execution of service " + res.getNum() + ": " + res.getTime() + " ms");
+				results.add(res.getResult());
+			} catch (InterruptedException | ExecutionException e) {
+			}
+		}
+		long t1 = System.currentTimeMillis();
+		System.out.println("Time of execution of all services : " + (t1 - t0) + " ms");
+		assertThat(results).hasSize(nb);
+		return results;
 	}
 
 	/**
@@ -716,38 +725,6 @@ public abstract class AbstractOcelotTest {
 	}
 
 	/**
-	 * Test call with result in given session
-	 *
-	 * @param wssession
-	 * @param clazz
-	 * @param methodName
-	 * @param expected
-	 * @param params
-	 */
-	protected void testCallWithResultInSession(Session wssession, Class clazz, String methodName, String expected, String... params) {
-		System.out.println(clazz + "." + methodName);
-		MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, params);
-		Object result = messageToClient.getResponse();
-		assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
-		assertThat(result).isEqualTo(expected);
-	}
-
-	/**
-	 * Test call with result in new session
-	 *
-	 * @param clazz
-	 * @param methodName
-	 * @param expected
-	 * @param params
-	 */
-	protected void testCallWithResult(Class clazz, String methodName, String expected, String... params) {
-		try (Session wssession = createAndGetSession()) {
-			testCallWithResultInSession(wssession, clazz, methodName, expected, params);
-		} catch (IOException exception) {
-		}
-	}
-
-	/**
 	 * Test call with no result in given session
 	 *
 	 * @param wssession
@@ -765,20 +742,6 @@ public abstract class AbstractOcelotTest {
 	}
 
 	/**
-	 * Test call with no result in new session
-	 *
-	 * @param clazz
-	 * @param methodName
-	 * @param params
-	 */
-	protected void testCallWithoutResult(Class clazz, String methodName, String... params) {
-		try (Session wssession = createAndGetSession()) {
-			testCallWithoutResultInSession(wssession, clazz, methodName, params);
-		} catch (IOException exception) {
-		}
-	}
-
-	/**
 	 * Subcribe to topic in session
 	 *
 	 * @param wssession
@@ -787,18 +750,6 @@ public abstract class AbstractOcelotTest {
 	protected void subscribeToTopicInSession(Session wssession, String topic) {
 		System.out.println("Subscribe to Topic '" + topic + "'");
 		testCallWithoutResultInSession(wssession, OcelotServices.class, "subscribe", getJson(topic));
-	}
-
-	/**
-	 * Subcribe to topic in new session
-	 *
-	 * @param topic
-	 */
-	protected void subscribeToTopic(String topic) {
-		try (Session wssession = createAndGetSession()) {
-			subscribeToTopicInSession(wssession, topic);
-		} catch (IOException exception) {
-		}
 	}
 
 	/**
@@ -816,21 +767,6 @@ public abstract class AbstractOcelotTest {
 		assertThat(messageToClient.getType()).isEqualTo(MessageType.FAULT);
 		Fault fault = (Fault) messageToClient.getResponse();
 		assertThat(fault.getClassname()).isEqualTo(expected.getName());
-	}
-
-	/**
-	 * Test call throw exception in new session
-	 *
-	 * @param clazz
-	 * @param methodName
-	 * @param expected
-	 * @param params
-	 */
-	protected void testCallThrowException(Class clazz, String methodName, Class<? extends Exception> expected, String... params) {
-		try (Session wssession = createAndGetSession()) {
-			testCallThrowExceptionInSession(wssession, clazz, methodName, expected, params);
-		} catch (IOException exception) {
-		}
 	}
 
 	/**
@@ -889,40 +825,4 @@ public abstract class AbstractOcelotTest {
 			return messageToClient;
 		}
 	}
-
-	protected class TestThread implements Runnable {
-
-		private final Class clazz;
-		private final String methodName;
-		private final Session wsSession;
-
-		public TestThread(Class clazz, String methodName, Session wsSession) {
-			this.clazz = clazz;
-			this.methodName = methodName;
-			this.wsSession = wsSession;
-		}
-
-		@Override
-		public void run() {
-			checkMessageAfterSendInSession(wsSession, clazz, methodName);
-		}
-
-	}
-
-	/**
-	 * Check message after Send request in session
-	 *
-	 * @param session
-	 * @param cls
-	 * @param operation
-	 * @return
-	 */
-	private void checkMessageAfterSendInSession(Session session, Class cls, String operation, String... params) {
-		// contruction de l'objet command
-		MessageFromClient messageFromClient = getMessageFromClient(cls, operation, params);
-		// on crée un handler client de reception de la réponse
-		// send
-		session.getAsyncRemote().sendText(messageFromClient.toJson());
-	}
-
 }
