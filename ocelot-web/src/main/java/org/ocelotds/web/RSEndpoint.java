@@ -20,7 +20,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
-import org.ocelotds.configuration.LocaleExtractor;
 import org.ocelotds.context.ThreadLocalContextHolder;
 import org.ocelotds.core.mtc.RSMessageToClientService;
 import org.ocelotds.messaging.MessageFromClient;
@@ -48,9 +47,6 @@ public class RSEndpoint {
 
 	@Inject
 	private RequestManager requestManager;
-
-	@Inject
-	private LocaleExtractor localeExtractor;
 
 	/**
 	 * Retrieves representation of an instance of org.ocelotds.GenericResource
