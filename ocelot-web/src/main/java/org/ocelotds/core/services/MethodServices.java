@@ -63,7 +63,7 @@ public class MethodServices {
 				nbparam++;
 			}
 		}
-		throw new NoSuchMethodException(dsClass + "." + message.getOperation());
+		throw new NoSuchMethodException(dsClass.getName() + "." + message.getOperation());
 	}
 
 	/**
