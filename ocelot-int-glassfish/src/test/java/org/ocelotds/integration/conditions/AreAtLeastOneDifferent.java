@@ -10,18 +10,19 @@ import org.assertj.core.api.Condition;
 /**
  *
  * @author hhfrancois
+ * @param <T>
  */
-public class AreAtLeastOneDifferent extends Condition<Object> {
+public class AreAtLeastOneDifferent<T>  extends Condition<T>  {
 
-	final Object[] ref;
+	final Iterable<T> ref;
 
-	public AreAtLeastOneDifferent(Object[] ref) {
+	public AreAtLeastOneDifferent(Iterable<T> ref) {
 		this.ref = ref;
 	}
 
 	@Override
-	public boolean matches(Object t) {
-		for (Object object : ref) {
+	public boolean matches(T t) {
+		for (T object : ref) {
 			if (!object.equals(t)) {
 				return true;
 			}
