@@ -5,7 +5,6 @@
 package org.ocelotds.messaging;
 
 import org.ocelotds.Constants;
-import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Collections;
