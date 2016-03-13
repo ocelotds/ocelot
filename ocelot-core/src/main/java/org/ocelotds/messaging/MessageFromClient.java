@@ -129,25 +129,10 @@ public class MessageFromClient {
 				while (idx < argArray.size()) {
 					JsonString arg = argArray.getJsonString(idx++);
 					logger.debug("Get argumentName : '{}'.", arg.toString());
-					params.add(arg.toString());
+					params.add(arg.getString());
 				}
 			}
 		}
 		return message;
-	}
-
-	public String toJson() {
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
-				  Constants.Message.ID, id,
-				  Constants.Message.DATASERVICE, dataService,
-				  Constants.Message.OPERATION, operation,
-				  Constants.Message.ARGUMENTNAMES, Arrays.toString(parameterNames.toArray(new String[parameterNames.size()])),
-				  Constants.Message.ARGUMENTS, Arrays.toString(parameters.toArray(new String[parameters.size()])));
-		return json;
-	}
-
-	@Override
-	public String toString() {
-		return toJson();
 	}
 }
