@@ -8,5 +8,5 @@ package org.ocelotds.messaging;
  * @author hhfrancois
  */
 public enum MessageType {
-	RESULT, FAULT, MESSAGE
+	RESULT, FAULT, MESSAGE, CONSTRAINT
 }
