@@ -136,7 +136,7 @@ public class WSEndpointTest {
 		assertThat(result.getId()).isEqualTo("111");
 		assertThat(result.getDataService()).isEqualTo("ClassName");
 		assertThat(result.getOperation()).isEqualTo("methodName");
-		assertThat(result.getParameterNames()).containsExactly("\"a\"", "\"b\"", "\"c\"");
+		assertThat(result.getParameterNames()).containsExactly("a", "b", "c");
 		assertThat(result.getParameters()).containsExactly("\"toto\"", "5", "true");
 	}
 	
