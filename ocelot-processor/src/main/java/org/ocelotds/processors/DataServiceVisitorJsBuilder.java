@@ -47,9 +47,7 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 		String instanceName = getJsInstancename(jsclsname);
 		writer.append("var ").append(instanceName).append(" = (").append(FUNCTION).append(" () {").append(CR);
 		String classname = typeElement.getQualifiedName().toString();
-		writer.append(TAB).append("var getDs = ").append(FUNCTION).append("() {").append(CR);
-		writer.append(TAB2).append("return ").append(QUOTE).append(classname).append(QUOTE).append(";").append(CR);
-		writer.append(TAB).append("};").append(CR);
+		writer.append(TAB).append("var _ds = ").append(QUOTE).append(classname).append(QUOTE).append(";").append(CR);
 		writer.append(TAB).append("return {").append(CR);
 		browseAndWriteMethods(ElementFilter.methodsIn(typeElement.getEnclosedElements()), classname, writer);
 		writer.append(CR).append(TAB).append("};");
@@ -205,7 +203,7 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 */
 	void createReturnOcelotPromiseFactory(String classname, String methodName, String paramNames, String args, String keys, Writer writer) throws IOException {
 		String md5 = keyMaker.getMd5(classname + "." + methodName);
-		writer.append(TAB3).append("return OcelotPromiseFactory.createPromise(getDs(), ").append(QUOTE).append(md5).append("_").append(QUOTE).append(" + JSON.stringify([").append(keys).append("]).md5()").append(", ").append(QUOTE).append(methodName).append(QUOTE).append(", [").append(paramNames).append("], [").append(args).append("]").append(");").append(CR);
+		writer.append(TAB3).append("return OcelotPromiseFactory.createPromise(_ds, ").append(QUOTE).append(md5).append("_").append(QUOTE).append(" + JSON.stringify([").append(keys).append("]).md5()").append(", ").append(QUOTE).append(methodName).append(QUOTE).append(", [").append(paramNames).append("], [").append(args).append("]").append(");").append(CR);
 	}
 
 	/**

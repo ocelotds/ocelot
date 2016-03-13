@@ -86,11 +86,11 @@ public class DataServiceVisitorJsBuilderTest {
 
 		instance._visitType(typeElement, writer);
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(27)).append(captureAppend.capture());
+		verify(writer, times(29)).append(captureAppend.capture());
 		List<String> appends = captureAppend.getAllValues();
 		assertThat(appends.get(1)).isEqualTo("className");
-		assertThat(appends.get(7)).isEqualTo("packageName.ClassName");
-		assertThat(appends.get(23)).isEqualTo("className");
+		assertThat(appends.get(9)).isEqualTo("packageName.ClassName");
+		assertThat(appends.get(25)).isEqualTo("className");
 	}
 
 	/**
@@ -119,26 +119,26 @@ public class DataServiceVisitorJsBuilderTest {
 
 		instance.visitMethodElement(0, classname, methodElement, writer);
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(7)).append(captureAppend.capture());
+		verify(writer, times(9)).append(captureAppend.capture());
 
 		writer = getMockWriter();
 		argumentsType.add(String.class.getName());
 		arguments.add("str");
 		instance.visitMethodElement(0, classname, methodElement, writer);
 		captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(8)).append(captureAppend.capture());
+		verify(writer, times(10)).append(captureAppend.capture());
 
 		writer = getMockWriter();
 		argumentsType.add(String.class.getName());
 		arguments.add("str2");
 		instance.visitMethodElement(0, classname, methodElement, writer);
 		captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(10)).append(captureAppend.capture());
+		verify(writer, times(12)).append(captureAppend.capture());
 
 		writer = getMockWriter();
 		instance.visitMethodElement(1, classname, methodElement, writer);
 		captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(12)).append(captureAppend.capture());
+		verify(writer, times(14)).append(captureAppend.capture());
 	}
 
 	/**
@@ -344,7 +344,7 @@ public class DataServiceVisitorJsBuilderTest {
 		StringWriter writer = new StringWriter();
 		instance.createReturnOcelotPromiseFactory("CLSNAME", "METHODNAME", "PARAMNAMES", "ARGS", "KEYS", writer);
 		String result = writer.toString();
-		assertThat(result).isEqualTo("\t\t\treturn OcelotPromiseFactory.createPromise(ds, \"c4746bbdace1d5712da7b6fabe58fb9c_\" + JSON.stringify([KEYS]).md5(), \"METHODNAME\", [PARAMNAMES], [ARGS]);\n");
+		assertThat(result).isEqualTo("\t\t\treturn OcelotPromiseFactory.createPromise(_ds, \"c4746bbdace1d5712da7b6fabe58fb9c_\" + JSON.stringify([KEYS]).md5(), \"METHODNAME\", [PARAMNAMES], [ARGS]);\n");
 	}
 	
 	/**
