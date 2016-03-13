@@ -8,8 +8,10 @@ package org.ocelotds.integration;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -60,6 +62,9 @@ import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import org.ocelotds.integration.dataservices.validation.ValidationCdiDataService;
+import org.ocelotds.messaging.ConstraintViolation;
+import org.ocelotds.objects.WithConstraint;
 
 /**
  *
@@ -511,6 +516,138 @@ public class OcelotTest extends AbstractOcelotTest {
 	}
 
 	/**
+	 * VALIDATION
+	 */
+	@Test
+	public void methodWithValidationArgumentsTest(){
+	// public void methodWithValidationArguments(@NotNull String str0, @NotNull String str1, @NotNull String str2) {}
+		System.out.println("methodWithValidationArguments");
+		MessageFromClient mfc = getMessageFromClient(ValidationCdiDataService.class, "methodWithValidationArguments", getJson(null), getJson(""), getJson(null));
+		mfc.setParameterNames(Arrays.asList("str0", "str1", "str2"));
+		MessageToClient mtc = testRSCallWithoutResult(getClient(), mfc, MessageType.CONSTRAINT);
+		ConstraintViolation[] cvs = getJava(ConstraintViolation[].class, (String) mtc.getResponse());
+		assertThat(cvs).hasSize(2);
+		ConstraintViolation cv = cvs[0];
+		if(cv.getIndex()==0) {
+			assertThat(cv.getIndex()).isEqualTo(0);
+			assertThat(cv.getName()).isEqualTo("str0");
+			cv = cvs[1];
+			assertThat(cv.getIndex()).isEqualTo(2);
+			assertThat(cv.getName()).isEqualTo("str2");
+		} else {
+			assertThat(cv.getIndex()).isEqualTo(2);
+			assertThat(cv.getName()).isEqualTo("str2");
+			cv = cvs[1];
+			assertThat(cv.getIndex()).isEqualTo(0);
+			assertThat(cv.getName()).isEqualTo("str0");
+		}
+	}
+	@Test
+	public void methodWithArgumentNotNullTest() {
+	// public void methodWithArgumentNotNull(@NotNull String str0) {}
+		System.out.println("methodWithArgumentNotNull");
+		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentNotNull", getJson("foo"), getJson(null));
+	}
+	@Test
+	public void methodWithArgumentNullTest() {
+	// public void methodWithArgumentNull(@Null String str0) {}
+		System.out.println("methodWithArgumentNull");
+		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentNull", getJson(null), getJson("foo"));
+	}
+	@Test
+	public void methodWithArgumentMaxTest() {
+	// public void methodWithArgumentMax(@Max(10) int int0) {}
+		System.out.println("methodWithArgumentMax");
+		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentMax", getJson(6), getJson(15));
+	}
+	@Test
+	public void methodWithArgumentMinTest() {
+	// public void methodWithArgumentMin(@Min(10) int int0) {}
+		System.out.println("methodWithArgumentMin");
+		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentMin", getJson(15), getJson(6));
+	}
+	@Test
+	public void methodWithArgumentFutureTest() {
+	// public void methodWithArgumentFuture(@Future Date date0) {}
+		System.out.println("methodWithArgumentFuture");
+		Calendar future = Calendar.getInstance();
+		future.add(Calendar.MONTH, 1);
+		Calendar past = Calendar.getInstance();
+		past.add(Calendar.MONTH, -1);
+		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentFuture", getJson(future), getJson(past));
+	}
+	@Test
+	public void methodWithArgumentPastTest() {
+	// public void methodWithArgumentPast(@Past Date date0) {}
+		System.out.println("methodWithArgumentPast");
+		Calendar future = Calendar.getInstance();
+		future.add(Calendar.MONTH, 1);
+		Calendar past = Calendar.getInstance();
+		past.add(Calendar.MONTH, -1);
+		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentPast", getJson(past), getJson(future));
+	}
+	@Test
+	public void methodWithArgumentFalseTest() {
+	// public void methodWithArgumentFalse(@AssertFalse Boolean bool0) {}
+		System.out.println("methodWithArgumentFalse");
+		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentFalse", getJson(false), getJson(true));
+	}
+	@Test
+	public void methodWithArgumentTrueTest() {
+	// public void methodWithArgumentTrue(@AssertTrue Boolean bool0) {}
+		System.out.println("methodWithArgumentTrue");
+		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentTrue", getJson(true), getJson(false));
+	}
+	@Test
+	public void methodWithArgumentDecimalMaxTest() {
+	// public void methodWithArgumentDecimalMax(@DecimalMax("50") long lg0) {}
+		System.out.println("methodWithArgumentDecimalMax");
+		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentDecimalMax", getJson(20), getJson(60));
+	}
+	@Test
+	public void methodWithArgumentDecimalMinTest() {
+	// public void methodWithArgumentDecimalMin(@DecimalMin("50") long lg0) {}
+		System.out.println("methodWithArgumentDecimalMin");
+		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentDecimalMin", getJson(60), getJson(20));
+	}
+	@Test
+	public void methodWithArgumentDigitsTest() {
+	// public void methodWithArgumentDigits(@Digits(integer = 3, fraction = 2) float flt0) {}
+		System.out.println("methodWithArgumentDigits");
+		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentDigits", getJson(new BigDecimal(123.45)), getJson(new BigDecimal(1.3)));
+	}
+	@Test
+	public void methodWithArgumentSize2_10Test() {
+	// public void methodWithArgumentSize2_10(@Size(min = 2, max = 10) String str0) {}
+		System.out.println("methodWithArgumentSize2_10");
+		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentSize2_10", getJson("azerty"), getJson("qwertyuiop^"));
+	}
+	@Test
+	public void methodWithArgumentPatternTest() {
+	// public void methodWithArgumentPattern(@Pattern(regexp = "\\d*") String str0) {}
+		System.out.println("methodWithArgumentPattern");
+		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentPattern", getJson("12345"), getJson("123E456"));
+	}
+	@Test
+	public void methodWithArgumentConstraintTest() {
+	// public void methodWithArgumentConstraint(WithConstraint wc) {}
+		System.out.println("methodWithArgumentConstraint");
+		WithConstraint wc = new WithConstraint();
+		wc.setName("foo");
+		testRSCallWithoutResult(ValidationCdiDataService.class, "methodWithArgumentConstraint", getJson(wc));
+		MessageFromClient mfc = getMessageFromClient(ValidationCdiDataService.class, "methodWithArgumentConstraint", getJson(new WithConstraint()));
+		mfc.setParameterNames(Arrays.asList("str0"));
+		MessageToClient mtc = testRSCallWithoutResult(getClient(), mfc, MessageType.CONSTRAINT);
+		ConstraintViolation[] cvs = getJava(ConstraintViolation[].class, (String) mtc.getResponse());
+		assertThat(cvs).isNotNull();
+		assertThat(cvs).hasSize(1);
+		ConstraintViolation cv = cvs[0];
+		assertThat(cv.getIndex()).isEqualTo(0);
+		assertThat(cv.getName()).isEqualTo("str0");
+		assertThat(cv.getProp()).isEqualTo("name");
+	}
+
+	/**
 	 * SECURITY
 	 */
 	@Test
@@ -637,7 +774,7 @@ public class OcelotTest extends AbstractOcelotTest {
 				@Override
 				public void run() {
 					MessageFromClient mfc = getMessageFromClient(CacheDataService.class, "generateCleanCacheMessage", getJson(""), getJson(new Result(5)));
-					mfc.setParameterNames(Arrays.asList("\"a\"", "\"r\""));
+					mfc.setParameterNames(Arrays.asList("a", "r"));
 					Client client = null;
 					try {
 						client = getClient();
