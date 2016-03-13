@@ -84,6 +84,10 @@ public class MessageToClient {
 		this.response = response;
 	}
 
+	public void setConstraints(ConstraintViolation[] response) {
+		setResponse(response, MessageType.CONSTRAINT);
+	}
+
 	public void setResult(Object response) {
 		setResponse(response, MessageType.RESULT);
 	}
