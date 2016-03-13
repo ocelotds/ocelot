@@ -6,6 +6,7 @@
 package org.ocelotds.web;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
@@ -60,24 +61,18 @@ public class RSEndpointTest {
 		HttpSession session = mock(HttpSession.class);
 		when(request.getSession()).thenReturn(session);
 		doNothing().when(instance).setContext(any(HttpSession.class), anyBoolean());
-		List<String> args = new ArrayList<>();
-		args.add("\"arg\"");
-		List<String> argNames = new ArrayList<>();
-		argNames.add("\"argName\"");
-		MessageFromClient mfc = new MessageFromClient();
-		mfc.setDataService("DataServiceClassName");
-		mfc.setId(UUID.randomUUID().toString());
-		mfc.setOperation("methodName");
-		mfc.setParameterNames(argNames);
-		mfc.setParameters(args);
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.ID, UUID.randomUUID().toString(),
+				  Constants.Message.DATASERVICE, "DataServiceClassName",
+				  Constants.Message.OPERATION, "methodName",
+				  Constants.Message.ARGUMENTNAMES, "[\"argName\"]",
+				  Constants.Message.ARGUMENTS, "[\"arg\"]");
 		
 		when(messageToClientService.createMessageToClient(any(MessageFromClient.class), any(HttpSession.class))).thenReturn(mtc);
 		when(mtc.toJson()).thenReturn("RESULT");
-		String result = instance.getMessageToClient(mfc.toJson(), true);
+		String result = instance.getMessageToClient(json, true);
 		assertThat(result).isEqualTo("RESULT");
-		ArgumentCaptor<MessageFromClient> argument = ArgumentCaptor.forClass(MessageFromClient.class);
-		verify(messageToClientService).createMessageToClient(argument.capture(), any(HttpSession.class));
-		assertThat(argument.getValue()).isEqualTo(mfc);
+		verify(messageToClientService).createMessageToClient(any(MessageFromClient.class), any(HttpSession.class));
 	}
 
 	/**
