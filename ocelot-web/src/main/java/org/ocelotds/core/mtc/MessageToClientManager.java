@@ -83,13 +83,9 @@ public abstract class MessageToClientManager<T> {
 		String dataServiceClassName = cls.getName();
 		logger.debug("Looking for dataservice : {}", dataServiceClassName);
 		if (cls.isAnnotationPresent(DataService.class)) {
-			try {
-				return _getDataService(session, cls);
-			} catch (Exception e) {
-				throw new DataServiceException(dataServiceClassName, e);
-			}
+			return _getDataService(session, cls);
 		} else {
-			throw new DataServiceException(dataServiceClassName);
+			throw new DataServiceException(dataServiceClassName +" is not annotated with @"+DataService.class.getSimpleName());
 		}
 	}
 
@@ -101,7 +97,7 @@ public abstract class MessageToClientManager<T> {
 	 * @return
 	 * @throws DataServiceException
 	 */
-	Object _getDataService(T session, Class cls) throws Exception {
+	Object _getDataService(T session, Class cls) throws DataServiceException {
 		String dataServiceClassName = cls.getName();
 		DataService dataServiceAnno = (DataService) cls.getAnnotation(DataService.class);
 		IDataServiceResolver resolver = getResolver(dataServiceAnno.resolver());

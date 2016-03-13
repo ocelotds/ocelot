@@ -160,7 +160,7 @@ public class MessageToClientManagerTest {
 		Class cls = ClassAsDataService.class;
 		Session session = mock(Session.class);
 		
-		doThrow(Exception.class).when(instance)._getDataService(any(Session.class), any(Class.class));
+		doThrow(DataServiceException.class).when(instance)._getDataService(any(Session.class), any(Class.class));
 
 		instance.getDataService(session, cls);
 	}
