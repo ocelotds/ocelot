@@ -83,6 +83,20 @@ public class MessageToClientTest {
 	}
 
 	/**
+	 * Test of setConstraints method, of class MessageToClient.
+	 */
+	@Test
+	public void testSetConstraints() {
+		System.out.println("setConstraints");
+		MessageToClient instance = new MessageToClient();
+		ConstraintViolation[] expResult = new ConstraintViolation[] {};
+		instance.setConstraints(expResult);
+		ConstraintViolation[] result = (ConstraintViolation[]) instance.getResponse();
+		assertThat(result).isEqualTo(expResult);
+		assertThat(instance.getType()).isEqualTo(MessageType.CONSTRAINT);
+	}
+
+	/**
 	 * Test of setFault method, of class MessageToClient.
 	 */
 	@Test
