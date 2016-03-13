@@ -9,7 +9,7 @@ var Subscriber = (function(topic) {
 });
 if ("WebSocket" in window) {
    ocelotController = (function () {
-      var options = {"monitor":false,"debug":false}, MSG = "MESSAGE", RES = "RESULT", FAULT = "FAULT", ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove",
+      var options = {"monitor":false,"debug":false}, MSG = "MESSAGE", CONSTRAINT = "CONSTRAINT", RES = "RESULT", FAULT = "FAULT", ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove",
          CLEANCACHE = "ocelot-cleancache", STATUS = "ocelot-status", OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe",
          stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], promises = {}, openHandlers = [], closeHandlers = [], errorHandlers = [], path, ws;
       function createEventFromPromise(type, promise, msgToClient) {
@@ -38,6 +38,9 @@ if ("WebSocket" in window) {
       }
       function createResultEventFromPromise(promise, msgToClient) {
          return createEventFromPromise(RES, promise, msgToClient);
+      }
+      function createConstraintEventFromPromise(promise, msgToClient) {
+         return createEventFromPromise(CONSTRAINT, promise, msgToClient);
       }
       function createFaultEventFromPromise(promise, msgToClient) {
          return createEventFromPromise(FAULT, promise, msgToClient);
@@ -152,6 +155,8 @@ if ("WebSocket" in window) {
                   clearPromisesForId(promise.args[0]);
                }
                response = createResultEventFromPromise(promise, msgToClient);
+            } else if (msgToClient.type === CONSTRAINT) {
+               response = createConstraintEventFromPromise(promise, msgToClient);
             } else if (msgToClient.type === MSG) {
                response = createMessageEventFromPromise(promise, msgToClient);
             }
@@ -164,18 +169,13 @@ if ("WebSocket" in window) {
       }
       function init() {
          console.info("Websocket initialization...");
-         var host = document.location.hostname;
          for(var i=0; i<document.scripts.length; i++) {
             var item = document.scripts[i];
             if(item.src.indexOf("ocelot.js")!==-1) {
                path = item.src.replace(/^http/, "").replace(/ocelot.js.*/, "");
             }
          }
-//         if (document.location.port && document.location.port !== "") {
-//            host = host + ":" + document.location.port;
-//         }
          extractOptions(document.location.search);
-//         ws = new WebSocket("%WSS%://" + host + "%CTXPATH%/ocelot-endpoint");
          ws = new WebSocket("ws" + path + "ocelot-endpoint");
          ws.onmessage = function (evt) {
 //            console.debug(evt.data);
@@ -472,11 +472,11 @@ if ("WebSocket" in window) {
    })();
 
    OcelotPromiseFactory = function () {
-      var MSG = "MESSAGE", RES = "RESULT", FAULT = "FAULT";
+      var MSG = "MESSAGE", RES = "RESULT", FAULT = "FAULT", CONSTRAINT = "CONSTRAINT";
       return {
          createPromise: function (ds, id, op, argNames, args) {
             return (function (ds, id, op, argNames, args) {
-               var fault, handler, evt = null, thenHandlers = [], catchHandlers = [], eventHandlers = [], messageHandlers = [];
+               var fault, handler, evt = null, thenHandlers = [], catchHandlers = [], constraintHandlers = [], eventHandlers = [], messageHandlers = [];
                function process() {
                   if (!evt) {
                      return;
@@ -487,6 +487,10 @@ if ("WebSocket" in window) {
                      }
                      if (evt.type === RES) {
                         while (handler = thenHandlers.shift()) {
+                           handler(evt.response);
+                        }
+                     } else if (evt.type === CONSTRAINT) {
+                        while (handler = constraintHandlers.shift()) {
                            handler(evt.response);
                         }
                      } else if (evt.type === FAULT) {
@@ -526,6 +530,13 @@ if ("WebSocket" in window) {
                   catch : function (onRejected) {
                      if (onRejected) {
                         catchHandlers.push(onRejected);
+                     }
+                     process();// event already receive ?
+                     return this;
+                  },
+                  constraint : function (onConstraint) {
+                     if (onConstraint) {
+                        constraintHandlers.push(onConstraint);
                      }
                      process();// event already receive ?
                      return this;
