@@ -4,11 +4,13 @@
 package org.ocelotds.messaging;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.BeforeClass;
+import org.ocelotds.Constants;
 
 /**
  *
@@ -24,7 +26,7 @@ public class MessageFromClientTest {
 		List<String> args = new ArrayList<>();
 		args.add("\"arg\"");
 		List<String> argNames = new ArrayList<>();
-		argNames.add("\"argName\"");
+		argNames.add("argName");
 		msgWithArg = new MessageFromClient();
 		msgWithArg.setDataService("DataServiceClassName");
 		msgWithArg.setId(UUID.randomUUID().toString());
@@ -110,22 +112,6 @@ public class MessageFromClientTest {
 	}
 
 	@Test
-	public void testJsonWithArguments() {
-		System.out.println("testJsonWithArguments");
-		String json = msgWithArg.toJson();
-		MessageFromClient result = MessageFromClient.createFromJson(json);
-		assertThat(result).isEqualToComparingFieldByField(msgWithArg);
-	}
-
-	@Test
-	public void testJsonWithNoArguments() {
-		System.out.println("testJsonWithNoArguments");
-		String json = msgWithoutArg.toJson();
-		MessageFromClient result = MessageFromClient.createFromJson(json);
-		assertThat(result).isEqualToComparingFieldByField(msgWithoutArg);
-	}
-
-	@Test
 	public void testEquals() {
 		System.out.println("testEquals");
 		String expResult = UUID.randomUUID().toString();
@@ -142,13 +128,6 @@ public class MessageFromClientTest {
 	}
 
 	@Test
-	public void testToString() {
-		System.out.println("testToString");
-		assertThat(msgWithArg.toJson()).isEqualTo(msgWithArg.toString());
-		assertThat(msgWithoutArg.toJson()).isEqualTo(msgWithoutArg.toString());
-	}
-
-	@Test
 	public void testHashCode() {
 		System.out.println("testHashCode");
 		MessageFromClient a = createRandom();
@@ -157,6 +136,34 @@ public class MessageFromClientTest {
 		assertThat(a.hashCode()).isNotEqualTo(b.hashCode());
 		b.setId(a.getId());
 		assertThat(a.hashCode()).isEqualTo(b.hashCode());
+	}
+
+	@Test
+	public void createFromJsonTest() {
+		System.out.println("createFromJson");
+		String json = mfcToJson(msgWithArg);
+		MessageFromClient mfc = MessageFromClient.createFromJson(json);
+		assertThat(mfc).isEqualToComparingFieldByField(msgWithArg);
+	}
+
+	private String mfcToJson(MessageFromClient mfc) {
+		StringBuilder jsonParamNames = new StringBuilder("[");
+		boolean first = true;
+		for (String parameterName : mfc.getParameterNames()) {
+			if(!first) {
+				jsonParamNames.append(",");
+			}
+			jsonParamNames.append(Constants.QUOTE).append(parameterName).append(Constants.QUOTE);
+			first = false;
+		}
+		jsonParamNames.append("]");
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.ID, mfc.getId(),
+				  Constants.Message.DATASERVICE, mfc.getDataService(),
+				  Constants.Message.OPERATION, mfc.getOperation(),
+				  Constants.Message.ARGUMENTNAMES, jsonParamNames.toString(),
+				  Constants.Message.ARGUMENTS, Arrays.toString(mfc.getParameters().toArray(new String[mfc.getParameters().size()])));
+		return json;
 	}
 
 	private MessageFromClient createRandom() {
