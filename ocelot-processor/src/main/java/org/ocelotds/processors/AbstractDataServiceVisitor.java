@@ -38,6 +38,7 @@ import org.ocelotds.annotations.DataService;
 public abstract class AbstractDataServiceVisitor implements ElementVisitor<String, Writer> {
 
 	protected static final String QUOTE = "\"";
+	protected static final String FUNCTION = "function";
 	protected static final String TAB = "\t";
 	protected static final String TAB2 = TAB+TAB;
 	protected static final String TAB3 = TAB2+TAB;
