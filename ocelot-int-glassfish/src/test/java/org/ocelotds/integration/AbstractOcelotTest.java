@@ -26,11 +26,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.websocket.ClientEndpointConfig;
@@ -49,6 +46,7 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.DatatypeConverter;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.glassfish.embeddable.CommandResult;
 import org.glassfish.embeddable.CommandRunner;
 import org.glassfish.jersey.client.ClientConfig;
@@ -72,8 +70,8 @@ import org.ocelotds.messaging.Fault;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import org.ocelotds.messaging.ConstraintViolation;
 import org.ocelotds.objects.ResultMonitored;
 
 /**
@@ -252,6 +250,27 @@ public abstract class AbstractOcelotTest {
 			return null;
 		}
 	}
+	
+	public String mfcToJson(MessageFromClient mfc) {
+		StringBuilder jsonParamNames = new StringBuilder("[");
+		boolean first = true;
+		for (String parameterName : mfc.getParameterNames()) {
+			if(!first) {
+				jsonParamNames.append(",");
+			}
+			jsonParamNames.append(Constants.QUOTE).append(parameterName).append(Constants.QUOTE);
+			first = false;
+		}
+		jsonParamNames.append("]");
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+				  Constants.Message.ID, mfc.getId(),
+				  Constants.Message.DATASERVICE, mfc.getDataService(),
+				  Constants.Message.OPERATION, mfc.getOperation(),
+				  Constants.Message.ARGUMENTNAMES, jsonParamNames.toString(),
+				  Constants.Message.ARGUMENTS, Arrays.toString(mfc.getParameters().toArray(new String[mfc.getParameters().size()])));
+		// Arrays.toString(mfc.getParameterNames().toArray(new String[mfc.getParameterNames().size()]))
+		return json;
+	}
 
 	/**
 	 * Transforme un json en object java
@@ -268,6 +287,29 @@ public abstract class AbstractOcelotTest {
 		} catch (IOException ex) {
 		}
 		return null;
+	}
+
+	/**
+	 * call 2 times the method on cls, first time with jsonok, second time with jsonfail
+	 * first call have to be good, second throw a CONSTRAINT event
+	 * @param cls
+	 * @param methodname
+	 * @param jsonok
+	 * @param jsonfail 
+	 */
+	protected void testUniqueConstraint(Class cls, String methodname, String jsonok, String jsonfail) {
+		// test OK
+		testRSCallWithoutResult(cls, methodname, jsonok);
+		// test with constraint
+		MessageFromClient mfc = getMessageFromClient(cls, methodname, jsonfail);
+		mfc.setParameterNames(Arrays.asList("str0"));
+		MessageToClient mtc = testRSCallWithoutResult(getClient(), mfc, MessageType.CONSTRAINT);
+		ConstraintViolation[] cvs = getJava(ConstraintViolation[].class, (String) mtc.getResponse());
+		assertThat(cvs).isNotNull();
+		assertThat(cvs).hasSize(1);
+		ConstraintViolation cv = cvs[0];
+		assertThat(cv.getIndex()).isEqualTo(0);
+		assertThat(cv.getName()).isEqualTo("str0");
 	}
 
 	/**
@@ -424,7 +466,7 @@ public abstract class AbstractOcelotTest {
 
 	MessageToClient testRSCallWithoutResult(Client client, MessageFromClient mfc, MessageType resType) {
 		WebTarget target = client.target("http://localhost:" + PORT + "/" + CTXPATH + "/ocelot");
-		Form form = new Form("mfc", mfc.toJson());
+		Form form = new Form("mfc", mfcToJson(mfc));
 		Response res = target.path("endpoint").queryParam("monitor", true)
 				  .request(MediaType.APPLICATION_FORM_URLENCODED).accept(MediaType.APPLICATION_JSON)
 				  .post(Entity.form(form));
@@ -541,14 +583,14 @@ public abstract class AbstractOcelotTest {
 		try {
 			long t0 = System.currentTimeMillis();
 			// construction de la commande
-			MessageFromClient messageFromClient = getMessageFromClient(clazz, operation, params);
+			MessageFromClient mfc = getMessageFromClient(clazz, operation, params);
 			// on pose un locker
 			CountDownLatch lock = new CountDownLatch(1);
 			// on crée un handler client de reception de la réponse
-			CountDownMessageHandler messageHandler = new CountDownMessageHandler(messageFromClient.getId(), lock);
+			CountDownMessageHandler messageHandler = new CountDownMessageHandler(mfc.getId(), lock);
 			session.addMessageHandler(messageHandler);
 			// send
-			session.getAsyncRemote().sendText(messageFromClient.toJson());
+			session.getAsyncRemote().sendText(mfcToJson(mfc));
 			// wait le delock ou timeout
 			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
 			// lockCount doit être à  zero sinon, on a pas eu le resultat
