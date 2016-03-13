@@ -6,18 +6,27 @@ package org.ocelotds.core.mtc;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.ElementKind;
+import javax.validation.Path;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.core.CacheManager;
 import org.ocelotds.core.services.ArgumentServices;
+import org.ocelotds.core.services.ConstraintServices;
 import org.ocelotds.core.services.FaultServices;
 import org.ocelotds.core.services.MethodServices;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
+import org.ocelotds.messaging.Fault;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.resolvers.DataServiceResolverIdLitteral;
@@ -32,6 +41,7 @@ import org.slf4j.Logger;
  * @param <T> Session or HttpSession
  */
 public abstract class MessageToClientManager<T> {
+
 	@Inject
 	@OcelotLogger
 	private Logger logger;
@@ -51,6 +61,9 @@ public abstract class MessageToClientManager<T> {
 
 	@Inject
 	private FaultServices faultServices;
+
+	@Inject
+	private ConstraintServices constraintServices;
 
 	public abstract Map<String, Object> getSessionBeans(T session);
 
@@ -79,7 +92,7 @@ public abstract class MessageToClientManager<T> {
 			throw new DataServiceException(dataServiceClassName);
 		}
 	}
-	
+
 	/**
 	 * Get Dataservice, store dataservice in session if session scope.<br>
 	 *
@@ -112,19 +125,21 @@ public abstract class MessageToClientManager<T> {
 
 	/**
 	 * Create a MessageToClient from MessageFromClient for session
+	 *
 	 * @param message
 	 * @param session
-	 * @return 
+	 * @return
 	 */
 	public MessageToClient createMessageToClient(MessageFromClient message, T session) {
 		return _createMessageToClient(message, session);
 	}
+
 	/**
-	 * Create a MessageToClient from MessageFromClient for session
-	 * Only for available test use case
+	 * Create a MessageToClient from MessageFromClient for session Only for available test use case
+	 *
 	 * @param message
 	 * @param session
-	 * @return 
+	 * @return
 	 */
 	MessageToClient _createMessageToClient(MessageFromClient message, T session) {
 		MessageToClient messageToClient = new MessageToClient();
@@ -141,19 +156,24 @@ public abstract class MessageToClientManager<T> {
 			}
 			try {
 				Method nonProxiedMethod = methodServices.getNonProxiedMethod(cls, method.getName(), method.getParameterTypes());
-				messageToClient.setDeadline(cacheManager.processCacheAnnotations(nonProxiedMethod, message.getParameterNames(),  message.getParameters()));
+				messageToClient.setDeadline(cacheManager.processCacheAnnotations(nonProxiedMethod, message.getParameterNames(), message.getParameters()));
 			} catch (NoSuchMethodException ex) {
 				logger.error("Fail to process extra annotations (JsCacheResult, JsCacheRemove) for method : " + method.getName(), ex);
 			}
 			logger.debug("Method {} proceed messageToClient : {}.", method.getName(), messageToClient);
 		} catch (InvocationTargetException ex) {
-			messageToClient.setFault(faultServices.buildFault(ex.getCause()));
+			Throwable cause = ex.getCause();
+			if (ConstraintViolationException.class.isInstance(cause)) {
+				messageToClient.setConstraints(constraintServices.extractViolations((ConstraintViolationException) cause, message.getParameterNames()));
+			} else {
+				messageToClient.setFault(faultServices.buildFault(cause));
+			}
 		} catch (Throwable ex) {
 			messageToClient.setFault(faultServices.buildFault(ex));
 		}
 		return messageToClient;
 	}
-	
+
 	List<Object> getArrayList() {
 		return new ArrayList<>();
 	}
