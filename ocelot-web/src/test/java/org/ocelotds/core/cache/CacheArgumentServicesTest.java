@@ -6,7 +6,6 @@ package org.ocelotds.core.cache;
 
 import java.util.Arrays;
 import java.util.List;
-import javax.json.JsonValue;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
@@ -76,7 +75,7 @@ public class CacheArgumentServicesTest {
 		System.out.println("computeSpecifiedArgPart");
 		String[] keys = new String[] {"a"};
 		List<String> jsonArgs = Arrays.asList("5");
-		List<String> paramNames = Arrays.asList("\"a\"");
+		List<String> paramNames = Arrays.asList("a");
 		doReturn("5").when(instance).processArg(any(String[].class), anyString());
 		String result = instance.computeSpecifiedArgPart(keys, jsonArgs, paramNames);
 		assertThat(result).isEqualTo("[5]");
@@ -90,7 +89,7 @@ public class CacheArgumentServicesTest {
 		System.out.println("computeSpecifiedArgPart");
 		String[] keys = new String[] {"a", "b"};
 		List<String> jsonArgs = Arrays.asList("5", "\"foo\"");
-		List<String> paramNames = Arrays.asList("\"a\"", "\"b\"");
+		List<String> paramNames = Arrays.asList("a", "b");
 		doReturn("5").doReturn("\"foo\"").when(instance).processArg(any(String[].class), anyString());
 		String result = instance.computeSpecifiedArgPart(keys, jsonArgs, paramNames);
 		assertThat(result).isEqualTo("[5,\"foo\"]");
@@ -104,7 +103,7 @@ public class CacheArgumentServicesTest {
 		System.out.println("computeSpecifiedArgPart");
 		String[] keys = new String[] {"a", "b", "c.d"};
 		List<String> jsonArgs = Arrays.asList("5", "\"foo\"", "{\"d\":5, \"e\":6}");
-		List<String> paramNames = Arrays.asList("\"a\"", "\"b\"", "\"c\"");
+		List<String> paramNames = Arrays.asList("a", "b", "c");
 		doReturn("5").doReturn("\"foo\"").doReturn("5").when(instance).processArg(any(String[].class), anyString());
 		String result = instance.computeSpecifiedArgPart(keys, jsonArgs, paramNames);
 		assertThat(result).isEqualTo("[5,\"foo\",5]");
