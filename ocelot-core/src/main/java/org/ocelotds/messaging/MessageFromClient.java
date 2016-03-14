@@ -7,7 +7,6 @@ package org.ocelotds.messaging;
 import org.ocelotds.Constants;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import javax.json.Json;
@@ -110,9 +109,7 @@ public class MessageFromClient {
 			message.setParameters(params);
 			int idx = 0;
 			logger.debug("Get arguments and argumentNames from message '{}'", json);
-			if (argArray.isEmpty()) {
-				logger.debug("No arguments from message");
-			} else {
+			if (!argArray.isEmpty()) {
 				while (idx < argArray.size()) {
 					JsonValue arg = argArray.get(idx++);
 					logger.debug("Get argument Type : '{}'. Value : '{}'", arg.getValueType().name(), arg.toString());
@@ -123,9 +120,7 @@ public class MessageFromClient {
 			params = new ArrayList<>();
 			message.setParameterNames(params);
 			idx = 0;
-			if (argArray.isEmpty()) {
-				logger.debug("No argumentName from message");
-			} else {
+			if (!argArray.isEmpty()) {
 				while (idx < argArray.size()) {
 					JsonString arg = argArray.getJsonString(idx++);
 					logger.debug("Get argumentName : '{}'.", arg.toString());
