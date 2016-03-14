@@ -46,6 +46,7 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 		String jsclsname = getJsClassname(typeElement);
 		String instanceName = getJsInstancename(jsclsname);
 		writer.append("var ").append(instanceName).append(" = (").append(FUNCTION).append(" () {").append(CR);
+		writer.append(TAB).append("'use strict';").append(CR);
 		String classname = typeElement.getQualifiedName().toString();
 		writer.append(TAB).append("var _ds = ").append(QUOTE).append(classname).append(QUOTE).append(";").append(CR);
 		writer.append(TAB).append("return {").append(CR);

@@ -86,11 +86,11 @@ public class DataServiceVisitorJsBuilderTest {
 
 		instance._visitType(typeElement, writer);
 		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(29)).append(captureAppend.capture());
+		verify(writer, times(32)).append(captureAppend.capture());
 		List<String> appends = captureAppend.getAllValues();
 		assertThat(appends.get(1)).isEqualTo("className");
-		assertThat(appends.get(9)).isEqualTo("packageName.ClassName");
-		assertThat(appends.get(25)).isEqualTo("className");
+		assertThat(appends.get(12)).isEqualTo("packageName.ClassName");
+		assertThat(appends.get(28)).isEqualTo("className");
 	}
 
 	/**

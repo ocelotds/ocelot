@@ -18,11 +18,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ocelotds.IServicesProvider;
 import org.ocelotds.objects.FakeCDI;
 import org.slf4j.Logger;
 import org.ocelotds.Constants;
-import org.ocelotds.objects.JsServiceProviderImpl;
 
 /**
  *
@@ -35,7 +33,7 @@ public class JsFileInitializerTest {
 	private Logger logger;
 
 	@Spy
-	private Instance<IServicesProvider> jsServicesProviders = new FakeCDI<>();
+	private Instance<Object> dataservices = new FakeCDI<>();
 
 	@InjectMocks
 	@Spy
@@ -111,9 +109,11 @@ public class JsFileInitializerTest {
 	@Test
 	public void testCreateOcelotJsFile() throws IOException {
 		System.out.println("createOcelotJsFile");
-		((FakeCDI) jsServicesProviders).add(new JsServiceProviderImpl());
+		((FakeCDI) dataservices).add(new String());
 		JsFileInitializer.OCELOT_CORE_RESOURCE = Constants.SLASH + Constants.OCELOT_CORE + Constants.JS;
+		doReturn("").when(instance).getJsFilename(anyObject());
 		doNothing().when(instance).createLicenceComment(any(OutputStream.class));
+		doReturn(true).when(instance).writeOcelotJsFile(any(OutputStream.class), anyString());
 		File file = instance.createOcelotJsFile();
 		assertThat(file).exists();
 		file.delete();
@@ -180,7 +180,7 @@ public class JsFileInitializerTest {
 	}
 
 	/**
-	 * Test of writeOcelotCoreJsFile method, of class ContextListener.
+	 * Test of writeOcelotJsFile method, of class ContextListener.
 	 *
 	 * @throws java.io.IOException
 	 */
@@ -188,8 +188,8 @@ public class JsFileInitializerTest {
 	public void testWriteOcelotCoreJsFile() throws IOException {
 		System.out.println("writeOcelotCoreJsFile");
 		OutputStream out = mock(OutputStream.class);
-		JsFileInitializer.OCELOT_CORE_RESOURCE = "/badfile";
-		instance.writeOcelotCoreJsFile(out);
+//		JsFileInitializer.OCELOT_CORE_RESOURCE = "/badfile";
+		instance.writeOcelotJsFile(out, "/badfile");
 	}
 	
 	@Test

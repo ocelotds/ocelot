@@ -13,6 +13,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Destroyed;
 import javax.enterprise.context.Initialized;
@@ -22,7 +24,7 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import org.ocelotds.Constants;
-import org.ocelotds.IServicesProvider;
+import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
 
@@ -39,7 +41,9 @@ public class JsFileInitializer extends AbstractFileInitializer {
 
 	@Any
 	@Inject
-	private Instance<IServicesProvider> jsServicesProviders;
+	@DataService(resolver = "")
+	private Instance<Object> dataservices;
+
 
 	public void initOcelotJsFile(@Observes @Initialized(ApplicationScoped.class) ServletContext sc) {
 		logger.debug("ocelot.js generation...");
@@ -68,13 +72,22 @@ public class JsFileInitializer extends AbstractFileInitializer {
 		File file = File.createTempFile(Constants.OCELOT, Constants.JS);
 		try (OutputStream out = new FileOutputStream(file)) {
 			createLicenceComment(out);
-			for (IServicesProvider servicesProvider : jsServicesProviders) {
-				logger.info("javascript provider found {}", servicesProvider);
-				servicesProvider.streamJavascriptServices(out);
+			for (Object dataservice : dataservices) {
+				writeOcelotJsFile(out, getJsFilename(dataservice));
 			}
-			writeOcelotCoreJsFile(out);
+			writeOcelotJsFile(out, OCELOT_CORE_RESOURCE);
 		}
 		return file;
+	}
+	
+	String getJsFilename(Object dataservice) {
+		String ds = dataservice.toString();
+		Pattern pattern = Pattern.compile("[@$]");
+		Matcher matcher = pattern.matcher(ds);
+		matcher.find();
+		matcher.start();
+		String path = ds.substring(0, matcher.start()).replaceAll("\\.", File.separator);
+		return File.separator+path+Constants.JS;
 	}
 
 	/**
@@ -142,10 +155,10 @@ public class JsFileInitializer extends AbstractFileInitializer {
 	 * @return
 	 * @throws IOException
 	 */
-	boolean writeOcelotCoreJsFile(OutputStream out) throws IOException {
-		URL js = getContentURL(OCELOT_CORE_RESOURCE);
+	boolean writeOcelotJsFile(OutputStream out, String path) throws IOException {
+		URL js = getContentURL(path);
 		if (null == js) {
-			throw new IOException("File " + OCELOT_CORE_RESOURCE + " not found in classpath.");
+			throw new IOException("File " + path + " not found in classpath.");
 		}
 		return writeStreamToOutputStream(js.openStream(), out);
 	}
