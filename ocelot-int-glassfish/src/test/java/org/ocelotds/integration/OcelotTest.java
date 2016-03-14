@@ -15,6 +15,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +63,7 @@ import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import org.ocelotds.integration.dataservices.marshalling.ClassServices;
 import org.ocelotds.integration.dataservices.validation.ValidationCdiDataService;
 import org.ocelotds.messaging.ConstraintViolation;
 import org.ocelotds.objects.WithConstraint;
@@ -246,6 +248,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 	@Test
 	public void testCallMultiMethodsMultiSessions() {
+		System.out.println("testCallMultiMethodsMultiSessions");
 		Client client = null;
 		testCallMultiMethodsInClient("testCallMultiMethodsMultiSessions", NB_SIMUL_METHODS, client);
 	}
@@ -255,6 +258,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 	@Test
 	public void testCallMultiMethodsMonoSessions() {
+		System.out.println("testCallMultiMethodsMonoSessions");
 		Client client = null;
 		try {
 			client = getClient();
@@ -274,6 +278,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 //	@Test
 	public void testGetServices() {
+		System.out.println("getServices");
 		Class clazz = OcelotServices.class;
 		String methodName = "getServices";
 		System.out.println(clazz + "." + methodName);
@@ -285,6 +290,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 	@Test
 	public void testGetUsername() {
+		System.out.println("getUsername");
 		testRSCallWithResult(OcelotServices.class, "getUsername", getJson("user"));
 	}
 
@@ -293,6 +299,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 	@Test
 	public void testGetSetLocale() {
+		System.out.println("getLocale");
 		Client client = null;
 		try {
 			client = getClient();
@@ -322,6 +329,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 	@Test
 	public void testSetLocale() {
+		System.out.println("getLocaleHello");
 		Client client = null;
 		try {
 			client = getClient();
@@ -346,61 +354,73 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 	@Test
 	public void testReturnTypeGetBool() {
+		System.out.println("getBool");
 		testRSCallWithResult(ReturnTypeDataService.class, "getBool", getJson(returnTypeDataService.getBool()));
 	}
 
 	@Test
 	public void testReturnTypeGetBoolean() {
+		System.out.println("getBoolean");
 		testRSCallWithResult(ReturnTypeDataService.class, "getBoolean", getJson(returnTypeDataService.getBoolean()));
 	}
 
 	@Test
 	public void testReturnTypeGetCollectionInteger() {
+		System.out.println("getCollectionInteger");
 		testRSCallWithResult(ReturnTypeDataService.class, "getCollectionInteger", getJson(returnTypeDataService.getCollectionInteger()));
 	}
 
 	@Test
 	public void testReturnTypeGetCollectionOfCollectionResult() {
+		System.out.println("getCollectionOfCollectionResult");
 		testRSCallWithResult(ReturnTypeDataService.class, "getCollectionOfCollectionResult", getJson(returnTypeDataService.getCollectionOfCollectionResult()));
 	}
 
 	@Test
 	public void testReturnTypeGetCollectionResult() {
+		System.out.println("getCollectionResult");
 		testRSCallWithResult(ReturnTypeDataService.class, "getCollectionResult", getJson(returnTypeDataService.getCollectionResult()));
 	}
 
 	@Test
 	public void testReturnTypeGetDate() {
+		System.out.println("getDate");
 		testRSCallWithResult(ReturnTypeDataService.class, "getDate", getJson(returnTypeDataService.getDate()));
 	}
 
 	@Test
 	public void testReturnTypeGetMapResult() {
+		System.out.println("getMapResult");
 		testRSCallWithResult(ReturnTypeDataService.class, "getMapResult", getJson(returnTypeDataService.getMapResult()));
 	}
 
 	@Test
 	public void testReturnTypeGetNum() {
+		System.out.println("getNum");
 		testRSCallWithResult(ReturnTypeDataService.class, "getNum", getJson(returnTypeDataService.getNum()));
 	}
 
 	@Test
 	public void testReturnTypeGetNumber() {
+		System.out.println("getNumber");
 		testRSCallWithResult(ReturnTypeDataService.class, "getNumber", getJson(returnTypeDataService.getNumber()));
 	}
 
 	@Test
 	public void testReturnTypeGetResult() {
+		System.out.println("getResult");
 		testRSCallWithResult(ReturnTypeDataService.class, "getResult", getJson(returnTypeDataService.getResult()));
 	}
 
 	@Test
 	public void testReturnTypeGetString() {
+		System.out.println("getString");
 		testRSCallWithResult(ReturnTypeDataService.class, "getString", getJson(returnTypeDataService.getString()));
 	}
 
 	@Test
 	public void testReturnTypeGetVoid() {
+		System.out.println("getVoid");
 		testRSCallWithResult(ReturnTypeDataService.class, "getVoid", getJson(null));
 	}
 
@@ -412,52 +432,61 @@ public class OcelotTest extends AbstractOcelotTest {
 	 */
 	@Test
 	public void testMethodWithAlmostSameSignature() {
+		System.out.println("methodWithAlmostSameSignature");
 		testRSCallWithResult(ArgumentTypeDataService.class, "methodWithAlmostSameSignature", getJson(argumentTypeDataService.methodWithAlmostSameSignature(Integer.SIZE)), getJson(Integer.SIZE));
 	}
 
 	@Test
 	public void testMethodWithAlmostSameSignature2() {
+		System.out.println("methodWithAlmostSameSignature");
 		String argument = "FOO";
 		testRSCallWithResult(ArgumentTypeDataService.class, "methodWithAlmostSameSignature", getJson(argumentTypeDataService.methodWithAlmostSameSignature(argument)), getJson(argument));
 	}
 
 	@Test
 	public void testMethodWithAlmostSameSignature3() {
+		System.out.println("methodWithAlmostSameSignature");
 		testRSCallWithResult(ArgumentTypeDataService.class, "methodWithAlmostSameSignature", getJson(argumentTypeDataService.methodWithAlmostSameSignature("FOO", "FOO")), getJson("FOO"), getJson("FOO"));
 	}
 
 	@Test
 	public void testMethodWithArrayInteger() {
+		System.out.println("methodWithArrayInteger");
 		Integer[] argument = new Integer[]{Integer.SIZE, Integer.SIZE};
 		testRSCallWithResult(ArgumentTypeDataService.class, "methodWithArrayInteger", getJson(argumentTypeDataService.methodWithArrayInteger(argument)), getJson(argument));
 	}
 
 	@Test
 	public void testMethodWithArrayResult() {
+		System.out.println("methodWithArrayResult");
 		Result[] argument = new Result[]{Result.getMock(), Result.getMock()};
 		testRSCallWithResult(ArgumentTypeDataService.class, "methodWithArrayResult", getJson(argumentTypeDataService.methodWithArrayResult(argument)), getJson(argument));
 	}
 
 	@Test
 	public void testMethodWithBool() {
+		System.out.println("methodWithBool");
 		boolean argument = Boolean.TRUE;
 		testRSCallWithResult(ArgumentTypeDataService.class, "methodWithBool", getJson(argumentTypeDataService.methodWithBool(argument)), getJson(argument));
 	}
 
 	@Test
 	public void testMethodWithBoolean() {
+		System.out.println("methodWithBoolean");
 		boolean argument = Boolean.FALSE;
 		testRSCallWithResult(ArgumentTypeDataService.class, "methodWithBoolean", getJson(argumentTypeDataService.methodWithBoolean(argument)), getJson(argument));
 	}
 
 	@Test
 	public void testMethodWithCollectionInteger() {
+		System.out.println("methodWithCollectionInteger");
 		Collection<Integer> argument = Arrays.asList(Integer.SIZE, Integer.SIZE, Integer.SIZE);
 		testRSCallWithResult(ArgumentTypeDataService.class, "methodWithCollectionInteger", getJson(argumentTypeDataService.methodWithCollectionInteger(argument)), getJson(argument));
 	}
 
 	@Test
 	public void testMethodWithCollectionOfCollectionResult() {
+		System.out.println("methodWithCollectionOfCollectionResult");
 		Collection<Result> arg = Arrays.asList(Result.getMock(), Result.getMock());
 		Collection<Collection<Result>> argument = Arrays.asList(arg, arg);
 		testRSCallWithResult(ArgumentTypeDataService.class, "methodWithCollectionOfCollectionResult", getJson(argumentTypeDataService.methodWithCollectionOfCollectionResult(argument)), getJson(argument));
@@ -465,18 +494,21 @@ public class OcelotTest extends AbstractOcelotTest {
 
 	@Test
 	public void testMethodWithCollectionResult() {
+		System.out.println("methodWithCollectionResult");
 		Collection<Result> argument = Arrays.asList(Result.getMock(), Result.getMock());
 		testRSCallWithResult(ArgumentTypeDataService.class, "methodWithCollectionResult", getJson(argumentTypeDataService.methodWithCollectionResult(argument)), getJson(argument));
 	}
 
 	@Test
 	public void testMethodWithDate() {
+		System.out.println("methodWithDate");
 		Date argument = new Date();
 		testRSCallWithResult(ArgumentTypeDataService.class, "methodWithDate", getJson(argumentTypeDataService.methodWithDate(argument)), getJson(argument));
 	}
 
 	@Test
 	public void testMethodWithManyParameters() {
+		System.out.println("methodWithManyParameters");
 		String arg0 = "FOO";
 		int arg1 = Integer.SIZE;
 		Result arg2 = Result.getMock();
@@ -486,6 +518,7 @@ public class OcelotTest extends AbstractOcelotTest {
 
 	@Test
 	public void testMethodWithMapResult() {
+		System.out.println("methodWithMapResult");
 		Map<String, Result> argument = new HashMap();
 		argument.put("A", Result.getMock());
 		argument.put("B", Result.getMock());
@@ -494,27 +527,45 @@ public class OcelotTest extends AbstractOcelotTest {
 
 	@Test
 	public void testMethodWithNum() {
+		System.out.println("methodWithNum");
 		int argument = Integer.SIZE;
 		testRSCallWithResult(ArgumentTypeDataService.class, "methodWithNum", getJson(argumentTypeDataService.methodWithNum(argument)), getJson(argument));
 	}
 
 	@Test
 	public void testMethodWithNumber() {
+		System.out.println("methodWithNumber");
 		Integer argument = Integer.SIZE;
 		testRSCallWithResult(ArgumentTypeDataService.class, "methodWithNumber", getJson(argumentTypeDataService.methodWithNumber(argument)), getJson(argument));
 	}
 
 	@Test
 	public void testMethodWithResult() {
+		System.out.println("methodWithResult");
 		Result argument = Result.getMock();
 		testRSCallWithResult(ArgumentTypeDataService.class, "methodWithResult", getJson(argumentTypeDataService.methodWithResult(argument)), getJson(argument));
 	}
 
 	@Test
 	public void testMethodThatThrowException() {
+		System.out.println("methodThatThrowException");
 		testRSCallThrowException(ArgumentTypeDataService.class, "methodThatThrowException", MethodException.class);
 	}
 
+	/**
+	 * MARSHALLING
+	 */
+	@Test
+	public void testMethodWithMarshaller() {
+		System.out.println("getCls");
+		testRSCallWithResult(ClassServices.class, "getCls", getJson(String.class.getName()), getJson(String.class.getName()));
+	}
+	@Test
+	public void testMethodWithMarshallerIterable() {
+		System.out.println("getClasses");
+		List<String> list = Arrays.asList(String.class.getName(), String.class.getName());
+		testRSCallWithResult(ClassServices.class, "getClasses", getJson(list), getJson(list));
+	}
 	/**
 	 * VALIDATION
 	 */

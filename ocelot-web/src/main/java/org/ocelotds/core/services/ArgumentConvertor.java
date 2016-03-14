@@ -16,9 +16,9 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Map;
 import javax.inject.Inject;
-import javax.json.stream.JsonParsingException;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
+import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.slf4j.Logger;
@@ -28,12 +28,17 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 public class ArgumentConvertor implements IArgumentConvertor {
+
 	@Inject
 	@OcelotLogger
 	private Logger logger;
 
 	@Inject
 	ObjectMapper objectMapper;
+	
+	@Inject
+	ArgumentServices argumentServices;
+
 	/**
 	 * Convert json to Java
 	 *
@@ -45,20 +50,45 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	 */
 	@Override
 	public Object convertJsonToJava(String jsonArg, Type paramType, Annotation[] parameterAnnotations) throws JsonUnmarshallingException {
-		if("null".equals(jsonArg)) {
+		if ("null".equals(jsonArg)) {
 			return null;
 		}
-		Class<? extends org.ocelotds.marshalling.IJsonMarshaller> marshaller = getMarshallerAnnotation(parameterAnnotations);
-		if (null != marshaller) {
+		JsonUnmarshaller juma = getJsonUnmarshallerAnnotation(parameterAnnotations);
+		if (null != juma) {
+			Class<? extends IJsonMarshaller> marshaller = juma.value();
 			try {
-				org.ocelotds.marshalling.IJsonMarshaller newInstance = marshaller.newInstance();
-				return newInstance.toJava(jsonArg);
-			} catch (JsonParsingException | InstantiationException | IllegalAccessException ex) {
+				Object result = getResult(jsonArg, marshaller.newInstance(), juma.iterable());
+				argumentServices.checkType(result, paramType);
+				return result;
+			} catch (InstantiationException | IllegalAccessException ex) {
 				throw new JsonUnmarshallingException(jsonArg);
 			}
 		} else {
 			return convertArgument(jsonArg, paramType);
 		}
+	}
+
+	Object getResult(String jsonArg, IJsonMarshaller ijm, boolean iterable) throws JsonUnmarshallingException {
+		if(iterable) {
+			return argumentServices.getJavaResultFromSpecificUnmarshallerIterable(jsonArg, ijm);
+		} else {
+			return ijm.toJava(jsonArg);
+		}
+	}
+	
+	/**
+	 * return the JsonUnmarshaller annotation
+	 *
+	 * @param annotations
+	 * @return
+	 */
+	JsonUnmarshaller getJsonUnmarshallerAnnotation(Annotation[] annotations) {
+		for (Annotation annotation : annotations) {
+			if (JsonUnmarshaller.class.isInstance(annotation)) {
+				return (JsonUnmarshaller) annotation;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -68,7 +98,7 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	 * @param paramType
 	 * @return
 	 */
-	Class<? extends org.ocelotds.marshalling.IJsonMarshaller> getMarshallerAnnotation(Annotation[] annotations) {
+	Class<? extends IJsonMarshaller> getMarshallerAnnotation(Annotation[] annotations) {
 		for (Annotation annotation : annotations) {
 			if (JsonUnmarshaller.class.isInstance(annotation)) {
 				JsonUnmarshaller unmarshallerAnnotation = (JsonUnmarshaller) annotation;
@@ -113,22 +143,22 @@ public class ArgumentConvertor implements IArgumentConvertor {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * check if class and argument are string
+	 *
 	 * @param cls
 	 * @param arg
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	void checkStringArgument(Class cls, String arg) throws IOException {
-		if(arg.startsWith(Constants.QUOTE)) { // ca ressemble à une string
-			if(!cls.equals(String.class)) { // et on veut pas une string
+		if (arg.startsWith(Constants.QUOTE)) { // ca ressemble à une string
+			if (!cls.equals(String.class)) { // et on veut pas une string
 				throw new IOException();
 			}
-		} else { // ca ressemble pas à une string
-			if(cls.equals(String.class)) { // mais on veut une string
-				throw new IOException();
-			}
+		} else // ca ressemble pas à une string
+		if (cls.equals(String.class)) { // mais on veut une string
+			throw new IOException();
 		}
 	}
 
@@ -167,5 +197,5 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	ObjectMapper getObjectMapper() {
 		return objectMapper;
 	}
-	
+
 }

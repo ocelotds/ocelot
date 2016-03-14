@@ -34,6 +34,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.TransientDataService;
 import org.ocelotds.literals.JsonUnmarshallerLiteral;
 import org.ocelotds.marshallers.LocaleMarshaller;
+import org.ocelotds.marshalling.IJsonMarshaller;
+import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.ocelotds.objects.Result;
 import org.ocelotds.spi.DataServiceException;
@@ -48,6 +50,9 @@ public class ArgumentConvertorTest {
 
 	@Mock
 	private Logger logger;
+	
+	@Mock
+	ArgumentServices argumentServices;
 
 	@InjectMocks
 	@Spy
@@ -97,10 +102,34 @@ public class ArgumentConvertorTest {
 	@Test
 	public void testConvertJsonToJavaWithUnmarshaller() throws JsonUnmarshallingException {
 		System.out.println("convertJsonToJavaWithUnmarshaller");
-		doReturn(LocaleMarshaller.class).when(instance).getMarshallerAnnotation(any(Annotation[].class));
-
-		Object result = instance.convertJsonToJava("{\"language\":\"fr\",\"country\":\"FR\"}", String.class, new Annotation[]{});
+		JsonUnmarshaller juma = mock(JsonUnmarshaller.class);
+		Locale expectResult = Locale.FRANCE;
+		when(juma.value()).thenReturn((Class)LocaleMarshaller.class);
+		when(juma.iterable()).thenReturn(false);
+		doReturn(juma).when(instance).getJsonUnmarshallerAnnotation(any(Annotation[].class));
+		doReturn(expectResult).when(instance).getResult(anyString(), any(IJsonMarshaller.class), anyBoolean());
+		doNothing().when(argumentServices).checkType(any(JsonUnmarshaller.class), any(Type.class));
+		Object result = instance.convertJsonToJava("{\"language\":\"fr\",\"country\":\"FR\"}", Locale.class, new Annotation[]{});
 		assertThat(result).isInstanceOf(Locale.class);
+	}
+
+	@Test
+	public void testGetResultSingle() throws JsonUnmarshallingException {
+		System.out.println("getResult");
+		String jsonArg = "{\"language\":\"fr\",\"country\":\"FR\"}";
+		LocaleMarshaller lm = new LocaleMarshaller();
+		Object result = instance.getResult(jsonArg, lm, false);
+		assertThat(result).isInstanceOf(Locale.class);
+	}
+
+	@Test
+	public void testGetResultIterable() throws JsonUnmarshallingException {
+		System.out.println("getResult");
+		String jsonArg = "{\"language\":\"fr\",\"country\":\"FR\"}";
+		LocaleMarshaller lm = new LocaleMarshaller();
+		when(argumentServices.getJavaResultFromSpecificUnmarshallerIterable(anyString(), any(IJsonMarshaller.class))).thenReturn(Arrays.asList(Locale.FRANCE, Locale.US));
+		Object result = instance.getResult(jsonArg, lm, true);
+		assertThat(result).isInstanceOf(List.class);
 	}
 
 	/**
