@@ -15,6 +15,7 @@ public class JsonUnmarshallerLiteral extends AnnotationLiteral<JsonUnmarshaller>
 
 	private static final long serialVersionUID = 1L;
 	private final Class<? extends org.ocelotds.marshalling.IJsonMarshaller> value;
+	private final boolean iterable = false;
 
 	public JsonUnmarshallerLiteral(Class<? extends org.ocelotds.marshalling.IJsonMarshaller> value) {
 		this.value = value;
@@ -23,5 +24,10 @@ public class JsonUnmarshallerLiteral extends AnnotationLiteral<JsonUnmarshaller>
 	@Override
 	public Class<? extends org.ocelotds.marshalling.IJsonMarshaller> value() {
 		return value;
+	}
+
+	@Override
+	public boolean iterable() {
+		return iterable;
 	}
 }
