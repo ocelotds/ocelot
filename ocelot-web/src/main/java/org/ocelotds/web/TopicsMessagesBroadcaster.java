@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import javax.websocket.Session;
 import org.ocelotds.annotations.JsTopicEvent;
 import org.ocelotds.annotations.OcelotLogger;
+import org.ocelotds.core.services.ArgumentServices;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.slf4j.Logger;
 
@@ -35,6 +36,9 @@ public class TopicsMessagesBroadcaster {
 	@Inject
 	private SessionManager sessionManager;
 
+	@Inject
+	private ArgumentServices argumentServices;
+
 	/**
 	 * Send message to topic
 	 *
@@ -47,29 +51,23 @@ public class TopicsMessagesBroadcaster {
 		Annotated annotated = injectionPoint.getAnnotated();
 		JsTopicEvent jte = annotated.getAnnotation(JsTopicEvent.class);
 		if (jte != null) {
-			msg.setId(jte.value());
-			if (annotated.isAnnotationPresent(JsonMarshaller.class)) {
-				msg.setJson(getJsonFromMarshaller(object, annotated.getAnnotation(JsonMarshaller.class)));
-			} else {
-				msg.setResponse(object);
+			JsonMarshaller jm = annotated.getAnnotation(JsonMarshaller.class);
+			try {
+				msg.setId(jte.value());
+				if (jm != null) {
+					msg.setJson(argumentServices.getJsonResultFromSpecificMarshaller(jm, object));
+				} else {
+					msg.setResponse(object);
+				}
+				sendMessageToTopic(msg);
+			} catch (InstantiationException | IllegalAccessException ex) {
+				logger.error(jm+" can't be instantiate", ex);
+			} catch (Throwable ex) {
+				logger.error(object+" can't be serialized with marshaller "+jm, ex);
 			}
-			sendMessageToTopic(msg);
 		}
 	}
 	
-	String getJsonFromMarshaller(Object object, JsonMarshaller jma) {
-		Class<? extends org.ocelotds.marshalling.IJsonMarshaller> marshallerCls = jma.value();
-		try {
-			org.ocelotds.marshalling.IJsonMarshaller marshaller = marshallerCls.newInstance();
-			return marshaller.toJson(object);
-		} catch (InstantiationException | IllegalAccessException ex) {
-			logger.error(marshallerCls+" can't be instantiate", ex);
-		} catch (Throwable ex) {
-			logger.error(object+" can't be serialized with marshaller "+marshallerCls, ex);
-		}
-		return null;
-	}
-
 	public int sendMessageToTopic(@Observes @MessageEvent MessageToClient msg) {
 		msg.setType(MessageType.MESSAGE);
 		int sended = 0;
