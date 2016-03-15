@@ -6,11 +6,6 @@
 package org.ocelotds.integration.dataservices.security;
 
 import java.security.Principal;
-import javax.annotation.Resource;
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.ejb.SessionContext;
-import javax.ejb.Stateless;
 import javax.inject.Inject;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.DataService;
