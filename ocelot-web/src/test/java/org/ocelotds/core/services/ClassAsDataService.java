@@ -6,6 +6,7 @@ package org.ocelotds.core.services;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
+import javax.validation.ConstraintViolationException;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheResult;
 import org.ocelotds.marshallers.LocaleMarshaller;
@@ -39,6 +40,10 @@ public class ClassAsDataService {
 
 	public String methodThrowException(String a) throws AbstractMethodError {
 		throw new AbstractMethodError("MyMessage");
+	}
+	
+	public String methodThrowViolationConstraint(String a) throws ConstraintViolationException {
+		throw new ConstraintViolationException(null);
 	}
 
 	@JsCacheResult
