@@ -37,12 +37,12 @@ public class FakeCDI<T> extends CDI<T> implements Instance<T> {
 
 	@Override
 	public boolean isUnsatisfied() {
-		return false;
+		return instances.isEmpty();
 	}
 
 	@Override
 	public boolean isAmbiguous() {
-		return false;
+		return instances.size() > 1;
 	}
 
 	@Override
