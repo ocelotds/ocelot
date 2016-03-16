@@ -43,7 +43,7 @@ import org.ocelotds.integration.dataservices.ejb.RequestEjbDataService;
 import org.ocelotds.integration.dataservices.ejb.SessionEjbDataService;
 import org.ocelotds.integration.dataservices.ejb.SingletonEjbDataService;
 import org.ocelotds.integration.dataservices.locale.LocaleMsgDataService;
-import org.ocelotds.integration.dataservices.topic.MyTopicAccessControler;
+import org.ocelotds.integration.dataservices.topic.MyTopicAccessController;
 import org.ocelotds.integration.dataservices.types.ArgumentTypeDataService;
 import org.ocelotds.integration.dataservices.types.ReturnTypeDataService;
 import org.ocelotds.messaging.MessageEvent;
@@ -52,21 +52,21 @@ import org.ocelotds.objects.Result;
 import org.ocelotds.resolvers.CdiResolver;
 import org.ocelotds.resolvers.DataServiceResolverIdLitteral;
 import org.ocelotds.spi.IDataServiceResolver;
-import org.ocelotds.annotations.JsTopicAccessControl;
 import org.ocelotds.integration.dataservices.monitor.MonitorDataService;
-import org.ocelotds.integration.dataservices.topic.TopicAccessControler;
+import org.ocelotds.integration.dataservices.topic.TopicAccessController;
 import org.ocelotds.integration.dataservices.topic.TopicDataService;
 import org.ocelotds.security.JsTopicAccessController;
 import org.ocelotds.integration.dataservices.security.AccessCDIDataService;
 import org.ocelotds.integration.dataservices.security.AccessEJBDataService;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageType;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import org.ocelotds.integration.dataservices.marshalling.ClassServices;
 import org.ocelotds.integration.dataservices.validation.ValidationCdiDataService;
 import org.ocelotds.messaging.ConstraintViolation;
 import org.ocelotds.objects.WithConstraint;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
 
 /**
  *
@@ -82,11 +82,15 @@ public class OcelotTest extends AbstractOcelotTest {
 	Event<MessageToClient> wsEvent;
 
 	@Inject
-	@JsTopicAccessControl("mytopic")
-	JsTopicAccessController myTopicAccessControler;
+	@Any
+	Instance<JsTopicAccessController> myTopicAccessControllers;
+	
+	JsTopicAccessController getJsTopicAccessController() {
+		return myTopicAccessControllers.select(new JsTopicCtrlAnnotationLiteral("mytopic")).get();
+	}
 
 	@Inject
-	JsTopicAccessController topicAccessControler;
+	JsTopicAccessController topicAccessController;
 
 	@Inject
 	@Any
@@ -576,7 +580,7 @@ public class OcelotTest extends AbstractOcelotTest {
 		MessageFromClient mfc = getMessageFromClient(ValidationCdiDataService.class, "methodWithValidationArguments", getJson(null), getJson(""), getJson(null));
 		mfc.setParameterNames(Arrays.asList("str0", "str1", "str2"));
 		MessageToClient mtc = testRSCallWithoutResult(getClient(), mfc, MessageType.CONSTRAINT);
-		ConstraintViolation[] cvs = getJava(ConstraintViolation[].class, (String) mtc.getResponse());
+		ConstraintViolation[] cvs = (ConstraintViolation[]) mtc.getResponse();
 		assertThat(cvs).hasSize(2);
 		ConstraintViolation cv = cvs[0];
 		if(cv.getIndex()==0) {
@@ -689,7 +693,7 @@ public class OcelotTest extends AbstractOcelotTest {
 		MessageFromClient mfc = getMessageFromClient(ValidationCdiDataService.class, "methodWithArgumentConstraint", getJson(new WithConstraint()));
 		mfc.setParameterNames(Arrays.asList("str0"));
 		MessageToClient mtc = testRSCallWithoutResult(getClient(), mfc, MessageType.CONSTRAINT);
-		ConstraintViolation[] cvs = getJava(ConstraintViolation[].class, (String) mtc.getResponse());
+		ConstraintViolation[] cvs = (ConstraintViolation[]) mtc.getResponse();
 		assertThat(cvs).isNotNull();
 		assertThat(cvs).hasSize(1);
 		ConstraintViolation cv = cvs[0];
@@ -870,7 +874,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testSendMessageToMyTopic() {
 		System.out.println("sendMessageToTopic");
 		final String topic = "mytopic";
-		((MyTopicAccessControler) myTopicAccessControler).setAccess(true);
+		((MyTopicAccessController) getJsTopicAccessController()).setAccess(true);
 		try (Session wssession = createAndGetSession()) {
 			subscribeToTopicInSession(wssession, topic);
 			long t0 = System.currentTimeMillis();
@@ -901,7 +905,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testSubscriptionToMyTopicFailCauseSpecificTAC() {
 		System.out.println("subscriptionToMyTopic");
 		final String topic = "mytopic";
-		((MyTopicAccessControler) myTopicAccessControler).setAccess(false);
+		((MyTopicAccessController) getJsTopicAccessController()).setAccess(false);
 		try (Session wssession = createAndGetSession()) {
 			testCallThrowExceptionInSession(wssession, OcelotServices.class, "subscribe", IllegalAccessException.class, getJson(topic));
 		} catch (IOException ex) {
@@ -916,8 +920,8 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testSubscriptionToMyTopicFailCauseGlobalTAC() {
 		System.out.println("subscriptionToMyTopic");
 		final String topic = "mytopic";
-		((MyTopicAccessControler) myTopicAccessControler).setAccess(true);
-		((TopicAccessControler) topicAccessControler).setAccess(false);
+		((MyTopicAccessController) getJsTopicAccessController()).setAccess(true);
+		((TopicAccessController) topicAccessController).setAccess(false);
 		try (Session wssession = createAndGetSession()) {
 			testCallThrowExceptionInSession(wssession, OcelotServices.class, "subscribe", IllegalAccessException.class, getJson(topic));
 		} catch (IOException ex) {
@@ -932,8 +936,8 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testReceiveMessageToMyTopic() {
 		System.out.println("receiveMessageToMyTopic");
 		final String topic = "mytopic";
-		((TopicAccessControler) topicAccessControler).setAccess(true);
-		((MyTopicAccessControler) myTopicAccessControler).setAccess(true);
+		((TopicAccessController) topicAccessController).setAccess(true);
+		((MyTopicAccessController) getJsTopicAccessController()).setAccess(true);
 		try (Session wssession = createAndGetSession()) {
 			subscribeToTopicInSession(wssession, topic);
 			testWaitXMessageToTopic(wssession, 1, topic, new Runnable() {
@@ -941,11 +945,42 @@ public class OcelotTest extends AbstractOcelotTest {
 				public void run() {
 					testRSCallWithoutResult(TopicDataService.class, "sendMessageInMyTopic");
 				}
-			}
-			);
+			});
 		} catch (IOException ex) {
 			fail(ex.getMessage());
 		}
+	}
+
+	/**
+	 * Test receive message to mytopic
+	 */
+	@Test
+	public void testReceiveMessageToAdminTopic() {
+		System.out.println("receiveMessageToAdminTopic");
+		final String topic = "admintopic";
+		try (Session wssession = createAndGetSession("user:user", false)) {
+			subscribeToTopicInSession(wssession, topic);
+			testWait0MessageToTopic(wssession, topic, new Runnable() {
+				@Override
+				public void run() {
+					testRSCallWithoutResult(getClient("user", "user"), TopicDataService.class, "sendMessageInAdminTopic");
+				}
+			});
+		} catch (IOException ex) {
+			fail(ex.getMessage());
+		}
+		try (Session wssession = createAndGetSession("admin:admin", false)) {
+			subscribeToTopicInSession(wssession, topic);
+			testWaitXMessageToTopic(wssession, 1, topic, new Runnable() {
+				@Override
+				public void run() {
+					testRSCallWithoutResult(getClient("admin", "admin"), TopicDataService.class, "sendMessageInAdminTopic");
+				}
+			});
+		} catch (IOException ex) {
+			fail(ex.getMessage());
+		}
+		
 	}
 
 	/**
@@ -955,8 +990,8 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testReceiveMessageToDynTopic() {
 		System.out.println("receiveMessageToDynTopic");
 		final String topic = "FOO";
-		((TopicAccessControler) topicAccessControler).setAccess(true);
-		((MyTopicAccessControler) myTopicAccessControler).setAccess(true);
+		((TopicAccessController) topicAccessController).setAccess(true);
+		((MyTopicAccessController) getJsTopicAccessController()).setAccess(true);
 		try (Session wssession = createAndGetSession()) {
 			subscribeToTopicInSession(wssession, topic);
 			testWaitXMessageToTopic(wssession, 1, topic, new Runnable() {
@@ -978,8 +1013,8 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testReceiveXMessagesToMyTopic() {
 		System.out.println("receiveXMessagesToMyTopic");
 		final String topic = "mytopic";
-		((TopicAccessControler) topicAccessControler).setAccess(true);
-		((MyTopicAccessControler) myTopicAccessControler).setAccess(true);
+		((TopicAccessController) topicAccessController).setAccess(true);
+		((MyTopicAccessController) getJsTopicAccessController()).setAccess(true);
 		try (Session wssession = createAndGetSession()) {
 			subscribeToTopicInSession(wssession, topic);
 			final int nbMsg = 10;
@@ -1002,8 +1037,8 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testReceiveXMessagesToDynTopic() {
 		System.out.println("receiveXMessagesToDynTopic");
 		final String topic = "FOO";
-		((TopicAccessControler) topicAccessControler).setAccess(true);
-		((MyTopicAccessControler) myTopicAccessControler).setAccess(true);
+		((TopicAccessController) topicAccessController).setAccess(true);
+		((MyTopicAccessController) getJsTopicAccessController()).setAccess(true);
 		try (Session wssession = createAndGetSession()) {
 			subscribeToTopicInSession(wssession, topic);
 			final int nbMsg = 10;

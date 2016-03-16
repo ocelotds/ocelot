@@ -56,4 +56,8 @@ public class TopicDataService {
 		}
 	}
 
+	@JsTopic("admintopic")
+	public String sendMessageInAdminTopic() {
+		return "messageFromServer1";
+	}
 }

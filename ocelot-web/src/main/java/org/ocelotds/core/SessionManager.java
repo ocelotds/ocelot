@@ -4,9 +4,9 @@
  */
 package org.ocelotds.core;
 
-import org.ocelotds.annotations.JsTopicAccessControl;
+import org.ocelotds.annotations.JsTopicControl;
 import org.ocelotds.security.JsTopicAccessController;
-import org.ocelotds.security.JsTopicACAnnotationLiteral;
+import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +25,8 @@ import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
+import org.ocelotds.security.UserContext;
+import org.ocelotds.web.RequestManager;
 import org.slf4j.Logger;
 
 /**
@@ -49,6 +51,9 @@ public class SessionManager {
 	@Any
 	Instance<JsTopicAccessController> topicAccessController;
 
+	@Inject
+	private RequestManager requestManager;
+
 	/**
 	 * Process Access Topic Controller
 	 *
@@ -60,7 +65,7 @@ public class SessionManager {
 		boolean tacPresent = checkAccessTopicGlobalAC(session, topic);
 		tacPresent  |= checkAccessTopicSpecificAC(session, topic);
 		if (!tacPresent) {
-			logger.info("No topic access control found in project, add {} implementation with optional Qualifier {} in your project for add topic security.", JsTopicAccessController.class, JsTopicAccessControl.class);
+			logger.info("No topic access control found in project, add {} implementation with optional Qualifier {} in your project for add topic security.", JsTopicAccessController.class, JsTopicControl.class);
 		} else {
 			logger.debug("Topic access control found in project.");
 		}
@@ -86,7 +91,7 @@ public class SessionManager {
 	 * @throws IllegalAccessException 
 	 */
 	boolean checkAccessTopicSpecificAC(Session session, String topic) throws IllegalAccessException {
-		Instance<JsTopicAccessController> accessControls = topicAccessController.select(new JsTopicACAnnotationLiteral(topic));
+		Instance<JsTopicAccessController> accessControls = topicAccessController.select(new JsTopicCtrlAnnotationLiteral(topic));
 		return checkAccessTopicSpecificAC(session, topic, accessControls);
 	}
 	
@@ -101,8 +106,9 @@ public class SessionManager {
 	boolean checkAccessTopicSpecificAC(Session session, String topic, Instance<JsTopicAccessController> accessControls) throws IllegalAccessException {
 		boolean tacPresent = false;
 		if (null != accessControls) {
+			UserContext userContext = requestManager.getUserContext(session);
 			for (JsTopicAccessController accessControl : accessControls) {
-				accessControl.checkAccess(session, topic);
+				accessControl.checkAccess(userContext, topic);
 				tacPresent = true;
 			}
 		}

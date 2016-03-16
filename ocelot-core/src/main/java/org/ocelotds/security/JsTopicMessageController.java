@@ -3,10 +3,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.security;
 
+import org.ocelotds.messaging.MessageToClient;
+
 /**
  *
  * @author hhfrancois
  */
-public interface JsTopicAccessController {
-	public void checkAccess(UserContext ctx, String topic) throws IllegalAccessException;
+public interface JsTopicMessageController {
+	public void checkRight(UserContext ctx, MessageToClient mtc) throws NotRecipientException;
 }

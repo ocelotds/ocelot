@@ -12,6 +12,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
 import javax.websocket.server.HandshakeRequest;
+import org.ocelotds.objects.WsUserContext;
+import org.ocelotds.security.UserContext;
 
 /**
  *
@@ -20,16 +22,21 @@ import javax.websocket.server.HandshakeRequest;
 @ApplicationScoped
 public class RequestManager {
 
-	private final Map<HandshakeRequest, Session> sessionsByRequest = new HashMap<>();
+	private final Map<HandshakeRequest, Session> sessionByRequest = new HashMap<>();
+	private final Map<String, HandshakeRequest> requestBySessionId = new HashMap<>();
 
-	Map<HandshakeRequest, Session> getSessionsByRequest() {
-		return sessionsByRequest;
+	Map<HandshakeRequest, Session> getSessionByRequest() {
+		return sessionByRequest;
+	}
+	Map<String, HandshakeRequest> getRequestBySessionId() {
+		return requestBySessionId;
 	}
 
 	public void addSession(HandshakeRequest request, Session session) {
 		if (request != null) {
 			if (session != null) {
-				getSessionsByRequest().put(request, session);
+				getSessionByRequest().put(request, session);
+				getRequestBySessionId().put(session.getId(), request);
 			} 
 		} else {
 			removeSession(session);
@@ -37,21 +44,24 @@ public class RequestManager {
 	}
 
 	public void removeSession(Session session) {
-		HandshakeRequest request = null;
-		Set<Map.Entry<HandshakeRequest, Session>> entrySet = getSessionsByRequest().entrySet();
-		for (Map.Entry<HandshakeRequest, Session> entry : entrySet) {
-			if (session.equals(entry.getValue())) {
-				request = entry.getKey();
-				break;
+		if(null != session) {
+			HandshakeRequest request = null;
+			Set<Map.Entry<HandshakeRequest, Session>> entrySet = getSessionByRequest().entrySet();
+			for (Map.Entry<HandshakeRequest, Session> entry : entrySet) {
+				if (session.equals(entry.getValue())) {
+					request = entry.getKey();
+					break;
+				}
 			}
-		}
-		if (request != null) {
-			getSessionsByRequest().remove(request);
+			if (request != null) {
+				getSessionByRequest().remove(request);
+			}
+			getRequestBySessionId().remove(session.getId());
 		}
 	}
 
 	public Session getSessionByHttpSession(HttpSession httpSession) {
-		Set<Map.Entry<HandshakeRequest, Session>> entrySet = getSessionsByRequest().entrySet();
+		Set<Map.Entry<HandshakeRequest, Session>> entrySet = getSessionByRequest().entrySet();
 		for (Map.Entry<HandshakeRequest, Session> entry : entrySet) {
 			if (httpSession.equals(entry.getKey().getHttpSession())) {
 				Session session = entry.getValue();
@@ -62,5 +72,15 @@ public class RequestManager {
 		}
 		return null;
 	}
+	
+	HandshakeRequest getHandshakeRequest(Session session) {
+		if(null != session) {
+			return getRequestBySessionId().get(session.getId());
+		}
+		return null;
+	}
 
+	public UserContext getUserContext(Session session) {
+		return new WsUserContext(getHandshakeRequest(session));
+	}
 }

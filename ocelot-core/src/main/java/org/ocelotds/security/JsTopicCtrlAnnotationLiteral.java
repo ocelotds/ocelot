@@ -3,19 +3,20 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.security;
 
-import org.ocelotds.annotations.JsTopicAccessControl;
 import javax.enterprise.util.AnnotationLiteral;
+import org.ocelotds.annotations.JsTopicControl;
 
 /**
  *
  * @author hhfrancois
  */
-public class JsTopicACAnnotationLiteral extends AnnotationLiteral<JsTopicAccessControl> implements JsTopicAccessControl {
+@SuppressWarnings("AnnotationAsSuperInterface")
+public class JsTopicCtrlAnnotationLiteral extends AnnotationLiteral<JsTopicControl> implements JsTopicControl {
 	private static final long serialVersionUID = 1L;
 	
 	private final String value;
 
-	public JsTopicACAnnotationLiteral(String value) {
+	public JsTopicCtrlAnnotationLiteral(String value) {
 		this.value = value;
 	}
 	

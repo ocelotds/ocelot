@@ -13,13 +13,13 @@ import static org.assertj.core.api.Assertions.*;
 public class JsTopicACAnnotationLiteralTest {
 
 	/**
-	 * Test of value method, of class JsTopicACAnnotationLiteral.
+	 * Test of value method, of class JsTopicCtrlAnnotationLiteral.
 	 */
 	@Test
 	public void testValue() {
 		System.out.println("value");
 		String expResult = "VALUE";
-		JsTopicACAnnotationLiteral instance = new JsTopicACAnnotationLiteral(expResult);
+		JsTopicCtrlAnnotationLiteral instance = new JsTopicCtrlAnnotationLiteral(expResult);
 		String result = instance.value();
 		assertThat(result).isEqualTo(expResult);
 	}

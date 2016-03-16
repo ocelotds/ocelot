@@ -138,46 +138,6 @@ public class MessageToClientTest {
 
 	/**
 	 * Test of createFromJson method, of class MessageToClient.
-	 */
-	@Test
-	public void testCreateFromResultJson() throws JsonProcessingException {
-		System.out.println("testCreateFromResultJson");
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s,\"%s\":%s}",
-				  Constants.Message.TYPE, MessageType.RESULT, Constants.Message.ID, "111", 
-				  Constants.Message.TIME, 5, Constants.Message.DEADLINE, 0, Constants.Message.RESPONSE, "\"Result\"");
-		MessageToClient msg = MessageToClient.createFromJson(json);
-		assertThat(msg.getId()).isEqualTo("111");
-		assertThat(msg.getDeadline()).isEqualTo(0);
-		assertThat(msg.getTime()).isEqualTo(5);
-		assertThat(msg.getType()).isEqualTo(MessageType.RESULT);
-		assertThat(msg.getResponse()).isEqualTo("\"Result\"");
-	}
-
-	/**
-	 * Test of createFromJson method, of class MessageToClient.
-	 */
-	@Test
-	public void testCreateFromFaultJson() throws JsonProcessingException {
-		System.out.println("testCreateFromResultJson");
-		Fault fault = null;
-		try {
-			throw new Exception("ErrorMessage");
-		} catch (Exception e) {
-			fault = new Fault(e, 0);
-		}
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s,\"%s\":%s}",
-				  Constants.Message.TYPE, MessageType.FAULT, Constants.Message.ID, "111", 
-				  Constants.Message.TIME, 5, Constants.Message.DEADLINE, 0, Constants.Message.RESPONSE, fault.toJson());
-		MessageToClient msg = MessageToClient.createFromJson(json);
-		assertThat(msg.getId()).isEqualTo("111");
-		assertThat(msg.getDeadline()).isEqualTo(0);
-		assertThat(msg.getTime()).isEqualTo(5);
-		assertThat(msg.getType()).isEqualTo(MessageType.FAULT);
-		String expResult = "{\"classname\":\"java.lang.Exception\",\"message\":\"ErrorMessage\",\"stacktrace\":[]}";
-		assertThat(""+msg.getResponse()).isEqualTo(expResult);
-	}
-	/**
-	 * Test of createFromJson method, of class MessageToClient.
 	 * @throws com.fasterxml.jackson.core.JsonProcessingException
 	 */
 	@Test

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.enterprise.inject.Instance;
+import javax.validation.ConstraintViolationException;
 import javax.websocket.Session;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
@@ -24,6 +25,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.core.CacheManager;
 import org.ocelotds.core.services.ArgumentServices;
 import org.ocelotds.core.services.ClassAsDataService;
+import org.ocelotds.core.services.ConstraintServices;
 import org.ocelotds.core.services.FaultServices;
 import org.ocelotds.core.services.MethodServices;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
@@ -62,6 +64,9 @@ public class MessageToClientManagerTest {
 
 	@Mock
 	private FaultServices faultServices;
+	
+	@Mock
+	private ConstraintServices constraintServices;
 
 	@Spy
 	@InjectMocks
@@ -319,6 +324,39 @@ public class MessageToClientManagerTest {
 		MessageToClient result = instance.createMessageToClient(message, session);
 
 		assertThat(result.getResponse()).isEqualTo(fault);
+	}
+
+	/**
+	 * Test of _createMessageToClient method, of class WSMessageToClientManager.
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void testCreateMessageToClient6() throws Exception {
+		String methodname = "methodThrowViolationConstraint";
+		System.out.println("_createMessageToClient("+methodname+")");
+		Class cls = ClassAsDataService.class;
+		MessageFromClient message = new MessageFromClient();
+		message.setDataService(cls.getName());
+		message.setOperation(methodname);
+		message.setParameterNames(Arrays.asList("a"));
+		message.setParameters(Arrays.asList("\"v\""));
+		message.setId(UUID.randomUUID().toString());
+
+		Session session = mock(Session.class);
+		Method method = cls.getMethod(methodname, String.class);
+		Fault fault = mock(Fault.class);
+
+		ClassAsDataService obj = new ClassAsDataService();
+		
+		doReturn(obj).when(instance).getDataService(any(Session.class), any(Class.class));
+		doReturn(Arrays.asList("v")).when(instance).getArrayList();
+		when(methodServices.getMethodFromDataService(any(Class.class), any(MessageFromClient.class), anyList())).thenReturn(method);
+		when(faultServices.buildFault(any(Throwable.class))).thenReturn(fault);
+		when(constraintServices.extractViolations(any(ConstraintViolationException.class), any(List.class))).thenReturn(null);
+		
+		MessageToClient result = instance.createMessageToClient(message, session);
+		verify(constraintServices).extractViolations(any(ConstraintViolationException.class), any(List.class));
 	}
 
 	/**

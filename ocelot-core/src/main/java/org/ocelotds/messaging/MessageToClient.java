@@ -7,12 +7,7 @@ package org.ocelotds.messaging;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ocelotds.Constants;
-import java.io.StringReader;
 import java.util.Objects;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.JsonValue;
 
 /**
  * Message to Client, for response after message from client. Server send this response asynchronous
@@ -133,32 +128,6 @@ public class MessageToClient {
 		}
 		final MessageToClient other = (MessageToClient) obj;
 		return Objects.equals(this.id, other.id);
-	}
-
-	/**
-	 * Becareful result/fault are not unmarshalled
-	 *
-	 * @param json
-	 * @return
-	 */
-	public static MessageToClient createFromJson(String json) {
-		try (JsonReader reader = Json.createReader(new StringReader(json))) {
-			JsonObject root = reader.readObject();
-			MessageToClient message = new MessageToClient();
-			message.setId(root.getString(Constants.Message.ID));
-			message.setTime(root.getInt(Constants.Message.TIME));
-			message.setType(MessageType.valueOf(root.getString(Constants.Message.TYPE)));
-			message.setDeadline(root.getInt(Constants.Message.DEADLINE));
-			if (MessageType.FAULT.equals(message.getType())) {
-				JsonObject faultJs = root.getJsonObject(Constants.Message.RESPONSE);
-				Fault f = Fault.createFromJson(faultJs.toString());
-				message.setFault(f);
-			} else {
-				JsonValue result = root.get(Constants.Message.RESPONSE);
-				message.setResponse("" + result, message.getType());
-			}
-			return message;
-		}
 	}
 
 	public String toJson() {

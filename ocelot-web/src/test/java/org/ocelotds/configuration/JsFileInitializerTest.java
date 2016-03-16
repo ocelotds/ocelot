@@ -5,6 +5,7 @@ package org.ocelotds.configuration;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import javax.enterprise.inject.Instance;
@@ -41,10 +42,11 @@ public class JsFileInitializerTest {
 
 	/**
 	 * Test of initOcelotJsFile method, of class JsFileInitializer.
+	 *
 	 * @throws java.io.IOException
 	 */
 	@Test
-	public void testInitOcelotJsFile() throws IOException	{
+	public void testInitOcelotJsFile() throws IOException {
 		System.out.println("initOcelotJsFile");
 		ServletContext sc = mock(ServletContext.class);
 		File file = mock(File.class);
@@ -53,7 +55,7 @@ public class JsFileInitializerTest {
 		doNothing().when(instance).setInitParameterAnMinifyJs(any(ServletContext.class), any(File.class));
 
 		instance.initOcelotJsFile(sc);
-		
+
 		verify(instance).setInitParameterAnMinifyJs(any(ServletContext.class), any(File.class));
 	}
 
@@ -71,13 +73,14 @@ public class JsFileInitializerTest {
 		doNothing().when(instance).setInitParameterAnMinifyJs(any(ServletContext.class), any(File.class));
 
 		instance.initOcelotJsFile(sc);
-		
+
 		ArgumentCaptor<String> captureLog = ArgumentCaptor.forClass(String.class);
 		verify(logger).error(captureLog.capture(), any(IOException.class));
 	}
 
 	/**
 	 * Test of deleteJsFile method, of class JsFileInitializer.
+	 *
 	 * @throws java.io.IOException
 	 */
 	@Test
@@ -96,7 +99,7 @@ public class JsFileInitializerTest {
 		instance.deleteJsFile(sc);
 		instance.deleteJsFile(sc);
 		instance.deleteJsFile(sc);
-		
+
 		assertThat(js).doesNotExist();
 		assertThat(jsmin).doesNotExist();
 	}
@@ -119,6 +122,21 @@ public class JsFileInitializerTest {
 		file.delete();
 	}
 
+	/**
+	 * Test of getJsFilename method, of class.
+	 */
+	@Test
+	public void getJsFilenameTest() {
+		System.out.println("getJsFilename");
+		Object result = instance.getJsFilename("a.b.Test$errt@$@hkjhkj");
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo(File.separator + "a" + File.separator + "b" + File.separator + "Test.js");
+
+		result = instance.getJsFilename("a.b.Test2@errt@$@hkjhkj");
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo(File.separator + "a" + File.separator + "b" + File.separator + "Test2.js");
+	}
+
 	@Test
 	public void testSetInitParameterAnMinifyJs() throws IOException {
 		System.out.println("setInitParameterAnMinifyJs");
@@ -129,11 +147,11 @@ public class JsFileInitializerTest {
 		String pathminjs = "/path/filemin.js";
 		when(js.getAbsolutePath()).thenReturn(pathjs);
 		when(minjs.getAbsolutePath()).thenReturn(pathminjs);
-		
+
 		doReturn(minjs).when(instance).minifyJs(anyString());
-		
+
 		instance.setInitParameterAnMinifyJs(sc, js);
-		
+
 		ArgumentCaptor<String> capturePathJs = ArgumentCaptor.forClass(String.class);
 		verify(sc).setInitParameter(eq(Constants.OCELOT), capturePathJs.capture());
 		ArgumentCaptor<String> capturePathMinJs = ArgumentCaptor.forClass(String.class);
@@ -152,11 +170,11 @@ public class JsFileInitializerTest {
 		String pathminjs = "/path/filemin.js";
 		when(js.getAbsolutePath()).thenReturn(pathjs);
 		when(minjs.getAbsolutePath()).thenReturn(pathminjs);
-		
+
 		doThrow(IOException.class).when(instance).minifyJs(anyString());
-		
+
 		instance.setInitParameterAnMinifyJs(sc, js);
-		
+
 		verify(logger).error(anyString());
 		ArgumentCaptor<String> capturePathJs = ArgumentCaptor.forClass(String.class);
 		verify(sc).setInitParameter(eq(Constants.OCELOT), capturePathJs.capture());
@@ -172,7 +190,7 @@ public class JsFileInitializerTest {
 		URL js = JsFileInitializerTest.class.getResource(Constants.SLASH + Constants.OCELOT_CORE + Constants.JS);
 
 		File minifyJs = instance.minifyJs(js.getFile());
-		
+
 		assertThat(minifyJs).isFile();
 		assertThat(minifyJs).exists();
 		assertThat(minifyJs.getAbsolutePath()).isNotEqualTo(js.getFile());
@@ -185,13 +203,28 @@ public class JsFileInitializerTest {
 	 * @throws java.io.IOException
 	 */
 	@Test(expected = IOException.class)
+	public void testWriteOcelotCoreJsFileFail() throws IOException {
+		System.out.println("writeOcelotCoreJsFile");
+		OutputStream out = mock(OutputStream.class);
+		doReturn(null).when(instance).getContentURL(anyString());
+		instance.writeOcelotJsFile(out, "/badfile");
+	}
+
+	/**
+	 * Test of writeOcelotJsFile method, of class ContextListener.
+	 *
+	 * @throws java.io.IOException
+	 */
+	@Test
 	public void testWriteOcelotCoreJsFile() throws IOException {
 		System.out.println("writeOcelotCoreJsFile");
 		OutputStream out = mock(OutputStream.class);
-//		JsFileInitializer.OCELOT_CORE_RESOURCE = "/badfile";
-		instance.writeOcelotJsFile(out, "/badfile");
+		URL url = AbstractFileInitializer.class.getResource(JsFileInitializer.OCELOT_CORE_RESOURCE);
+		doReturn(url).when(instance).getContentURL(anyString());
+		instance.writeOcelotJsFile(out, JsFileInitializer.OCELOT_CORE_RESOURCE);
+		verify(instance).writeStreamToOutputStream(any(InputStream.class), eq(out));
 	}
-	
+
 	@Test
 	public void testCreateLicenceComment() throws IOException {
 		System.out.println("createLicenceComment");

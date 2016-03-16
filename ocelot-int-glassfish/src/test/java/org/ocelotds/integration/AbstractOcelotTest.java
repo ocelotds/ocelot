@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -30,6 +31,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedExecutorService;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.JsonValue;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
@@ -239,7 +245,7 @@ public abstract class AbstractOcelotTest {
 	 * @param obj
 	 * @return
 	 */
-	protected String getJson(Object obj) {
+	protected static String getJson(Object obj) {
 		try {
 			if (String.class.isInstance(obj)) {
 				return Constants.QUOTE + obj + Constants.QUOTE;
@@ -251,7 +257,47 @@ public abstract class AbstractOcelotTest {
 		}
 	}
 	
-	public String mfcToJson(MessageFromClient mfc) {
+	/**
+	 * Becareful result is not unmarshalled
+	 *
+	 * @param json
+	 * @return
+	 */
+	protected static MessageToClient mtcFromJson(String json) {
+		try (JsonReader reader = Json.createReader(new StringReader(json))) {
+			JsonObject root = reader.readObject();
+			MessageToClient message = new MessageToClient();
+			message.setId(root.getString(Constants.Message.ID));
+			message.setTime(root.getInt(Constants.Message.TIME));
+			message.setType(MessageType.valueOf(root.getString(Constants.Message.TYPE)));
+			message.setDeadline(root.getInt(Constants.Message.DEADLINE));
+			if (null != message.getType()) switch (message.getType()) {
+				case FAULT:
+					JsonObject faultJs = root.getJsonObject(Constants.Message.RESPONSE);
+					Fault f = Fault.createFromJson(faultJs.toString());
+					message.setFault(f);
+					break;
+				case MESSAGE:
+					message.setResult("" + root.get(Constants.Message.RESPONSE));
+					message.setType(MessageType.MESSAGE);
+					break;
+				case CONSTRAINT:
+					JsonArray result = root.getJsonArray(Constants.Message.RESPONSE);
+					List<ConstraintViolation> list = new ArrayList<>();
+					for (JsonValue jsonValue : result) {
+						list.add(getJava(ConstraintViolation.class, ((JsonObject) jsonValue).toString()));
+					}
+					message.setConstraints(list.toArray(new ConstraintViolation[] {}));
+					break;
+				default:
+					message.setResult("" + root.get(Constants.Message.RESPONSE));
+					break;
+			}
+			return message;
+		}
+	}
+
+	protected static String mfcToJson(MessageFromClient mfc) {
 		StringBuilder jsonParamNames = new StringBuilder("[");
 		boolean first = true;
 		for (String parameterName : mfc.getParameterNames()) {
@@ -280,7 +326,7 @@ public abstract class AbstractOcelotTest {
 	 * @param json
 	 * @return
 	 */
-	protected <T> T getJava(Class<T> cls, String json) {
+	protected static <T> T getJava(Class<T> cls, String json) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			return mapper.readValue(json, cls);
@@ -304,7 +350,7 @@ public abstract class AbstractOcelotTest {
 		MessageFromClient mfc = getMessageFromClient(cls, methodname, jsonfail);
 		mfc.setParameterNames(Arrays.asList("str0"));
 		MessageToClient mtc = testRSCallWithoutResult(getClient(), mfc, MessageType.CONSTRAINT);
-		ConstraintViolation[] cvs = getJava(ConstraintViolation[].class, (String) mtc.getResponse());
+		ConstraintViolation[] cvs = (ConstraintViolation[]) mtc.getResponse();
 		assertThat(cvs).isNotNull();
 		assertThat(cvs).hasSize(1);
 		ConstraintViolation cv = cvs[0];
@@ -473,7 +519,7 @@ public abstract class AbstractOcelotTest {
 		String result = res.readEntity(String.class);
 		MessageToClient mtc = null;
 		try {
-			mtc = MessageToClient.createFromJson(result);
+			mtc = mtcFromJson(result);
 			assertThat(mtc.getType()).isEqualTo(resType);
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -836,6 +882,29 @@ public abstract class AbstractOcelotTest {
 	}
 
 	/**
+	 * Test reception of 0 msg triggered by call Runnable
+	 *
+	 * @param wssession
+	 * @param topic
+	 * @param trigger
+	 */
+	protected void testWait0MessageToTopic(Session wssession, String topic, Runnable trigger) {
+		try {
+			long t0 = System.currentTimeMillis();
+			CountDownLatch lock = new CountDownLatch(1);
+			CountDownMessageHandler messageHandler = new CountDownMessageHandler(topic, lock);
+			wssession.addMessageHandler(messageHandler);
+			trigger.run();
+			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			long t1 = System.currentTimeMillis();
+			assertThat(await).as("Timeout. waiting %d ms. Remain %d/%d msgs", t1 - t0, lock.getCount(), 1).isFalse();
+			wssession.removeMessageHandler(messageHandler);
+		} catch (IllegalStateException | InterruptedException ex) {
+			fail(ex.getMessage());
+		}
+	}
+
+	/**
 	 * Handler de message de type result Si le handler compte un id, il decomptera le lock uniquement s'il arrive à  récuperer un message avec le bon id Sinon la
 	 * récupération d'un message décompte le lock
 	 */
@@ -856,7 +925,7 @@ public abstract class AbstractOcelotTest {
 
 		@Override
 		public void onMessage(String message) {
-			MessageToClient messageToClientIn = MessageToClient.createFromJson(message);
+			MessageToClient messageToClientIn = mtcFromJson(message);
 			if (id == null || id.equals(messageToClientIn.getId())) {
 				messageToClient = messageToClientIn;
 				lock.countDown();

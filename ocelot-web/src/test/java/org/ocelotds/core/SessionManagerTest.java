@@ -27,7 +27,9 @@ import org.mockito.Spy;
 import org.ocelotds.Constants;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
-import org.ocelotds.security.JsTopicACAnnotationLiteral;
+import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
+import org.ocelotds.security.UserContext;
+import org.ocelotds.web.RequestManager;
 import org.slf4j.Logger;
 
 /**
@@ -46,6 +48,9 @@ public class SessionManagerTest {
 
 	@Mock
 	Instance<JsTopicAccessController> topicAccessController;
+	
+	@Mock
+	private RequestManager requestManager;
 
 	@InjectMocks
 	@Spy
@@ -70,7 +75,7 @@ public class SessionManagerTest {
 		FakeCDI<JsTopicAccessController> globalTAC = new FakeCDI();
 		JsTopicAccessController jtac = mock(JsTopicAccessController.class);
 		globalTAC.add(jtac);
-		doThrow(IllegalAccessException.class).when(jtac).checkAccess(any(Session.class), anyString());
+		doThrow(IllegalAccessException.class).when(jtac).checkAccess(any(UserContext.class), anyString());
 		when(topicAccessController.select(DEFAULT_AT)).thenReturn(globalTAC);
 		Session session = mock(Session.class);
 		instance.checkAccessTopic(session, TOPIC1);
@@ -86,7 +91,7 @@ public class SessionManagerTest {
 		FakeCDI<JsTopicAccessController> globalTAC = new FakeCDI();
 		JsTopicAccessController jtac = mock(JsTopicAccessController.class);
 		globalTAC.add(jtac);
-		doNothing().when(jtac).checkAccess(any(Session.class), anyString());
+		doNothing().when(jtac).checkAccess(any(UserContext.class), anyString());
 		when(topicAccessController.select(DEFAULT_AT)).thenReturn(globalTAC);
 		Session session = mock(Session.class);
 		instance.checkAccessTopic(session, TOPIC1);
@@ -102,8 +107,8 @@ public class SessionManagerTest {
 		FakeCDI<JsTopicAccessController> topic1TAC = new FakeCDI();
 		JsTopicAccessController jtac = mock(JsTopicAccessController.class);
 		topic1TAC.add(jtac);
-		doThrow(IllegalAccessException.class).when(jtac).checkAccess(any(Session.class), eq(TOPIC1));
-		when(topicAccessController.select(new JsTopicACAnnotationLiteral(TOPIC1))).thenReturn(topic1TAC);
+		doThrow(IllegalAccessException.class).when(jtac).checkAccess(any(UserContext.class), eq(TOPIC1));
+		when(topicAccessController.select(new JsTopicCtrlAnnotationLiteral(TOPIC1))).thenReturn(topic1TAC);
 		Session session = mock(Session.class);
 		try {
 			instance.checkAccessTopic(session, TOPIC2);
@@ -123,8 +128,8 @@ public class SessionManagerTest {
 		FakeCDI<JsTopicAccessController> topic1TAC = new FakeCDI();
 		JsTopicAccessController jtac = mock(JsTopicAccessController.class);
 		topic1TAC.add(jtac);
-		doNothing().when(jtac).checkAccess(any(Session.class), eq(TOPIC1));
-		when(topicAccessController.select(new JsTopicACAnnotationLiteral(TOPIC1))).thenReturn(topic1TAC);
+		doNothing().when(jtac).checkAccess(any(UserContext.class), eq(TOPIC1));
+		when(topicAccessController.select(new JsTopicCtrlAnnotationLiteral(TOPIC1))).thenReturn(topic1TAC);
 		Session session = mock(Session.class);
 		instance.checkAccessTopic(session, TOPIC1);
 	}

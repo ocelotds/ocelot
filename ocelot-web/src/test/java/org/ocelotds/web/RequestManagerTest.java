@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.security.UserContext;
 
 /**
  *
@@ -40,7 +41,7 @@ public class RequestManagerTest {
 	 */
 	@Test
 	public void testGetSessionsByRequest() {
-		Map<HandshakeRequest, Session> result = instance.getSessionsByRequest();
+		Map<HandshakeRequest, Session> result = instance.getSessionByRequest();
 		assertThat(result).isInstanceOf(Map.class);
 	}
 	/**
@@ -49,7 +50,7 @@ public class RequestManagerTest {
 	@Test
 	public void testAddSessionOk() {
 		System.out.println("addSession");
-		doReturn(sessionsByRequest).when(instance).getSessionsByRequest();
+		doReturn(sessionsByRequest).when(instance).getSessionByRequest();
 
 		HandshakeRequest request = mock(HandshakeRequest.class);
 		Session session = mock(Session.class);
@@ -63,7 +64,7 @@ public class RequestManagerTest {
 	@Test
 	public void testAddSessionNOk() {
 		System.out.println("addSession");
-		doReturn(sessionsByRequest).when(instance).getSessionsByRequest();
+		doReturn(sessionsByRequest).when(instance).getSessionByRequest();
 
 		HandshakeRequest request = mock(HandshakeRequest.class);
 		Session session = mock(Session.class);
@@ -82,7 +83,7 @@ public class RequestManagerTest {
 	public void testRemoveSession() {
 		System.out.println("removeSession");
 		Map<HandshakeRequest, Session> map = new HashMap<>();
-		doReturn(map).when(instance).getSessionsByRequest();
+		doReturn(map).when(instance).getSessionByRequest();
 		Session session1 = mock(Session.class);
 		Session session2 = mock(Session.class);
 		Session session3 = mock(Session.class);
@@ -109,7 +110,7 @@ public class RequestManagerTest {
 	public void testGetSessionByHttpSessionOpen() {
 		System.out.println("getSessionByHttpSession");
 		Map<HandshakeRequest, Session> map = new HashMap<>();
-		doReturn(map).when(instance).getSessionsByRequest();
+		doReturn(map).when(instance).getSessionByRequest();
 
 		Session session = mock(Session.class);
 		when(session.isOpen()).thenReturn(Boolean.TRUE);
@@ -129,7 +130,7 @@ public class RequestManagerTest {
 	public void testGetSessionByHttpSessionClose() {
 		System.out.println("getSessionByHttpSession");
 		Map<HandshakeRequest, Session> map = new HashMap<>();
-		doReturn(map).when(instance).getSessionsByRequest();
+		doReturn(map).when(instance).getSessionByRequest();
 
 		Session session = mock(Session.class);
 		when(session.isOpen()).thenReturn(Boolean.FALSE);
@@ -149,11 +150,38 @@ public class RequestManagerTest {
 	public void testGetSessionByHttpSessionNone() {
 		System.out.println("getSessionByHttpSession");
 		Map<HandshakeRequest, Session> map = new HashMap<>();
-		doReturn(map).when(instance).getSessionsByRequest();
+		doReturn(map).when(instance).getSessionByRequest();
 
 		HttpSession httpSession = mock(HttpSession.class);
 
 		Session result = instance.getSessionByHttpSession(httpSession);
 		assertThat(result).isNull();
+	}
+	
+	@Test
+	public void testGetHandshakeRequest() {
+		System.out.println("getHandshakeRequest");
+		Session session = mock(Session.class);
+		HandshakeRequest handshakeRequest = mock(HandshakeRequest.class);
+		Map map = mock(Map.class);
+		doReturn(map).when(instance).getRequestBySessionId();
+		when(map.get(anyString())).thenReturn(handshakeRequest);
+		HandshakeRequest result = instance.getHandshakeRequest(session);
+		assertThat(result).isEqualTo(handshakeRequest);
+
+		result = instance.getHandshakeRequest(null);
+		assertThat(result).isNull();
+	}
+	/**
+	 * Test of getUserContext method, of class.
+	 */
+	@Test
+	public void getUserContextTest() {
+		System.out.println("getUserContext");
+		Session session = mock(Session.class);
+		doReturn(null).when(instance).getHandshakeRequest(any(Session.class));
+		
+		UserContext result = instance.getUserContext(session);
+		assertThat(result).isNotNull();
 	}
 }
