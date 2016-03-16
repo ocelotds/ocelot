@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
+import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 
 /**
  *
@@ -73,13 +74,12 @@ public class LocaleMarshallerTest {
 
 	/**
 	 * Test of toJava method, of class LocaleUnmarshaller.
-	 * @throws java.lang.Exception
+	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
 	 */
-	@Test
-	public void testToJavaFail() throws Exception {
+	@Test(expected = JsonUnmarshallingException.class)
+	public void testToJavaFail() throws JsonUnmarshallingException {
 		System.out.println("toJava");
 		String json = "{\"language\":\"fr\"}";
-		Locale result = instance.toJava(json);
-		assertThat(result).isNull();
+		instance.toJava(json);
 	}
 }

@@ -40,7 +40,9 @@ public class LocaleMarshaller implements IJsonMarshaller<Locale> {
 			try (JsonReader reader = Json.createReader(new StringReader(json))) {
 				JsonObject root = reader.readObject();
 				locale = new Locale(root.getString(Constants.Message.LANGUAGE), root.getString(Constants.Message.COUNTRY));
-			} catch(Throwable t) {}
+			} catch(Throwable t) {
+				throw new JsonUnmarshallingException(json);
+			}
 		}
 		return locale;
 	}
