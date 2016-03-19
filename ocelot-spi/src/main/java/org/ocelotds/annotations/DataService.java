@@ -10,6 +10,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
+import org.ocelotds.Constants;
 
 /**
  * Annotation allows identify explosed classes to clients
@@ -21,7 +22,7 @@ import javax.inject.Qualifier;
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
 public @interface DataService {
 
-	@Nonbinding String resolver();
+	@Nonbinding String resolver() default Constants.Resolver.CDI;
 
 	@Nonbinding String name() default "";
 }
