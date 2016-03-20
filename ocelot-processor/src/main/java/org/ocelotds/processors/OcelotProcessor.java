@@ -5,10 +5,11 @@
 package org.ocelotds.processors;
 
 import java.io.File;
+import java.io.FileWriter;
 import org.ocelotds.annotations.DataService;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Random;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
@@ -16,6 +17,7 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedOptions;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
@@ -33,10 +35,11 @@ import org.ocelotds.Constants;
  */
 @SupportedAnnotationTypes(value = {OcelotProcessor.DATASERVICE_AT})
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
+@SupportedOptions(OcelotProcessor.DIRECTORY)
 public class OcelotProcessor extends AbstractProcessor {
 
 	public final static String DATASERVICE_AT = "org.ocelotds.annotations.DataService";
-	private final static Random RANDOM = new Random();
+	public final static String DIRECTORY = "jsdir";
 	private static boolean done = false;
 
 	static boolean isDone() {
@@ -58,6 +61,11 @@ public class OcelotProcessor extends AbstractProcessor {
 	private Messager messager;
 
 	/**
+	 * Directory where save js stub
+	 */
+	private String jsdir = null;
+
+	/**
 	 * Init processor<br>
 	 * get filer, messager<br>
 	 * get options
@@ -68,6 +76,22 @@ public class OcelotProcessor extends AbstractProcessor {
 		super.init(processingEnv);
 		messager = processingEnv.getMessager();
 		filer = processingEnv.getFiler();
+		jsdir = getJsDirectory(processingEnv.getOptions());
+	}
+
+	/**
+	 * Get optional output directory
+	 *
+	 * @param options
+	 * @return
+	 */
+	String getJsDirectory(Map<String, String> options) {
+		if (null != options) {
+			if (options.containsKey(DIRECTORY)) {
+				return options.get(DIRECTORY);
+			}
+		}
+		return null;
 	}
 
 	@Override
@@ -83,24 +107,69 @@ public class OcelotProcessor extends AbstractProcessor {
 		OcelotProcessor.setDone(true);
 		return true;
 	}
-	
+
+	/**
+	 * Process element, filter TypeElement only
+	 *
+	 * @param element
+	 * @param visitor
+	 */
 	public void processElement(Element element, ElementVisitor visitor) {
-		messager.printMessage(Diagnostic.Kind.WARNING, " javascript generation class : " + element);
-		if(TypeElement.class.isInstance(element)) {
+		if (TypeElement.class.isInstance(element)) {
 			processTypeElement((TypeElement) element, visitor);
 		}
 	}
-	
+
+	/**
+	 * Process TypeElement
+	 *
+	 * @param element
+	 * @param visitor
+	 */
 	public void processTypeElement(TypeElement element, ElementVisitor visitor) {
+		String packagePath = getPackagePath(element);
 		String fn = getFilename(element);
-		try (Writer w = getResourceFileObjectWriter(fn)) {
-			element.accept(visitor, w);				
-		} catch(IOException ioe) {
-			messager.printMessage(Diagnostic.Kind.WARNING, " FAILED TO CREATE : " + fn);
+		messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " javascript generation class : " + element);
+		writeJsFileToJsDir(element, visitor, packagePath, fn, jsdir);
+		writeJsFile(element, visitor, packagePath, fn);
+	}
+
+	void writeJsFile(TypeElement element, ElementVisitor visitor, String packagePath, String fn) {
+		try (Writer w = getResourceFileObjectWriter(packagePath, fn)) {
+			element.accept(visitor, w);
+		} catch (IOException ioe) {
+			messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " FAILED TO CREATE : " + packagePath + "." + fn);
 		}
 	}
+
+	void writeJsFileToJsDir(TypeElement element, ElementVisitor visitor, String packagePath, String fn, String dir) {
+		if (null != dir) {
+			try (Writer w = getFileObjectWriter(packagePath, fn, dir)) {
+				element.accept(visitor, w);
+			} catch (IOException ioe) {
+				messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " FAILED TO CREATE : " + packagePath + "." + fn);
+			}
+		}
+	}
+
+	/**
+	 * Get pachage name of class
+	 *
+	 * @param te
+	 * @return
+	 */
+	String getPackagePath(TypeElement te) {
+		return te.getQualifiedName().toString().replaceAll("." + te.getSimpleName(), "");
+	}
+
+	/**
+	 * Get Js filename from class
+	 *
+	 * @param te
+	 * @return
+	 */
 	String getFilename(TypeElement te) {
-		return te.getQualifiedName().toString().replaceAll("\\.", File.separator)+Constants.JS;
+		return te.getSimpleName().toString() + Constants.JS;
 	}
 
 	/**
@@ -122,11 +191,23 @@ public class OcelotProcessor extends AbstractProcessor {
 	 * @return
 	 * @throws IOException
 	 */
-	Writer getResourceFileObjectWriter(String name) throws IOException {
-//			System.out.println(""+resourcejs.toUri().getPath());
-//			File file = new File("D:\\Development\\Workspaces\\ocelot-project\\ocelotds.org\\ocelotds.web\\src\\main\\webapp\\test.js");
-//			return new FileWriter(file);
-		FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", name);
+	Writer getResourceFileObjectWriter(String pkg, String name) throws IOException {
+		FileObject resource = filer.createResource(StandardLocation.CLASS_OUTPUT, pkg, name);
 		return resource.openWriter();
+	}
+
+	/**
+	 * Create writer from filer
+	 *
+	 * @param name
+	 * @return
+	 * @throws IOException
+	 */
+	Writer getFileObjectWriter(String pkg, String name, String dirname) throws IOException {
+		File dir = new File(dirname);
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+		return new FileWriter(new File(dir, pkg + "." + name));
 	}
 }
