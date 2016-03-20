@@ -39,10 +39,11 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 
 	protected static final String QUOTE = "\"";
 	protected static final String FUNCTION = "function";
-	protected static final String TAB = "\t";
+	protected static final String TAB = ""; //"\t";
+	protected static final String SPACE = ""; //" ";
 	protected static final String TAB2 = TAB+TAB;
 	protected static final String TAB3 = TAB2+TAB;
-	protected static final String CR = "\n";
+	protected static final String CR = ""; //"\n";
 
 	protected final ProcessingEnvironment environment;
 	protected final Messager messager;
@@ -118,17 +119,6 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 			name = typeElement.getSimpleName().toString();
 		}
 		return name;
-	}
-
-	/**
-	 * Transform raw multilines comment in prefixed comment
-	 *
-	 * @param comment
-	 * @return
-	 */
-	String computeComment(String comment, String space) {
-		String replace = "\n"+space+"*";
-		return comment.replaceAll("\n", replace).replaceAll("([\\{\\[\"])", "\\$1");
 	}
 
 	/**
