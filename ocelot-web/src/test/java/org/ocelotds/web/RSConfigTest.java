@@ -50,8 +50,10 @@ public class RSConfigTest {
 		Set<Class<?>> set = new HashSet<>();
 		instance.addRestResourceClasses(set);
 		assertThat(set).isNotEmpty();
-		assertThat(set).hasSize(1);
+		assertThat(set).hasSize(3);
 		assertThat(set).contains(RSEndpoint.class);
+		assertThat(set).contains(RsJsCore.class);
+		assertThat(set).contains(RsJsServices.class);
 	}
 
 	/**

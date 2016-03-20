@@ -36,6 +36,8 @@ public class RSConfig extends Application {
 	 */
 	void addRestResourceClasses(Set<Class<?>> resources) {
 		resources.add(org.ocelotds.web.RSEndpoint.class);
+		resources.add(org.ocelotds.web.RsJsCore.class);
+		resources.add(org.ocelotds.web.RsJsServices.class);
 	}
 	
 }

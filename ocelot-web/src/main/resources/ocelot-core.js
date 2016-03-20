@@ -172,7 +172,11 @@ if ("WebSocket" in window) {
          for(var i=0; i<document.scripts.length; i++) {
             var item = document.scripts[i];
             if(item.src.indexOf("ocelot.js")!==-1) {
-               path = item.src.replace(/^http/, "").replace(/ocelot.js.*/, "");
+               path = item.src.replace(/^http/, "").replace(/ocelot\.js.*/, "");
+            } else if(item.src.indexOf("ocelot/core.js")!==-1) {
+               path = item.src.replace(/^http/, "").replace(/ocelot\/core\.js.*/, "");
+            } else if(item.src.indexOf("ocelot/core.min.js")!==-1) {
+               path = item.src.replace(/^http/, "").replace(/ocelot\/core\.min\.js.*/, "");
             }
          }
          extractOptions(document.location.search);
