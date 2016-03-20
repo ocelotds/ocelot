@@ -30,9 +30,12 @@ public interface Constants {
 	String CONTENT = "content";
 	String OCELOT = "ocelot";
 	String OCELOT_CORE = OCELOT + "-core";
+	String OCELOT_CORE_MIN = OCELOT_CORE + "-min";
 	String OCELOT_HTML = OCELOT + "-html";
 	String OCELOT_MIN = OCELOT + "-min";
 	String SLASH_OCELOT = SLASH + OCELOT;
+	String SLASH_OCELOT_CORE = SLASH + OCELOT_CORE;
+	String SLASH_OCELOT_CORE_JS = SLASH_OCELOT_CORE + JS;
 	String SLASH_OCELOT_JS = SLASH_OCELOT + JS;
 	String SLASH_OCELOT_HTML = SLASH_OCELOT + HTML;
 
@@ -41,15 +44,6 @@ public interface Constants {
 	String HTMLTYPE = "text/html;charset=UTF-8";
 	String FALSE = "false";
 	String TRUE = "true";
-
-	String WSS = "wss";
-	String WS = "ws";
-
-	/**
-	 * This string will be replaced by the contextPath in ocelot-core.js
-	 */
-	String CTXPATH = "%CTXPATH%";
-	String PROTOCOL = "%WSS%";
 
 	int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
@@ -79,7 +73,6 @@ public interface Constants {
 		String LANGUAGE = "language";
 		String COUNTRY = "country";
 		String MFC = "mfc";
-		String MTC = "mtc";
 
 		interface Fault {
 
