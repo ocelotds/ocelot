@@ -8,7 +8,6 @@ import org.ocelotds.annotations.JsCacheResult;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
@@ -42,14 +41,13 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 
 	@Override
 	void _visitType(TypeElement typeElement, Writer writer) throws IOException {
-		createClassComment(typeElement, writer);
 		String jsclsname = getJsClassname(typeElement);
 		String instanceName = getJsInstancename(jsclsname);
-		writer.append("var ").append(instanceName).append(" = (").append(FUNCTION).append(" () {").append(CR);
+		writer.append("var ").append(instanceName).append(SPACE).append("=").append(SPACE).append("(").append(FUNCTION).append(SPACE).append("()").append(SPACE).append("{").append(CR);
 		writer.append(TAB).append("'use strict';").append(CR);
 		String classname = typeElement.getQualifiedName().toString();
-		writer.append(TAB).append("var _ds = ").append(QUOTE).append(classname).append(QUOTE).append(";").append(CR);
-		writer.append(TAB).append("return {").append(CR);
+		writer.append(TAB).append("var _ds").append(SPACE).append("=").append(SPACE).append(QUOTE).append(classname).append(QUOTE).append(";").append(CR);
+		writer.append(TAB).append("return").append(SPACE).append("{").append(CR);
 		browseAndWriteMethods(ElementFilter.methodsIn(typeElement.getEnclosedElements()), classname, writer);
 		writer.append(CR).append(TAB).append("};");
 		writer.append(CR).append("})();").append(CR);
@@ -73,79 +71,20 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 		List<String> argumentsType = getArgumentsType(methodElement);
 		List<String> arguments = getArguments(methodElement);
 		TypeMirror returnType = methodElement.getReturnType();
-		createMethodComment(methodElement, arguments, argumentsType, returnType, writer);
 
-		writer.append(TAB2).append(methodName).append(" : ").append(FUNCTION).append(" (");
+		writer.append(TAB2).append(methodName).append(SPACE).append(":").append(SPACE).append(FUNCTION).append(SPACE).append("(");
 		int i = 0;
 		while (i < argumentsType.size()) {
 			writer.append((String) arguments.get(i));
 			if ((++i) < arguments.size()) {
-				writer.append(", ");
+				writer.append(",").append(SPACE);
 			}
 		}
-		writer.append(") {").append(CR);
+		writer.append(")").append(SPACE).append("{").append(CR);
 
 		createMethodBody(classname, methodElement, arguments, writer);
 
 		writer.append(TAB2).append("}");
-	}
-
-	/**
-	 * Create comment of the class
-	 *
-	 * @param typeElement
-	 * @param writer
-	 * @throws IOException
-	 */
-	void createClassComment(TypeElement typeElement, Writer writer) throws IOException {
-		String comment = getElementUtils().getDocComment(typeElement);
-		if (comment == null) {
-			List<? extends TypeMirror> interfaces = typeElement.getInterfaces();
-			for (TypeMirror typeMirror : interfaces) {
-				TypeElement element = (TypeElement) getTypeUtils().asElement(typeMirror);
-				comment = getElementUtils().getDocComment(element);
-				if (comment != null) {
-					writer.append("/**").append(CR).append(" *").append(computeComment(comment, " ")).append("/").append(CR);
-				}
-			}
-		} else {
-			writer.append("/**").append(CR).append(" *").append(computeComment(comment, " ")).append("/").append(CR);
-		}
-	}
-
-	/**
-	 * Create javascript comment from Method comment
-	 *
-	 * @param methodElement
-	 * @param argumentsName
-	 * @param argumentsType
-	 * @param returnType
-	 * @param writer
-	 * @throws IOException
-	 */
-	void createMethodComment(ExecutableElement methodElement, List<String> argumentsName, List<String> argumentsType, TypeMirror returnType, Writer writer) throws IOException {
-		String methodComment = getElementUtils().getDocComment(methodElement);
-		writer.append(TAB2).append("/**").append(CR);
-		// The javadoc comment
-		if (methodComment != null) {
-			methodComment = methodComment.split("@")[0];
-			int lastIndexOf = methodComment.lastIndexOf(CR);
-			if (lastIndexOf >= 0) {
-				methodComment = methodComment.substring(0, lastIndexOf); // include the \n
-			}
-			writer.append(TAB2).append(" *").append(computeComment(methodComment, TAB2 + " ")).append(CR);
-		}
-		// La liste des arguments de la javadoc
-		Iterator<String> typeIterator = argumentsType.iterator();
-		for (String argumentName : argumentsName) {
-			String type = typeIterator.next();
-			writer.append(TAB2).append(" * @param {").append(type).append("} ").append(argumentName).append(CR);
-		}
-		// Si la methode retourne ou non quelque chose
-		if (!returnType.toString().equals("void")) {
-			writer.append(TAB2).append(" * @return {").append(returnType.toString()).append("}").append(CR);
-		}
-		writer.append(TAB2).append(" */").append(CR);
 	}
 
 	/**
@@ -204,7 +143,7 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 */
 	void createReturnOcelotPromiseFactory(String classname, String methodName, String paramNames, String args, String keys, Writer writer) throws IOException {
 		String md5 = keyMaker.getMd5(classname + "." + methodName);
-		writer.append(TAB3).append("return OcelotPromiseFactory.createPromise(_ds, ").append(QUOTE).append(md5).append("_").append(QUOTE).append(" + JSON.stringify([").append(keys).append("]).md5()").append(", ").append(QUOTE).append(methodName).append(QUOTE).append(", [").append(paramNames).append("], [").append(args).append("]").append(");").append(CR);
+		writer.append(TAB3).append("return OcelotPromiseFactory.createPromise(_ds,").append(SPACE).append(QUOTE).append(md5).append("_").append(QUOTE).append(SPACE).append("+").append(SPACE).append("JSON.stringify([").append(keys).append("]).md5()").append(",").append(SPACE).append(QUOTE).append(methodName).append(QUOTE).append(",").append(SPACE).append("[").append(paramNames).append("],").append(SPACE).append("[").append(args).append("]").append(");").append(CR);
 	}
 
 	/**
