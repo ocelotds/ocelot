@@ -1,29 +1,29 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 package org.ocelotds.processors;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementVisitor;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
-import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.*;
@@ -43,10 +43,13 @@ public class OcelotProcessorTest {
 	public void setUp() {
 		when(processingEnv.getFiler()).thenReturn(filer);
 		when(processingEnv.getMessager()).thenReturn(messager);
+		Map<String, String> map = new HashMap<>();
+		map.put("jsdir", "/home/services");
+		when(processingEnv.getOptions()).thenReturn(map);
 		instance.init(processingEnv);
 		OcelotProcessor.setDone(false);
 	}
-	
+
 	@Mock
 	private Logger logger;
 
@@ -62,6 +65,24 @@ public class OcelotProcessorTest {
 
 	@Mock
 	private Messager messager;
+
+	/**
+	 * Test of getJsDirectory method, of class.
+	 */
+	@Test
+	public void test_getJsDirectory() {
+		System.out.println("getJsDirectory");
+		Map<String, String> map = new HashMap<>();
+		String path = "/home/services";
+		map.put("jsdir", path);
+		Object result = instance.getJsDirectory(map);
+		assertThat(result).isEqualTo(path);
+		map.put("jsdir", null);
+		result = instance.getJsDirectory(map);
+		assertThat(result).isNull();
+		result = instance.getJsDirectory(null);
+		assertThat(result).isNull();
+	}
 
 	/**
 	 * Test of isDone method, of class OcelotProcessor.
@@ -98,79 +119,173 @@ public class OcelotProcessorTest {
 
 	/**
 	 * Test of process method, of class OcelotProcessor.
+	 *
 	 * @throws java.io.IOException
 	 */
 	@Test
 	public void testProcess() throws IOException {
 		System.out.println("process");
 		OcelotProcessor.setDone(Boolean.FALSE);
-		String js = "jsfilename.js";
-		doReturn(js).when(instance).getFilename(any(TypeElement.class));
-		Writer writerjs = mock(Writer.class);
-		when(writerjs.append(anyString())).thenReturn(writerjs);
-		doReturn(writerjs).when(instance).getResourceFileObjectWriter(eq(js));
-		
+		RoundEnvironment roundEnv = mock(RoundEnvironment.class);
 		Set<? extends TypeElement> annotations = mock(Set.class);
 		Set elements = new HashSet<>();
-		Element element = mock(Element.class);
-		elements.add(element);
-		when(element.toString()).thenReturn("GeneratedClass");
+		elements.add(mock(Element.class));
+		elements.add(mock(Element.class));
 
-		RoundEnvironment roundEnv = mock(RoundEnvironment.class);
-		when(roundEnv.getElementsAnnotatedWith(eq(DataService.class))).thenReturn(elements);
 		when(roundEnv.processingOver()).thenReturn(Boolean.FALSE);
+		when(roundEnv.getElementsAnnotatedWith(eq(DataService.class))).thenReturn(elements);
 
 		boolean result = instance.process(annotations, roundEnv);
 		assertThat(result).isTrue();
-		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
-		verify(messager).printMessage(any(Diagnostic.Kind.class), captureString.capture());
-		assertThat(captureString.getValue()).isEqualTo(" javascript generation class : GeneratedClass");
+		verify(instance, times(2)).processElement(any(Element.class), any(ElementVisitor.class));
 	}
 
 	/**
-	 * Test of process method, of class OcelotProcessor.
+	 * Test of processElement method, of class.
+	 */
+	@Test
+	public void test_processElement() {
+		System.out.println("processElement");
+		doNothing().when(instance).processTypeElement(any(TypeElement.class), any(ElementVisitor.class));
+		instance.processElement(mock(Element.class), mock(ElementVisitor.class));
+		instance.processElement(mock(TypeElement.class), mock(ElementVisitor.class));
+		verify(instance).processTypeElement(any(TypeElement.class), any(ElementVisitor.class));
+	}
+
+	/**
+	 * Test of processTypeElement method, of class.
+	 */
+	@Test
+	public void test_processTypeElement() {
+		System.out.println("processTypeElement");
+		doReturn("").when(instance).getPackagePath(any(TypeElement.class));
+		doReturn("").when(instance).getFilename(any(TypeElement.class));
+		doNothing().when(instance).writeJsFileToJsDir(any(TypeElement.class), any(ElementVisitor.class), anyString(), anyString(), anyString());
+		doNothing().when(instance).writeJsFile(any(TypeElement.class), any(ElementVisitor.class), anyString(), anyString());
+		instance.processTypeElement(mock(TypeElement.class), mock(ElementVisitor.class));
+		verify(instance).writeJsFileToJsDir(any(TypeElement.class), any(ElementVisitor.class), anyString(), anyString(), anyString());
+		verify(instance).writeJsFile(any(TypeElement.class), any(ElementVisitor.class), anyString(), anyString());
+	}
+
+	/**
+	 * Test of writeJsFile method, of class.
+	 *
 	 * @throws java.io.IOException
 	 */
-//	@Test
-	public void testProcessFail() throws IOException {
-		System.out.println("processFail");
-		Writer writer = mock(Writer.class);
-		when(writer.append(anyString())).thenReturn(writer);
-		doReturn(writer).when(instance).getSourceFileObjectWriter(anyString());
-		when(filer.createResource(eq(StandardLocation.CLASS_OUTPUT), eq(""), anyString())).thenThrow(new IOException("ERROR"));
-		Set<? extends TypeElement> annotations = mock(Set.class);
-		RoundEnvironment roundEnv = mock(RoundEnvironment.class);
-		when(roundEnv.processingOver()).thenReturn(Boolean.FALSE);
-		OcelotProcessor.setDone(Boolean.FALSE);
-		boolean result = instance.process(annotations, roundEnv);
-		assertThat(result).isTrue();
-		ArgumentCaptor<String> captureString = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<Diagnostic.Kind> captureKind = ArgumentCaptor.forClass(Diagnostic.Kind.class);
-		verify(messager).printMessage(captureKind.capture(), captureString.capture());
-		assertThat(captureString.getValue()).isEqualTo("ERROR");
-		assertThat(captureKind.getValue()).isEqualTo(Diagnostic.Kind.ERROR);
-	}
-	
 	@Test
-	public void testGetSourceFileObjectWriter() throws IOException {
-		System.out.println("getFileObjectWriter");
-		JavaFileObject fileObject = mock(JavaFileObject.class);
+	public void test_writeJsFile() throws IOException {
+		System.out.println("writeJsFile");
+		TypeElement element = mock(TypeElement.class);
+		doThrow(IOException.class).doReturn(mock(Writer.class)).when(instance).getResourceFileObjectWriter(anyString(), anyString());
+		instance.writeJsFile(element, mock(ElementVisitor.class), "", "");
+		instance.writeJsFile(element, mock(ElementVisitor.class), "", "");
+		instance.writeJsFile(element, mock(ElementVisitor.class), "", "");
+		verify(element, times(2)).accept(any(ElementVisitor.class), any(Writer.class));
+	}
+
+	/**
+	 * Test of writeJsFileToJsDir method, of class.
+	 *
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void test_writeJsFileToJsDir() throws IOException {
+		System.out.println("writeJsFileToJsDir");
+		TypeElement element = mock(TypeElement.class);
+		doThrow(IOException.class).doReturn(mock(Writer.class)).when(instance).getFileObjectWriter(anyString(), anyString(), anyString());
+		instance.writeJsFileToJsDir(element, mock(ElementVisitor.class), "", "", "");
+		instance.writeJsFileToJsDir(element, mock(ElementVisitor.class), "", "", "");
+		instance.writeJsFileToJsDir(element, mock(ElementVisitor.class), "", "", null);
+		verify(element).accept(any(ElementVisitor.class), any(Writer.class));
+	}
+
+	/**
+	 * Test of getPackagePath method, of class.
+	 */
+	@Test
+	public void test_getPackagePath() {
+		System.out.println("getPackagePath");
+		TypeElement element = mock(TypeElement.class);
+		Name qname = mock(Name.class);
+		when(qname.toString()).thenReturn("a.b.c.d.Test");
+		Name name = mock(Name.class);
+		when(name.toString()).thenReturn("Test");
+		when(element.getQualifiedName()).thenReturn(qname);
+		when(element.getSimpleName()).thenReturn(name);
+		String result = instance.getPackagePath(element);
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo("a.b.c.d");
+	}
+
+	/**
+	 * Test of getFilename method, of class.
+	 */
+	@Test
+	public void test_getFilename() {
+		System.out.println("getFilename");
+		TypeElement element = mock(TypeElement.class);
+		Name name = mock(Name.class);
+
+		when(name.toString()).thenReturn("Test");
+		when(element.getSimpleName()).thenReturn(name);
+
+		String result = instance.getFilename(element);
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo("Test.js");
+	}
+
+	/**
+	 * Test of getSourceFileObjectWriter method, of class.
+	 */
+	@Test
+	public void test_getSourceFileObjectWriter() throws IOException {
+		System.out.println("getSourceFileObjectWriter");
 		Writer writer = mock(Writer.class);
-		when(filer.createSourceFile(anyString())).thenReturn(fileObject);
-		when(fileObject.openWriter()).thenReturn(writer);
-		Writer result = instance.getSourceFileObjectWriter("test");
+		JavaFileObject source = mock(JavaFileObject.class);
+		when(source.openWriter()).thenReturn(writer);
+		when(filer.createSourceFile(anyString())).thenReturn(source);
+		Writer result = instance.getSourceFileObjectWriter("");
+		assertThat(result).isNotNull();
 		assertThat(result).isEqualTo(writer);
 	}
 
+	/**
+	 * Test of getResourceFileObjectWriter method, of class.
+	 *
+	 * @throws java.io.IOException
+	 */
 	@Test
-	public void testGetResourceFileObjectWriter() throws IOException {
+	public void test_getResourceFileObjectWriter() throws IOException {
 		System.out.println("getResourceFileObjectWriter");
-		JavaFileObject fileObject = mock(JavaFileObject.class);
 		Writer writer = mock(Writer.class);
-		when(filer.createResource(eq(StandardLocation.CLASS_OUTPUT), anyString(), anyString())).thenReturn(fileObject);
-		when(fileObject.openWriter()).thenReturn(writer);
-		Writer result = instance.getResourceFileObjectWriter("test");
+		JavaFileObject source = mock(JavaFileObject.class);
+		when(source.openWriter()).thenReturn(writer);
+		when(filer.createResource(any(StandardLocation.class), anyString(), anyString())).thenReturn(source);
+		Writer result = instance.getResourceFileObjectWriter("", "");
+		assertThat(result).isNotNull();
 		assertThat(result).isEqualTo(writer);
 	}
 
+	/**
+	 * Test of getFileObjectWriter method, of class.
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void test_getFileObjectWriter() throws IOException {
+		System.out.println("getFileObjectWriter");
+		Writer result = instance.getFileObjectWriter("a.b", "File.js", "/tmp");
+		assertThat(result).isNotNull();
+		File file = new File("/tmp/a.b.File.js");
+		assertThat(file).exists();
+		file.delete();
+
+		result = instance.getFileObjectWriter("a.b", "File.js", "/tmp/sub");
+		assertThat(result).isNotNull();
+		file = new File("/tmp/sub/a.b.File.js");
+		assertThat(file).exists();
+		file.delete();
+		file = new File("/tmp/sub");
+		assertThat(file).exists();
+		file.delete();
+	}
 }

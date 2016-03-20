@@ -63,10 +63,12 @@ public class AbstractDataServiceVisitorTest {
 
 	@Mock
 	private AbstractDataServiceVisitor instance;
+	
+	@Mock
+	ProcessingEnvironment environment;
 
 	@Before
 	public void setUp() {
-		ProcessingEnvironment environment = mock(ProcessingEnvironment.class);
 		when(environment.getElementUtils()).thenReturn(elementUtils);
 		when(environment.getFiler()).thenReturn(filer);
 		when(environment.getMessager()).thenReturn(messager);
@@ -154,18 +156,6 @@ public class AbstractDataServiceVisitorTest {
 
 		result = instance.getJsClassname(typeElement);
 		assertThat(result).isEqualTo("SpecifiedClassName");
-	}
-
-	/**
-	 * Test of computeComment method, of class DataServiceVisitorJsBuilder.
-	 *
-	 */
-	@Test
-	public void testComputeComment() {
-		System.out.println("computeComment");
-		String comment = "Line1\nLine2\nLine3";
-		String result = instance.computeComment(comment, " ");
-		assertThat(result).isEqualTo("Line1\n *Line2\n *Line3");
 	}
 
 	/**
@@ -382,6 +372,30 @@ public class AbstractDataServiceVisitorTest {
 		StringBuilder stringBuilder = instance.getStringBuilder();
 		assertThat(stringBuilder).isNotNull();
 		assertThat(stringBuilder.length()).isEqualTo(0);
+	}
+	
+	/**
+	 * Test of getElementUtils method, of class.
+	 */
+	@Test
+	public void test_getElementUtils() {
+		System.out.println("getElementUtils");
+		Elements elements = mock(Elements.class);
+		when(environment.getElementUtils()).thenReturn(elements);
+		Elements result = instance.getElementUtils();
+		assertThat(result).isEqualTo(elements);
+	}
+	
+	/**
+	 * Test of getTypeUtils method, of class.
+	 */
+	@Test
+	public void test_getTypeUtils() {
+		System.out.println("getTypeUtils");
+		Types types = mock(Types.class);
+		when(environment.getTypeUtils()).thenReturn(types);
+		Types result = instance.getTypeUtils();
+		assertThat(result).isEqualTo(types);
 	}
 	
 	Writer getMockWriter() throws IOException {
