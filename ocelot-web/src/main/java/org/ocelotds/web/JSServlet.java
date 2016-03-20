@@ -5,12 +5,9 @@
 package org.ocelotds.web;
 
 import org.ocelotds.Constants;
-import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
-import org.ocelotds.annotations.OcelotLogger;
-import org.slf4j.Logger;
 
 /**
  * Servlet to serve ocelot.js
@@ -21,10 +18,6 @@ import org.slf4j.Logger;
 public class JSServlet extends AbstractFileServlet {
 
 	private static final long serialVersionUID = 1973549844535787671L;
-
-	@Inject
-	@OcelotLogger
-	private transient Logger logger;
 
 	@Override
 	protected String getFilename(HttpServletRequest request) {
