@@ -48,7 +48,6 @@ public abstract class AbstractFileServlet extends HttpServlet {
 		boolean first = true;
 		response.setContentType(getMimetype(request));
 		response.setCharacterEncoding(Constants.UTF_8);
-		String protocol = getProtocol(request);
 		try (Writer writer = response.getWriter()) {
 			Path path = FileSystems.getDefault().getPath(getFilename(request));
 			try (BufferedReader in = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
@@ -58,7 +57,7 @@ public abstract class AbstractFileServlet extends HttpServlet {
 						writer.write(Constants.BACKSLASH_N);
 					}
 					first = false;
-					writer.write(inputLine.replaceAll(Constants.PROTOCOL, protocol));
+					writer.write(inputLine);
 				}
 			}
 		}
@@ -101,13 +100,5 @@ public abstract class AbstractFileServlet extends HttpServlet {
 	@Override
 	public String getServletInfo() {
 		return "ocelot-servlet";
-	}
-
-	String getProtocol(HttpServletRequest request) {
-		String protocol = Constants.WS;
-		if (request.isSecure()) {
-			protocol = Constants.WSS;
-		}
-		return protocol;
 	}
 }
