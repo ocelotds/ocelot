@@ -35,7 +35,7 @@ public class HtmlFileInitializer extends AbstractFileInitializer {
 		logger.debug("ocelot.htm generation...");
 		try {
 			// create tmp/ocelot.html
-			File htmlFile = createOcelotHtmlFile(sc.getContextPath());
+			File htmlFile = createOcelotHtmlFile();
 			sc.setInitParameter(Constants.OCELOT_HTML, htmlFile.getAbsolutePath());
 		} catch (IOException ex) {
 			logger.error("Fail to create ocelot.html.", ex);
@@ -53,10 +53,10 @@ public class HtmlFileInitializer extends AbstractFileInitializer {
 	 * @return
 	 * @throws IOException
 	 */
-	File createOcelotHtmlFile(String ctxPath) throws IOException {
+	File createOcelotHtmlFile() throws IOException {
 		File file = File.createTempFile(Constants.OCELOT, Constants.HTML);
 		try (OutputStream out = new FileOutputStream(file)) {
-			writeOcelotContentHTMLFile(out, ctxPath);
+			writeOcelotContentHTMLFile(out);
 		}
 		return file;
 	}
@@ -65,11 +65,10 @@ public class HtmlFileInitializer extends AbstractFileInitializer {
 	 * Write content.htm part and replace contextpath token
 	 *
 	 * @param writer
-	 * @param ctxPath
 	 * @return
 	 * @throws IOException
 	 */
-	void writeOcelotContentHTMLFile(OutputStream out, String ctxPath) throws IOException {
+	void writeOcelotContentHTMLFile(OutputStream out) throws IOException {
 		URL content = getContentURL(CONTENT_RESOURCE);
 		if (null == content) {
 			throw new IOException("File " + CONTENT_RESOURCE + " not found in classpath.");
@@ -77,7 +76,7 @@ public class HtmlFileInitializer extends AbstractFileInitializer {
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(content.openStream(), Constants.UTF_8))) {
 			String inputLine;
 			while ((inputLine = in.readLine()) != null) {
-				out.write(inputLine.replaceAll(Constants.CTXPATH, ctxPath).getBytes(Constants.UTF_8));
+				out.write(inputLine.getBytes(Constants.UTF_8));
 				out.write(Constants.BACKSLASH_N.getBytes(Constants.UTF_8));
 			}
 		}
