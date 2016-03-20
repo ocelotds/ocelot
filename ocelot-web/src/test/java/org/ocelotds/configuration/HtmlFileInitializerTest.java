@@ -91,7 +91,7 @@ public class HtmlFileInitializerTest {
 		System.out.println("createHtmlFile");
 		ServletContext sc = mock(ServletContext.class);
 		when(sc.getContextPath()).thenReturn("/");
-		doThrow(IOException.class).when(instance).createOcelotHtmlFile(anyString());
+		doThrow(IOException.class).when(instance).createOcelotHtmlFile();
 
 		instance.initHtmlFile(sc);
 
@@ -109,9 +109,8 @@ public class HtmlFileInitializerTest {
 	public void testWriteOcelotContentHTMLFileFail() throws IOException {
 		System.out.println("writeOcelotContentHTMLFileFail");
 		OutputStream out = mock(OutputStream.class);
-		String ctxPath = "/";
 		doReturn(null).when(instance).getContentURL(anyString());
-		instance.writeOcelotContentHTMLFile(out, ctxPath);
+		instance.writeOcelotContentHTMLFile(out);
 	}	
 
 	/**
@@ -123,8 +122,7 @@ public class HtmlFileInitializerTest {
 	public void testWriteOcelotContentHTMLFile() throws IOException {
 		System.out.println("writeOcelotContentHTMLFile");
 		OutputStream out = mock(OutputStream.class);
-		String ctxPath = "/";
-		instance.writeOcelotContentHTMLFile(out, ctxPath);
+		instance.writeOcelotContentHTMLFile(out);
 		verify(out, atLeast(2)).write(any(byte[].class));
 		
 	}	

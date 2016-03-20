@@ -22,7 +22,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ocelotds.Constants;
 import org.ocelotds.objects.AbstractServletImpl;
 import org.slf4j.Logger;
 
@@ -124,17 +123,5 @@ public class AbstractFileServletTest {
 		System.out.println("getServletInfo");
 		String result = instance.getServletInfo();
 		assertThat(result).isEqualTo("ocelot-servlet");
-	}
-	
-	@Test
-	public void testGetProtocol() throws IOException {
-		System.out.println("getServletInfo");
-		when(request.isSecure()).thenReturn(false).thenReturn(true);
-
-		String protocol = instance.getProtocol(request);
-		assertThat(protocol).isEqualTo(Constants.WS);
-		
-		protocol = instance.getProtocol(request);
-		assertThat(protocol).isEqualTo(Constants.WSS);
 	}
 }
