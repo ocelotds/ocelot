@@ -40,7 +40,7 @@ public abstract class RSMonitorDecorator implements RSMessageToClientService {
 	public boolean isMonitored(HttpSession session) {
 		boolean monitor  =false;
 		if (null != session) {
-			monitor = (boolean) session.getAttribute(Constants.Options.MONITOR);
+			monitor = session.getAttribute(Constants.Options.MONITOR)!=null && (boolean) session.getAttribute(Constants.Options.MONITOR);
 		}
 		return monitor;
 	}
