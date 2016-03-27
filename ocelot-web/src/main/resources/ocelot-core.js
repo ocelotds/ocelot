@@ -2,7 +2,7 @@ var ocelotController, OcelotPromiseFactory, MD5Tools;
 var Subscriber = (function (topic) {
 	var promise = ocelotServices.subscribe(topic);
 	Object.defineProperty(promise, "topic", {value: topic, writable: false}); // add topic property, readonly
-//	Object.defineProperty(promise, "constraint", undefined); // remove constraint handler
+	delete promise.constraint;
 	promise.unsubscribe = function () {
 		return ocelotServices.unsubscribe(topic);
 	};
@@ -22,21 +22,25 @@ OcelotPromiseFactory = function () {
 						while (handler = eventHandlers.shift()) {
 							handler(evt);
 						}
-						if (evt.type === RES) {
-							while (handler = thenHandlers.shift()) {
-								handler(evt.response);
-							}
-						} else if (evt.type === CONSTRAINT) {
-							while (handler = constraintHandlers.shift()) {
-								handler(evt.response);
-							}
-						} else if (evt.type === FAULT) {
-							fault = evt.response;
-							console.error(fault.classname + "(" + fault.message + ")");
-							console.table(fault.stacktrace);
-							while (handler = catchHandlers.shift()) {
-								handler(fault);
-							}
+						switch (evt.type) {
+							case RES:
+								while (handler = thenHandlers.shift()) {
+									handler(evt.response);
+								}
+								break;
+							case CONSTRAINT:
+								while (handler = constraintHandlers.shift()) {
+									handler(evt.response);
+								}
+								break;
+							case FAULT:
+								fault = evt.response;
+								console.error(fault.classname + "(" + fault.message + ")");
+								console.table(fault.stacktrace);
+								while (handler = catchHandlers.shift()) {
+									handler(fault);
+								}
+								break;
 						}
 					} else {
 						messageHandlers.forEach(function (messageHandler) {
@@ -282,9 +286,10 @@ String.prototype.md5 = function () {
 };
 if ("WebSocket" in window) {
 	ocelotController = (function () {
-		var options = {"monitor": false, "debug": false}, MSG = "MESSAGE", CONSTRAINT = "CONSTRAINT", RES = "RESULT", FAULT = "FAULT", ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove",
-				  CLEANCACHE = "ocelot-cleancache", STATUS = "ocelot-status", OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe",
-				  stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], promises = {}, openHandlers = [], closeHandlers = [], errorHandlers = [], path, ws;
+		var options = {"monitor": false, "debug": false}, MSG = "MESSAGE", CONSTRAINT = "CONSTRAINT", RES = "RESULT", FAULT = "FAULT",
+				  ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove", CLEANCACHE = "ocelot-cleancache", STATUS = "ocelot-status",
+				  OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe",
+				  stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], closetimer, promises = {}, path, ws;
 		function createEventFromPromise(type, promise, msgToClient) {
 			var evt = document.createEvent(EVT);
 			evt.initEvent(type, true, false);
@@ -350,10 +355,7 @@ if ("WebSocket" in window) {
 			return promises[id] || [];
 		}
 		function isOcelotControllerServices(promise) {
-			if (promise.dataservice === "ocelotController") {
-				return true;
-			}
-			return false;
+			return promise && (promise.dataservice === "ocelotController");
 		}
 		function isSubscription(promise) {
 			return promise.dataservice === OSRV && promise.operation === SUB;
@@ -391,40 +393,42 @@ if ("WebSocket" in window) {
 							msgToClient = JSON.parse(xhttp.responseText);
 							receiveMtc(msgToClient);
 						} else {
-							promise.response = createFaultEventFromPromise(promise, {"response": {"classname": "XMLHttpRequest", "message": "XMLHttpRequest request failed : code = " + xhttp.status, "stacktrace": []}, "t": 0});
+							receiveMtc({"id": promise.id, "type": FAULT, "response": {"classname": "XMLHttpRequest", "message": "XMLHttpRequest request failed : code = " + xhttp.status, "stacktrace": []}, "t": 0});
 						}
 					}
 				};
-				xhttp.open("POST", "http" + path + "ocelot/endpoint?monitor=" + options.monitor, true);
+				xhttp.open("POST", "http" + path + "ocelot/endpoint", true);
 				xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 				xhttp.send("mfc=" + mfc);
 			}
 		}
 		function receiveMtc(msgToClient) {
-			var idx, response, msgToClient, promise, apromise = getPromises(msgToClient.id);
 			if (msgToClient.type === RES) { // maybe should be store result in cache
 				// if msgToClient has dead line so we stock in cache
 				ocelotController.cacheManager.putResultInCache(msgToClient);
 			}
-			for (idx = 0; idx < apromise.length; idx++) {
-				promise = apromise[idx];
-				if (msgToClient.type === FAULT) {
-					response = createFaultEventFromPromise(promise, msgToClient);
-				} else if (msgToClient.type === RES) {
-					// if msg is response of subscribe request
-					if (isTopicSubscription(promise)) {
-						addPromiseToId(promise, promise.args[0]);
-					} else if (isTopicUnsubscription(promise)) {
-						clearPromisesForId(promise.args[0]);
-					}
-					response = createResultEventFromPromise(promise, msgToClient);
-				} else if (msgToClient.type === CONSTRAINT) {
-					response = createConstraintEventFromPromise(promise, msgToClient);
-				} else if (msgToClient.type === MSG) {
-					response = createMessageEventFromPromise(promise, msgToClient);
+			foreachPromiseInPromisesDo(msgToClient.id, function (promise) {
+				switch (msgToClient.type) {
+					case FAULT:
+						promise.response = createFaultEventFromPromise(promise, msgToClient);
+						break;
+					case RES:
+						// if msg is response of subscribe request
+						if (isTopicSubscription(promise)) {
+							addPromiseToId(promise, promise.args[0]);
+						} else if (isTopicUnsubscription(promise)) {
+							clearPromisesForId(promise.args[0]);
+						}
+						promise.response = createResultEventFromPromise(promise, msgToClient);
+						break;
+					case CONSTRAINT:
+						promise.response = createConstraintEventFromPromise(promise, msgToClient);
+						break;
+					case MSG:
+						promise.response = createMessageEventFromPromise(promise, msgToClient);
+						break;
 				}
-				promise.response = response;
-			}
+			});
 			// when receive result or fault, remove handlers, except for topic
 			if (msgToClient.type !== MSG) {
 				clearPromisesForId(msgToClient.id);
@@ -436,73 +440,32 @@ if ("WebSocket" in window) {
 		}
 		function onwserror(evt) {
 			console.info("Websocket error : " + evt.reason);
-			errorHandlers.forEach(function (handler) {
-				handler(evt);
-			});
 			stateUpdated();
 		}
 		function onwsclose(evt) {
-			var promise, idx, apromise = getPromises("ocelotController.close");
-			if (apromise.length) { // its not open, but re-open
-				for (idx = 0; idx < apromise.length; idx++) { // call handlers attached to close method 
-					promise = apromise[idx];
-					promise.response = createResultEventFromPromise(promise, {"response": evt.reason, "t": 0});
-				}
-				clearPromisesForId("ocelotController.close");
-			}
-			closeHandlers.forEach(function (handler) {
-				handler(evt);
-			});
 			stateUpdated();
-			console.info("Websocket closed : " + evt.reason);
+			console.info("Websocket closed : " + evt.reason + " try reconnect each " + 1000 + "ms");
+			closetimer = setInterval(function () {
+				connect();
+			}, 1000);
 		}
 		function onwsopen(evt) {
+			clearInterval(closetimer);
 			console.info("Websocket opened");
-			var handler, apromise, idx, ps, promise;
+			var ps;
+			// handler, apromise, idx, promise;
 			stateUpdated();
-			apromise = getPromises("ocelotController.open");
-			if (apromise.length) { // its not open, but re-open
-				console.log("RE-OPEN detected");
-				for (idx = 0; idx < apromise.length; idx++) { // call handlers attached to open method 
-					promise = apromise[idx];
-					promise.response = createResultEventFromPromise(promise, {"response": null, "t": 0});
-				}
-				ps = promises;
-				promises = {};
-				Object.keys(ps).forEach(function (id) { // we redo the previous subscription
-					if (id !== ps[id].id) {
-						console.log("============ REDO Subscription : "+id+" :"+ps[id].length);
-						foreachPromiseDo(ps[id], ocelotController.addPromise);
-					}
-				});
-				clearPromisesForId("ocelotController.open");
-				return;
-			}
-			// Controller subscribe to ocelot-cleancache topic
-			ocelotServices.subscribe(CLEANCACHE).message(function (id) {
-				if (id === ALL) {
-					ocelotController.cacheManager.clearCache();
-				} else {
-					ocelotController.cacheManager.removeEntryInCache(id);
+			ps = promises;
+			promises = {};
+			Object.keys(ps).forEach(function (id) { // we redo the subscription
+				if (id !== ps[id].id) {
+					foreachPromiseDo(ps[id], ocelotController.addPromise);
 				}
 			});
-			// Get Locale from server or cache and re-set it
-			ocelotServices.getLocale().then(function (locale) {
-				if (locale) {
-					ocelotServices.setLocale(locale);
-				}
-			});
-			// send states or current objects in cache with lastupdate
-			ocelotServices.getOutDatedCache(ocelotController.cacheManager.getLastUpdateCache()).then(function (entries) {
-				ocelotController.cacheManager.removeEntries(entries);
-			});
-			while (handler = openHandlers.shift()) { // launch open handlers
-				handler();
-			}
 		}
-		function init() {
-			console.info("Websocket initialization...");
-			var re = /ocelot\.js.*|ocelot\/core(\.min)?\.js/;
+		function connect() {
+			console.info("Ocelotds initialization...");
+			var re = /ocelot-core.js|ocelot\.js.*|ocelot\/core(\.min)?\.js/;
 			for (var i = 0; i < document.scripts.length; i++) {
 				var item = document.scripts[i];
 				if (item.src.match(re)) {
@@ -511,12 +474,35 @@ if ("WebSocket" in window) {
 			}
 			extractOptions(document.location.search);
 			// init a standard httpsession and init websocket
-			ocelotServices.getHttpSessionId().then(function (id) {
+			return ocelotServices.initCore(options).then(function () {
 				ws = new WebSocket("ws" + path + "ocelot-endpoint");
 				ws.onmessage = onwsmessage;
 				ws.onopen = onwsopen;
 				ws.onerror = onwserror;
 				ws.onclose = onwsclose;
+			});
+		}
+		function init() {
+			// init a standard httpsession and init websocket
+			connect().then(function () {
+				// Controller subscribe to ocelot-cleancache topic
+				ocelotServices.subscribe(CLEANCACHE).message(function (id) {
+					if (id === ALL) {
+						ocelotController.cacheManager.clearCache();
+					} else {
+						ocelotController.cacheManager.removeEntryInCache(id);
+					}
+				});
+				// Get Locale from server or cache and re-set it
+				ocelotServices.getLocale().then(function (locale) {
+					if (locale) {
+						ocelotServices.setLocale(locale);
+					}
+				});
+				// send states or current objects in cache with lastupdate
+				ocelotServices.getOutDatedCache(ocelotController.cacheManager.getLastUpdateCache()).then(function (entries) {
+					ocelotController.cacheManager.removeEntries(entries);
+				});
 			});
 		}
 		init();
@@ -525,36 +511,12 @@ if ("WebSocket" in window) {
 				return options;
 			},
 			get status() {
-				return ws?stateLabels[ws.readyState]:"CLOSED";
-			},
-			addOpenListener: function (listener) {
-				if (ws.readyState === 1) { // OPEN
-					listener();
-				} else {
-					openHandlers.push(listener);
-				}
-			},
-			addCloseListener: function (listener) {
-				if (ws.readyState === 3) { // CLOSED
-					listener();
-				} else {
-					closeHandlers.push(listener);
-				}
-			},
-			addErrorListener: function (listener) {
-				errorHandlers.push(listener);
-			},
-			open: function () {
-				var promise = OcelotPromiseFactory.createPromise("ocelotController", "ocelotController.open", "open", [], []);
-				init();
-				return promise;
+				return ws ? stateLabels[ws.readyState] : "CLOSED";
 			},
 			close: function (reason) {
-				var promise = OcelotPromiseFactory.createPromise("ocelotController", "ocelotController.close", "close", [], []);
 				setTimeout(function () {
 					ws.close(1000, reason | "Normal closure; the connection successfully completed whatever purpose for which it was created.");
 				}, 10);
-				return promise;
 			},
 			addPromise: function (promise) {
 				if (isTopicSubscription(promise, STATUS)) {
@@ -661,9 +623,10 @@ if ("WebSocket" in window) {
 					 * @param {MessageToClient} msgToClient
 					 */
 					putResultInCache: function (msgToClient) {
-						if (!msgToClient.deadline)
-							return;
 						var ids, json, obj;
+						if (!msgToClient.deadline) {
+							return;
+						}
 						lastUpdateManager.addEntry(msgToClient.id);
 						manageAddEvent(msgToClient);
 						ids = msgToClient.id.split("_");
