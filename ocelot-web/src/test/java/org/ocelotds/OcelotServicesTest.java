@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.objects.FakeCDI;
 import org.ocelotds.objects.OcelotService;
+import org.ocelotds.objects.Options;
 import org.ocelotds.topic.SessionManager;
 
 /**
@@ -71,16 +72,27 @@ public class OcelotServicesTest {
 	private OcelotServices instance;
 
 	/**
-	 * Test of getHttpSessionId method, of class.
+	 * Test of initCore method, of class.
 	 */
 	@Test
-	public void test_getHttpSessionId() {
-		System.out.println("getHttpSessionId");
-		when(httpSession.getId()).thenReturn("ID0");
-		
-		Object result = instance.getHttpSessionId();
-		assertThat(result).isNotNull();
-		assertThat(result).isEqualTo("ID0");
+	public void test_getInitCoreMonitorTrue() {
+		System.out.println("initCore");
+		Options options = new Options();
+		options.setMonitor(true);
+		instance.initCore(options);
+		verify(httpSession).setAttribute(eq(Constants.Options.MONITOR), eq(true));
+	}
+
+	/**
+	 * Test of initCore method, of class.
+	 */
+	@Test
+	public void test_getInitCoreMonitorFalse() {
+		System.out.println("initCore");
+		Options options = new Options();
+		options.setMonitor(false);
+		instance.initCore(options);
+		verify(httpSession).setAttribute(eq(Constants.Options.MONITOR), eq(false));
 	}
 
 	/**
