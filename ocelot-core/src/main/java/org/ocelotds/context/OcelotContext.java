@@ -5,11 +5,9 @@ package org.ocelotds.context;
 
 import java.security.Principal;
 import java.util.Locale;
-import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.websocket.Session;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
@@ -27,12 +25,6 @@ public class OcelotContext {
 	@Inject
 	private Principal principal;
 
-	@Produces
-	Session getSession() {
-		return (Session) ThreadLocalContextHolder.get(Constants.SESSION);
-	}
-
-//	@Produces
 	HttpSession getHttpSession() {
 		return (HttpSession) ThreadLocalContextHolder.get(Constants.HTTPSESSION);
 	}
@@ -58,7 +50,7 @@ public class OcelotContext {
 		setLocaleToHttpSession(locale);
 	}
 
-	public void setLocaleToHttpSession(Locale locale) {
+	void setLocaleToHttpSession(Locale locale) {
 		HttpSession session = getHttpSession();
 		if (session != null) {
 			session.removeAttribute(Constants.LOCALE);

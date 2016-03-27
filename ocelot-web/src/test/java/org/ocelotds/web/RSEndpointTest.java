@@ -5,6 +5,7 @@
  */
 package org.ocelotds.web;
 
+import org.ocelotds.topic.UserContextFactory;
 import java.util.List;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
@@ -44,7 +45,7 @@ public class RSEndpointTest {
 	private RSMessageToClientManager messageToClientService;
 	
 	@Mock
-	private RequestManager requestManager;
+	private UserContextFactory userContextFactory;
 	
 	@Mock
 	private Logger logger;

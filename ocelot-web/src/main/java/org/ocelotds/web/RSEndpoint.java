@@ -45,9 +45,6 @@ public class RSEndpoint {
 	@Inject
 	private RSMessageToClientService messageToClientService;
 
-	@Inject
-	private RequestManager requestManager;
-
 	/**
 	 * Retrieves representation of an instance of org.ocelotds.GenericResource
 	 *

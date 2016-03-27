@@ -6,11 +6,14 @@ package org.ocelotds;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.security.Principal;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.enterprise.inject.Instance;
+import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -22,7 +25,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.context.OcelotContext;
-import org.ocelotds.core.SessionManager;
+import org.ocelotds.topic.TopicManager;
 import org.ocelotds.core.UpdatedCacheManager;
 import org.ocelotds.core.services.ClassAsDataService;
 import org.ocelotds.objects.OcelotMethod;
@@ -30,6 +33,7 @@ import org.slf4j.Logger;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.objects.FakeCDI;
 import org.ocelotds.objects.OcelotService;
+import org.ocelotds.topic.SessionManager;
 
 /**
  *
@@ -37,24 +41,27 @@ import org.ocelotds.objects.OcelotService;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class OcelotServicesTest {
-	
+
 	@Mock
 	private Logger logger;
-	
+
+	@Mock
+	private ServiceTools serviceTools;
+
 	@Mock
 	private UpdatedCacheManager updatedCacheManager;
+
+	@Mock
+	private TopicManager topicManager;
 	
-	@Mock
-	private SessionManager sessionManager;
-
-	@Mock
-	private Session session;
-
 	@Mock
 	private OcelotContext ocelotContext;
 
 	@Mock
-	private ServiceTools serviceTools;
+	private SessionManager sessionManager;
+
+	@Mock
+	private HttpSession httpSession;
 
 	@Spy
 	private Instance<Object> dataservices = new FakeCDI<Object>();
@@ -62,6 +69,19 @@ public class OcelotServicesTest {
 	@InjectMocks
 	@Spy
 	private OcelotServices instance;
+
+	/**
+	 * Test of getHttpSessionId method, of class.
+	 */
+	@Test
+	public void test_getHttpSessionId() {
+		System.out.println("getHttpSessionId");
+		when(httpSession.getId()).thenReturn("ID0");
+		
+		Object result = instance.getHttpSessionId();
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo("ID0");
+	}
 
 	/**
 	 * Test of getLocale method, of class OcelotServices.
@@ -123,7 +143,9 @@ public class OcelotServicesTest {
 	public void testGetOutDatedCache() {
 		System.out.println("getOutDatedCache");
 		Map<String, Long> states = new HashMap<>();
-		instance.getOutDatedCache(states);
+		when(updatedCacheManager.getOutDatedCache(any(Map.class))).thenReturn(Collections.EMPTY_LIST);
+		Collection<String> result = instance.getOutDatedCache(states);
+		assertThat(result).isInstanceOf(Collection.class);
 	}
 
 	/**
@@ -133,7 +155,9 @@ public class OcelotServicesTest {
 	@Test
 	public void testSubscribe_String() throws IllegalAccessException {
 		System.out.println("subscribe");
+		when(sessionManager.getSessionById(anyString())).thenReturn(mock(Session.class));
 		instance.subscribe("TOPIC");
+		verify(topicManager).registerTopicSession(eq("TOPIC"), any(Session.class));
 	}
 
 	/**
@@ -142,7 +166,9 @@ public class OcelotServicesTest {
 	@Test
 	public void testUnsubscribe_String() {
 		System.out.println("unsubscribe");
+		when(sessionManager.getSessionById(anyString())).thenReturn(mock(Session.class));
 		instance.unsubscribe("TOPIC");
+		verify(topicManager).unregisterTopicSession(eq("TOPIC"), any(Session.class));
 	}
 
 	/**
@@ -152,7 +178,7 @@ public class OcelotServicesTest {
 	@Test
 	public void testSubscribe_Session_String() throws IllegalAccessException {
 		System.out.println("subscribe");
-		when(sessionManager.registerTopicSession(anyString(), any(Session.class))).thenReturn(1);
+		when(topicManager.registerTopicSession(anyString(), any(Session.class))).thenReturn(1);
 		Integer result = instance.subscribe("TOPIC");
 		assertThat(result).isEqualTo(1);
 	}
@@ -163,7 +189,7 @@ public class OcelotServicesTest {
 	@Test
 	public void testUnsubscribe_Session_String() {
 		System.out.println("unsubscribe");
-		when(sessionManager.unregisterTopicSession(anyString(), any(Session.class))).thenReturn(0);
+		when(topicManager.unregisterTopicSession(anyString(), any(Session.class))).thenReturn(0);
 		Integer result = instance.unsubscribe("TOPIC");
 		assertThat(result).isEqualTo(0);
 	}
@@ -174,7 +200,7 @@ public class OcelotServicesTest {
 	@Test
 	public void testGetNumberSubscribers() {
 		System.out.println("getNumberSubscribers");
-		when(sessionManager.getNumberSubscribers(anyString())).thenReturn(0);
+		when(topicManager.getNumberSubscribers(anyString())).thenReturn(0);
 		Integer result = instance.getNumberSubscribers("TOPIC");
 		assertThat(result).isEqualTo(0);
 	}

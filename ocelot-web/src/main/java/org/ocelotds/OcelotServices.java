@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheRemove;
 import org.ocelotds.annotations.JsCacheResult;
-import org.ocelotds.core.SessionManager;
+import org.ocelotds.topic.TopicManager;
 import org.ocelotds.core.UpdatedCacheManager;
 import java.util.Collection;
 import java.util.List;
@@ -19,6 +19,7 @@ import java.util.Map;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
+import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
 import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
@@ -29,6 +30,7 @@ import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.objects.OcelotMethod;
 import org.ocelotds.objects.OcelotService;
+import org.ocelotds.topic.SessionManager;
 import org.slf4j.Logger;
 
 /**
@@ -39,28 +41,35 @@ import org.slf4j.Logger;
 public class OcelotServices {
 	
 	@Inject
-	private ServiceTools serviceTools;
-
-	@Inject
 	@OcelotLogger
 	private Logger logger;
+
+	@Inject
+	private ServiceTools serviceTools;
 
 	@Inject
 	private UpdatedCacheManager updatedCacheManager;
 
 	@Inject
-	private SessionManager sessionManager;
+	private TopicManager topicManager;
 	
 	@Inject
 	private OcelotContext ocelotContext;
 
 	@Inject
-	private Session session;
+	private SessionManager sessionManager;
+
+	@Inject
+	private HttpSession httpSession;
 	
 	@Any
 	@Inject
 	@DataService(resolver = "")
 	private Instance<Object> dataservices;
+
+	public String getHttpSessionId() {
+		return httpSession.getId();
+	}
 
 	/**
 	 * define locale for current user
@@ -101,16 +110,18 @@ public class OcelotServices {
 
 	@JsTopic
 	public Integer subscribe(@JsTopicName(prefix = Constants.Topic.SUBSCRIBERS) String topic) throws IllegalAccessException {
-		return sessionManager.registerTopicSession(topic, session);
+		Session session = sessionManager.getSessionById(httpSession.getId());
+		return topicManager.registerTopicSession(topic, session);
 	}
 
 	@JsTopic
 	public Integer unsubscribe(@JsTopicName(prefix = Constants.Topic.SUBSCRIBERS) String topic) {
-		return sessionManager.unregisterTopicSession(topic, session);
+		Session session = sessionManager.getSessionById(httpSession.getId());
+		return topicManager.unregisterTopicSession(topic, session);
 	}
 
 	public Integer getNumberSubscribers(String topic) {
-		return sessionManager.getNumberSubscribers(topic);
+		return topicManager.getNumberSubscribers(topic);
 	}
 
 	/**
@@ -146,7 +157,6 @@ public class OcelotServices {
 		OcelotMethod ocelotMethod = new OcelotMethod(method.getName(), serviceTools.getShortName(serviceTools.getLiteralType(method.getGenericReturnType())));
 		Annotation[][] annotations = method.getParameterAnnotations();
 		Type[] types = method.getGenericParameterTypes();
-		// TODO 1.8 use method.getParameters() for get the name of parameter;
 		int index = 0;
 		for (Type type : types) {
 			ocelotMethod.getArgtypes().add(serviceTools.getShortName(serviceTools.getLiteralType(type)));

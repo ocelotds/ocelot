@@ -252,30 +252,6 @@ public class ServiceTools {
 	}
 
 	/**
-	 * Get template for classic class
-	 *
-	 * @param cls
-	 * @return
-	 */
-//	String getTemplateOfClass(Class cls) {
-//		if (Boolean.class.isAssignableFrom(cls) || Boolean.TYPE.isAssignableFrom(cls)) {
-//			return "false";
-//		} else if (Integer.TYPE.isAssignableFrom(cls) || Long.TYPE.isAssignableFrom(cls) || Integer.class.isAssignableFrom(cls) || Long.class.isAssignableFrom(cls)) {
-//			return "0";
-//		} else if (Float.TYPE.isAssignableFrom(cls) || Double.TYPE.isAssignableFrom(cls) || Float.class.isAssignableFrom(cls) || Double.class.isAssignableFrom(cls)) {
-//			return "0.0";
-//		} else if (cls.isArray()) {
-//			String template = getTemplateOfClass(cls.getComponentType());
-//			return "[" + template + "," + template + "]";
-//		} else {
-//			try {
-//				return getObjectMapper().writeValueAsString(cls.newInstance());
-//			} catch (InstantiationException | IllegalAccessException | JsonProcessingException ex) {
-//			}
-//		}
-//		return cls.getSimpleName().toLowerCase(Locale.ENGLISH);
-//	}
-	/**
 	 * Get template from parameterizedType
 	 *
 	 * @param parameterizedType

@@ -8,7 +8,6 @@ import java.security.Principal;
 import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.websocket.Session;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
@@ -39,22 +38,6 @@ public class OcelotContextTest {
 
 	@Mock
 	private HttpServletRequest request;
-
-	/**
-	 * Test of getSession method, of class OcelotContext.
-	 */
-	@Test
-	public void testGetSession() {
-		System.out.println("getSession");
-		Session session = mock(Session.class);
-		ThreadLocalContextHolder.cleanupThread();
-		Session result = instance.getSession();
-		assertThat(result).isNull();
-		
-		ThreadLocalContextHolder.put(Constants.SESSION, session);
-		result = instance.getSession();
-		assertThat(result).isEqualTo(session);
-	}
 
 	/**
 	 * Test of getHttpSession method, of class OcelotContext.

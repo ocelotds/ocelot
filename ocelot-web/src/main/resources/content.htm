@@ -559,48 +559,46 @@ drawTracker:ea.drawTrackerGraph});v(u,{Color:ia,Point:Ia,Tick:Wa,Renderer:cb,SVG
         var d0 = Math.random()*0xffffffff|0;
         return lut[d0&0xff]+lut[d0>>8&0xff]+lut[d0>>16&0xff]+lut[d0>>24&0xff];
       }
-		ocelotController.addOpenListener(function() {
-			new Subscriber("ocelot-status").message(function (msg) {
-				var statusText = document.getElementById("status-text");
-				var statusColor = document.getElementById("status-color");
-				var statusTextShadow = document.getElementById("status-text-shadow");
-				var color = "#97CA00";
-				var status = "opened";
-				if (msg !== "OPEN") {
-					status = "closed";
-					color = "#e05d44";
-				}
-				statusColor.setAttribute("fill", color);
-				statusText.innerHTML = status;
-				statusTextShadow.innerHTML = status;
-			});
-			ocelotServices.getServices().then(function(srvs){
-				srvs.forEach(function (srv) {
-					document.getElementById("navbarul").appendChild(createMenu(srv.name));
-					var well = document.createElement("div");
-					document.getElementById("accordion").appendChild(well);
-					well.setAttribute("id", srv.name);
-					var header = document.createElement("div");
-					well.appendChild(header);
-					header.setAttribute("class", "page-header");
-					var h1 = document.createElement("h1");
-					header.appendChild(h1);
-					h1.appendChild(document.createTextNode(srv.name));
-					srv.methods.forEach(function (method) {
-						var uid = guid();
-						well.appendChild(createPanel(srv.name, method, uid));
-						method.chart = new Highcharts.Chart({
-							chart: {renderTo: uid+"-chart"},
-							title: null,
-							yAxis: {
-								min: 0,
-  						      title: {text:"ms"}
-							},
-							series: [
-								{name: 'Total times',data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]},
-								{name: 'Java times',data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
-							]
-						});
+		new Subscriber("ocelot-status").message(function (msg) {
+			var statusText = document.getElementById("status-text");
+			var statusColor = document.getElementById("status-color");
+			var statusTextShadow = document.getElementById("status-text-shadow");
+			var color = "#97CA00";
+			var status = "opened";
+			if (msg !== "OPEN") {
+				status = "closed";
+				color = "#e05d44";
+			}
+			statusColor.setAttribute("fill", color);
+			statusText.innerHTML = status;
+			statusTextShadow.innerHTML = status;
+		});
+		ocelotServices.getServices().then(function(srvs){
+			srvs.forEach(function (srv) {
+				document.getElementById("navbarul").appendChild(createMenu(srv.name));
+				var well = document.createElement("div");
+				document.getElementById("accordion").appendChild(well);
+				well.setAttribute("id", srv.name);
+				var header = document.createElement("div");
+				well.appendChild(header);
+				header.setAttribute("class", "page-header");
+				var h1 = document.createElement("h1");
+				header.appendChild(h1);
+				h1.appendChild(document.createTextNode(srv.name));
+				srv.methods.forEach(function (method) {
+					var uid = guid();
+					well.appendChild(createPanel(srv.name, method, uid));
+					method.chart = new Highcharts.Chart({
+						chart: {renderTo: uid+"-chart"},
+						title: null,
+						yAxis: {
+							min: 0,
+							title: {text:"ms"}
+						},
+						series: [
+							{name: 'Total times',data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]},
+							{name: 'Java times',data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
+						]
 					});
 				});
 			});

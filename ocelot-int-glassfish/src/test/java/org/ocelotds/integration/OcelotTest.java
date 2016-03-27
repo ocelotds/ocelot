@@ -17,8 +17,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import javax.ejb.EJBAccessException;
 import javax.enterprise.event.Event;
 import javax.enterprise.inject.Any;
@@ -43,7 +41,6 @@ import org.ocelotds.integration.dataservices.ejb.RequestEjbDataService;
 import org.ocelotds.integration.dataservices.ejb.SessionEjbDataService;
 import org.ocelotds.integration.dataservices.ejb.SingletonEjbDataService;
 import org.ocelotds.integration.dataservices.locale.LocaleMsgDataService;
-import org.ocelotds.integration.dataservices.topic.MyTopicAccessController;
 import org.ocelotds.integration.dataservices.types.ArgumentTypeDataService;
 import org.ocelotds.integration.dataservices.types.ReturnTypeDataService;
 import org.ocelotds.messaging.MessageEvent;
@@ -53,7 +50,6 @@ import org.ocelotds.resolvers.CdiResolver;
 import org.ocelotds.resolvers.DataServiceResolverIdLitteral;
 import org.ocelotds.spi.IDataServiceResolver;
 import org.ocelotds.integration.dataservices.monitor.MonitorDataService;
-import org.ocelotds.integration.dataservices.topic.TopicAccessController;
 import org.ocelotds.integration.dataservices.topic.TopicDataService;
 import org.ocelotds.security.JsTopicAccessController;
 import org.ocelotds.integration.dataservices.security.AccessCDIDataService;
@@ -64,9 +60,12 @@ import org.ocelotds.integration.dataservices.marshalling.ClassServices;
 import org.ocelotds.integration.dataservices.validation.ValidationCdiDataService;
 import org.ocelotds.messaging.ConstraintViolation;
 import org.ocelotds.objects.WithConstraint;
+import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
+import static org.ocelotds.integration.AbstractOcelotTest.getJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
+import org.junit.Before;
+import org.ocelotds.integration.dataservices.topic.TopicAccessController;
 
 /**
  *
@@ -84,14 +83,24 @@ public class OcelotTest extends AbstractOcelotTest {
 	@Inject
 	@Any
 	Instance<JsTopicAccessController> myTopicAccessControllers;
-	
-	JsTopicAccessController getJsTopicAccessController() {
-		return myTopicAccessControllers.select(new JsTopicCtrlAnnotationLiteral("mytopic")).get();
-	}
 
 	@Inject
 	JsTopicAccessController topicAccessController;
 
+	void setSpecificJsTopicAccess(String topic, boolean access) {
+		JsTopicAccessController jtac = myTopicAccessControllers.select(new JsTopicCtrlAnnotationLiteral("mytopic")).get();
+		((TopicAccessController) jtac).setAccess(access);
+	}
+
+	void setGlobalJsTopicAccess(boolean access) {
+		((TopicAccessController) topicAccessController).setAccess(access);
+	}
+
+	@Before
+	public void initAccess() {
+		setSpecificJsTopicAccess("mytopic", true);
+		setGlobalJsTopicAccess(true);
+	}
 	@Inject
 	@Any
 	private ReturnTypeDataService returnTypeDataService;
@@ -564,18 +573,20 @@ public class OcelotTest extends AbstractOcelotTest {
 		System.out.println("getCls");
 		testRSCallWithResult(ClassServices.class, "getCls", getJson(String.class.getName()), getJson(String.class.getName()));
 	}
+
 	@Test
 	public void testMethodWithMarshallerIterable() {
 		System.out.println("getClasses");
 		List<String> list = Arrays.asList(String.class.getName(), String.class.getName());
 		testRSCallWithResult(ClassServices.class, "getClasses", getJson(list), getJson(list));
 	}
+
 	/**
 	 * VALIDATION
 	 */
 	@Test
-	public void methodWithValidationArgumentsTest(){
-	// public void methodWithValidationArguments(@NotNull String str0, @NotNull String str1, @NotNull String str2) {}
+	public void methodWithValidationArgumentsTest() {
+		// public void methodWithValidationArguments(@NotNull String str0, @NotNull String str1, @NotNull String str2) {}
 		System.out.println("methodWithValidationArguments");
 		MessageFromClient mfc = getMessageFromClient(ValidationCdiDataService.class, "methodWithValidationArguments", getJson(null), getJson(""), getJson(null));
 		mfc.setParameterNames(Arrays.asList("str0", "str1", "str2"));
@@ -583,7 +594,7 @@ public class OcelotTest extends AbstractOcelotTest {
 		ConstraintViolation[] cvs = (ConstraintViolation[]) mtc.getResponse();
 		assertThat(cvs).hasSize(2);
 		ConstraintViolation cv = cvs[0];
-		if(cv.getIndex()==0) {
+		if (cv.getIndex() == 0) {
 			assertThat(cv.getIndex()).isEqualTo(0);
 			assertThat(cv.getName()).isEqualTo("str0");
 			cv = cvs[1];
@@ -597,33 +608,38 @@ public class OcelotTest extends AbstractOcelotTest {
 			assertThat(cv.getName()).isEqualTo("str0");
 		}
 	}
+
 	@Test
 	public void methodWithArgumentNotNullTest() {
-	// public void methodWithArgumentNotNull(@NotNull String str0) {}
+		// public void methodWithArgumentNotNull(@NotNull String str0) {}
 		System.out.println("methodWithArgumentNotNull");
 		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentNotNull", getJson("foo"), getJson(null));
 	}
+
 	@Test
 	public void methodWithArgumentNullTest() {
-	// public void methodWithArgumentNull(@Null String str0) {}
+		// public void methodWithArgumentNull(@Null String str0) {}
 		System.out.println("methodWithArgumentNull");
 		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentNull", getJson(null), getJson("foo"));
 	}
+
 	@Test
 	public void methodWithArgumentMaxTest() {
-	// public void methodWithArgumentMax(@Max(10) int int0) {}
+		// public void methodWithArgumentMax(@Max(10) int int0) {}
 		System.out.println("methodWithArgumentMax");
 		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentMax", getJson(6), getJson(15));
 	}
+
 	@Test
 	public void methodWithArgumentMinTest() {
-	// public void methodWithArgumentMin(@Min(10) int int0) {}
+		// public void methodWithArgumentMin(@Min(10) int int0) {}
 		System.out.println("methodWithArgumentMin");
 		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentMin", getJson(15), getJson(6));
 	}
+
 	@Test
 	public void methodWithArgumentFutureTest() {
-	// public void methodWithArgumentFuture(@Future Date date0) {}
+		// public void methodWithArgumentFuture(@Future Date date0) {}
 		System.out.println("methodWithArgumentFuture");
 		Calendar future = Calendar.getInstance();
 		future.add(Calendar.MONTH, 1);
@@ -631,9 +647,10 @@ public class OcelotTest extends AbstractOcelotTest {
 		past.add(Calendar.MONTH, -1);
 		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentFuture", getJson(future), getJson(past));
 	}
+
 	@Test
 	public void methodWithArgumentPastTest() {
-	// public void methodWithArgumentPast(@Past Date date0) {}
+		// public void methodWithArgumentPast(@Past Date date0) {}
 		System.out.println("methodWithArgumentPast");
 		Calendar future = Calendar.getInstance();
 		future.add(Calendar.MONTH, 1);
@@ -641,51 +658,59 @@ public class OcelotTest extends AbstractOcelotTest {
 		past.add(Calendar.MONTH, -1);
 		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentPast", getJson(past), getJson(future));
 	}
+
 	@Test
 	public void methodWithArgumentFalseTest() {
-	// public void methodWithArgumentFalse(@AssertFalse Boolean bool0) {}
+		// public void methodWithArgumentFalse(@AssertFalse Boolean bool0) {}
 		System.out.println("methodWithArgumentFalse");
 		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentFalse", getJson(false), getJson(true));
 	}
+
 	@Test
 	public void methodWithArgumentTrueTest() {
-	// public void methodWithArgumentTrue(@AssertTrue Boolean bool0) {}
+		// public void methodWithArgumentTrue(@AssertTrue Boolean bool0) {}
 		System.out.println("methodWithArgumentTrue");
 		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentTrue", getJson(true), getJson(false));
 	}
+
 	@Test
 	public void methodWithArgumentDecimalMaxTest() {
-	// public void methodWithArgumentDecimalMax(@DecimalMax("50") long lg0) {}
+		// public void methodWithArgumentDecimalMax(@DecimalMax("50") long lg0) {}
 		System.out.println("methodWithArgumentDecimalMax");
 		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentDecimalMax", getJson(20), getJson(60));
 	}
+
 	@Test
 	public void methodWithArgumentDecimalMinTest() {
-	// public void methodWithArgumentDecimalMin(@DecimalMin("50") long lg0) {}
+		// public void methodWithArgumentDecimalMin(@DecimalMin("50") long lg0) {}
 		System.out.println("methodWithArgumentDecimalMin");
 		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentDecimalMin", getJson(60), getJson(20));
 	}
+
 	@Test
 	public void methodWithArgumentDigitsTest() {
-	// public void methodWithArgumentDigits(@Digits(integer = 3, fraction = 2) float flt0) {}
+		// public void methodWithArgumentDigits(@Digits(integer = 3, fraction = 2) float flt0) {}
 		System.out.println("methodWithArgumentDigits");
 		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentDigits", getJson(new BigDecimal(123.45)), getJson(new BigDecimal(1.3)));
 	}
+
 	@Test
 	public void methodWithArgumentSize2_10Test() {
-	// public void methodWithArgumentSize2_10(@Size(min = 2, max = 10) String str0) {}
+		// public void methodWithArgumentSize2_10(@Size(min = 2, max = 10) String str0) {}
 		System.out.println("methodWithArgumentSize2_10");
 		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentSize2_10", getJson("azerty"), getJson("qwertyuiop^"));
 	}
+
 	@Test
 	public void methodWithArgumentPatternTest() {
-	// public void methodWithArgumentPattern(@Pattern(regexp = "\\d*") String str0) {}
+		// public void methodWithArgumentPattern(@Pattern(regexp = "\\d*") String str0) {}
 		System.out.println("methodWithArgumentPattern");
 		testUniqueConstraint(ValidationCdiDataService.class, "methodWithArgumentPattern", getJson("12345"), getJson("123E456"));
 	}
+
 	@Test
 	public void methodWithArgumentConstraintTest() {
-	// public void methodWithArgumentConstraint(WithConstraint wc) {}
+		// public void methodWithArgumentConstraint(WithConstraint wc) {}
 		System.out.println("methodWithArgumentConstraint");
 		WithConstraint wc = new WithConstraint();
 		wc.setName("foo");
@@ -823,27 +848,9 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testSendRemoveCacheMessage() {
 		System.out.println("sendRemoveCacheMessage");
 		final String topic = Constants.Cache.CLEANCACHE_TOPIC;
-		try (Session wssession = createAndGetSession()) {
-			subscribeToTopicInSession(wssession, topic);
-			testWaitXMessageToTopic(wssession, 1, topic, new Runnable() {
-				@Override
-				public void run() {
-					MessageFromClient mfc = getMessageFromClient(CacheDataService.class, "generateCleanCacheMessage", getJson(""), getJson(new Result(5)));
-					mfc.setParameterNames(Arrays.asList("a", "r"));
-					Client client = null;
-					try {
-						client = getClient();
-						testRSCallWithoutResult(client, mfc, MessageType.RESULT);
-					} finally {
-						if (client != null) {
-							client.close();
-						}
-					}
-				}
-			});
-		} catch (IOException ex) {
-			fail(ex.getMessage());
-		}
+		MessageFromClient mfc = getMessageFromClient(CacheDataService.class, "generateCleanCacheMessage", getJson(""), getJson(new Result(5)));
+		mfc.setParameterNames(Arrays.asList("a", "r"));
+		testReceiveXMessageToTopicWithMfc(1, topic, mfc, "generateCleanCacheMessage", "user", "user");
 	}
 
 	/**
@@ -853,49 +860,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testSendRemoveAllCacheMessage() {
 		System.out.println("sendRemoveAllCacheMessage");
 		final String topic = Constants.Cache.CLEANCACHE_TOPIC;
-		try (Session wssession = createAndGetSession()) {
-			subscribeToTopicInSession(wssession, topic);
-			testWaitXMessageToTopic(wssession, 1, topic, new Runnable() {
-				@Override
-				public void run() {
-					testRSCallWithoutResult(CacheDataService.class, "generateCleanAllCacheMessage");
-				}
-			}
-			);
-		} catch (IOException ex) {
-			fail(ex.getMessage());
-		}
-	}
-
-	/**
-	 * Test send message to topic
-	 */
-	@Test
-	public void testSendMessageToMyTopic() {
-		System.out.println("sendMessageToTopic");
-		final String topic = "mytopic";
-		((MyTopicAccessController) getJsTopicAccessController()).setAccess(true);
-		try (Session wssession = createAndGetSession()) {
-			subscribeToTopicInSession(wssession, topic);
-			long t0 = System.currentTimeMillis();
-			int nbMsg = 10;
-			CountDownLatch lock = new CountDownLatch(nbMsg);
-			CountDownMessageHandler messageHandler = new CountDownMessageHandler(topic, lock);
-			wssession.addMessageHandler(messageHandler);
-			MessageToClient toTopic = new MessageToClient();
-			toTopic.setId(topic);
-			for (int i = 0; i < nbMsg; i++) {
-				System.out.println("Send message to Topic '" + topic + "'");
-				toTopic.setResponse(new Result(i));
-				wsEvent.fire(toTopic);
-			}
-			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			long t1 = System.currentTimeMillis();
-			assertThat(await).isTrue().as("Timeout. waiting %d ms. Remain %d/%d msgs", t1 - t0, lock.getCount(), nbMsg);
-			wssession.removeMessageHandler(messageHandler);
-		} catch (InterruptedException | IOException ex) {
-			fail(ex.getMessage());
-		}
+		testReceive1MessageToTopic(topic, CacheDataService.class, "generateCleanAllCacheMessage", "user", "user");
 	}
 
 	/**
@@ -904,13 +869,8 @@ public class OcelotTest extends AbstractOcelotTest {
 	@Test
 	public void testSubscriptionToMyTopicFailCauseSpecificTAC() {
 		System.out.println("subscriptionToMyTopic");
-		final String topic = "mytopic";
-		((MyTopicAccessController) getJsTopicAccessController()).setAccess(false);
-		try (Session wssession = createAndGetSession()) {
-			testCallThrowExceptionInSession(wssession, OcelotServices.class, "subscribe", IllegalAccessException.class, getJson(topic));
-		} catch (IOException ex) {
-			fail(ex.getMessage());
-		}
+		setGlobalJsTopicAccess(false);
+		subscribeToTopic("mytopic", getClient(), MessageType.FAULT);
 	}
 
 	/**
@@ -919,36 +879,8 @@ public class OcelotTest extends AbstractOcelotTest {
 	@Test
 	public void testSubscriptionToMyTopicFailCauseGlobalTAC() {
 		System.out.println("subscriptionToMyTopic");
-		final String topic = "mytopic";
-		((MyTopicAccessController) getJsTopicAccessController()).setAccess(true);
-		((TopicAccessController) topicAccessController).setAccess(false);
-		try (Session wssession = createAndGetSession()) {
-			testCallThrowExceptionInSession(wssession, OcelotServices.class, "subscribe", IllegalAccessException.class, getJson(topic));
-		} catch (IOException ex) {
-			fail(ex.getMessage());
-		}
-	}
-
-	/**
-	 * Test receive message to mytopic
-	 */
-	@Test
-	public void testReceiveMessageToMyTopic() {
-		System.out.println("receiveMessageToMyTopic");
-		final String topic = "mytopic";
-		((TopicAccessController) topicAccessController).setAccess(true);
-		((MyTopicAccessController) getJsTopicAccessController()).setAccess(true);
-		try (Session wssession = createAndGetSession()) {
-			subscribeToTopicInSession(wssession, topic);
-			testWaitXMessageToTopic(wssession, 1, topic, new Runnable() {
-				@Override
-				public void run() {
-					testRSCallWithoutResult(TopicDataService.class, "sendMessageInMyTopic");
-				}
-			});
-		} catch (IOException ex) {
-			fail(ex.getMessage());
-		}
+		setGlobalJsTopicAccess(false);
+		subscribeToTopic("mytopic", getClient(), MessageType.FAULT);
 	}
 
 	/**
@@ -958,52 +890,30 @@ public class OcelotTest extends AbstractOcelotTest {
 	public void testReceiveMessageToAdminTopic() {
 		System.out.println("receiveMessageToAdminTopic");
 		final String topic = "admintopic";
-		try (Session wssession = createAndGetSession("user:user", false)) {
-			subscribeToTopicInSession(wssession, topic);
+		Client client = getClient("user", "user");
+		String jsession = getJsessionFromServer(client);
+		try (Session wssession = createAndGetSession(jsession, "user:user")) {
+			subscribeToTopic(topic, client, MessageType.RESULT);
 			testWait0MessageToTopic(wssession, topic, new Runnable() {
 				@Override
 				public void run() {
-					testRSCallWithoutResult(getClient("user", "user"), TopicDataService.class, "sendMessageInAdminTopic");
+					testRSCallWithoutResult(TopicDataService.class, "sendMessageInAdminTopic");
 				}
 			});
 		} catch (IOException ex) {
 			fail(ex.getMessage());
 		}
-		try (Session wssession = createAndGetSession("admin:admin", false)) {
-			subscribeToTopicInSession(wssession, topic);
-			testWaitXMessageToTopic(wssession, 1, topic, new Runnable() {
-				@Override
-				public void run() {
-					testRSCallWithoutResult(getClient("admin", "admin"), TopicDataService.class, "sendMessageInAdminTopic");
-				}
-			});
-		} catch (IOException ex) {
-			fail(ex.getMessage());
-		}
-		
+		unsubscribeToTopic(topic, client, MessageType.RESULT);
+		testReceive1MessageToTopic(topic, TopicDataService.class, "sendMessageInAdminTopic", "admin", "admin");
 	}
 
 	/**
-	 * Test receive message to dynamic topic
+	 * Test receive message to mytopic
 	 */
 	@Test
-	public void testReceiveMessageToDynTopic() {
-		System.out.println("receiveMessageToDynTopic");
-		final String topic = "FOO";
-		((TopicAccessController) topicAccessController).setAccess(true);
-		((MyTopicAccessController) getJsTopicAccessController()).setAccess(true);
-		try (Session wssession = createAndGetSession()) {
-			subscribeToTopicInSession(wssession, topic);
-			testWaitXMessageToTopic(wssession, 1, topic, new Runnable() {
-				@Override
-				public void run() {
-					testRSCallWithoutResult(TopicDataService.class, "sendMessageInDynTopic", getJson(topic));
-				}
-			}
-			);
-		} catch (IOException ex) {
-			fail(ex.getMessage());
-		}
+	public void testReceiveMessageToMyTopic() {
+		System.out.println("receiveMessageToMyTopic");
+		testReceive1MessageToTopic("mytopic", TopicDataService.class, "sendMessageInMyTopic", "user", "user");
 	}
 
 	/**
@@ -1012,45 +922,24 @@ public class OcelotTest extends AbstractOcelotTest {
 	@Test
 	public void testReceiveXMessagesToMyTopic() {
 		System.out.println("receiveXMessagesToMyTopic");
-		final String topic = "mytopic";
-		((TopicAccessController) topicAccessController).setAccess(true);
-		((MyTopicAccessController) getJsTopicAccessController()).setAccess(true);
-		try (Session wssession = createAndGetSession()) {
-			subscribeToTopicInSession(wssession, topic);
-			final int nbMsg = 10;
-			testWaitXMessageToTopic(wssession, nbMsg, topic, new Runnable() {
-				@Override
-				public void run() {
-					testRSCallWithoutResult(TopicDataService.class, "sendXMessageInMyTopic", getJson(nbMsg));
-				}
-			}
-			);
-		} catch (IOException ex) {
-			fail(ex.getMessage());
-		}
+		testReceiveXMessagesToTopic(10, "mytopic", TopicDataService.class, "sendXMessageInMyTopic", "user", "user");
 	}
 
 	/**
-	 * Test receive X messages to dynamic topic
+	 * Test receive message to dynamic topic
+	 */
+	@Test
+	public void testReceiveMessageToDynTopic() {
+		System.out.println("receive1MessageToDynTopic");
+		testReceive1MessagesToDynTopic("FOO", TopicDataService.class, "sendMessageInDynTopic", "user", "user");
+	}
+
+	/**
+	 * Test receive X messages to mytopic
 	 */
 	@Test
 	public void testReceiveXMessagesToDynTopic() {
-		System.out.println("receiveXMessagesToDynTopic");
-		final String topic = "FOO";
-		((TopicAccessController) topicAccessController).setAccess(true);
-		((MyTopicAccessController) getJsTopicAccessController()).setAccess(true);
-		try (Session wssession = createAndGetSession()) {
-			subscribeToTopicInSession(wssession, topic);
-			final int nbMsg = 10;
-			testWaitXMessageToTopic(wssession, nbMsg, topic, new Runnable() {
-				@Override
-				public void run() {
-					testRSCallWithoutResult(TopicDataService.class, "sendXMessageInDynTopic", getJson(nbMsg), getJson(topic));
-				}
-			}
-			);
-		} catch (IOException ex) {
-			fail(ex.getMessage());
-		}
+		System.out.println("receiveXMessageToDynTopic");
+		testReceiveXMessagesToDynTopic(10, "FOO", TopicDataService.class, "sendXMessageInDynTopic", "user", "user");
 	}
 }

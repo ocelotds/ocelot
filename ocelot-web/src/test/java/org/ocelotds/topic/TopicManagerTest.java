@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.core;
+package org.ocelotds.topic;
 
 import org.ocelotds.objects.FakeCDI;
 import java.lang.annotation.Annotation;
@@ -11,6 +11,7 @@ import java.util.Collections;
 import javax.enterprise.inject.Default;
 import javax.enterprise.inject.Instance;
 import javax.enterprise.util.AnnotationLiteral;
+import javax.inject.Inject;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import org.junit.Test;
@@ -29,7 +30,6 @@ import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
 import org.ocelotds.security.UserContext;
-import org.ocelotds.web.RequestManager;
 import org.slf4j.Logger;
 
 /**
@@ -37,105 +37,24 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SessionManagerTest {
+public class TopicManagerTest {
 
 	private static final String TOPIC1 = "TOPIC_1";
 	private static final String TOPIC2 = "TOPIC_2";
 	private static final String SUBTOPIC2 = "subscribers:TOPIC_2";
 
+	@InjectMocks
+	@Spy
+	private TopicManager instance;
+
 	@Mock
 	private Logger logger;
 
 	@Mock
-	Instance<JsTopicAccessController> topicAccessController;
-	
-	@Mock
-	private RequestManager requestManager;
-
-	@InjectMocks
-	@Spy
-	private SessionManager instance;
-
-	@Before
-	public void init() {
-		when(topicAccessController.select(any(Annotation.class))).thenReturn(null);
-	}
-
-	private static final Annotation DEFAULT_AT = new AnnotationLiteral<Default>() {
-		private static final long serialVersionUID = 1L;
-	};
+	TopicAccessManager topicAccessManager;
 
 	/**
-	 * Test of checkAccessTopic method, of class SessionManager.
-	 *
-	 * @throws java.lang.IllegalAccessException
-	 */
-	@Test(expected = IllegalAccessException.class)
-	public void testCheckAccessGlobalTopic() throws IllegalAccessException {
-		FakeCDI<JsTopicAccessController> globalTAC = new FakeCDI();
-		JsTopicAccessController jtac = mock(JsTopicAccessController.class);
-		globalTAC.add(jtac);
-		doThrow(IllegalAccessException.class).when(jtac).checkAccess(any(UserContext.class), anyString());
-		when(topicAccessController.select(DEFAULT_AT)).thenReturn(globalTAC);
-		Session session = mock(Session.class);
-		instance.checkAccessTopic(session, TOPIC1);
-	}
-
-	/**
-	 * Test of checkAccessTopic method, of class SessionManager.
-	 *
-	 * @throws java.lang.IllegalAccessException
-	 */
-	@Test
-	public void testCheckAccessOkGlobalTopic() throws IllegalAccessException {
-		FakeCDI<JsTopicAccessController> globalTAC = new FakeCDI();
-		JsTopicAccessController jtac = mock(JsTopicAccessController.class);
-		globalTAC.add(jtac);
-		doNothing().when(jtac).checkAccess(any(UserContext.class), anyString());
-		when(topicAccessController.select(DEFAULT_AT)).thenReturn(globalTAC);
-		Session session = mock(Session.class);
-		instance.checkAccessTopic(session, TOPIC1);
-	}
-
-	/**
-	 * Test of checkAccessTopic method, of class SessionManager.
-	 *
-	 * @throws java.lang.IllegalAccessException
-	 */
-	@Test(expected = IllegalAccessException.class)
-	public void testCheckAccessSpecificTopic() throws IllegalAccessException {
-		FakeCDI<JsTopicAccessController> topic1TAC = new FakeCDI();
-		JsTopicAccessController jtac = mock(JsTopicAccessController.class);
-		topic1TAC.add(jtac);
-		doThrow(IllegalAccessException.class).when(jtac).checkAccess(any(UserContext.class), eq(TOPIC1));
-		when(topicAccessController.select(new JsTopicCtrlAnnotationLiteral(TOPIC1))).thenReturn(topic1TAC);
-		Session session = mock(Session.class);
-		try {
-			instance.checkAccessTopic(session, TOPIC2);
-		} catch (IllegalAccessException e) {
-			fail("Topic2 should be ok");
-		}
-		instance.checkAccessTopic(session, TOPIC1);
-	}
-
-	/**
-	 * Test of checkAccessTopic method, of class SessionManager.
-	 *
-	 * @throws java.lang.IllegalAccessException
-	 */
-	@Test
-	public void testCheckAccessOkSpecificTopic() throws IllegalAccessException {
-		FakeCDI<JsTopicAccessController> topic1TAC = new FakeCDI();
-		JsTopicAccessController jtac = mock(JsTopicAccessController.class);
-		topic1TAC.add(jtac);
-		doNothing().when(jtac).checkAccess(any(UserContext.class), eq(TOPIC1));
-		when(topicAccessController.select(new JsTopicCtrlAnnotationLiteral(TOPIC1))).thenReturn(topic1TAC);
-		Session session = mock(Session.class);
-		instance.checkAccessTopic(session, TOPIC1);
-	}
-
-	/**
-	 * Test of registerTopicSession method, of class SessionManager.
+	 * Test of registerTopicSession method, of class TopicManager.
 	 *
 	 * @throws java.lang.IllegalAccessException
 	 */
@@ -172,7 +91,7 @@ public class SessionManagerTest {
 	}
 
 	/**
-	 * Test of unregisterTopicSession method, of class SessionManager.
+	 * Test of unregisterTopicSession method, of class TopicManager.
 	 *
 	 * @throws java.lang.IllegalAccessException
 	 */
@@ -197,7 +116,7 @@ public class SessionManagerTest {
 	}
 
 	/**
-	 * Test of isInconsistenceContext method, of class SessionManager.
+	 * Test of isInconsistenceContext method, of class TopicManager.
 	 */
 	@Test
 	public void testIsInconsistenceContext() {
@@ -223,7 +142,7 @@ public class SessionManagerTest {
 	}
 
 	/**
-	 * Test of unregisterTopicSession method, of class SessionManager.
+	 * Test of unregisterTopicSession method, of class TopicManager.
 	 *
 	 * @throws java.lang.IllegalAccessException
 	 */
@@ -286,7 +205,7 @@ public class SessionManagerTest {
 	}
 
 	/**
-	 * Test of unregisterTopicSessions method, of class SessionManager.
+	 * Test of unregisterTopicSessions method, of class TopicManager.
 	 *
 	 * @throws java.lang.IllegalAccessException
 	 */
@@ -320,7 +239,7 @@ public class SessionManagerTest {
 	}
 
 	/**
-	 * Test of removeSessionsToTopic method, of class SessionManager.
+	 * Test of removeSessionsToTopic method, of class TopicManager.
 	 *
 	 * @throws java.lang.IllegalAccessException
 	 */
@@ -353,7 +272,7 @@ public class SessionManagerTest {
 	}
 
 	/**
-	 * Test of removeSessionToTopics method, of class SessionManager.
+	 * Test of removeSessionToTopics method, of class TopicManager.
 	 *
 	 * @throws java.lang.IllegalAccessException
 	 */
@@ -396,7 +315,7 @@ public class SessionManagerTest {
 	}
 
 	/**
-	 * Test of sendSubscriptionEvent method, of class SessionManager.
+	 * Test of sendSubscriptionEvent method, of class TopicManager.
 	 */
 	@Test
 	public void testSendSubscriptionEvent() {

@@ -6,13 +6,10 @@ package org.ocelotds.web;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.UUID;
-import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.EventMetadata;
 import javax.enterprise.inject.spi.InjectionPoint;
-import javax.inject.Inject;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import javax.websocket.SessionException;
@@ -22,7 +19,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.ocelotds.core.SessionManager;
+import org.ocelotds.topic.TopicManager;
 import org.ocelotds.messaging.MessageToClient;
 import static org.mockito.Mockito.*;
 import org.mockito.Spy;
@@ -36,6 +33,7 @@ import org.ocelotds.objects.FakeCDI;
 import org.ocelotds.security.JsTopicMessageController;
 import org.ocelotds.security.NotRecipientException;
 import org.ocelotds.security.UserContext;
+import org.ocelotds.topic.UserContextFactory;
 import org.slf4j.Logger;
 
 /**
@@ -49,13 +47,13 @@ public class TopicsMessagesBroadcasterTest {
 	private Logger logger;
 
 	@Mock
-	private SessionManager sessionManager;
+	private TopicManager sessionManager;
 
 	@Mock
 	private ArgumentServices argumentServices;
 	
 	@Mock
-	private RequestManager requestManager;
+	private UserContextFactory userContextFactory;
 	
 	@Spy
 	Instance<JsTopicMessageController> topicMessageController = new FakeCDI<>();
@@ -265,12 +263,13 @@ public class TopicsMessagesBroadcasterTest {
 		Session session = mock(Session.class);
 		RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
 		when(session.isOpen()).thenReturn(true);
+		when(session.getId()).thenReturn("ID1");
 		when(session.getAsyncRemote()).thenReturn(async);
 		JsTopicMessageController jtmcmsgControl = mock(JsTopicMessageController.class);
 		MessageToClient mtc = mock(MessageToClient.class);
 
 		when(session.isOpen()).thenReturn(Boolean.TRUE);
-		when(requestManager.getUserContext(eq(session))).thenReturn(mock(UserContext.class));
+		when(userContextFactory.getUserContext(eq("ID1"))).thenReturn(mock(UserContext.class));
 		doNothing().doThrow(NotRecipientException.class).when(instance).checkMessageTopic(any(UserContext.class), eq(mtc), eq(jtmcmsgControl));
 		
 		int result = instance.sendMtcToSession(session, jtmcmsgControl, mtc);

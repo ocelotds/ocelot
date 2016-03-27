@@ -50,6 +50,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.DatatypeConverter;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,7 +58,6 @@ import org.glassfish.embeddable.CommandResult;
 import org.glassfish.embeddable.CommandRunner;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.jetty.connector.JettyConnectorProvider;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.FileAsset;
@@ -77,8 +77,43 @@ import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import static org.assertj.core.api.Assertions.fail;
+import org.glassfish.jersey.jetty.connector.JettyConnectorProvider;
 import org.ocelotds.messaging.ConstraintViolation;
 import org.ocelotds.objects.ResultMonitored;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import org.ocelotds.integration.dataservices.topic.MyTopicAccessController;
+import org.ocelotds.integration.dataservices.topic.GlobalTopicAccessController;
+import org.ocelotds.integration.dataservices.topic.TopicDataService;
+import org.ocelotds.security.JsTopicAccessController;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  *
@@ -256,7 +291,7 @@ public abstract class AbstractOcelotTest {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Becareful result is not unmarshalled
 	 *
@@ -271,27 +306,29 @@ public abstract class AbstractOcelotTest {
 			message.setTime(root.getInt(Constants.Message.TIME));
 			message.setType(MessageType.valueOf(root.getString(Constants.Message.TYPE)));
 			message.setDeadline(root.getInt(Constants.Message.DEADLINE));
-			if (null != message.getType()) switch (message.getType()) {
-				case FAULT:
-					JsonObject faultJs = root.getJsonObject(Constants.Message.RESPONSE);
-					Fault f = Fault.createFromJson(faultJs.toString());
-					message.setFault(f);
-					break;
-				case MESSAGE:
-					message.setResult("" + root.get(Constants.Message.RESPONSE));
-					message.setType(MessageType.MESSAGE);
-					break;
-				case CONSTRAINT:
-					JsonArray result = root.getJsonArray(Constants.Message.RESPONSE);
-					List<ConstraintViolation> list = new ArrayList<>();
-					for (JsonValue jsonValue : result) {
-						list.add(getJava(ConstraintViolation.class, ((JsonObject) jsonValue).toString()));
-					}
-					message.setConstraints(list.toArray(new ConstraintViolation[] {}));
-					break;
-				default:
-					message.setResult("" + root.get(Constants.Message.RESPONSE));
-					break;
+			if (null != message.getType()) {
+				switch (message.getType()) {
+					case FAULT:
+						JsonObject faultJs = root.getJsonObject(Constants.Message.RESPONSE);
+						Fault f = Fault.createFromJson(faultJs.toString());
+						message.setFault(f);
+						break;
+					case MESSAGE:
+						message.setResult("" + root.get(Constants.Message.RESPONSE));
+						message.setType(MessageType.MESSAGE);
+						break;
+					case CONSTRAINT:
+						JsonArray result = root.getJsonArray(Constants.Message.RESPONSE);
+						List<ConstraintViolation> list = new ArrayList<>();
+						for (JsonValue jsonValue : result) {
+							list.add(getJava(ConstraintViolation.class, ((JsonObject) jsonValue).toString()));
+						}
+						message.setConstraints(list.toArray(new ConstraintViolation[]{}));
+						break;
+					default:
+						message.setResult("" + root.get(Constants.Message.RESPONSE));
+						break;
+				}
 			}
 			return message;
 		}
@@ -301,7 +338,7 @@ public abstract class AbstractOcelotTest {
 		StringBuilder jsonParamNames = new StringBuilder("[");
 		boolean first = true;
 		for (String parameterName : mfc.getParameterNames()) {
-			if(!first) {
+			if (!first) {
 				jsonParamNames.append(",");
 			}
 			jsonParamNames.append(Constants.QUOTE).append(parameterName).append(Constants.QUOTE);
@@ -336,12 +373,12 @@ public abstract class AbstractOcelotTest {
 	}
 
 	/**
-	 * call 2 times the method on cls, first time with jsonok, second time with jsonfail
-	 * first call have to be good, second throw a CONSTRAINT event
+	 * call 2 times the method on cls, first time with jsonok, second time with jsonfail first call have to be good, second throw a CONSTRAINT event
+	 *
 	 * @param cls
 	 * @param methodname
 	 * @param jsonok
-	 * @param jsonfail 
+	 * @param jsonfail
 	 */
 	protected void testUniqueConstraint(Class cls, String methodname, String jsonok, String jsonfail) {
 		// test OK
@@ -511,11 +548,8 @@ public abstract class AbstractOcelotTest {
 	}
 
 	MessageToClient testRSCallWithoutResult(Client client, MessageFromClient mfc, MessageType resType) {
-		WebTarget target = client.target("http://localhost:" + PORT + "/" + CTXPATH + "/ocelot");
-		Form form = new Form("mfc", mfcToJson(mfc));
-		Response res = target.path("endpoint").queryParam("monitor", true)
-				  .request(MediaType.APPLICATION_FORM_URLENCODED).accept(MediaType.APPLICATION_JSON)
-				  .post(Entity.form(form));
+		WebTarget target = client.target("http://localhost:" + PORT).path(CTXPATH).path("ocelot").path("endpoint").queryParam("monitor", true);
+		Response res = target.request(MediaType.APPLICATION_FORM_URLENCODED).accept(MediaType.APPLICATION_JSON).post(Entity.form(new Form("mfc", mfcToJson(mfc))));
 		String result = res.readEntity(String.class);
 		MessageToClient mtc = null;
 		try {
@@ -559,52 +593,51 @@ public abstract class AbstractOcelotTest {
 	 * @return
 	 */
 	protected Session createAndGetSession() {
-		return createAndGetSession(false);
-
-	}
-
-	/**
-	 * Create session
-	 *
-	 * @param monitor
-	 * @return
-	 */
-	protected Session createAndGetSession(boolean monitor) {
-		return createAndGetSession("user:user", monitor);
+		return createAndGetSession(null, "user:user");
 	}
 
 	/**
 	 * Create session
 	 *
 	 * @param userpwd
-	 * @param monitor
 	 * @return
 	 */
-	protected Session createAndGetSession(String userpwd, boolean monitor) {
+	protected Session createAndGetSession(String userpwd) {
+		return createAndGetSession(null, userpwd);
+	}
+
+	/**
+	 * Create session
+	 *
+	 * @param jsessionid
+	 * @param userpwd
+	 * @return
+	 */
+	protected Session createAndGetSession(String jsessionid, String userpwd) {
 		WebSocketContainer container = ContainerProvider.getWebSocketContainer();
 		try {
 			StringBuilder sb = new StringBuilder("ws://localhost:");
 			sb.append(PORT).append(Constants.SLASH).append(CTXPATH).append(Constants.SLASH).append("ocelot-endpoint");
-			if (monitor) {
-				sb.append("?option=monitor");
-			}
 			URI uri = new URI(sb.toString());
 			return container.connectToServer(new Endpoint() {
 				@Override
 				public void onOpen(Session session, EndpointConfig config) {
 				}
-			}, createClientEndpointConfigWithAuth(userpwd), uri);
+			}, createClientEndpointConfigWithJsession(jsessionid, userpwd), uri);
 		} catch (URISyntaxException | DeploymentException | IOException ex) {
-			ex.printStackTrace();
+			ex.getCause().printStackTrace();
 			fail("CONNEXION FAILED " + ex.getMessage());
 		}
 		return null;
 	}
 
-	private ClientEndpointConfig createClientEndpointConfigWithAuth(final String userpwd) {
+	private ClientEndpointConfig createClientEndpointConfigWithJsession(final String jsession, final String userpwd) {
 		ClientEndpointConfig.Configurator configurator = new ClientEndpointConfig.Configurator() {
 			@Override
 			public void beforeRequest(Map<String, List<String>> headers) {
+				if (null != jsession) {
+					headers.put("Cookie", Arrays.asList("JSESSIONID=" + jsession));
+				} 
 				headers.put("Authorization", Arrays.asList("Basic " + DatatypeConverter.printBase64Binary(userpwd.getBytes())));
 			}
 		};
@@ -689,7 +722,7 @@ public abstract class AbstractOcelotTest {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param <T>
 	 * @param nb
 	 * @param client
@@ -697,7 +730,7 @@ public abstract class AbstractOcelotTest {
 	 * @param ds
 	 * @param methodName
 	 * @param params
-	 * @return 
+	 * @return
 	 */
 	protected <T> Collection<T> testCallMultiMethodsInClient(int nb, final Client client, final Class<T> returnClass, final Class ds, final String methodName, final String... params) {
 		ExecutorCompletionService<ResultMonitored<T>> executorCompletionService = new ExecutorCompletionService(managedExecutor);
@@ -830,14 +863,49 @@ public abstract class AbstractOcelotTest {
 	}
 
 	/**
+	 *
+	 * @param client
+	 * @return
+	 */
+	protected String getJsessionFromServer(Client client) {
+		MessageFromClient mfc = getMessageFromClient(OcelotServices.class, "getHttpSessionId");
+		WebTarget target = client.target("http://localhost:" + PORT + "/" + CTXPATH).path("ocelot").path("endpoint");
+		Response res = target.request(MediaType.APPLICATION_FORM_URLENCODED).accept(MediaType.APPLICATION_JSON).post(Entity.form(new Form("mfc", mfcToJson(mfc))));
+		res.readEntity(String.class);
+		res = target.request(MediaType.APPLICATION_FORM_URLENCODED).accept(MediaType.APPLICATION_JSON).post(Entity.form(new Form("mfc", mfcToJson(mfc))));
+		NewCookie jsession = res.getCookies().get("JSESSIONID");
+		String result = res.readEntity(String.class);
+		try {
+			MessageToClient mtc = mtcFromJson(result);
+			assertThat(mtc.getType()).isEqualTo(MessageType.RESULT);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+		return jsession.getValue();
+	}
+
+	/**
 	 * Subcribe to topic in session
 	 *
-	 * @param wssession
 	 * @param topic
+	 * @param client
+	 * @param messageType
 	 */
-	protected void subscribeToTopicInSession(Session wssession, String topic) {
+	protected void subscribeToTopic(String topic, Client client, MessageType messageType) {
 		System.out.println("Subscribe to Topic '" + topic + "'");
-		testCallWithoutResultInSession(wssession, OcelotServices.class, "subscribe", getJson(topic));
+		testRSCallWithoutResult(client, OcelotServices.class, "subscribe", messageType, getJson(topic));
+	}
+
+	/**
+	 * Subcribe to topic in session
+	 *
+	 * @param topic
+	 * @param client
+	 * @param messageType
+	 */
+	protected void unsubscribeToTopic(String topic, Client client, MessageType messageType) {
+		System.out.println("Unsubscribe to Topic '" + topic + "'");
+		testRSCallWithoutResult(client, OcelotServices.class, "unsubscribe", messageType, getJson(topic));
 	}
 
 	/**
@@ -872,7 +940,7 @@ public abstract class AbstractOcelotTest {
 			CountDownMessageHandler messageHandler = new CountDownMessageHandler(topic, lock);
 			wssession.addMessageHandler(messageHandler);
 			trigger.run();
-			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+			boolean await = lock.await(TIMEOUT * nbMsg, TimeUnit.MILLISECONDS);
 			long t1 = System.currentTimeMillis();
 			assertThat(await).as("Timeout. waiting %d ms. Remain %d/%d msgs", t1 - t0, lock.getCount(), nbMsg).isTrue();
 			wssession.removeMessageHandler(messageHandler);
@@ -935,5 +1003,57 @@ public abstract class AbstractOcelotTest {
 		public MessageToClient getMessageToClient() {
 			return messageToClient;
 		}
+	}
+	
+	protected void testReceiveXMessagesToTopic(final int nbMsg, final String topic, final Class cls, final String methodname, String user, String pwd) {
+		testReceiveXMessageToTopicWithParams(nbMsg, topic, cls, methodname, user, pwd, getJson(nbMsg));
+	}
+	protected void testReceive1MessageToTopic(final String topic, final Class cls, final String methodname, String user, String pwd, final String... params) {
+		testReceiveXMessageToTopicWithParams(1, topic, cls, methodname, user, pwd);
+	}
+	protected void testReceive1MessagesToDynTopic(final String topic, final Class cls, final String methodname, String user, String pwd) {
+		testReceiveXMessageToTopicWithParams(1, topic, cls, methodname, user, pwd, getJson(topic));
+	}
+	protected void testReceiveXMessagesToDynTopic(final int nbMsg, final String topic, final Class cls, final String methodname, String user, String pwd) {
+		testReceiveXMessageToTopicWithParams(nbMsg, topic, cls, methodname, user, pwd, getJson(nbMsg), getJson(topic));
+	}
+
+	/**
+	 * Test receive X messages to mytopic
+	 */
+	protected void testReceiveXMessageToTopicWithParams(final int nbMsg, final String topic, final Class cls, final String methodname, String user, String pwd, final String... params) {
+		testReceiveXMessagesToTopicWithRunable(nbMsg, topic, methodname, user, pwd, new Runnable() {
+			@Override
+			public void run() {
+				testRSCallWithoutResult(cls, methodname, params);
+			}
+		});
+	}
+
+	/**
+	 * Test receive X messages to mytopic
+	 */
+	protected void testReceiveXMessageToTopicWithMfc(final int nbMsg, final String topic, final MessageFromClient mfc, final String methodname, final String user, final String pwd) {
+		testReceiveXMessagesToTopicWithRunable(nbMsg, topic, methodname, user, pwd, new Runnable() {
+			@Override
+			public void run() {
+				testRSCallWithoutResult(getClient(user, pwd), mfc, MessageType.RESULT);
+			}
+		});
+	}
+
+	/**
+	 * Test receive X messages to mytopic
+	 */
+	protected void testReceiveXMessagesToTopicWithRunable(final int nbMsg, final String topic, final String methodname, String user, String pwd, Runnable runnable) {
+		Client client = getClient(user, pwd);
+		String jsession = getJsessionFromServer(client);
+		try (Session wssession = createAndGetSession(jsession, user + ":" + pwd)) {
+			subscribeToTopic(topic, client, MessageType.RESULT);
+			testWaitXMessageToTopic(wssession, nbMsg, topic, runnable);
+		} catch (IOException ex) {
+			fail(ex.getMessage());
+		}
+		unsubscribeToTopic(topic, client, MessageType.RESULT);
 	}
 }

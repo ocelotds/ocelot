@@ -4,7 +4,7 @@
  */
 package org.ocelotds.web;
 
-import org.ocelotds.core.SessionManager;
+import org.ocelotds.topic.TopicManager;
 import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
@@ -27,6 +27,7 @@ import org.ocelotds.security.UserContext;
 import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
 import org.ocelotds.security.JsTopicMessageController;
 import org.ocelotds.security.NotRecipientException;
+import org.ocelotds.topic.UserContextFactory;
 import org.slf4j.Logger;
 
 /**
@@ -41,10 +42,10 @@ public class TopicsMessagesBroadcaster {
 	private Logger logger;
 
 	@Inject
-	private SessionManager sessionManager;
+	private TopicManager sessionManager;
 
 	@Inject
-	private RequestManager requestManager;
+	private UserContextFactory userContextFactory;
 
 	@Inject
 	private ArgumentServices argumentServices;
@@ -125,7 +126,7 @@ public class TopicsMessagesBroadcaster {
 		if (session != null) {
 			if (session.isOpen()) {
 				try {
-					checkMessageTopic(requestManager.getUserContext(session), mtc, msgControl);
+					checkMessageTopic(userContextFactory.getUserContext(session.getId()), mtc, msgControl);
 					session.getAsyncRemote().sendObject(mtc);
 					return 1;
 				} catch (NotRecipientException ex) {

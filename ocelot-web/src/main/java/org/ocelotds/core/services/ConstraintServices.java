@@ -46,14 +46,6 @@ public class ConstraintServices {
 		ConstraintViolation cv = new ConstraintViolation(constraintViolation.getMessage());
 		extractViolationInfoFromNodes(constraintViolation.getPropertyPath().iterator(), cv);
 		cv.setName(getArgumentName(cv, paramNames));
-//		System.out.println("getMessage:"+constraintViolation.getMessage());
-//		System.out.println("getMessageTemplate:"+constraintViolation.getMessageTemplate());
-//		System.out.println("getExecutableParameters:"+Arrays.deepToString(constraintViolation.getExecutableParameters()));
-//		System.out.println("getExecutableReturnValue:"+constraintViolation.getExecutableReturnValue());
-//		System.out.println("getInvalidValue:"+constraintViolation.getInvalidValue());
-//		System.out.println("getLeafBean:"+constraintViolation.getLeafBean());
-//		System.out.println("getRootBean:"+constraintViolation.getRootBean());
-//		System.out.println("getRootBeanClass:"+constraintViolation.getRootBeanClass());
 		return cv;
 	}
 

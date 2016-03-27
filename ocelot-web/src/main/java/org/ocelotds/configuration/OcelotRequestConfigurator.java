@@ -28,6 +28,7 @@ public class OcelotRequestConfigurator extends ServerEndpointConfig.Configurator
 	 */
 	@Override
 	public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
+		sec.getUserProperties().put(Constants.HTTPSESSION, request.getHttpSession());
 		sec.getUserProperties().put(Constants.HANDSHAKEREQUEST, request);
 		super.modifyHandshake(sec, request, response);
 	}

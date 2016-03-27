@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import javax.inject.Inject;
+import javax.servlet.http.HttpSession;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
@@ -25,8 +27,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
 import org.ocelotds.core.CdiBeanResolver;
 import org.ocelotds.core.ws.CallServiceManager;
-import org.ocelotds.core.SessionManager;
+import org.ocelotds.topic.UserContextFactory;
+import org.ocelotds.topic.TopicManager;
 import org.ocelotds.messaging.MessageFromClient;
+import org.ocelotds.topic.SessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,24 +41,22 @@ import org.slf4j.LoggerFactory;
 @RunWith(MockitoJUnitRunner.class)
 public class WSEndpointTest {
 
-	@Mock
-	private SessionManager sessionManager;
-
-	@Mock
-	private CallServiceManager callServiceManager;
-
-	@Mock
-	private RequestManager requestManager;
-	
 	@InjectMocks
 	@Spy
 	private WSEndpoint instance;
 	
-	@Before
-	public void init() {
-		doReturn(LoggerFactory.getLogger(WSEndpoint.class)).when(instance).getLogger();
-	}
+	@Mock
+	private TopicManager topicManager;
+
+	@Mock
+	private CallServiceManager callServiceManager;
 	
+	@Mock
+	private UserContextFactory userContextFactory;
+	
+	@Mock
+	private SessionManager sessionManager;
+
 	/**
 	 * Test of handleOpenConnexion method, of class WSEndpoint.
 	 *
@@ -64,16 +66,22 @@ public class WSEndpointTest {
 	public void testHandleOpenConnexionFromBrowser() throws IOException {
 		System.out.println("handleOpenConnexion");
 		HandshakeRequest request = mock(HandshakeRequest.class);
+		HttpSession httpSession = mock(HttpSession.class);
 		EndpointConfig config = mock(EndpointConfig.class);
 		Map<String, Object> map = new HashMap<>();
 		map.put(Constants.HANDSHAKEREQUEST, request);
-		when(config.getUserProperties()).thenReturn(map);
-
 		Session session = mock(Session.class);
+
+		when(config.getUserProperties()).thenReturn(map);
+		when(request.getHttpSession()).thenReturn(httpSession);
+		when(httpSession.getId()).thenReturn("HTTPSESSIONID");
+		when(session.getId()).thenReturn("WSSESSIONID");
+
 
 		instance.handleOpenConnexion(session, config);
 
-		verify(requestManager).addSession(any(HandshakeRequest.class), any(Session.class));
+		verify(sessionManager).addSession(anyString(), any(Session.class));
+		verify(userContextFactory).createUserContext(any(HandshakeRequest.class), eq("WSSESSIONID"));
 	}
 
 	/**
@@ -145,12 +153,12 @@ public class WSEndpointTest {
 		System.out.println("getSessionManager");
 		WSEndpoint oe = spy(new WSEndpoint());
 		CdiBeanResolver resolver = mock(CdiBeanResolver.class);
-		when(resolver.getBean(eq(SessionManager.class))).thenReturn(new SessionManager());
+		when(resolver.getBean(eq(TopicManager.class))).thenReturn(new TopicManager());
 		doReturn(resolver).when(oe).getCdiBeanResolver();
 
-		SessionManager result = oe.getSessionManager();
+		TopicManager result = oe.getTopicManager();
 
-		assertThat(result).isInstanceOf(SessionManager.class);
+		assertThat(result).isInstanceOf(TopicManager.class);
 	}
 	
 	@Test
@@ -158,12 +166,12 @@ public class WSEndpointTest {
 		System.out.println("getRequestManager");
 		WSEndpoint oe = spy(new WSEndpoint());
 		CdiBeanResolver resolver = mock(CdiBeanResolver.class);
-		when(resolver.getBean(eq(RequestManager.class))).thenReturn(new RequestManager());
+		when(resolver.getBean(eq(UserContextFactory.class))).thenReturn(new UserContextFactory());
 		doReturn(resolver).when(oe).getCdiBeanResolver();
 
-		RequestManager result = oe.getRequestManager();
+		UserContextFactory result = oe.getUserContextFactory();
 
-		assertThat(result).isInstanceOf(RequestManager.class);
+		assertThat(result).isInstanceOf(UserContextFactory.class);
 	}
 
 	@Test
@@ -184,13 +192,5 @@ public class WSEndpointTest {
 		System.out.println("getCDIBeanResolver");
 		CdiBeanResolver cdiBeanResolver = instance.getCdiBeanResolver();
 		assertThat(cdiBeanResolver).isInstanceOf(CdiBeanResolver.class);
-	}
-	
-	@Test
-	public void testGetLogger() {
-		doCallRealMethod().when(instance).getLogger();
-		Logger logger = instance.getLogger();
-		assertThat(logger).isNotNull();
-		assertThat(logger.getName()).isEqualTo(WSEndpoint.class.getName());
 	}
 }

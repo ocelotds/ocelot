@@ -5,7 +5,6 @@ package org.ocelotds.integration.dataservices.topic;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import org.ocelotds.annotations.JsTopicControl;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.security.UserContext;
 import org.slf4j.Logger;
@@ -15,8 +14,7 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 @ApplicationScoped
-@JsTopicControl("mytopic")
-public class MyTopicAccessController implements TopicAccessController {
+public class GlobalTopicAccessController implements TopicAccessController {
 	
 	@Inject
 	@OcelotLogger
@@ -36,9 +34,9 @@ public class MyTopicAccessController implements TopicAccessController {
 
 	@Override
 	public void checkAccess(UserContext ctx, String topic) throws IllegalAccessException {
-		logger.debug("Check mytopic access to topic {} : access = {}", topic, access);
+		logger.debug("Check access to topic {} : access = {}", topic, access);
 		if(!access) {
-			throw new IllegalAccessException("mytopic access is set to false");
+			throw new IllegalAccessException("access is set to false");
 		}
 	}
 	

@@ -4,7 +4,7 @@
  */
 package org.ocelotds.web;
 
-import org.ocelotds.core.SessionManager;
+import org.ocelotds.topic.TopicManager;
 import org.ocelotds.Constants;
 import org.ocelotds.configuration.OcelotRequestConfigurator;
 import org.ocelotds.core.ws.CallServiceManager;
@@ -13,6 +13,7 @@ import java.io.IOException;
 import org.ocelotds.messaging.MessageFromClient;
 import java.util.Map;
 import javax.inject.Inject;
+import javax.servlet.http.HttpSession;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
@@ -23,7 +24,8 @@ import javax.websocket.Session;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpoint;
 import org.ocelotds.core.CdiBeanResolver;
-import org.ocelotds.annotations.OcelotLogger;
+import org.ocelotds.topic.UserContextFactory;
+import org.ocelotds.topic.SessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,18 +37,19 @@ import org.slf4j.LoggerFactory;
 @ServerEndpoint(value = "/ocelot-endpoint", encoders = {MessageToClientEncoder.class}, configurator = OcelotRequestConfigurator.class)
 public class WSEndpoint {
 
-	@Inject
-	@OcelotLogger
-	private Logger logger;
+	private static Logger logger = LoggerFactory.getLogger(WSEndpoint.class);
 
 	@Inject
-	private SessionManager sessionManager;
+	private TopicManager topicManager;
 
 	@Inject
 	private CallServiceManager callServiceManager;
 	
 	@Inject
-	private RequestManager requestManager;
+	private UserContextFactory userContextFactory;
+	
+	@Inject
+	private SessionManager sessionManager;
 
 	/**
 	 * A connection is open
@@ -60,15 +63,17 @@ public class WSEndpoint {
 		Map<String, Object> configProperties = config.getUserProperties();
 		// Get infos from config and set in session, only one time by connexion
 		HandshakeRequest request = (HandshakeRequest) configProperties.get(Constants.HANDSHAKEREQUEST);
-		getRequestManager().addSession(request, session);
+		String id = ((HttpSession) request.getHttpSession()).getId();
+		getSessionManager().addSession(id, session);
+		getUserContextFactory().createUserContext(request, session.getId());
 	}
 
 	@OnError
 	public void onError(Session session, Throwable t) {
-		getLogger().error("Unknow error for session " + session.getId(), t);
+		logger.error("Unknow error for session " + session.getId(), t);
 		if (!session.isOpen()) {
-			getRequestManager().removeSession(session);
-			getSessionManager().removeSessionToTopics(session);
+			getUserContextFactory().destroyUserContext(session.getId());
+			getTopicManager().removeSessionToTopics(session);
 		}
 	}
 
@@ -80,15 +85,15 @@ public class WSEndpoint {
 	 */
 	@OnClose
 	public void handleClosedConnection(Session session, CloseReason closeReason) {
-		getLogger().debug("Close connexion for session '{}' : '{}'", session.getId(), closeReason.getCloseCode());
+		logger.debug("Close connexion for session '{}' : '{}'", session.getId(), closeReason.getCloseCode());
 		if (session.isOpen()) {
 			try {
 				session.close();
 			} catch (IllegalStateException | IOException ex) {
 			}
 		}
-		getRequestManager().removeSession(session);
-		getSessionManager().removeSessionToTopics(session);
+		getUserContextFactory().destroyUserContext(session.getId());
+		getTopicManager().removeSessionToTopics(session);
 	}
 
 	/**
@@ -100,15 +105,8 @@ public class WSEndpoint {
 	@OnMessage
 	public void receiveCommandMessage(Session client, String json) {
 		MessageFromClient message = MessageFromClient.createFromJson(json);
-		getLogger().debug("Receive call message '{}' for session '{}'", message.getId(), client.getId());
+		logger.debug("Receive call message '{}' for session '{}'", message.getId(), client.getId());
 		getCallServiceManager().sendMessageToClient(message, client);
-	}
-
-	Logger getLogger() {
-		if (null == logger) {
-			logger = LoggerFactory.getLogger(WSEndpoint.class);
-		}
-		return logger;
 	}
 
 	SessionManager getSessionManager() {
@@ -118,11 +116,18 @@ public class WSEndpoint {
 		return sessionManager;
 	}
 
-	RequestManager getRequestManager() {
-		if (null == requestManager) {
-			requestManager = getCdiBeanResolver().getBean(RequestManager.class);
+	TopicManager getTopicManager() {
+		if (null == topicManager) {
+			topicManager = getCdiBeanResolver().getBean(TopicManager.class);
 		}
-		return requestManager;
+		return topicManager;
+	}
+
+	UserContextFactory getUserContextFactory() {
+		if (null == userContextFactory) {
+			userContextFactory = getCdiBeanResolver().getBean(UserContextFactory.class);
+		}
+		return userContextFactory;
 	}
 
 	CallServiceManager getCallServiceManager() {
