@@ -59,7 +59,7 @@ public class RSEndpointTest {
 		MessageToClient mtc = mock(MessageToClient.class);
 		HttpSession session = mock(HttpSession.class);
 		when(request.getSession()).thenReturn(session);
-		doNothing().when(instance).setContext(any(HttpSession.class), anyBoolean());
+		doNothing().when(instance).setContext(any(HttpSession.class));
 		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
 				  Constants.Message.ID, UUID.randomUUID().toString(),
 				  Constants.Message.DATASERVICE, "DataServiceClassName",
@@ -69,7 +69,7 @@ public class RSEndpointTest {
 		
 		when(messageToClientService.createMessageToClient(any(MessageFromClient.class), any(HttpSession.class))).thenReturn(mtc);
 		when(mtc.toJson()).thenReturn("RESULT");
-		String result = instance.getMessageToClient(json, true);
+		String result = instance.getMessageToClient(json);
 		assertThat(result).isEqualTo("RESULT");
 		verify(messageToClientService).createMessageToClient(any(MessageFromClient.class), any(HttpSession.class));
 	}
@@ -81,14 +81,9 @@ public class RSEndpointTest {
 	public void testSetContext() {
 		System.out.println("setContext");
 		HttpSession session = mock(HttpSession.class);
-		instance.setContext(session, true);
-		instance.setContext(session, false);
-		ArgumentCaptor<Boolean> argument = ArgumentCaptor.forClass(Boolean.class);
-		verify(session, times(2)).setAttribute(eq(Constants.Options.MONITOR), argument.capture());
+		instance.setContext(session);
+		instance.setContext(session);
 		assertThat(ThreadLocalContextHolder.get(Constants.HTTPSESSION)).isEqualTo(session);
 		assertThat(ThreadLocalContextHolder.get(Constants.HTTPREQUEST)).isEqualTo(request);
-		List<Boolean> monitors = argument.getAllValues();
-		assertThat(monitors.get(0)).isEqualTo(true);
-		assertThat(monitors.get(1)).isEqualTo(false);
 	}
 }
