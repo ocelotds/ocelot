@@ -120,7 +120,7 @@ document.addEventListener("call", function (event) {
 });
 window.addEventListener("beforeunload", function (e) {
 	if (ocelotController) {
-		ocelotController.close();
+		ocelotController.close("ONUNLOAD");
 	}
 });
 /**
@@ -444,10 +444,12 @@ if ("WebSocket" in window) {
 		}
 		function onwsclose(evt) {
 			stateUpdated();
-			console.info("Websocket closed : " + evt.reason + " try reconnect each " + 1000 + "ms");
-			closetimer = setInterval(function () {
-				connect();
-			}, 1000);
+			if(evt.reason !== "ONUNLOAD") {
+				console.info("Websocket closed : " + evt.reason + " try reconnect each " + 1000 + "ms");
+				closetimer = setInterval(function () {
+					connect();
+				}, 1000);
+			}
 		}
 		function onwsopen(evt) {
 			clearInterval(closetimer);
