@@ -80,6 +80,7 @@ import org.ocelotds.messaging.ConstraintViolation;
 import org.ocelotds.objects.ResultMonitored;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import org.ocelotds.objects.Options;
 
 /**
  *
@@ -834,7 +835,9 @@ public abstract class AbstractOcelotTest {
 	 * @return
 	 */
 	protected String getJsessionFromServer(Client client) {
-		MessageFromClient mfc = getMessageFromClient(OcelotServices.class, "initCore", getJson(true), getJson(true));
+		Options options = new Options();
+		options.setMonitor(true);
+		MessageFromClient mfc = getMessageFromClient(OcelotServices.class, "initCore", getJson(options));
 		WebTarget target = client.target("http://localhost:" + PORT + "/" + CTXPATH).path("ocelot").path("endpoint");
 		Response res = target.request(MediaType.APPLICATION_FORM_URLENCODED).accept(MediaType.APPLICATION_JSON).post(Entity.form(new Form("mfc", mfcToJson(mfc))));
 		res.readEntity(String.class);

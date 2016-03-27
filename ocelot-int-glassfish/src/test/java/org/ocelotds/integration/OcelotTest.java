@@ -834,7 +834,9 @@ public class OcelotTest extends AbstractOcelotTest {
 		Class clazz = MonitorDataService.class;
 		String methodName = "testMonitor";
 		System.out.println(clazz + "." + methodName);
-		MessageToClient mtc = testRSCallWithoutResult(MonitorDataService.class, "testMonitor", getJson(500));
+		Client client = getClient();
+		getJsessionFromServer(client);
+		MessageToClient mtc = testRSCallWithoutResult(client, MonitorDataService.class, "testMonitor", getJson(500));
 		long result = mtc.getTime();
 		assertThat(result).isNotZero();
 		assertThat(result).isGreaterThanOrEqualTo(500);
