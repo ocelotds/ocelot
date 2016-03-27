@@ -30,6 +30,7 @@ import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.objects.OcelotMethod;
 import org.ocelotds.objects.OcelotService;
+import org.ocelotds.objects.Options;
 import org.ocelotds.topic.SessionManager;
 import org.slf4j.Logger;
 
@@ -67,10 +68,14 @@ public class OcelotServices {
 	@DataService(resolver = "")
 	private Instance<Object> dataservices;
 
-	public String getHttpSessionId() {
-		return httpSession.getId();
+	/**
+	 * Init core
+	 * @param options
+	 */
+	public void initCore(Options options) {
+		httpSession.setAttribute(Constants.Options.MONITOR, options.isMonitor());
 	}
-
+	
 	/**
 	 * define locale for current user
 	 * 
