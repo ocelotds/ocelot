@@ -41,4 +41,14 @@ public class LocaleExtractorTest {
 	public void testExtractFromAcceptNok() throws LocaleNotFoundException {
 		instance.extractFromAccept("fr");
 	}
+
+	@Test(expected = LocaleNotFoundException.class)
+	public void testExtractFromAcceptNok2() throws LocaleNotFoundException {
+		instance.extractFromAccept("");
+	}
+
+	@Test(expected = LocaleNotFoundException.class)
+	public void testExtractFromAcceptNok3() throws LocaleNotFoundException {
+		instance.extractFromAccept(null);
+	}
 }

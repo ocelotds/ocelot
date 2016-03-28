@@ -17,10 +17,12 @@ import org.ocelotds.exceptions.LocaleNotFoundException;
 public class LocaleExtractor {
 
 	public Locale extractFromAccept(String accept) throws LocaleNotFoundException {
-		Pattern pattern = Pattern.compile(".*(\\w\\w)-(\\w\\w).*");
-		Matcher matcher = pattern.matcher(accept);
-		if (matcher.matches() && matcher.groupCount() == 2) {
-			return new Locale(matcher.group(1), matcher.group(2));
+		if(null != accept) {
+			Pattern pattern = Pattern.compile(".*(\\w\\w)-(\\w\\w).*");
+			Matcher matcher = pattern.matcher(accept);
+			if (matcher.matches()) {
+				return new Locale(matcher.group(1), matcher.group(2));
+			}
 		}
 		throw new LocaleNotFoundException();
 	}
