@@ -186,7 +186,7 @@ public class DataServiceVisitorJsBuilderTest {
 
 		ExecutableElement methodElement = mock(ExecutableElement.class);
 		when(methodElement.getAnnotation(eq(JsCacheResult.class))).thenReturn(jcr);
-		doReturn(false).when(instance).considerateAllArgs(any(JsCacheResult.class));
+//		doReturn(false).when(instance).considerateAllArgs(any(JsCacheResult.class));
 
 		String result = instance.computeKeys(methodElement, arguments);
 
@@ -203,15 +203,42 @@ public class DataServiceVisitorJsBuilderTest {
 		System.out.println("computeKeys");
 		List<String> arguments = Arrays.asList("a", "b", "c", "d");
 
-		JsCacheResult jcr = mock(JsCacheResult.class);
-
 		ExecutableElement methodElement = mock(ExecutableElement.class);
-		when(methodElement.getAnnotation(eq(JsCacheResult.class))).thenReturn(jcr);
+		when(methodElement.getAnnotation(eq(JsCacheResult.class))).thenReturn(null);
 		doReturn(true).when(instance).considerateAllArgs(any(JsCacheResult.class));
 
 		String result = instance.computeKeys(methodElement, arguments);
 
 		assertThat(result).isEqualTo("a,b,c,d");
+	}
+
+	/**
+	 * Test of computeKeys method, of class DataServiceVisitorJsBuilder.
+	 *
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testComputeKeysFromNoArg() throws IOException {
+		System.out.println("computeKeys");
+		List<String> arguments = new ArrayList();
+		ExecutableElement methodElement = mock(ExecutableElement.class);
+
+		String result = instance.computeKeys(methodElement, arguments);
+
+		assertThat(result).isEqualTo("");
+	}
+
+	/**
+	 * Test of computeKeys method, of class DataServiceVisitorJsBuilder.
+	 *
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void testComputeKeysFromNullArg() throws IOException {
+		System.out.println("computeKeys");
+		ExecutableElement methodElement = mock(ExecutableElement.class);
+		String result = instance.computeKeys(methodElement, null);
+		assertThat(result).isEqualTo("");
 	}
 
 	/**
