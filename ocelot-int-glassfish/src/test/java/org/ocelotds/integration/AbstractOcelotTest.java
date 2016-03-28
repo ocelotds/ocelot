@@ -9,10 +9,8 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -190,31 +188,25 @@ public abstract class AbstractOcelotTest {
 	 * Récupere la resource via un HttpConnection
 	 *
 	 * @param resource
-	 * @param min
-	 * @param auth
 	 * @return
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	protected HttpURLConnection getConnectionForResource(String resource, boolean min, boolean auth) throws MalformedURLException, IOException {
+	protected HttpURLConnection getConnectionForResource(String resource) throws MalformedURLException, IOException {
 		StringBuilder sb = new StringBuilder("http://localhost:");
 		sb.append(PORT).append(Constants.SLASH).append(CTXPATH).append(Constants.SLASH).append(resource);
-		if (!min) {
-			sb.append("?").append(Constants.MINIFY_PARAMETER).append("=false");
-		}
 		URL url = new URL(sb.toString());
 		HttpURLConnection uc = (HttpURLConnection) url.openConnection();
-		if (auth) {
-			Authenticator.setDefault(new Authenticator() {
-				@Override
-				protected PasswordAuthentication getPasswordAuthentication() {
-					return new PasswordAuthentication("demo", "demo".toCharArray());
-				}
-			});
-//			String basicAuth = "Basic " + javax.xml.bind.DatatypeConverter.printBase64Binary("demo:demo".getBytes());
-//			System.out.println(basicAuth);
-//			uc.setRequestProperty("Authorization", basicAuth);
-		}
+//		Authenticator.setDefault(new Authenticator() {
+//			@Override
+//			protected PasswordAuthentication getPasswordAuthentication() {
+//				return new PasswordAuthentication("demo", "demo".toCharArray());
+//			}
+//		});
+//    ou
+//		String basicAuth = "Basic " + javax.xml.bind.DatatypeConverter.printBase64Binary("demo:demo".getBytes());
+//		System.out.println(basicAuth);
+//		uc.setRequestProperty("Authorization", basicAuth);
 		System.out.println("Content-type: " + uc.getContentType());
 		System.out.println("Date: " + new Date(uc.getDate()));
 		System.out.println("Last modified: " + new Date(uc.getLastModified()));
@@ -612,47 +604,6 @@ public abstract class AbstractOcelotTest {
 	}
 
 	/**
-	 * Cette methode appel via la session passé en argument sur la classe l'operation et retourne le resultat
-	 *
-	 * @param wsSession
-	 * @param clazz
-	 * @param operation
-	 * @param params
-	 * @return
-	 */
-	protected Object getResultAfterSendInSession(Session wsSession, Class clazz, String operation, String... params) {
-		return getMessageToClientAfterSendInSession(wsSession, clazz, operation, params).getResponse();
-	}
-
-	protected MessageToClient getMessageToClientAfterSendInSession(final Session session, final Class clazz, final String operation, final String... params) {
-		MessageToClient result = null;
-		try {
-			long t0 = System.currentTimeMillis();
-			// construction de la commande
-			MessageFromClient mfc = getMessageFromClient(clazz, operation, params);
-			// on pose un locker
-			CountDownLatch lock = new CountDownLatch(1);
-			// on crée un handler client de reception de la réponse
-			CountDownMessageHandler messageHandler = new CountDownMessageHandler(mfc.getId(), lock);
-			session.addMessageHandler(messageHandler);
-			// send
-			session.getAsyncRemote().sendText(mfcToJson(mfc));
-			// wait le delock ou timeout
-			boolean await = lock.await(TIMEOUT, TimeUnit.MILLISECONDS);
-			// lockCount doit être à  zero sinon, on a pas eu le resultat
-			long t1 = System.currentTimeMillis();
-			assertThat(await).as("Timeout. waiting %d ms. Remain %d/1 msgs", t1 - t0, lock.getCount()).isTrue();
-			// lecture du resultat dans le handler
-			result = messageHandler.getMessageToClient();
-			assertThat(result).isNotNull();
-			session.removeMessageHandler(messageHandler);
-		} catch (InterruptedException ex) {
-			fail("Bean not reached");
-		}
-		return result;
-	}
-
-	/**
 	 * Crée un message formé avec les argments en parametres
 	 *
 	 * @param cls
@@ -776,11 +727,7 @@ public abstract class AbstractOcelotTest {
 		// controle : sur la meme session cela doit se comporter comme un singleton, donc meme resultat
 		assertThat(secondResult).isEqualTo(firstResult);
 		// troisieme appel sur une session differente
-		Object thirdResult = null;
-		try (Session wssession = createAndGetSession()) {
-			thirdResult = getResultAfterSendInSession(wssession, clazz, "getValue");
-		} catch (IOException exception) {
-		}
+		Object thirdResult = testRSCallWithoutResult(clazz, "getValue").getResponse();
 		// controle : sur != session cela doit etre different
 		assertThat(secondResult).isNotEqualTo(thirdResult);
 	}
@@ -810,23 +757,6 @@ public abstract class AbstractOcelotTest {
 				client.close();
 			}
 		}
-	}
-
-	/**
-	 * Test call with no result in given session
-	 *
-	 * @param wssession
-	 * @param clazz
-	 * @param methodName
-	 * @param params
-	 */
-	protected void testCallWithoutResultInSession(Session wssession, Class clazz, String methodName, String... params) {
-		System.out.println(clazz + "." + methodName);
-		MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, params);
-		if (MessageType.FAULT.equals(messageToClient.getType())) {
-			System.out.println("FAULT : " + messageToClient.getResponse());
-		}
-		assertThat(messageToClient.getType()).isEqualTo(MessageType.RESULT);
 	}
 
 	/**
@@ -875,23 +805,6 @@ public abstract class AbstractOcelotTest {
 	protected void unsubscribeToTopic(String topic, Client client, MessageType messageType) {
 		System.out.println("Unsubscribe to Topic '" + topic + "'");
 		testRSCallWithoutResult(client, OcelotServices.class, "unsubscribe", messageType, getJson(topic));
-	}
-
-	/**
-	 * Test call throw exception in given session
-	 *
-	 * @param wssession
-	 * @param clazz
-	 * @param methodName
-	 * @param expected
-	 * @param params
-	 */
-	protected void testCallThrowExceptionInSession(Session wssession, Class clazz, String methodName, Class<? extends Exception> expected, String... params) {
-		System.out.println(clazz + "." + methodName);
-		MessageToClient messageToClient = getMessageToClientAfterSendInSession(wssession, clazz, methodName, params);
-		assertThat(messageToClient.getType()).isEqualTo(MessageType.FAULT);
-		Fault fault = (Fault) messageToClient.getResponse();
-		assertThat(fault.getClassname()).isEqualTo(expected.getName());
 	}
 
 	/**

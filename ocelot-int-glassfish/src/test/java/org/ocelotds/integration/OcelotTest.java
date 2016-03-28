@@ -147,16 +147,16 @@ public class OcelotTest extends AbstractOcelotTest {
 	 * Check minification javascripts
 	 *
 	 */
-	//@Test
+	@Test
 	public void testJavascriptCoreMinification() {
 		System.out.println("testJavascriptCoreMinification");
 		String resource = Constants.OCELOT + Constants.JS;
 		HttpURLConnection connection1 = null;
 		HttpURLConnection connection2 = null;
 		try {
-			connection1 = getConnectionForResource(resource, true, false);
+			connection1 = getConnectionForResource(Constants.OCELOT + Constants.SLASH + "core.min" + Constants.JS);
 			int minlength = countByte(connection1.getInputStream());
-			connection2 = getConnectionForResource(resource, false, false);
+			connection2 = getConnectionForResource(Constants.OCELOT + Constants.SLASH + "core" + Constants.JS);
 			int length = countByte(connection2.getInputStream());
 			assertThat(minlength).isLessThan(length).as("Minification of %s didn't work, same size of file magnifier : %s / minifer : %s", resource, length, minlength);
 		} catch (IOException e) {
@@ -172,18 +172,63 @@ public class OcelotTest extends AbstractOcelotTest {
 	}
 
 	/**
-	 * Check that ocelot-core.js is contextpath replaced
+	 * Check ocelot.js
 	 */
 	@Test
-	public void testJavascriptGeneration() {
-		System.out.println("testJavascriptCoreGeneration");
+	public void testJavascriptCoreAndServiceGeneration() {
+		System.out.println("testJavascriptCoreAndServiceGeneration");
 		try {
-			HttpURLConnection connection = getConnectionForResource(Constants.OCELOT + Constants.JS, false, false);
+			HttpURLConnection connection = getConnectionForResource(Constants.SLASH_OCELOT_JS);
+			int lines = 0;
 			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), Constants.UTF_8))) {
 				String inputLine;
 				while ((inputLine = in.readLine()) != null) {
+					lines++;
 				}
 			}
+			assertThat(lines).isNotZero();
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
+	}
+
+	/**
+ 	 * Check ocelot/core.js 
+	 */
+	@Test
+	public void testJavascriptCoreGeneration() {
+		System.out.println("testJavascriptCoreGeneration");
+		try {
+			HttpURLConnection connection = getConnectionForResource(Constants.OCELOT + Constants.SLASH + "core" + Constants.JS);
+			int lines = 0;
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), Constants.UTF_8))) {
+				String inputLine;
+				while ((inputLine = in.readLine()) != null) {
+					lines++;
+				}
+			}
+			assertThat(lines).isNotZero();
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
+	}
+
+	/**
+	 * Check that ocelot-core.js is contextpath replaced
+	 */
+	@Test
+	public void testJavascriptServicesGeneration() {
+		System.out.println("testJavascriptServicesGeneration");
+		try {
+			HttpURLConnection connection = getConnectionForResource(Constants.OCELOT + Constants.SLASH + "services" + Constants.JS);
+			int lines = 0;
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), Constants.UTF_8))) {
+				String inputLine;
+				while ((inputLine = in.readLine()) != null) {
+					lines++;
+				}
+			}
+			assertThat(lines).isNotZero();
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}
