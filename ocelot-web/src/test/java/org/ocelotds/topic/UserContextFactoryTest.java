@@ -6,7 +6,6 @@
 
 package org.ocelotds.topic;
 
-import java.security.Principal;
 import java.util.Map;
 import javax.websocket.Session;
 import javax.websocket.server.HandshakeRequest;
@@ -103,13 +102,25 @@ public class UserContextFactoryTest {
 		System.out.println("getUserContext");
 		UserContext uc = mock(UserContext.class);
 		instance.getMap().put("ID1", uc);
-		Principal principal = mock(Principal.class);
-		when(uc.getPrincipal()).thenReturn(principal);
-		when(principal.getName()).thenReturn("NAME");
+		doReturn(true).when(instance).containsKey(eq("ID1"));
+		doReturn(false).when(instance).containsKey(eq("ID2"));
 		UserContext result = instance.getUserContext("ID1");
 		assertThat(result).isNotNull();
-		assertThat(result.getPrincipal()).isNotNull();
-		assertThat(result.getPrincipal().getName()).isEqualTo("NAME");
+		result = instance.getUserContext("ID2");
+		assertThat(result).isNull();
 	}
 
+	/**
+	 * Test of containsKey method, of class.
+	 */
+	@Test
+	public void test_containsKey() {
+		System.out.println("containsKey");
+		UserContext uc = mock(UserContext.class);
+		instance.getMap().put("ID1", uc);
+		boolean result = instance.containsKey(null);
+		assertThat(result).isFalse();
+		result = instance.containsKey("ID1");
+		assertThat(result).isTrue();
+	}
 }
