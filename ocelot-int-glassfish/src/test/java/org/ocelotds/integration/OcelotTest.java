@@ -67,6 +67,7 @@ import static org.assertj.core.api.Assertions.fail;
 import org.junit.Before;
 import org.ocelotds.integration.dataservices.topic.TopicAccessController;
 import org.ocelotds.integration.marshallers.ClassMarshaller;
+import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshallers.JsonMarshallerServices;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshallers.TemplateMarshaller;
@@ -136,7 +137,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	}
 	
 	@Test
-	public void testgetIJsonMarshallerInstance() throws JsonMarshallingException {
+	public void testgetIJsonMarshallerInstance() throws JsonMarshallingException, JsonMarshallerException {
 		IJsonMarshaller result = jsonMarshallerServices.getIJsonMarshallerInstance(LocaleMarshaller.class);
 		assertThat(result).isInstanceOf(LocaleMarshaller.class);
 		result = jsonMarshallerServices.getIJsonMarshallerInstance(ClassMarshaller.class);
