@@ -891,7 +891,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	/**
 	 * Test send message that generate a cleancache message
 	 */
-	@Test
+//	@Test
 	public void testSendRemoveCacheMessage() {
 		System.out.println("sendRemoveCacheMessage");
 		final String topic = Constants.Cache.CLEANCACHE_TOPIC;
@@ -903,7 +903,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	/**
 	 * Test send message that generate a cleanallcache message
 	 */
-	@Test
+//	@Test
 	public void testSendRemoveAllCacheMessage() {
 		System.out.println("sendRemoveAllCacheMessage");
 		final String topic = Constants.Cache.CLEANCACHE_TOPIC;
@@ -933,7 +933,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	/**
 	 * Test receive message to mytopic
 	 */
-	@Test
+//	@Test
 	public void testReceiveMessageToAdminTopic() {
 		System.out.println("receiveMessageToAdminTopic");
 		final String topic = "admintopic";
@@ -957,7 +957,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	/**
 	 * Test receive message to mytopic
 	 */
-	@Test
+//	@Test
 	public void testReceiveMessageToMyTopic() {
 		System.out.println("receiveMessageToMyTopic");
 		testReceive1MessageToTopic("mytopic", TopicDataService.class, "sendMessageInMyTopic", "user", "user");
@@ -966,7 +966,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	/**
 	 * Test receive X messages to mytopic
 	 */
-	@Test
+//	@Test
 	public void testReceiveXMessagesToMyTopic() {
 		System.out.println("receiveXMessagesToMyTopic");
 		testReceiveXMessagesToTopic(10, "mytopic", TopicDataService.class, "sendXMessageInMyTopic", "user", "user");
@@ -975,7 +975,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	/**
 	 * Test receive message to dynamic topic
 	 */
-	@Test
+//	@Test
 	public void testReceiveMessageToDynTopic() {
 		System.out.println("receive1MessageToDynTopic");
 		testReceive1MessagesToDynTopic("FOO", TopicDataService.class, "sendMessageInDynTopic", "user", "user");
@@ -984,7 +984,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	/**
 	 * Test receive X messages to mytopic
 	 */
-	@Test
+//	@Test
 	public void testReceiveXMessagesToDynTopic() {
 		System.out.println("receiveXMessageToDynTopic");
 		testReceiveXMessagesToDynTopic(10, "FOO", TopicDataService.class, "sendXMessageInDynTopic", "user", "user");
