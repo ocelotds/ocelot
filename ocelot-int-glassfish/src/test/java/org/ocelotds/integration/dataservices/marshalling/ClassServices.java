@@ -8,7 +8,7 @@ package org.ocelotds.integration.dataservices.marshalling;
 import java.util.List;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.DataService;
-import org.ocelotds.marshallers.ClassMarshaller;
+import org.ocelotds.integration.marshallers.ClassMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 

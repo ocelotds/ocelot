@@ -23,7 +23,7 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.DataService;
-import org.ocelotds.objects.WithConstraint;
+import org.ocelotds.integration.objects.WithConstraint;
 
 /**
  *

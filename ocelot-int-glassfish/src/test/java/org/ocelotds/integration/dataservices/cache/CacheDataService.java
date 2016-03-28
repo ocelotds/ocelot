@@ -10,7 +10,7 @@ import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheRemove;
 import org.ocelotds.annotations.JsCacheRemoveAll;
 import org.ocelotds.annotations.JsCacheResult;
-import org.ocelotds.objects.Result;
+import org.ocelotds.integration.objects.Result;
 
 /**
  *

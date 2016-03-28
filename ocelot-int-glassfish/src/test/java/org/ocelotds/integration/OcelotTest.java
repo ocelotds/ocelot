@@ -45,7 +45,7 @@ import org.ocelotds.integration.dataservices.types.ArgumentTypeDataService;
 import org.ocelotds.integration.dataservices.types.ReturnTypeDataService;
 import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
-import org.ocelotds.objects.Result;
+import org.ocelotds.integration.objects.Result;
 import org.ocelotds.resolvers.CdiResolver;
 import org.ocelotds.resolvers.DataServiceResolverIdLitteral;
 import org.ocelotds.spi.IDataServiceResolver;
@@ -59,13 +59,19 @@ import org.ocelotds.messaging.MessageType;
 import org.ocelotds.integration.dataservices.marshalling.ClassServices;
 import org.ocelotds.integration.dataservices.validation.ValidationCdiDataService;
 import org.ocelotds.messaging.ConstraintViolation;
-import org.ocelotds.objects.WithConstraint;
+import org.ocelotds.integration.objects.WithConstraint;
 import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
 import static org.ocelotds.integration.AbstractOcelotTest.getJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import org.junit.Before;
 import org.ocelotds.integration.dataservices.topic.TopicAccessController;
+import org.ocelotds.integration.marshallers.ClassMarshaller;
+import org.ocelotds.marshallers.JsonMarshallerServices;
+import org.ocelotds.marshallers.LocaleMarshaller;
+import org.ocelotds.marshallers.TemplateMarshaller;
+import org.ocelotds.marshalling.IJsonMarshaller;
+import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 
 /**
  *
@@ -116,6 +122,9 @@ public class OcelotTest extends AbstractOcelotTest {
 	@Inject
 	@Any
 	private Instance<IDataServiceResolver> resolvers;
+	
+	@Inject
+	JsonMarshallerServices jsonMarshallerServices;
 
 	private IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
@@ -124,6 +133,18 @@ public class OcelotTest extends AbstractOcelotTest {
 	@Deployment
 	public static WebArchive createWarGlassfishArchive() {
 		return createWarArchive();
+	}
+	
+	@Test
+	public void testgetIJsonMarshallerInstance() throws JsonMarshallingException {
+		IJsonMarshaller result = jsonMarshallerServices.getIJsonMarshallerInstance(LocaleMarshaller.class);
+		assertThat(result).isInstanceOf(LocaleMarshaller.class);
+		result = jsonMarshallerServices.getIJsonMarshallerInstance(ClassMarshaller.class);
+		assertThat(result).isInstanceOf(ClassMarshaller.class);
+		result = jsonMarshallerServices.getIJsonMarshallerInstance(TemplateMarshaller.class);
+		assertThat(result).isInstanceOf(TemplateMarshaller.class);
+		String json = result.toJson("FOO");
+		assertThat(json).isEqualTo("\"FOO\"");
 	}
 
 	/**

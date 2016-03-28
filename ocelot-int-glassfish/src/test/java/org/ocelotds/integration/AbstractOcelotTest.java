@@ -75,7 +75,7 @@ import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import org.glassfish.jersey.jetty.connector.JettyConnectorProvider;
 import org.ocelotds.messaging.ConstraintViolation;
-import org.ocelotds.objects.ResultMonitored;
+import org.ocelotds.integration.objects.ResultMonitored;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import org.ocelotds.objects.Options;
@@ -140,7 +140,7 @@ public abstract class AbstractOcelotTest {
 		File localeFr = new File("src/test/resources/test_fr_FR.properties");
 		File localeUs = new File("src/test/resources/test_en_US.properties");
 		WebArchive webArchive = ShrinkWrap.create(WebArchive.class, CTXPATH + ".war")
-				  .addPackages(true, "org.ocelotds.integration")
+				  .addPackages(true, AbstractOcelotTest.class.getPackage())
 				  .addAsResource(logback).addAsResource(localeUs).addAsResource(localeFr)
 				  .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
 				  .addAsWebInfResource(webxml, "web.xml")

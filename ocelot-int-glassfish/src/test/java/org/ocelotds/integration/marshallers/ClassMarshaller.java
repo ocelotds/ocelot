@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.ocelotds.marshallers;
+package org.ocelotds.integration.marshallers;
 
 import org.ocelotds.Constants;
 import org.ocelotds.marshalling.IJsonMarshaller;
