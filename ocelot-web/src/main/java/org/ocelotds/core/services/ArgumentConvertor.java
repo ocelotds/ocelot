@@ -35,7 +35,7 @@ public class ArgumentConvertor implements IArgumentConvertor {
 
 	@Inject
 	ObjectMapper objectMapper;
-	
+
 	@Inject
 	ArgumentServices argumentServices;
 
@@ -69,13 +69,13 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	}
 
 	Object getResult(String jsonArg, IJsonMarshaller ijm, boolean iterable) throws JsonUnmarshallingException {
-		if(iterable) {
+		if (iterable) {
 			return argumentServices.getJavaResultFromSpecificUnmarshallerIterable(jsonArg, ijm);
 		} else {
 			return ijm.toJava(jsonArg);
 		}
 	}
-	
+
 	/**
 	 * return the JsonUnmarshaller annotation
 	 *
@@ -99,13 +99,8 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	 * @return
 	 */
 	Class<? extends IJsonMarshaller> getMarshallerAnnotation(Annotation[] annotations) {
-		for (Annotation annotation : annotations) {
-			if (JsonUnmarshaller.class.isInstance(annotation)) {
-				JsonUnmarshaller unmarshallerAnnotation = (JsonUnmarshaller) annotation;
-				return unmarshallerAnnotation.value();
-			}
-		}
-		return null;
+		JsonUnmarshaller ju = getJsonUnmarshallerAnnotation(annotations);
+		return (ju != null) ? ju.value() : null;
 	}
 
 	/**
@@ -157,9 +152,9 @@ public class ArgumentConvertor implements IArgumentConvertor {
 				throw new IOException();
 			}
 		} else // ca ressemble pas à une string
-		if (cls.equals(String.class)) { // mais on veut une string
-			throw new IOException();
-		}
+		 if (cls.equals(String.class)) { // mais on veut une string
+				throw new IOException();
+			}
 	}
 
 	private JavaType getJavaType(Type type) {

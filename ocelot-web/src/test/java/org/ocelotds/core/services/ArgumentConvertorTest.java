@@ -50,7 +50,7 @@ public class ArgumentConvertorTest {
 
 	@Mock
 	private Logger logger;
-	
+
 	@Mock
 	ArgumentServices argumentServices;
 
@@ -66,7 +66,7 @@ public class ArgumentConvertorTest {
 	public void init() {
 		instance.objectMapper = new ObjectMapper();
 	}
-	
+
 	/**
 	 * Test of convertJsonToJava method, of class ArgumentConvertor.
 	 *
@@ -104,7 +104,7 @@ public class ArgumentConvertorTest {
 		System.out.println("convertJsonToJavaWithUnmarshaller");
 		JsonUnmarshaller juma = mock(JsonUnmarshaller.class);
 		Locale expectResult = Locale.FRANCE;
-		when(juma.value()).thenReturn((Class)LocaleMarshaller.class);
+		when(juma.value()).thenReturn((Class) LocaleMarshaller.class);
 		when(juma.iterable()).thenReturn(false);
 		doReturn(juma).when(instance).getJsonUnmarshallerAnnotation(any(Annotation[].class));
 		doReturn(expectResult).when(instance).getResult(anyString(), any(IJsonMarshaller.class), anyBoolean());
@@ -133,6 +133,18 @@ public class ArgumentConvertorTest {
 	}
 
 	/**
+	 * Test of getJsonUnmarshallerAnnotation method, of class.
+	 */
+	@Test
+	public void test_getJsonUnmarshallerAnnotation() {
+		System.out.println("getJsonUnmarshallerAnnotation");
+		Object result = instance.getJsonUnmarshallerAnnotation(new Annotation[]{TRANSIENTDATASERVICE, TRANSIENTDATASERVICE});
+		assertThat(result).isNull();
+		result = instance.getJsonUnmarshallerAnnotation(new Annotation[]{TRANSIENTDATASERVICE, JSONUNMARSHALLER, TRANSIENTDATASERVICE});
+		assertThat(result).isNotNull();
+	}
+
+	/**
 	 * Test of getMarshallerAnnotation method, of class ArgumentConvertor.
 	 *
 	 * @throws java.lang.NoSuchMethodException
@@ -140,7 +152,10 @@ public class ArgumentConvertorTest {
 	@Test
 	public void testGetMarshallerAnnotation() throws NoSuchMethodException {
 		System.out.println("getMarshallerAnnotation");
-		Class result = instance.getMarshallerAnnotation(new Annotation[]{TRANSIENTDATASERVICE, JSONUNMARSHALLER, TRANSIENTDATASERVICE});
+		doReturn(null).doReturn(JSONUNMARSHALLER).when(instance).getJsonUnmarshallerAnnotation(any(Annotation[].class));
+		Class result = instance.getMarshallerAnnotation(new Annotation[]{});
+		assertThat(result).isNull();
+		result = instance.getMarshallerAnnotation(new Annotation[]{});
 		assertThat(result).isEqualTo(LocaleMarshaller.class);
 	}
 
@@ -166,7 +181,7 @@ public class ArgumentConvertorTest {
 		assertThat(result).isNull();
 		result = instance.convertArgument("null", Result.class);
 		assertThat(result).isNull();
-		
+
 	}
 
 	/**
@@ -201,7 +216,7 @@ public class ArgumentConvertorTest {
 			});
 		}
 	}
-	
+
 	/**
 	 * Test of convertArgument method, of class ArgumentConvertor.
 	 */
@@ -227,7 +242,7 @@ public class ArgumentConvertorTest {
 		assertThat(results.get(1)).isInstanceOf(GenericArrayType.class);
 		assertThat(results.get(2)).isInstanceOf(TypeVariable.class);
 	}
-	
+
 	@Test
 	public void testCheckArgumentOk() throws IOException {
 		System.out.println("checkArgument");
@@ -245,7 +260,7 @@ public class ArgumentConvertorTest {
 	public void testCheckArgumentNok2() throws IOException {
 		System.out.println("checkArgument");
 		instance.checkStringArgument(Integer.class, "\"5\"");
-		
+
 	}
 
 	/**
@@ -265,7 +280,7 @@ public class ArgumentConvertorTest {
 		Annotation[] annotations = method.getParameterAnnotations()[0];
 		instance.convertJsonToJava("", null, annotations);
 	}
-	
+
 	@Test
 	public void testGetObjectMapper() {
 		System.out.println("getObjectMapper");
