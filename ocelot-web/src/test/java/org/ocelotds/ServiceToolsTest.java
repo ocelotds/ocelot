@@ -25,6 +25,8 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.TransientDataService;
+import org.ocelotds.marshallers.JsonMarshallerException;
+import org.ocelotds.marshallers.JsonMarshallerServices;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshallers.TemplateMarshaller;
 import org.ocelotds.marshalling.IJsonMarshaller;
@@ -53,6 +55,9 @@ public class ServiceToolsTest {
 
 	@Mock
 	TemplateMarshaller templateMarshaller = new TemplateMarshaller();
+	
+	@Mock
+	JsonMarshallerServices jsonMarshallerServices;
 
 	@Before
 	public void init() throws JsonProcessingException {
@@ -105,9 +110,10 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getJsonMarshallerFromAnnotations method, of class ServiceTools.
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testGetJsonMarshallerFromAnnotationsNullArgument() {
+	public void testGetJsonMarshallerFromAnnotationsNullArgument() throws JsonMarshallerException {
 		System.out.println("getJsonMarshallerFromAnnotationsNullArgument");
 		org.ocelotds.marshalling.IJsonMarshaller result = instance.getJsonMarshaller(null);
 		assertThat(result).isNull();
@@ -115,9 +121,10 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getJsonMarshallerFromAnnotations method, of class ServiceTools.
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testGetJsonMarshallerFromAnnotationsNoAnnotation() {
+	public void testGetJsonMarshallerFromAnnotationsNoAnnotation() throws JsonMarshallerException {
 		System.out.println("getJsonMarshallerFromAnnotationsNoAnnotation");
 		Annotation[] annotations = new Annotation[0];
 		org.ocelotds.marshalling.IJsonMarshaller result = instance.getJsonMarshaller(annotations);
@@ -126,9 +133,10 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getJsonMarshallerFromAnnotations method, of class ServiceTools.
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testGetJsonMarshallerFromAnnotationsNoUnmarshaller() {
+	public void testGetJsonMarshallerFromAnnotationsNoUnmarshaller() throws JsonMarshallerException {
 		System.out.println("getJsonMarshallerFromAnnotationsNoUnmarshaller");
 		doReturn(null).when(instance).getJsonMarshallerFromAnnotation(any(JsonUnmarshaller.class));
 		JsonUnmarshaller ju = mock(JsonUnmarshaller.class);
@@ -141,9 +149,10 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getJsonMarshallerFromAnnotations method, of class ServiceTools.
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testGetJsonMarshallerFromAnnotations() {
+	public void testGetJsonMarshallerFromAnnotations() throws JsonMarshallerException {
 		System.out.println("getJsonMarshallerFromAnnotations");
 		org.ocelotds.marshalling.IJsonMarshaller ju1 = mock(org.ocelotds.marshalling.IJsonMarshaller.class);
 		doReturn(ju1).when(instance).getJsonMarshallerFromAnnotation(any(JsonUnmarshaller.class));
@@ -158,23 +167,29 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getJsonMarshallerFromAnnotation method, of class ServiceTools.
+	 * @throws java.lang.InstantiationException
+	 * @throws java.lang.IllegalAccessException
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testGetJsonMarshallerAnnotationPresent() {
+	public void testGetJsonMarshallerAnnotationPresent() throws InstantiationException, IllegalAccessException, JsonMarshallerException {
 		System.out.println("getJsonMarshallerPresent");
 		JsonUnmarshaller ju = mock(JsonUnmarshaller.class);
-		Class cls = LocaleMarshaller.class;
-		when(ju.value()).thenReturn(cls);
-		doReturn(new LocaleMarshaller()).when(instance).getCDICurrentSelect(eq(cls));
+		Class<? extends IJsonMarshaller> cls = LocaleMarshaller.class;
+		when(ju.value()).thenReturn((Class) cls);
+		when(jsonMarshallerServices.getIJsonMarshallerInstance(eq(cls))).thenReturn(cls.newInstance());
 		org.ocelotds.marshalling.IJsonMarshaller result = instance.getJsonMarshallerFromAnnotation(ju);
 		assertThat(result).isInstanceOf(cls);
+		result = instance.getJsonMarshallerFromAnnotation(null);
+		assertThat(result).isNull();
 	}
 
 	/**
 	 * Test of getJsonMarshallerFromAnnotation method, of class ServiceTools.
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 //	@Test
-	public void testGetBadJsonMarshaller() {
+	public void testGetBadJsonMarshaller() throws JsonMarshallerException {
 		System.out.println("getBadJsonMarshaller");
 		JsonUnmarshaller ju = mock(JsonUnmarshaller.class);
 		Class cls = BadUnmarshaller.class;
@@ -203,9 +218,10 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getJsonMarshallerFromAnnotation method, of class ServiceTools.
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testGetJsonMarshallerAnnotationNotPresent() {
+	public void testGetJsonMarshallerAnnotationNotPresent() throws JsonMarshallerException {
 		System.out.println("getJsonUnmarshallerNotPresent");
 		org.ocelotds.marshalling.IJsonMarshaller result = instance.getJsonMarshallerFromAnnotation(null);
 		assertThat(result).isNull();
@@ -213,15 +229,17 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getTemplateOfType method, of class ServiceTools.
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testGetTemplateOfType() {
+	public void testGetTemplateOfType() throws JsonMarshallerException {
 		System.out.println("getTemplateOfType");
 		Class type = String.class;
 		org.ocelotds.marshalling.IJsonMarshaller ju = mock(org.ocelotds.marshalling.IJsonMarshaller.class);
 		String expResult0 = "ok0";
 		String expResult1 = "ok1";
-		doReturn(expResult0).when(instance)._getTemplateOfType(eq(type), eq(templateMarshaller));
+		when(jsonMarshallerServices.getIJsonMarshallerInstance(any(Class.class))).thenReturn(mock(TemplateMarshaller.class));
+		doReturn(expResult0).when(instance)._getTemplateOfType(eq(type), any(TemplateMarshaller.class));
 		doReturn(expResult1).when(instance)._getTemplateOfType(eq(type), eq(ju));
 		String result = instance.getTemplateOfType(type, null);
 		assertThat(result).isEqualTo(expResult0);

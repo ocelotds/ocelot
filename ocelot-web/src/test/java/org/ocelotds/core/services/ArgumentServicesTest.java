@@ -16,9 +16,12 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import static org.mockito.Mockito.mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.marshallers.JsonMarshallerException;
+import org.ocelotds.marshallers.JsonMarshallerServices;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
@@ -36,6 +39,9 @@ import org.ocelotds.objects.Result;
 @RunWith(MockitoJUnitRunner.class)
 public class ArgumentServicesTest {
 
+	@Mock
+	JsonMarshallerServices jsonMarshallerServices;
+
 	@InjectMocks
 	@Spy
 	private ArgumentServices instance;
@@ -48,13 +54,17 @@ public class ArgumentServicesTest {
 	@Test
 	public void testGetJsonResultFromSpecificMarshaller() throws Exception {
 		System.out.println("getJsonResultFromSpecificMarshaller");
+		IJsonMarshaller ijm = mock(IJsonMarshaller.class);
 		JsonMarshaller jm = mock(JsonMarshaller.class);
+
 		when(jm.value()).thenReturn((Class) LocaleMarshaller.class);
 		when(jm.iterable()).thenReturn(false).thenReturn(true);
+		when(ijm.toJson(any(Object.class))).thenReturn("LG1");
 		doReturn("[LG1,LG2]").when(instance).getJsonResultFromSpecificMarshallerIterable(any(Iterable.class), any(IJsonMarshaller.class));
 
+		when(jsonMarshallerServices.getIJsonMarshallerInstance(any(Class.class))).thenReturn(ijm);
 		String result = instance.getJsonResultFromSpecificMarshaller(jm, Locale.FRANCE);
-		assertThat(result).isEqualTo("{\"country\":\"FR\",\"language\":\"fr\"}");
+		assertThat(result).isEqualTo("LG1");
 		result = instance.getJsonResultFromSpecificMarshaller(jm, Arrays.asList(Locale.FRANCE, Locale.US));
 		assertThat(result).isEqualTo("[LG1,LG2]");
 	}
@@ -62,39 +72,15 @@ public class ArgumentServicesTest {
 	/**
 	 * Test of getJsonResultFromSpecificMarshaller method, of class ArgumentServices.
 	 *
-	 * @throws java.lang.Exception
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
 	 */
-	@Test(expected = InstantiationException.class)
-	public void testGetJsonResultFromSpecificMarshallerFail1() throws Exception {
+	@Test(expected = JsonMarshallerException.class)
+	public void testGetJsonResultFromSpecificMarshallerFail() throws JsonMarshallerException, JsonMarshallingException {
 		System.out.println("getJsonResultFromSpecificMarshaller");
+		when(jsonMarshallerServices.getIJsonMarshallerInstance(any(Class.class))).thenThrow(JsonMarshallerException.class);
 		JsonMarshaller jm = mock(JsonMarshaller.class);
 		when(jm.value()).thenReturn((Class) BadMarshaller1.class);
-		instance.getJsonResultFromSpecificMarshaller(jm, Locale.FRANCE);
-	}
-
-	/**
-	 * Test of getJsonResultFromSpecificMarshaller method, of class ArgumentServices.
-	 *
-	 * @throws java.lang.Exception
-	 */
-	@Test(expected = IllegalAccessException.class)
-	public void testGetJsonResultFromSpecificMarshallerFail2() throws Exception {
-		System.out.println("getJsonResultFromSpecificMarshaller");
-		JsonMarshaller jm = mock(JsonMarshaller.class);
-		when(jm.value()).thenReturn((Class) BadMarshaller2.class);
-		instance.getJsonResultFromSpecificMarshaller(jm, Locale.FRANCE);
-	}
-
-	/**
-	 * Test of getJsonResultFromSpecificMarshaller method, of class ArgumentServices.
-	 *
-	 * @throws java.lang.Exception
-	 */
-	@Test(expected = JsonMarshallingException.class)
-	public void testGetJsonResultFromSpecificMarshallerFail3() throws Exception {
-		System.out.println("getJsonResultFromSpecificMarshaller");
-		JsonMarshaller jm = mock(JsonMarshaller.class);
-		when(jm.value()).thenReturn((Class) BadMarshaller3.class);
 		instance.getJsonResultFromSpecificMarshaller(jm, Locale.FRANCE);
 	}
 

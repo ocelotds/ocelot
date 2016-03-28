@@ -8,10 +8,13 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
+import org.ocelotds.marshallers.JsonMarshallerException;
+import org.ocelotds.marshallers.JsonMarshallerServices;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
@@ -22,19 +25,20 @@ import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
  * @author hhfrancois
  */
 public class ArgumentServices {
-
+	
+	@Inject
+	JsonMarshallerServices jsonMarshallerServices;
+	
 	/**
 	 *
 	 * @param jm
 	 * @param result
 	 * @return
 	 * @throws JsonMarshallingException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
-	public String getJsonResultFromSpecificMarshaller(JsonMarshaller jm, Object result) throws JsonMarshallingException, InstantiationException, IllegalAccessException {
-		Class<? extends IJsonMarshaller> marshallerCls = jm.value();
-		IJsonMarshaller marshaller = marshallerCls.newInstance();
+	public String getJsonResultFromSpecificMarshaller(JsonMarshaller jm, Object result) throws JsonMarshallingException, JsonMarshallerException {
+		IJsonMarshaller marshaller = jsonMarshallerServices.getIJsonMarshallerInstance(jm.value());
 		if (jm.iterable()) {
 			return getJsonResultFromSpecificMarshallerIterable((Iterable) result, marshaller);
 		}

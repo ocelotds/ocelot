@@ -31,7 +31,7 @@ public class RsJsServicesTest {
 	RsJsServices instance;
 	
 	@Spy
-	Instance<Object> dataservices = new FakeCDI<Object>();
+	Instance<Object> dataservices = new FakeCDI();
 
 	/**
 	 * Test of getStreams method, of class RsJsServices.

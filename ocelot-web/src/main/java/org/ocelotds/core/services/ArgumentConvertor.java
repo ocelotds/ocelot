@@ -18,6 +18,8 @@ import java.util.Map;
 import javax.inject.Inject;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
+import org.ocelotds.marshallers.JsonMarshallerException;
+import org.ocelotds.marshallers.JsonMarshallerServices;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
@@ -39,6 +41,9 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	@Inject
 	ArgumentServices argumentServices;
 
+	@Inject
+	JsonMarshallerServices jsonMarshallerServices;
+	
 	/**
 	 * Convert json to Java
 	 *
@@ -46,23 +51,19 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	 * @param paramType
 	 * @param parameterAnnotations
 	 * @return
-	 * @throws JsonUnmarshallingException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Override
-	public Object convertJsonToJava(String jsonArg, Type paramType, Annotation[] parameterAnnotations) throws JsonUnmarshallingException {
+	public Object convertJsonToJava(String jsonArg, Type paramType, Annotation[] parameterAnnotations) throws JsonUnmarshallingException, JsonMarshallerException {
 		if ("null".equals(jsonArg)) {
 			return null;
 		}
 		JsonUnmarshaller juma = getJsonUnmarshallerAnnotation(parameterAnnotations);
 		if (null != juma) {
-			Class<? extends IJsonMarshaller> marshaller = juma.value();
-			try {
-				Object result = getResult(jsonArg, marshaller.newInstance(), juma.iterable());
-				argumentServices.checkType(result, paramType);
-				return result;
-			} catch (InstantiationException | IllegalAccessException ex) {
-				throw new JsonUnmarshallingException(jsonArg);
-			}
+			Object result = getResult(jsonArg, jsonMarshallerServices.getIJsonMarshallerInstance(juma.value()), juma.iterable());
+			argumentServices.checkType(result, paramType);
+			return result;
 		} else {
 			return convertArgument(jsonArg, paramType);
 		}

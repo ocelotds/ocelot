@@ -25,6 +25,7 @@ import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.context.OcelotContext;
+import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
@@ -166,7 +167,11 @@ public class OcelotServices {
 		for (Type type : types) {
 			ocelotMethod.getArgtypes().add(serviceTools.getShortName(serviceTools.getLiteralType(type)));
 			ocelotMethod.getArgnames().add("arg"+index); 
-			ocelotMethod.getArgtemplates().add(serviceTools.getTemplateOfType(type, serviceTools.getJsonMarshaller(annotations[index])));
+			try {
+				ocelotMethod.getArgtemplates().add(serviceTools.getTemplateOfType(type, serviceTools.getJsonMarshaller(annotations[index])));
+			} catch (JsonMarshallerException ex) {
+				ocelotMethod.getArgtemplates().add(type.getTypeName());
+			}
 			index++;
 		}
 		return ocelotMethod;

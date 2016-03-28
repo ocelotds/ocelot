@@ -11,6 +11,7 @@ import javax.decorator.Delegate;
 import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 import org.ocelotds.core.Cleaner;
+import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 
 /**
@@ -30,7 +31,7 @@ public abstract class ArgCleanerDecorator implements IArgumentConvertor {
 	private Cleaner cleaner;
 
 	@Override
-	public Object convertJsonToJava(String jsonArg, Type paramType, Annotation[] parameterAnnotations) throws JsonUnmarshallingException {
+	public Object convertJsonToJava(String jsonArg, Type paramType, Annotation[] parameterAnnotations) throws JsonUnmarshallingException, JsonMarshallerException {
 		return argumentConvertor.convertJsonToJava(cleaner.cleanArg(jsonArg), paramType, parameterAnnotations);
 	}
 	

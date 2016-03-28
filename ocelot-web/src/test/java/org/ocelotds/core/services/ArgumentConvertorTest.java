@@ -33,7 +33,10 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.TransientDataService;
 import org.ocelotds.literals.JsonUnmarshallerLiteral;
+import org.ocelotds.marshallers.JsonMarshallerException;
+import org.ocelotds.marshallers.JsonMarshallerServices;
 import org.ocelotds.marshallers.LocaleMarshaller;
+import org.ocelotds.marshallers.TemplateMarshaller;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
@@ -53,6 +56,9 @@ public class ArgumentConvertorTest {
 
 	@Mock
 	ArgumentServices argumentServices;
+	
+	@Mock
+	JsonMarshallerServices jsonMarshallerServices;
 
 	@InjectMocks
 	@Spy
@@ -71,9 +77,10 @@ public class ArgumentConvertorTest {
 	 * Test of convertJsonToJava method, of class ArgumentConvertor.
 	 *
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testConvertNullJsonToJava() throws JsonUnmarshallingException {
+	public void testConvertNullJsonToJava() throws JsonUnmarshallingException, JsonMarshallerException {
 		System.out.println("convertNullJsonToJava");
 		doReturn(null).when(instance).getMarshallerAnnotation(any(Annotation[].class));
 		Object result = instance.convertJsonToJava("null", String.class, new Annotation[]{});
@@ -84,9 +91,10 @@ public class ArgumentConvertorTest {
 	 * Test of convertJsonToJava method, of class ArgumentConvertor.
 	 *
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testConvertJsonToJava() throws JsonUnmarshallingException {
+	public void testConvertJsonToJava() throws JsonUnmarshallingException, JsonMarshallerException {
 		System.out.println("convertJsonToJava");
 		doReturn(null).when(instance).getMarshallerAnnotation(any(Annotation[].class));
 		doReturn("result").when(instance).convertArgument(anyString(), any(Type.class));
@@ -98,9 +106,10 @@ public class ArgumentConvertorTest {
 	 * Test of convertJsonToJava method, of class ArgumentConvertor.
 	 *
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testConvertJsonToJavaWithUnmarshaller() throws JsonUnmarshallingException {
+	public void testConvertJsonToJavaWithUnmarshaller() throws JsonUnmarshallingException, JsonMarshallerException {
 		System.out.println("convertJsonToJavaWithUnmarshaller");
 		JsonUnmarshaller juma = mock(JsonUnmarshaller.class);
 		Locale expectResult = Locale.FRANCE;
@@ -273,10 +282,11 @@ public class ArgumentConvertorTest {
 	}
 
 	@Test(expected = JsonUnmarshallingException.class)
-	public void testConvertJsonToJavaBadUnmarshaller() throws DataServiceException, JsonUnmarshallingException, NoSuchMethodException {
+	public void testConvertJsonToJavaBadUnmarshaller() throws DataServiceException, JsonUnmarshallingException, JsonMarshallerException, NoSuchMethodException {
 		System.out.println("convertJsonToJavaBadUnmarshaller");
 
 		Method method = ClassAsDataService.class.getMethod("methodWithBadUnmarshaller", String.class);
+		when(jsonMarshallerServices.getIJsonMarshallerInstance(any(Class.class))).thenThrow(JsonUnmarshallingException.class);
 		Annotation[] annotations = method.getParameterAnnotations()[0];
 		instance.convertJsonToJava("", null, annotations);
 	}

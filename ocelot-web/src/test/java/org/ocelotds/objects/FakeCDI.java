@@ -63,6 +63,10 @@ public class FakeCDI<T> extends CDI<T> implements Instance<T> {
 		instances.add(o);
 	}
 
+	public void clear() {
+		instances.clear();
+	}
+
 	@Override
 	public BeanManager getBeanManager() {
 		return null;

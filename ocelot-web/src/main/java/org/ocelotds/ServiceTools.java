@@ -12,12 +12,14 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Locale;
 import java.util.Map;
-import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.annotations.TransientDataService;
+import org.ocelotds.marshallers.JsonMarshallerException;
+import org.ocelotds.marshallers.JsonMarshallerServices;
 import org.ocelotds.marshallers.TemplateMarshaller;
+import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.slf4j.Logger;
@@ -35,8 +37,8 @@ public class ServiceTools {
 	@Inject
 	private ObjectMapper objectMapper;
 
-	@Inject
-	private TemplateMarshaller templateMarshaller;
+	@Inject 
+	JsonMarshallerServices jsonMarshallerServices;
 
 	/**
 	 * Return classname but in short formal java.lang.Collection&lt;java.lang.String&gt; to Collection&lt;String&gt;
@@ -75,8 +77,9 @@ public class ServiceTools {
 	 *
 	 * @param annotations
 	 * @return
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
-	public org.ocelotds.marshalling.IJsonMarshaller getJsonMarshaller(Annotation[] annotations) {
+	public IJsonMarshaller getJsonMarshaller(Annotation[] annotations) throws JsonMarshallerException {
 		if (annotations != null) {
 			for (Annotation annotation : annotations) {
 				if (JsonUnmarshaller.class.isAssignableFrom(annotation.annotationType())) {
@@ -92,11 +95,11 @@ public class ServiceTools {
 	 *
 	 * @param jua
 	 * @return
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
-	public org.ocelotds.marshalling.IJsonMarshaller getJsonMarshallerFromAnnotation(JsonUnmarshaller jua) {
+	public IJsonMarshaller getJsonMarshallerFromAnnotation(JsonUnmarshaller jua) throws JsonMarshallerException {
 		if (jua != null) {
-			Class<? extends org.ocelotds.marshalling.IJsonMarshaller> juCls = jua.value();
-			return getCDICurrentSelect(juCls);
+			return jsonMarshallerServices.getIJsonMarshallerInstance(jua.value());
 		}
 		return null;
 	}
@@ -107,10 +110,11 @@ public class ServiceTools {
 	 * @param type
 	 * @param jsonMarshaller
 	 * @return
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
-	public String getTemplateOfType(Type type, org.ocelotds.marshalling.IJsonMarshaller jsonMarshaller) {
+	public String getTemplateOfType(Type type, IJsonMarshaller jsonMarshaller) throws JsonMarshallerException {
 		if (jsonMarshaller == null) {
-			jsonMarshaller = templateMarshaller;
+			jsonMarshaller = jsonMarshallerServices.getIJsonMarshallerInstance(TemplateMarshaller.class);
 		}
 		return _getTemplateOfType(type, jsonMarshaller);
 	}
@@ -177,7 +181,7 @@ public class ServiceTools {
 	 * @param jsonUnmarshaller
 	 * @return
 	 */
-	String _getTemplateOfType(Type type, org.ocelotds.marshalling.IJsonMarshaller jsonMarshaller) {
+	String _getTemplateOfType(Type type, IJsonMarshaller jsonMarshaller) {
 		if (ParameterizedType.class.isAssignableFrom(type.getClass())) {
 			return getTemplateOfParameterizedType((ParameterizedType) type, jsonMarshaller);
 		}
@@ -257,7 +261,7 @@ public class ServiceTools {
 	 * @param parameterizedType
 	 * @return
 	 */
-	String getTemplateOfParameterizedType(ParameterizedType parameterizedType, org.ocelotds.marshalling.IJsonMarshaller jsonMarshaller) {
+	String getTemplateOfParameterizedType(ParameterizedType parameterizedType, IJsonMarshaller jsonMarshaller) {
 		Class cls = (Class) parameterizedType.getRawType();
 		Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
 		String res;
@@ -277,7 +281,7 @@ public class ServiceTools {
 	 * @param actualTypeArguments
 	 * @return
 	 */
-	String getTemplateOfIterable(Type[] actualTypeArguments, org.ocelotds.marshalling.IJsonMarshaller jsonMarshaller) {
+	String getTemplateOfIterable(Type[] actualTypeArguments, IJsonMarshaller jsonMarshaller) {
 		String res = "[";
 		for (Type actualTypeArgument : actualTypeArguments) {
 			String template = _getTemplateOfType(actualTypeArgument, jsonMarshaller);
@@ -293,7 +297,7 @@ public class ServiceTools {
 	 * @param actualTypeArguments
 	 * @return
 	 */
-	String getTemplateOfMap(Type[] actualTypeArguments, org.ocelotds.marshalling.IJsonMarshaller jsonMarshaller) {
+	String getTemplateOfMap(Type[] actualTypeArguments, IJsonMarshaller jsonMarshaller) {
 		StringBuilder res = new StringBuilder("{");
 		boolean first = true;
 		for (Type actualTypeArgument : actualTypeArguments) {
@@ -340,9 +344,5 @@ public class ServiceTools {
 		} else {
 			throw new ClassNotFoundException();
 		}
-	}
-
-	<T> T getCDICurrentSelect(Class<T> cls) {
-		return CDI.current().select(cls).get();
 	}
 }

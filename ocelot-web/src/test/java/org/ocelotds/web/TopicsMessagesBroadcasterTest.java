@@ -26,6 +26,7 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.JsTopicEvent;
 import org.ocelotds.core.services.ArgumentServices;
+import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.messaging.MessageType;
@@ -56,7 +57,7 @@ public class TopicsMessagesBroadcasterTest {
 	private UserContextFactory userContextFactory;
 	
 	@Spy
-	Instance<JsTopicMessageController> topicMessageController = new FakeCDI<>();
+	Instance<JsTopicMessageController> topicMessageController = new FakeCDI();
 	
 
 	@InjectMocks
@@ -66,11 +67,9 @@ public class TopicsMessagesBroadcasterTest {
 	/**
 	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
 	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
-	 * @throws java.lang.InstantiationException
-	 * @throws java.lang.IllegalAccessException
 	 */
 	@Test
-	public void testSendObjectToTopicNotAnnotated() throws JsonMarshallingException, InstantiationException, IllegalAccessException {
+	public void testSendObjectToTopicNotAnnotated() throws JsonMarshallingException {
 		System.out.println("sendObjectToTopic");
 		String payload = "PAYLOAD";
 		EventMetadata metadata = mock(EventMetadata.class);
@@ -90,11 +89,9 @@ public class TopicsMessagesBroadcasterTest {
 	/**
 	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
 	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
-	 * @throws java.lang.InstantiationException
-	 * @throws java.lang.IllegalAccessException
 	 */
 	@Test
-	public void testSendObjectToTopicWithoutMarshaller() throws JsonMarshallingException, InstantiationException, IllegalAccessException {
+	public void testSendObjectToTopicWithoutMarshaller() throws JsonMarshallingException {
 		System.out.println("sendObjectToTopic");
 		String payload = "PAYLOAD";
 		EventMetadata metadata = mock(EventMetadata.class);
@@ -121,11 +118,10 @@ public class TopicsMessagesBroadcasterTest {
 	/**
 	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
 	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
-	 * @throws java.lang.InstantiationException
-	 * @throws java.lang.IllegalAccessException
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testSendObjectToTopicWithMarshaller() throws JsonMarshallingException, InstantiationException, IllegalAccessException {
+	public void testSendObjectToTopicWithMarshaller() throws JsonMarshallingException, JsonMarshallerException {
 		System.out.println("sendObjectToTopic");
 		System.out.println("sendObjectToTopic");
 		String payload = "PAYLOAD";
@@ -155,11 +151,10 @@ public class TopicsMessagesBroadcasterTest {
 	/**
 	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
 	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
-	 * @throws java.lang.InstantiationException
-	 * @throws java.lang.IllegalAccessException
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testSendObjectToTopicWithMarshallerFail() throws JsonMarshallingException, InstantiationException, IllegalAccessException {
+	public void testSendObjectToTopicWithMarshallerFail() throws JsonMarshallingException, JsonMarshallerException {
 		System.out.println("sendObjectToTopic");
 		String payload = "PAYLOAD";
 		EventMetadata metadata = mock(EventMetadata.class);
@@ -171,7 +166,7 @@ public class TopicsMessagesBroadcasterTest {
 		when(injectionPoint.getAnnotated()).thenReturn(annotated);
 		when(annotated.getAnnotation(JsTopicEvent.class)).thenReturn(event);
 		when(annotated.getAnnotation(JsonMarshaller.class)).thenReturn(mock(JsonMarshaller.class));
-		when(argumentServices.getJsonResultFromSpecificMarshaller(any(JsonMarshaller.class), anyObject())).thenThrow(InstantiationException.class).thenThrow(IllegalAccessException.class).thenThrow(Throwable.class);
+		when(argumentServices.getJsonResultFromSpecificMarshaller(any(JsonMarshaller.class), anyObject())).thenThrow(JsonMarshallingException.class).thenThrow(JsonMarshallerException.class).thenThrow(Throwable.class);
 		when(event.value()).thenReturn("TOPIC");
 
 		// JsTopicEvent, marshaller
@@ -202,6 +197,7 @@ public class TopicsMessagesBroadcasterTest {
 
 	/**
 	 * Test of sendMessageToTopic method, of class TopicsMessagesBroadcaster.
+	 * @throws javax.websocket.SessionException
 	 */
 	@Test
 	public void testSendMessageToTopicFor2Opened1ClosedSession() throws SessionException {

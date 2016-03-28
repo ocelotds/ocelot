@@ -19,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.configuration.AbstractFileInitializerImpl;
+import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.ocelotds.messaging.MessageFromClient;
 import org.slf4j.Logger;
@@ -44,9 +45,10 @@ public class MethodServicesTest {
 	 *
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testGetMethodFromDataService() throws NoSuchMethodException, JsonUnmarshallingException {
+	public void testGetMethodFromDataService() throws NoSuchMethodException, JsonUnmarshallingException, JsonMarshallerException {
 		System.out.println("getMethodFromDataService");
 		Class dsClass = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
@@ -67,9 +69,10 @@ public class MethodServicesTest {
 	 *
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test(expected = NoSuchMethodException.class)
-	public void testGetMethodFromDataServiceNotFound() throws NoSuchMethodException, JsonUnmarshallingException {
+	public void testGetMethodFromDataServiceNotFound() throws NoSuchMethodException, JsonUnmarshallingException, JsonMarshallerException {
 		System.out.println("getMethodFromDataService");
 		Class dsClass = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
@@ -87,9 +90,10 @@ public class MethodServicesTest {
 	 *
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testGetMethodFromDataServiceWithWithUnmarshaller() throws NoSuchMethodException, JsonUnmarshallingException {
+	public void testGetMethodFromDataServiceWithWithUnmarshaller() throws NoSuchMethodException, JsonUnmarshallingException, JsonMarshallerException {
 		System.out.println("getMethodFromDataService");
 		Class dsClass = ClassAsDataService.class;
 		MessageFromClient message = new MessageFromClient();
@@ -160,9 +164,10 @@ public class MethodServicesTest {
 	 * 
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test
-	public void testCheckMethod() throws NoSuchMethodException, JsonUnmarshallingException {
+	public void testCheckMethod() throws NoSuchMethodException, JsonUnmarshallingException, JsonMarshallerException {
 		String methodname = "methodWith2Arguments";
 		Class dsClass = ClassAsDataService.class;
 		Method method = dsClass.getMethod(methodname, Integer.class, String.class);
@@ -181,9 +186,10 @@ public class MethodServicesTest {
 	 * 
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
+	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test(expected = IllegalArgumentException.class)
-	public void testCheckMethodFail() throws NoSuchMethodException, JsonUnmarshallingException {
+	public void testCheckMethodFail() throws NoSuchMethodException, JsonUnmarshallingException, JsonMarshallerException {
 		String methodname = "methodWith2Arguments";
 		Class dsClass = ClassAsDataService.class;
 		Method method = dsClass.getMethod(methodname, Integer.class, String.class);

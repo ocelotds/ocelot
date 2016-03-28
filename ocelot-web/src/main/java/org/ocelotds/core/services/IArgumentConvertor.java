@@ -5,6 +5,7 @@ package org.ocelotds.core.services;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 
 /**
@@ -12,5 +13,5 @@ import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
  * @author hhfrancois
  */
 public interface IArgumentConvertor {
-	Object convertJsonToJava(String jsonArg, Type paramType, Annotation[] parameterAnnotations) throws JsonUnmarshallingException;
+	Object convertJsonToJava(String jsonArg, Type paramType, Annotation[] parameterAnnotations) throws JsonUnmarshallingException, JsonMarshallerException;
 }

@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
 import org.ocelotds.annotations.OcelotLogger;
+import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.ocelotds.messaging.MessageFromClient;
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ public class MethodServices {
 							checkMethod(method, arguments, parameters, nbparam);
 							logger.debug("Method {}.{} with good signature found.", dsClass, message.getOperation());
 							return method;
-						} catch (JsonUnmarshallingException | IllegalArgumentException iae) {
+						} catch (JsonMarshallerException | JsonUnmarshallingException | IllegalArgumentException iae) {
 							logger.debug("Method {}.{} not found. Some arguments didn't match. {}.", new Object[]{dsClass, message.getOperation(), iae.getMessage()});
 						}
 						arguments.clear();
@@ -108,7 +109,7 @@ public class MethodServices {
 	 * @throws IllegalArgumentException
 	 * @throws JsonUnmarshallingException
 	 */
-	void checkMethod(Method method, List<Object> arguments, List<String> parameters, int nbparam) throws IllegalArgumentException, JsonUnmarshallingException {
+	void checkMethod(Method method, List<Object> arguments, List<String> parameters, int nbparam) throws IllegalArgumentException, JsonUnmarshallingException, JsonMarshallerException {
 		Type[] paramTypes = method.getGenericParameterTypes();
 		Annotation[][] parametersAnnotations = method.getParameterAnnotations();
 		int idx = 0;

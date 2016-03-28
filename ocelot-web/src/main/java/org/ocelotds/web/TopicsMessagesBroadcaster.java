@@ -22,6 +22,7 @@ import javax.websocket.SessionException;
 import org.ocelotds.annotations.JsTopicEvent;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.core.services.ArgumentServices;
+import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.security.UserContext;
 import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
@@ -77,7 +78,7 @@ public class TopicsMessagesBroadcaster {
 					msg.setResponse(object);
 				}
 				sendMessageToTopic(msg);
-			} catch (InstantiationException | IllegalAccessException ex) {
+			} catch (JsonMarshallerException ex) {
 				logger.error(jm+" can't be instantiate", ex);
 			} catch (Throwable ex) {
 				logger.error(object+" can't be serialized with marshaller "+jm, ex);

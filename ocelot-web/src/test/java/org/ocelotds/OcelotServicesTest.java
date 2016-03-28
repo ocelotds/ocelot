@@ -28,6 +28,7 @@ import org.ocelotds.context.OcelotContext;
 import org.ocelotds.topic.TopicManager;
 import org.ocelotds.core.UpdatedCacheManager;
 import org.ocelotds.core.services.ClassAsDataService;
+import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.objects.OcelotMethod;
 import org.slf4j.Logger;
 import org.ocelotds.marshalling.IJsonMarshaller;
@@ -65,7 +66,7 @@ public class OcelotServicesTest {
 	private HttpSession httpSession;
 
 	@Spy
-	private Instance<Object> dataservices = new FakeCDI<Object>();
+	private Instance<Object> dataservices = new FakeCDI();
 
 	@InjectMocks
 	@Spy
@@ -257,7 +258,7 @@ public class OcelotServicesTest {
 	}
 	
 	@Test
-	public void testGetOcelotMethod2Args() throws NoSuchMethodException {
+	public void testGetOcelotMethod2Args() throws NoSuchMethodException, JsonMarshallerException {
 		System.out.println("getOcelotMethod");
 		Method method = this.getClass().getDeclaredMethod("methodWith2Args", String.class, String.class);
 		when(serviceTools.getShortName(anyString())).thenReturn("returntype").thenReturn("argtype");
@@ -269,6 +270,22 @@ public class OcelotServicesTest {
 		assertThat(result.getArgtypes()).hasSize(2);
 		assertThat(result.getArgnames()).hasSize(2);
 		assertThat(result.getArgtemplates()).hasSize(2);
+	}
+
+	@Test
+	public void testGetOcelotMethod2ArgsWithOneUnmarshalled() throws NoSuchMethodException, JsonMarshallerException {
+		System.out.println("getOcelotMethod");
+		Method method = this.getClass().getDeclaredMethod("methodWith2Args", String.class, String.class);
+		when(serviceTools.getShortName(anyString())).thenReturn("returntype").thenReturn("argtype");
+		when(serviceTools.getTemplateOfType(any(Type.class), any(IJsonMarshaller.class))).thenReturn("template").thenThrow(JsonMarshallerException.class);
+		OcelotMethod result = instance.getOcelotMethod(method);
+		assertThat(result).isNotNull();
+		assertThat(result.getName()).isEqualTo("methodWith2Args");
+		assertThat(result.getReturntype()).isEqualTo("returntype");
+		assertThat(result.getArgtypes()).hasSize(2);
+		assertThat(result.getArgnames()).hasSize(2);
+		assertThat(result.getArgtemplates()).hasSize(2);
+		assertThat(result.getArgtemplates().get(1)).isEqualTo("java.lang.String");
 	}
 
 	private void methodWith0Arg() {
