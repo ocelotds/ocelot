@@ -56,8 +56,8 @@ public class TopicDataService {
 		}
 	}
 
-	@JsTopic("admintopic")
-	public String sendMessageInAdminTopic() {
-		return "messageFromServer1";
+	@JsTopic("string5topic")
+	public String sendMessageInString5Topic(String msg) {
+		return msg;
 	}
 }
