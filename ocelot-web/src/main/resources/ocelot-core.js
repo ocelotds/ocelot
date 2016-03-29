@@ -36,7 +36,7 @@ OcelotPromiseFactory = function () {
 							case FAULT:
 								fault = evt.response;
 								console.error(fault.classname + "(" + fault.message + ")");
-								console.table(fault.stacktrace);
+								if(ocelotController.options.debug) console.table(fault.stacktrace);
 								while (handler = catchHandlers.shift()) {
 									handler(fault);
 								}
@@ -435,7 +435,7 @@ if ("WebSocket" in window) {
 			}
 		}
 		function onwsmessage(evt) {
-//         console.debug(evt.data);
+         if(options.debug) console.debug(evt.data);
 			receiveMtc(JSON.parse(evt.data));
 		}
 		function onwserror(evt) {
@@ -445,7 +445,7 @@ if ("WebSocket" in window) {
 		function onwsclose(evt) {
 			stateUpdated();
 			if(evt.reason !== "ONUNLOAD") {
-				console.info("Websocket closed : " + evt.reason + " try reconnect each " + 1000 + "ms");
+				if(options.debug) console.debug("Websocket closed : " + evt.reason + " try reconnect each " + 1000 + "ms");
 				closetimer = setInterval(function () {
 					connect();
 				}, 1000);
@@ -453,7 +453,7 @@ if ("WebSocket" in window) {
 		}
 		function onwsopen(evt) {
 			clearInterval(closetimer);
-			console.info("Websocket opened");
+			if(options.debug) console.debug("Websocket opened");
 			var ps;
 			// handler, apromise, idx, promise;
 			stateUpdated();
@@ -466,7 +466,7 @@ if ("WebSocket" in window) {
 			});
 		}
 		function connect() {
-			console.info("Ocelotds initialization...");
+			if(options.debug) console.debug("Ocelotds initialization...");
 			var re = /ocelot-core.js|ocelot\.js.*|ocelot\/core(\.min)?\.js/;
 			for (var i = 0; i < document.scripts.length; i++) {
 				var item = document.scripts[i];
