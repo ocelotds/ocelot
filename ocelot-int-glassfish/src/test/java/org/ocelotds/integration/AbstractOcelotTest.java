@@ -514,8 +514,11 @@ public abstract class AbstractOcelotTest {
 		try {
 			mtc = mtcFromJson(result);
 			assertThat(mtc.getType()).isEqualTo(resType);
+			if(!mtc.getType().equals(resType)){
+				System.out.println("ERROR : "+mtc.getResponse());
+			}
 		} catch (Throwable t) {
-			t.printStackTrace();
+//			t.printStackTrace();
 		}
 		return mtc;
 	}
