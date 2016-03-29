@@ -3,12 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.security;
 
-import org.ocelotds.messaging.MessageToClient;
-
 /**
  *
  * @author hhfrancois
  */
-public interface JsTopicMessageController {
-	public void checkRight(UserContext ctx, MessageToClient mtc) throws NotRecipientException;
+public interface JsTopicMessageController<T> {
+	public void checkRight(UserContext ctx, T payload) throws NotRecipientException;
 }
