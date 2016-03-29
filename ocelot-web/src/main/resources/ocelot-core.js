@@ -494,12 +494,13 @@ if ("WebSocket" in window) {
 					} else {
 						ocelotController.cacheManager.removeEntryInCache(id);
 					}
-				});
-				// Get Locale from server or cache and re-set it
-				ocelotServices.getLocale().then(function (locale) {
-					if (locale) {
-						ocelotServices.setLocale(locale);
-					}
+				}).then(function() {
+					// Get Locale from server or cache and re-set it in session, this launch a message in ocelot-cleancache
+					ocelotServices.getLocale().then(function (locale) {
+						if (locale) {
+							ocelotServices.setLocale(locale);
+						}
+					});
 				});
 				// send states or current objects in cache with lastupdate
 				ocelotServices.getOutDatedCache(ocelotController.cacheManager.getLastUpdateCache()).then(function (entries) {
