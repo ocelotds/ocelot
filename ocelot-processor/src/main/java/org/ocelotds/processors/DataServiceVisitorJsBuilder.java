@@ -51,7 +51,6 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 		browseAndWriteMethods(ElementFilter.methodsIn(typeElement.getEnclosedElements()), classname, writer);
 		writer.append(CR).append(TAB).append("};");
 		writer.append(CR).append("})();").append(CR);
-		writer.append("console.info(").append(QUOTE).append("Ocelotds create Service instance : ").append(instanceName).append(QUOTE).append(");").append(CR);
 	}
 
 	/**
