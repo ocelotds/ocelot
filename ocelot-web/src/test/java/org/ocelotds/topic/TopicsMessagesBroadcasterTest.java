@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.web;
+package org.ocelotds.topic;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,7 +19,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.ocelotds.topic.TopicManager;
 import org.ocelotds.messaging.MessageToClient;
 import static org.mockito.Mockito.*;
 import org.mockito.Spy;
@@ -34,7 +33,6 @@ import org.ocelotds.objects.FakeCDI;
 import org.ocelotds.security.JsTopicMessageController;
 import org.ocelotds.security.NotRecipientException;
 import org.ocelotds.security.UserContext;
-import org.ocelotds.topic.UserContextFactory;
 import org.slf4j.Logger;
 
 /**
@@ -109,10 +107,11 @@ public class TopicsMessagesBroadcasterTest {
 		instance.sendObjectToTopic(payload, metadata);
 
 		ArgumentCaptor<MessageToClient> captureMtC = ArgumentCaptor.forClass(MessageToClient.class);
-		verify(instance).sendMessageToTopic(captureMtC.capture());
+		ArgumentCaptor<Object> captureObject = ArgumentCaptor.forClass(Object.class);
+		verify(instance).sendMessageToTopic(captureMtC.capture(), captureObject.capture());
 		
-		MessageToClient mtc = captureMtC.getValue();
-		assertThat(mtc.getResponse()).isEqualTo("PAYLOAD");
+		assertThat(captureMtC.getValue().getResponse()).isEqualTo("PAYLOAD");
+		assertThat(captureObject.getValue()).isEqualTo("PAYLOAD");
 	}
 
 	/**
@@ -142,10 +141,11 @@ public class TopicsMessagesBroadcasterTest {
 		instance.sendObjectToTopic(payload, metadata);
 
 		ArgumentCaptor<MessageToClient> captureMtC = ArgumentCaptor.forClass(MessageToClient.class);
-		verify(instance).sendMessageToTopic(captureMtC.capture());
+		ArgumentCaptor<Object> captureObject = ArgumentCaptor.forClass(Object.class);
+		verify(instance).sendMessageToTopic(captureMtC.capture(), captureObject.capture());
 		
-		MessageToClient mtc = captureMtC.getValue();
-		assertThat(mtc.getJson()).isEqualTo("MARSHALLED");
+		assertThat(captureMtC.getValue().getJson()).isEqualTo("MARSHALLED");
+		assertThat(captureObject.getValue()).isEqualTo("PAYLOAD");
 	}
 
 	/**
@@ -174,7 +174,7 @@ public class TopicsMessagesBroadcasterTest {
 		instance.sendObjectToTopic(payload, metadata);
 		instance.sendObjectToTopic(payload, metadata);
 
-		verify(instance, never()).sendMessageToTopic(any(MessageToClient.class));
+		verify(instance, never()).sendMessageToTopic(any(MessageToClient.class), anyObject());
 	}
 
 	/**
@@ -207,7 +207,7 @@ public class TopicsMessagesBroadcasterTest {
 		JsTopicMessageController jtmc = mock(JsTopicMessageController.class);
 
 		doReturn(jtmc).when(instance).getJsTopicMessageController(anyString());
-		doReturn(1).doThrow(SessionException.class).doReturn(1).when(instance).sendMtcToSession(any(Session.class), eq(jtmc), any(MessageToClient.class));
+		doReturn(1).doThrow(SessionException.class).doReturn(1).when(instance).checkAndSendMtcToSession(any(Session.class), eq(jtmc), any(MessageToClient.class), anyObject());
 		when(sessionManager.getSessionsForTopic(anyString())).thenReturn(sessions);
 
 		int result = instance.sendMessageToTopic(new MessageToClient());
@@ -219,44 +219,47 @@ public class TopicsMessagesBroadcasterTest {
 	}
 	
 	/**
-	 * Test of sendMtcToSession method, of class.
+	 * Test of checkAndSendMtcToSession method, of class.
 	 * @throws javax.websocket.SessionException
 	 */
 	@Test
-	public void sendMtcToSessionNullTest() throws SessionException {
-		System.out.println("sendMtcToSession");
+	public void checkAndSendMtcToSessionNullTest() throws SessionException {
+		System.out.println("checkAndSendMtcToSession");
+		Object payload = null;
 		JsTopicMessageController jtmcmsgControl = mock(JsTopicMessageController.class);
 		MessageToClient mtc = mock(MessageToClient.class);
 
-		int result = instance.sendMtcToSession(null, jtmcmsgControl, mtc);
+		int result = instance.checkAndSendMtcToSession(null, jtmcmsgControl, mtc, payload);
 		assertThat(result).isEqualTo(0);
 	}
 	
 	/**
-	 * Test of sendMtcToSession method, of class.
+	 * Test of checkAndSendMtcToSession method, of class.
 	 * @throws javax.websocket.SessionException
 	 */
 	@Test(expected = SessionException.class)
-	public void sendMtcToSessionCloseTest() throws SessionException {
-		System.out.println("sendMtcToSession");
+	public void checkAndSendMtcToSessionCloseTest() throws SessionException {
+		System.out.println("checkAndSendMtcToSession");
+		Object payload = null;
 		Session session = mock(Session.class);
 		JsTopicMessageController jtmcmsgControl = mock(JsTopicMessageController.class);
 		MessageToClient mtc = mock(MessageToClient.class);
 
 		when(session.isOpen()).thenReturn(Boolean.FALSE);
 
-		instance.sendMtcToSession(session, jtmcmsgControl, mtc);
+		instance.checkAndSendMtcToSession(session, jtmcmsgControl, mtc, payload);
 	}
 	
 	/**
-	 * Test of sendMtcToSession method, of class.
+	 * Test of checkAndSendMtcToSession method, of class.
 	 * @throws javax.websocket.SessionException
 	 * @throws org.ocelotds.security.NotRecipientException
 	 */
 	@Test
-	public void sendMtcToSessionTest() throws SessionException, NotRecipientException {
-		System.out.println("sendMtcToSession");
+	public void checkAndSendMtcToSessionTest() throws SessionException, NotRecipientException {
+		System.out.println("checkAndSendMtcToSession");
 		Session session = mock(Session.class);
+		Object payload = "PAYLOAD";
 		RemoteEndpoint.Async async = mock(RemoteEndpoint.Async.class);
 		when(session.isOpen()).thenReturn(true);
 		when(session.getId()).thenReturn("ID1");
@@ -266,14 +269,15 @@ public class TopicsMessagesBroadcasterTest {
 
 		when(session.isOpen()).thenReturn(Boolean.TRUE);
 		when(userContextFactory.getUserContext(eq("ID1"))).thenReturn(mock(UserContext.class));
-		doNothing().doThrow(NotRecipientException.class).when(instance).checkMessageTopic(any(UserContext.class), eq(mtc), eq(jtmcmsgControl));
+		doNothing().doThrow(NotRecipientException.class).when(instance).checkMessageTopic(any(UserContext.class), eq(payload), eq(jtmcmsgControl));
 		
-		int result = instance.sendMtcToSession(session, jtmcmsgControl, mtc);
+		int result = instance.checkAndSendMtcToSession(session, jtmcmsgControl, mtc, payload);
 		assertThat(result).isEqualTo(1);
 		
-		result = instance.sendMtcToSession(session, jtmcmsgControl, mtc);
+		result = instance.checkAndSendMtcToSession(session, jtmcmsgControl, mtc, payload);
 		assertThat(result).isEqualTo(0);
 	}
+	
 	
 	/**
 	 * Test of getJsTopicMessageController method, of class.
@@ -296,15 +300,10 @@ public class TopicsMessagesBroadcasterTest {
 	public void checkMessageTopicTest() throws NotRecipientException {
 		System.out.println("checkMessageTopic");
 		UserContext userContext = mock(UserContext.class);
-		MessageToClient mtc = new MessageToClient();
+		Object payload = "PAYLOAD";
 		JsTopicMessageController jtmc = mock(JsTopicMessageController.class);
-		doNothing().when(jtmc).checkRight(eq(userContext), eq(mtc));
-		mtc.setType(MessageType.RESULT);
-		instance.checkMessageTopic(userContext, mtc, jtmc);
-		assertThat(mtc.getType()).isEqualTo(MessageType.MESSAGE);
-		mtc.setType(MessageType.RESULT);
-		instance.checkMessageTopic(userContext, mtc, jtmc);
-		assertThat(mtc.getType()).isEqualTo(MessageType.MESSAGE);
+		doNothing().when(jtmc).checkRight(eq(userContext), eq(payload));
+		instance.checkMessageTopic(userContext, payload, jtmc);
 	}
 
 	/**
@@ -315,10 +314,9 @@ public class TopicsMessagesBroadcasterTest {
 	public void checkMessageTopicTestFail() throws NotRecipientException {
 		System.out.println("checkMessageTopic");
 		UserContext userContext = mock(UserContext.class);
-		MessageToClient mtc = mock(MessageToClient.class);
+		Object payload = "PAYLOAD";
 		JsTopicMessageController jtmc = mock(JsTopicMessageController.class);
-		doThrow(NotRecipientException.class).when(jtmc).checkRight(eq(userContext), eq(mtc));
-		mtc.setType(MessageType.RESULT);
-		instance.checkMessageTopic(userContext, mtc, jtmc);
+		doThrow(NotRecipientException.class).when(jtmc).checkRight(eq(userContext), eq(payload));
+		instance.checkMessageTopic(userContext, payload, jtmc);
 	}
 }

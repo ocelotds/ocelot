@@ -2,9 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package org.ocelotds.web;
+package org.ocelotds.topic;
 
-import org.ocelotds.topic.TopicManager;
 import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
@@ -28,7 +27,6 @@ import org.ocelotds.security.UserContext;
 import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
 import org.ocelotds.security.JsTopicMessageController;
 import org.ocelotds.security.NotRecipientException;
-import org.ocelotds.topic.UserContextFactory;
 import org.slf4j.Logger;
 
 /**
@@ -60,10 +58,10 @@ public class TopicsMessagesBroadcaster {
 	/**
 	 * Send message to topic
 	 *
-	 * @param object
+	 * @param payload
 	 * @param metadata
 	 */
-	public void sendObjectToTopic(@Observes @JsTopicEvent("") Object object, EventMetadata metadata) {
+	public void sendObjectToTopic(@Observes @JsTopicEvent("") Object payload, EventMetadata metadata) {
 		MessageToClient msg = new MessageToClient();
 		InjectionPoint injectionPoint = metadata.getInjectionPoint();
 		Annotated annotated = injectionPoint.getAnnotated();
@@ -73,15 +71,15 @@ public class TopicsMessagesBroadcaster {
 			try {
 				msg.setId(jte.value());
 				if (jm != null) {
-					msg.setJson(argumentServices.getJsonResultFromSpecificMarshaller(jm, object));
+					msg.setJson(argumentServices.getJsonResultFromSpecificMarshaller(jm, payload));
 				} else {
-					msg.setResponse(object);
+					msg.setResponse(payload);
 				}
-				sendMessageToTopic(msg);
+				sendMessageToTopic(msg, payload);
 			} catch (JsonMarshallerException ex) {
 				logger.error(jm+" can't be instantiate", ex);
 			} catch (Throwable ex) {
-				logger.error(object+" can't be serialized with marshaller "+jm, ex);
+				logger.error(payload+" can't be serialized with marshaller "+jm, ex);
 			}
 		}
 	}
@@ -92,6 +90,16 @@ public class TopicsMessagesBroadcaster {
 	 * @return 
 	 */
 	public int sendMessageToTopic(@Observes @MessageEvent MessageToClient msg) {
+		return sendMessageToTopic(msg, msg.getResponse());
+	}
+	
+	/**
+	 * Send message to topic, return number sended
+	 * @param msg
+	 * @param payload
+	 * @return 
+	 */
+	int sendMessageToTopic(MessageToClient msg, Object payload) {
 		int sended = 0;
 		logger.debug("Sending message to topic {}...", msg);
 		Collection<Session> sessions = sessionManager.getSessionsForTopic(msg.getId());
@@ -100,7 +108,7 @@ public class TopicsMessagesBroadcaster {
 			Collection<Session> sessionsClosed = new ArrayList<>();
 			for (Session session : sessions) {
 				try {
-					sended += sendMtcToSession(session, msgControl, msg);
+					sended += checkAndSendMtcToSession(session, msgControl, msg, payload);
 				} catch(SessionException se) {
 					sessionsClosed.add(se.getSession());
 				}
@@ -114,20 +122,22 @@ public class TopicsMessagesBroadcaster {
 		}
 		return sended;
 	}
-	
+
 	/**
 	 * Send Message to session, check right before
 	 * @param session
 	 * @param msgControl
 	 * @param mtc
+	 * @param payload
 	 * @return
 	 * @throws SessionException 
 	 */
-	int sendMtcToSession(Session session, JsTopicMessageController msgControl, MessageToClient mtc) throws SessionException {
+	int checkAndSendMtcToSession(Session session, JsTopicMessageController msgControl, MessageToClient mtc, Object payload) throws SessionException {
 		if (session != null) {
 			if (session.isOpen()) {
 				try {
-					checkMessageTopic(userContextFactory.getUserContext(session.getId()), mtc, msgControl);
+					checkMessageTopic(userContextFactory.getUserContext(session.getId()), payload, msgControl);
+					mtc.setType(MessageType.MESSAGE);
 					session.getAsyncRemote().sendObject(mtc);
 					return 1;
 				} catch (NotRecipientException ex) {
@@ -162,10 +172,9 @@ public class TopicsMessagesBroadcaster {
 	 * @return
 	 * @throws NotRecipientException 
 	 */
-	void checkMessageTopic(UserContext ctx, MessageToClient mtc, JsTopicMessageController msgControl) throws NotRecipientException {
+	void checkMessageTopic(UserContext ctx, Object payload, JsTopicMessageController msgControl) throws NotRecipientException {
 		if (null != msgControl) {
-			msgControl.checkRight(ctx, mtc);
+			msgControl.checkRight(ctx, payload);
 		}
-		mtc.setType(MessageType.MESSAGE);
 	}
 }
