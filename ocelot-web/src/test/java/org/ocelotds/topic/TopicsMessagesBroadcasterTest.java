@@ -28,7 +28,6 @@ import org.ocelotds.core.services.ArgumentServices;
 import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
-import org.ocelotds.messaging.MessageType;
 import org.ocelotds.objects.FakeCDI;
 import org.ocelotds.security.JsTopicMessageController;
 import org.ocelotds.security.NotRecipientException;

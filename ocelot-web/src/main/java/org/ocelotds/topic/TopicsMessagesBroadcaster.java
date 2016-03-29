@@ -51,7 +51,7 @@ public class TopicsMessagesBroadcaster {
 
 	@Inject
 	@Any
-	Instance<JsTopicMessageController> topicMessageController;
+	Instance<JsTopicMessageController<?>> topicMessageController;
 
 	
 	
@@ -157,13 +157,13 @@ public class TopicsMessagesBroadcaster {
 	 */
 	JsTopicMessageController getJsTopicMessageController(String topic) {
 		JsTopicCtrlAnnotationLiteral anno = new JsTopicCtrlAnnotationLiteral(topic);
-		Instance<JsTopicMessageController> select = topicMessageController.select(anno);
+		Instance<JsTopicMessageController<?>> select = topicMessageController.select(anno);
 		if(select.isUnsatisfied()) {
 			return null;
 		}
 		return select.get();
 	}
-
+	
 	/**
 	 * Check if message is granted by messageControl
 	 * @param ctx
