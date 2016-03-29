@@ -8,10 +8,13 @@
 	gulp.task('default', ['minify']);
 	gulp.task('minify', function () {
 		gulp.src('target/classes/ocelot-core.js')
+				  .pipe(size())
 				  .pipe(jshint())
+				  .pipe(jshint.reporter('jshint-stylish'))
 				  .pipe(uglify())
 				  .pipe(concat("ocelot-core-min.js"))
-				  .pipe(size())
 				  .pipe(gulp.dest('target/classes/'));
+		gulp.src('target/classes/ocelot-core-min.js')
+				  .pipe(size());
 	});
 })();
