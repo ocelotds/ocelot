@@ -32,13 +32,33 @@
 				<version>1.4.0</version>
 				<executions>
 					<execution>
+						<id>install npm</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>npm</executable>
+							<arguments>
+								<argument>install</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>exec-maven-plugin</artifactId>
+				<groupId>org.codehaus.mojo</groupId>
+				<version>1.4.0</version>
+				<executions>
+					<execution>
 						<id>Javascript Minification</id>
 						<phase>prepare-package</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
 						<configuration>
-							<executable>src/main/script/minify.sh</executable>
+							<executable>gulp</executable>
 						</configuration>
 					</execution>
 				</executions>
