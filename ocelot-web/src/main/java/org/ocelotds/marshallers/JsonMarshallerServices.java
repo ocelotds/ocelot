@@ -21,7 +21,7 @@ public class JsonMarshallerServices {
 
 	public IJsonMarshaller getIJsonMarshallerInstance(Class<? extends IJsonMarshaller> cls) throws JsonMarshallerException {
 		if(iJsonMarshallers.select(cls).isUnsatisfied()) {
-			throw new JsonMarshallerException(cls.getSimpleName()+" is Unsatesfed");
+			throw new JsonMarshallerException(cls.getSimpleName()+" is Unsatisfied");
 		}
 		return iJsonMarshallers.select(cls).get();
 	}
