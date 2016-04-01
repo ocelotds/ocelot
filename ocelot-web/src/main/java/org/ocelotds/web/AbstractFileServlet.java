@@ -48,17 +48,15 @@ public abstract class AbstractFileServlet extends HttpServlet {
 		boolean first = true;
 		response.setContentType(getMimetype(request));
 		response.setCharacterEncoding(Constants.UTF_8);
-		try (Writer writer = response.getWriter()) {
-			Path path = FileSystems.getDefault().getPath(getFilename(request));
-			try (BufferedReader in = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-				String inputLine;
-				while ((inputLine = in.readLine()) != null) {
-					if (!first) {
-						writer.write(Constants.BACKSLASH_N);
-					}
-					first = false;
-					writer.write(inputLine);
+		try (Writer writer = response.getWriter(); 
+				  BufferedReader in = Files.newBufferedReader(FileSystems.getDefault().getPath(getFilename(request)), StandardCharsets.UTF_8)) {
+			String inputLine;
+			while ((inputLine = in.readLine()) != null) {
+				if (!first) {
+					writer.write(Constants.BACKSLASH_N);
 				}
+				first = false;
+				writer.write(inputLine);
 			}
 		}
 	}
@@ -74,7 +72,7 @@ public abstract class AbstractFileServlet extends HttpServlet {
 	 */
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-		throws ServletException, IOException {
+			  throws ServletException, IOException {
 		processRequest(request, response);
 	}
 
@@ -88,7 +86,7 @@ public abstract class AbstractFileServlet extends HttpServlet {
 	 */
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-		throws ServletException, IOException {
+			  throws ServletException, IOException {
 		processRequest(request, response);
 	}
 
