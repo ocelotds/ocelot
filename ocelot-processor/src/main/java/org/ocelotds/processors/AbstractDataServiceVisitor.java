@@ -9,6 +9,8 @@ import org.ocelotds.annotations.TransientDataService;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import javax.annotation.processing.Messager;
@@ -41,8 +43,8 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	protected static final String FUNCTION = "function";
 	protected static final String TAB = ""; //"\t";
 	protected static final String SPACE = ""; //" ";
-	protected static final String TAB2 = TAB+TAB;
-	protected static final String TAB3 = TAB2+TAB;
+	protected static final String TAB2 = TAB + TAB;
+	protected static final String TAB3 = TAB2 + TAB;
 	protected static final String CR = ""; //"\n";
 
 	protected final ProcessingEnvironment environment;
@@ -51,9 +53,9 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	/**
 	 * Tools for log processor
 	 */
-
 	/**
 	 * Tools for log processor
+	 *
 	 * @param environment
 	 */
 	public AbstractDataServiceVisitor(ProcessingEnvironment environment) {
@@ -62,10 +64,10 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	}
 
 	/**
-	 * 
+	 *
 	 * @param typeElement
 	 * @param writer
-	 * @return 
+	 * @return
 	 */
 	@Override
 	public String visitType(TypeElement typeElement, Writer writer) {
@@ -80,19 +82,20 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	}
 
 	/**
-	 * 
+	 *
 	 * @param typeElement
 	 * @param writer
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	abstract void _visitType(TypeElement typeElement, Writer writer) throws IOException;
+
 	/**
-	 * 
+	 *
 	 * @param first
 	 * @param classname
 	 * @param methodElement
 	 * @param writer
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	abstract void visitMethodElement(int first, String classname, ExecutableElement methodElement, Writer writer) throws IOException;
 
@@ -103,7 +106,7 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	 * @return
 	 */
 	String getJsInstancename(String classname) {
-		return classname.substring(0, 1).toLowerCase(Locale.US)+classname.substring(1);
+		return classname.substring(0, 1).toLowerCase(Locale.US) + classname.substring(1);
 	}
 
 	/**
@@ -133,6 +136,7 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	int browseAndWriteMethods(List<ExecutableElement> methodElements, String classname, Writer writer) throws IOException {
 		Collection<String> methodProceeds = new ArrayList<>();
 		int nb = 0;
+		Collections.sort(methodElements, new MethodComparator());
 		for (ExecutableElement methodElement : methodElements) {
 			if (isConsiderateMethod(methodProceeds, methodElement)) {
 				visitMethodElement(nb++, classname, methodElement, writer);
@@ -152,8 +156,8 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	 * @return
 	 */
 	boolean isConsiderateMethod(Collection<String> methodProceeds, ExecutableElement methodElement) {
-		int argNum = methodElement.getParameters().size();
-		String signature = methodElement.getSimpleName().toString() + "(" + argNum + ")";
+//		int argNum methodElement.getParameters().size();
+		String signature = methodElement.getSimpleName().toString(); // + "(" + argNum + ")";
 		// Check if method ith same signature has been already proceed.
 		if (methodProceeds.contains(signature)) {
 			return false;
@@ -243,11 +247,11 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	}
 
 	Elements getElementUtils() {
-		return  environment.getElementUtils();
+		return environment.getElementUtils();
 	}
-	
+
 	Types getTypeUtils() {
-		return  environment.getTypeUtils();
+		return environment.getTypeUtils();
 	}
 
 	StringBuilder getStringBuilder() {

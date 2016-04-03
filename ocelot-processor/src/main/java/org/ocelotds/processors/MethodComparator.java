@@ -1,0 +1,22 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package org.ocelotds.processors;
+
+import java.util.Comparator;
+import javax.lang.model.element.ExecutableElement;
+
+/**
+ * Sort method by name and number of arguments, more arguments before.
+ * @author hhfrancois
+ */
+public class MethodComparator implements Comparator<ExecutableElement>{
+
+	@Override
+	public int compare(ExecutableElement o1, ExecutableElement o2) {
+		return o1.getSimpleName().toString().compareTo(o2.getSimpleName().toString()) + (o2.getParameters().size() - o1.getParameters().size());
+	}
+	
+}
