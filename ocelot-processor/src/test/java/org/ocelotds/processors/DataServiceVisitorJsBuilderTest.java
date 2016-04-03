@@ -84,9 +84,8 @@ public class DataServiceVisitorJsBuilderTest {
 		when(typeElement.getEnclosedElements()).thenReturn(methodElements);
 
 		instance._visitType(typeElement, writer);
-		ArgumentCaptor<String> captureAppend = ArgumentCaptor.forClass(String.class);
-		verify(writer, times(2)).append(eq("className"));
-		verify(writer).append(eq("packageName.ClassName"));
+		verify(writer).append(eq("className")); // instancename
+		verify(writer).append(eq("packageName.ClassName")); // _ds = 
 	}
 
 	/**
