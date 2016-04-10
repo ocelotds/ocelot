@@ -54,7 +54,7 @@
 		<module>ocelot-extra-spring</module>
 		<module>ocelot-processor</module>
 		<module>ocelot-int-glassfish</module>
-	</modules>
+  </modules>
 	<dependencies>		
 		<dependency>
 			<groupId>org.slf4j</groupId>
