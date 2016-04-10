@@ -52,11 +52,17 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>fish.payara.extras</groupId>
+			<artifactId>payara-embedded-all</artifactId>
+			<version>4.1.1.161.1</version>
+			<scope>test</scope>
+		</dependency>
+<!--		<dependency>
 			<groupId>org.glassfish.main.extras</groupId>
 			<artifactId>glassfish-embedded-all</artifactId>
 			<version>4.1.1</version>
 			<scope>provided</scope>
-		</dependency>
+		</dependency>-->
 		<dependency>
 			<groupId>org.glassfish.jersey.connectors</groupId>
 			<artifactId>jersey-jetty-connector</artifactId>
