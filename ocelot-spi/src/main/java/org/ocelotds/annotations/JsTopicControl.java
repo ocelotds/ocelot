@@ -17,6 +17,7 @@ import javax.inject.Qualifier;
 @Qualifier
 @Retention(RUNTIME)
 @Target({TYPE })
+//@Repeatable(JsTopicControls.class)
 public @interface JsTopicControl {
 	String value();
 }
