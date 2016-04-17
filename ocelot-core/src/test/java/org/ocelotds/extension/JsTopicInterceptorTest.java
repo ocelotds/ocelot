@@ -79,6 +79,21 @@ public class JsTopicInterceptorTest {
 		doReturn(null).when(instance).getDynamicTopic(any(Method.class), any(Object[].class));
 		instance.processJsTopic(ctx);
 	}
+
+	/**
+	 * Test of processJsTopic method, of class JsTopicInterceptor.
+	 *
+	 * @throws java.lang.Exception
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void testProcessJsTopicFail2() throws Exception {
+		System.out.println("processJsTopic");
+		InvocationContext ctx = mock(InvocationContext.class);
+		doReturn(null).when(instance).getStaticTopic(any(Method.class));
+		doReturn("").when(instance).getDynamicTopic(any(Method.class), any(Object[].class));
+		instance.processJsTopic(ctx);
+	}
+
 	/**
 	 * Test of getStaticTopic method, of class JsTopicInterceptor.
 	 *
