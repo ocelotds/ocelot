@@ -20,7 +20,8 @@ import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
 
 /**
- * This class transform a sipmle method to chanel for topic
+ * This class transform a simple method to chanel for topic
+ *
  * @author hhfrancois
  */
 @Interceptor
@@ -45,33 +46,92 @@ public class JsTopicInterceptor implements Serializable {
 	 */
 	@AroundInvoke
 	public Object processJsTopic(InvocationContext ctx) throws Exception {
-		Method method = ctx.getMethod();
-		JsTopic jsTopic = method.getAnnotation(JsTopic.class);
-		String topic = jsTopic.value();
+		String topic = getStaticTopic(ctx.getMethod());
 		if (null == topic || topic.isEmpty()) {
-			Object[] parameters = ctx.getParameters();
-			int idx = 0;
-			Annotation[][] parametersAnnotations = method.getParameterAnnotations();
-			for (Annotation[] parameterAnnotations : parametersAnnotations) {
-				for (Annotation parameterAnnotation : parameterAnnotations) {
-					if (parameterAnnotation.annotationType().equals(JsTopicName.class)) {
-						JsTopicName jsTopicName = (JsTopicName) parameterAnnotation;
-						topic = (String) parameters[idx];
-						if (!jsTopicName.prefix().isEmpty()) {
-							topic = jsTopicName.prefix() + Constants.Topic.COLON + topic;
-						}
-						if (!jsTopicName.postfix().isEmpty()) {
-							topic = topic + Constants.Topic.COLON + jsTopicName.postfix();
-						}
-						break;
-					}
-				}
-				idx++;
+			topic = getDynamicTopic(ctx.getMethod(), ctx.getParameters());
+		}
+		if (null != topic && !topic.isEmpty()) { // topic name is specify
+			return proceedAndSendMessage(ctx, topic);
+		}
+		throw new IllegalArgumentException("Topic name can't be empty.");
+	}
+
+	/**
+	 * Get static topicname, from annotation @JsTopic on method considerated
+	 *
+	 * @param method
+	 * @return
+	 */
+	String getStaticTopic(Method method) {
+		if(null == method || !method.isAnnotationPresent(JsTopic.class) ) {
+			return null;
+		}
+		JsTopic jsTopic = method.getAnnotation(JsTopic.class);
+		return jsTopic.value();
+	}
+
+	/**
+	 * Get dynamic topicname from parameter annotated @JsTopicName
+	 *
+	 * @param method
+	 * @param parameters
+	 * @return
+	 */
+	String getDynamicTopic(Method method, Object[] parameters) {
+		int idx = 0; // synchronise the two arrays, array of parameter and array of annotations
+		Annotation[][] parametersAnnotations = method.getParameterAnnotations();
+		for (Annotation[] parameterAnnotations : parametersAnnotations) { // for each parameter
+			JsTopicName jsTopicName = getJsTopicNameAnnotation(parameterAnnotations);
+			if (jsTopicName != null) {
+				return computeTopic(jsTopicName, parameters[idx].toString());
+			}
+			idx++;
+		}
+		return null;
+	}
+
+	/**
+	 * Get JsTopicName annotation
+	 *
+	 * @param parameterAnnotations
+	 * @param topic
+	 * @return
+	 */
+	JsTopicName getJsTopicNameAnnotation(Annotation[] parameterAnnotations) {
+		for (Annotation parameterAnnotation : parameterAnnotations) {
+			if (parameterAnnotation.annotationType().equals(JsTopicName.class)) {
+				return (JsTopicName) parameterAnnotation;
 			}
 		}
-		if (null == topic || topic.isEmpty()) {
-			throw new IllegalArgumentException("Topic name can't be empty.");
+		return null;
+	}
+
+	/**
+	 * Compute full topicname from jsTopicName.prefix, topic and jsTopicName.postfix
+	 * @param jsTopicName
+	 * @param topic
+	 * @return
+	 */
+	String computeTopic(JsTopicName jsTopicName, String topic) {
+		StringBuilder result = new StringBuilder();
+		if (!jsTopicName.prefix().isEmpty()) {
+			result.append(jsTopicName.prefix()).append(Constants.Topic.COLON);
 		}
+		result.append(topic);
+		if (!jsTopicName.postfix().isEmpty()) {
+			result.append(Constants.Topic.COLON).append(jsTopicName.postfix());
+		}
+		return result.toString();
+	}
+
+	/**
+	 * Proceed the method and send MessageToClient to topic
+	 * @param ctx
+	 * @param topic
+	 * @return
+	 * @throws Exception
+	 */
+	Object proceedAndSendMessage(InvocationContext ctx, String topic) throws Exception {
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(topic);
 		Object result = ctx.proceed();

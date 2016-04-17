@@ -7,15 +7,22 @@ import java.util.ArrayList;
 import javax.enterprise.inject.spi.AfterTypeDiscovery;
 import javax.enterprise.inject.spi.BeanManager;
 import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.runner.RunWith;
 import static org.mockito.Mockito.*;
+import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
 
 /**
  *
  * @author hhfrancois
  */
+@RunWith(MockitoJUnitRunner.class)
 public class CDIExtensionTest {
 	
+	@Spy
+	private CDIExtension instance;
+
 	/**
 	 * Test of processAnnotatedType method, of class CDIExtension.
 	 */
@@ -25,9 +32,8 @@ public class CDIExtensionTest {
 		AfterTypeDiscovery afd = mock(AfterTypeDiscovery.class);
 		when(afd.getInterceptors()).thenReturn(new ArrayList<Class<?>>());
 		BeanManager beanManager = null;
-		CDIExtension instance = new CDIExtension();
 		instance.afterTypeDiscovery(afd, beanManager);
-		assertEquals("We add two interceptor", 1, afd.getInterceptors().size());
+		assertThat(afd.getInterceptors()).hasSize(1);
 	}
 	
 }
