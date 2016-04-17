@@ -4,13 +4,10 @@
  */
 package org.ocelotds.topic;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
 import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Any;
