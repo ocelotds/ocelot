@@ -16,7 +16,7 @@ import org.ocelotds.security.UserContext;
 public class StringMin5TopicMessageController implements JsTopicMessageController<String> {
 
 	@Override
-	public void checkRight(UserContext ctx, String payload) throws NotRecipientException {
+	public void checkRight(UserContext ctx, String topic, String payload) throws NotRecipientException {
 		boolean access = (payload!=null)?payload.length()>4:false;
 		System.out.println("CHECK payload lengh > 4 : "+access);
 		if(!access) {
