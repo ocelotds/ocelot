@@ -9,5 +9,5 @@ package org.ocelotds.security;
  * @param <T>
  */
 public interface JsTopicMessageController<T> {
-	public void checkRight(UserContext ctx, T payload) throws NotRecipientException;
+	public void checkRight(UserContext ctx, String topic, T payload) throws NotRecipientException;
 }
