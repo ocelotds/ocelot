@@ -4,7 +4,7 @@
 package org.ocelotds.security;
 
 /**
- *
+ * This user is not a valid recipient
  * @author hhfrancois
  */
 public class NotRecipientException extends Exception {
