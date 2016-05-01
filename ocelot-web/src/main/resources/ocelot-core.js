@@ -664,7 +664,7 @@ if ("WebSocket" in window) {
 							now = new Date().getTime();
 							// check validity
 							if (now > msgToClient.deadline) {
-								this.removeEntryInCache(compositeKey);
+								removeEntryInCache(compositeKey);
 								msgToClient = null; // invalid
 							}
 						}
