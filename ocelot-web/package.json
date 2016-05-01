@@ -1,6 +1,6 @@
 {
   "name": "ocelot-core",
-  "version": "2.10.1",
+  "version": "2.10.2",
   "description": "generation ocelot-core-min.js",
   "main": "gulpfile.js",
   "dependencies": {},
