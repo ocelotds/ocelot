@@ -1,9 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.web;
 
 import java.io.ByteArrayInputStream;
@@ -14,9 +11,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.ws.rs.core.Response;
 import org.junit.Test;
-import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
