@@ -25,6 +25,7 @@ import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.context.OcelotContext;
+import org.ocelotds.core.UnProxyClassServices;
 import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
@@ -64,6 +65,9 @@ public class OcelotServices {
 	@Inject
 	private HttpSession httpSession;
 	
+	@Inject
+	private UnProxyClassServices unProxyClassServices;
+
 	@Any
 	@Inject
 	@DataService(resolver = "")
@@ -138,7 +142,7 @@ public class OcelotServices {
 	public List<OcelotService> getServices() {
 		List<OcelotService> result = new ArrayList<>();
 		for (Object dataservice : dataservices) {
-			Class cls = serviceTools.getRealClass(dataservice.getClass());
+			Class cls = unProxyClassServices.getRealClass(dataservice.getClass());
 			OcelotService ocelotService = new OcelotService(serviceTools.getInstanceNameFromDataservice(cls));
 			result.add(ocelotService);
 			addMethodsToMethodsService(cls.getMethods(), ocelotService.getMethods());

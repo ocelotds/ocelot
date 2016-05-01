@@ -4,6 +4,7 @@
  */
 package org.ocelotds.topic;
 
+import org.ocelotds.topic.topicAccess.TopicAccessManager;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -32,9 +33,12 @@ public class TopicManager {
 	private Logger logger;
 
 	private final Map<String, Set<Session>> map = new ConcurrentHashMap<>();
-	
+
 	@Inject
 	TopicAccessManager topicAccessManager;
+
+	@Inject
+	private UserContextFactory userContextFactory;
 
 	/**
 	 * Register session for topic
@@ -58,7 +62,7 @@ public class TopicManager {
 		if (sessions.contains(session)) {
 			sessions.remove(session);
 		}
-		topicAccessManager.checkAccessTopic(session, topic);
+		topicAccessManager.checkAccessTopic(userContextFactory.getUserContext(session.getId()), topic);
 		logger.debug("'{}' subscribe to '{}'", session.getId(), topic);
 		if (session.isOpen()) {
 			sessions.add(session);
@@ -90,14 +94,15 @@ public class TopicManager {
 
 	/**
 	 * Return if argument is inconsistent for context : topic and session null or empty
+	 *
 	 * @param topic
 	 * @param session
-	 * @return 
+	 * @return
 	 */
 	boolean isInconsistenceContext(String topic, Session session) {
 		return null == topic || null == session || topic.isEmpty();
 	}
-	
+
 	/**
 	 * Remove session in sessions
 	 *
@@ -119,7 +124,7 @@ public class TopicManager {
 	 *
 	 * @param topic
 	 * @param sessions
-	 * @return 
+	 * @return
 	 */
 	public boolean unregisterTopicSessions(String topic, Collection<Session> sessions) {
 		if (sessions != null && !sessions.isEmpty()) {
@@ -149,7 +154,7 @@ public class TopicManager {
 	 * @param session
 	 */
 	public void removeSessionToTopics(Session session) {
-		if(session != null) {
+		if (session != null) {
 			for (String topic : map.keySet()) {
 				sendSubscriptionEvent(Constants.Topic.SUBSCRIBERS + Constants.Topic.COLON + topic, unregisterTopicSession(topic, session));
 			}

@@ -6,7 +6,6 @@ package org.ocelotds.topic;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.EventMetadata;
 import javax.enterprise.inject.spi.InjectionPoint;
@@ -28,10 +27,10 @@ import org.ocelotds.core.services.ArgumentServices;
 import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
-import org.ocelotds.objects.FakeCDI;
 import org.ocelotds.security.JsTopicMessageController;
 import org.ocelotds.security.NotRecipientException;
 import org.ocelotds.security.UserContext;
+import org.ocelotds.topic.messageControl.MessageControllerManager;
 import org.slf4j.Logger;
 
 /**
@@ -57,10 +56,7 @@ public class TopicsMessagesBroadcasterTest {
 	private UserContextFactory userContextFactory;
 	
 	@Mock
-	MessageControllerCache messageControllerCache;
-
-	@Spy
-	Instance<JsTopicMessageController> topicMessageController = new FakeCDI();
+	MessageControllerManager messageControllerManager;
 
 	@InjectMocks
 	@Spy
@@ -210,7 +206,7 @@ public class TopicsMessagesBroadcasterTest {
 		Collection<Session> sessions = Arrays.asList(mock(Session.class), mock(Session.class), mock(Session.class));
 		JsTopicMessageController jtmc = mock(JsTopicMessageController.class);
 
-		doReturn(jtmc).when(instance).getJsTopicMessageController(anyString());
+		when(messageControllerManager.getJsTopicMessageController(anyString())).thenReturn(jtmc);
 		doReturn(1).doThrow(SessionException.class).doReturn(1).when(instance).checkAndSendMtcToSession(any(Session.class), eq(jtmc), any(MessageToClient.class), anyObject());
 		when(sessionManager.getSessionsForTopic(anyString())).thenReturn(sessions);
 
@@ -280,19 +276,6 @@ public class TopicsMessagesBroadcasterTest {
 
 		result = instance.checkAndSendMtcToSession(session, jtmcmsgControl, mtc, PAYLOAD);
 		assertThat(result).isEqualTo(0);
-	}
-
-	/**
-	 * Test of getJsTopicMessageController method, of class.
-	 */
-	@Test
-	public void getJsTopicMessageControllerTest() {
-		System.out.println("GetJsTopicMessageController");
-		JsTopicMessageController result = instance.getJsTopicMessageController(TOPIC);
-		assertThat(result).isNull();
-		((FakeCDI<JsTopicMessageController>) topicMessageController).add(mock(JsTopicMessageController.class));
-		result = instance.getJsTopicMessageController(TOPIC);
-		assertThat(result).isNotNull();
 	}
 
 	/**

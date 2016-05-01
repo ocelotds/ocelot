@@ -300,22 +300,6 @@ public class ServiceToolsTest {
 	}
 
 	/**
-	 * Test of getRealClass method, of class ServiceTools.
-	 *
-	 * @throws java.lang.ClassNotFoundException
-	 */
-	@Test
-	public void testGetRealClass() throws ClassNotFoundException {
-		System.out.println("getRealClass");
-		doReturn("java.lang.String").doThrow(ClassNotFoundException.class).when(instance).getRealClassname(anyString());
-		Class result = instance.getRealClass(Integer.class);
-		assertThat(result).isEqualTo(String.class);
-
-		result = instance.getRealClass(Integer.class);
-		assertThat(result).isEqualTo(Integer.class);
-	}
-
-	/**
 	 * Test of isConsiderateMethod method, of class ServiceTools.
 	 *
 	 * @throws java.lang.NoSuchMethodException
@@ -594,33 +578,5 @@ public class ServiceToolsTest {
 		doCallRealMethod().when(instance).getObjectMapper();
 		ObjectMapper o = instance.getObjectMapper();
 		assertThat(o).isNotNull();
-	}
-
-	/**
-	 * Test of getRealClassname method, of class ServiceTools.
-	 *
-	 * @throws java.lang.ClassNotFoundException
-	 */
-	@Test
-	public void testGetRealClassname() throws ClassNotFoundException {
-		System.out.println("getRealClassname");
-		String proxyname = "java.lang.String$Proxy";
-
-		String result = instance.getRealClassname(proxyname);
-		assertThat(result).isEqualTo("java.lang.String");
-
-	}
-
-	/**
-	 * Test of getRealClassname method, of class ServiceTools.
-	 *
-	 * @throws java.lang.ClassNotFoundException
-	 */
-	@Test(expected = ClassNotFoundException.class)
-	public void testGetRealClassnameNotProxy() throws ClassNotFoundException {
-		System.out.println("getRealClassname");
-		String proxyname = "java.lang.String";
-
-		instance.getRealClassname(proxyname);
 	}
 }

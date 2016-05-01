@@ -25,6 +25,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.context.OcelotContext;
+import org.ocelotds.core.UnProxyClassServices;
 import org.ocelotds.topic.TopicManager;
 import org.ocelotds.core.UpdatedCacheManager;
 import org.ocelotds.core.services.ClassAsDataService;
@@ -64,6 +65,9 @@ public class OcelotServicesTest {
 
 	@Mock
 	private HttpSession httpSession;
+
+	@Mock
+	private UnProxyClassServices unProxyClassServices;
 
 	@Spy
 	private Instance<Object> dataservices = new FakeCDI();
@@ -222,7 +226,7 @@ public class OcelotServicesTest {
 	public void testGetServices() {
 		System.out.println("getServices");
 		((FakeCDI)dataservices).add(new ClassAsDataService());
-		when(serviceTools.getRealClass(any(Class.class))).thenReturn(ClassAsDataService.class);
+		when(unProxyClassServices.getRealClass(any(Class.class))).thenReturn(ClassAsDataService.class);
 		when(serviceTools.getInstanceNameFromDataservice(any(Class.class))).thenReturn("ClassAsDataService");
 		doNothing().when(instance).addMethodsToMethodsService(any(Method[].class), any(List.class));
 		List<OcelotService> services = instance.getServices();

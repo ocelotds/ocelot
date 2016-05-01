@@ -4,30 +4,25 @@
  */
 package org.ocelotds.topic;
 
+import org.ocelotds.topic.messageControl.MessageControllerManager;
 import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.enterprise.event.Observes;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.EventMetadata;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import javax.websocket.SessionException;
-import org.ocelotds.annotations.JsTopicControl;
-import org.ocelotds.annotations.JsTopicControls;
 import org.ocelotds.annotations.JsTopicEvent;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.core.services.ArgumentServices;
 import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.security.UserContext;
-import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
-import org.ocelotds.security.JsTopicCtrlsAnnotationLiteral;
 import org.ocelotds.security.JsTopicMessageController;
 import org.ocelotds.security.NotRecipientException;
 import org.slf4j.Logger;
@@ -51,16 +46,10 @@ public class TopicsMessagesBroadcaster {
 
 	@Inject
 	private ArgumentServices argumentServices;
-
-	@Inject
-	@Any
-	Instance<JsTopicMessageController<?>> topicMessageController;
 	
 	@Inject
-	MessageControllerCache messageControllerCache;
+	private MessageControllerManager messageControllerManager;
 
-	
-	
 	/**
 	 * Send message to topic
 	 *
@@ -110,7 +99,7 @@ public class TopicsMessagesBroadcaster {
 		logger.debug("Sending message to topic {}...", mtc);
 		Collection<Session> sessions = sessionManager.getSessionsForTopic(mtc.getId());
 		if (sessions != null && !sessions.isEmpty()) {
-			JsTopicMessageController msgControl = getJsTopicMessageController(mtc.getId());
+			JsTopicMessageController msgControl = messageControllerManager.getJsTopicMessageController(mtc.getId());
 			Collection<Session> sessionsClosed = new ArrayList<>();
 			for (Session session : sessions) {
 				try {
@@ -142,7 +131,9 @@ public class TopicsMessagesBroadcaster {
 		if (session != null) {
 			if (session.isOpen()) {
 				try {
-					checkMessageTopic(userContextFactory.getUserContext(session.getId()), mtc.getId(), payload, msgControl);
+					if (null != msgControl) {
+						checkMessageTopic(userContextFactory.getUserContext(session.getId()), mtc.getId(), payload, msgControl);
+					}
 					mtc.setType(MessageType.MESSAGE);
 					session.getAsyncRemote().sendObject(mtc);
 					return 1;
@@ -154,67 +145,6 @@ public class TopicsMessagesBroadcaster {
 			}
 		}
 		return 0;
-	}
-	
-	/**
-	 * Get jstopic message controller
-	 * @param topic
-	 * @return 
-	 */
-	JsTopicMessageController getJsTopicMessageController(String topic) {
-		logger.debug("Looking for messageController for topic '{}'", topic);
-		JsTopicMessageController messageController = messageControllerCache.loadFromCache(topic);
-		if(null == messageController) { // not in cache
-			messageController = getJsTopicMessageControllerFromJsTopicControl(topic); // get from JsTopicControl
-			if(null == messageController) {
-				messageController = getJsTopicMessageControllerFromJsTopicControls(topic); // get from JsTopicControls
-			}
-			if(null != messageController) {
-				messageControllerCache.saveToCache(topic, messageController.getClass()); // save in cache
-			}
-		}
-		return messageController;
-	}
-	
-	/**
-	 * Get jstopic message controller from JsTopicControl
-	 * @param topic
-	 * @return 
-	 */
-	JsTopicMessageController getJsTopicMessageControllerFromJsTopicControl(String topic) {
-		logger.debug("Looking for messageController for topic '{}' from JsTopicControl annotation", topic);
-		JsTopicCtrlAnnotationLiteral anno = new JsTopicCtrlAnnotationLiteral(topic);
-		Instance<JsTopicMessageController<?>> select = topicMessageController.select(anno);
-		if(!select.isUnsatisfied()) {
-			logger.debug("Found messageController for topic '{}' from JsTopicControl annotation", topic);
-			return select.get();
-		}
-		return null;
-	}
-
-	/**
-	 * without jdk8, @Repeatable doesn't work, so we use @JsTopicControls annotation and parse it
-	 * @param topic
-	 * @return 
-	 */
-	JsTopicMessageController getJsTopicMessageControllerFromJsTopicControls(String topic) {
-		logger.debug("Looking for messageController for topic '{}' from JsTopicControls annotation", topic);
-		JsTopicCtrlsAnnotationLiteral anno = new JsTopicCtrlsAnnotationLiteral();
-		Instance<JsTopicMessageController<?>> select = topicMessageController.select(anno);
-		if(select.isUnsatisfied()) {
-			return null;
-		}
-		for (JsTopicMessageController<?> jsTopicMessageController : select) {
-			JsTopicControls jsTopicControls = jsTopicMessageController.getClass().getAnnotation(JsTopicControls.class);
-			JsTopicControl[] jsTopicControlList = jsTopicControls.value();
-			for (JsTopicControl jsTopicControl : jsTopicControlList) {
-				if(topic.equals(jsTopicControl.value())) {
-					logger.debug("Found messageController for topic '{}' from JsTopicControls annotation", topic);
-					return jsTopicMessageController;
-				}
-			}
-		}
-		return null;
 	}
 	
 	/**

@@ -3,14 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.topic;
 
-import org.ocelotds.objects.FakeCDI;
-import java.lang.annotation.Annotation;
+import org.ocelotds.topic.topicAccess.TopicAccessManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import javax.enterprise.inject.Default;
-import javax.enterprise.inject.Instance;
-import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Inject;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
@@ -19,17 +15,13 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ocelotds.security.JsTopicAccessController;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
-import org.junit.Before;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Spy;
 import org.ocelotds.Constants;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
-import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
-import org.ocelotds.security.UserContext;
 import org.slf4j.Logger;
 
 /**
@@ -52,7 +44,9 @@ public class TopicManagerTest {
 
 	@Mock
 	TopicAccessManager topicAccessManager;
-
+	
+	@Mock
+	private UserContextFactory userContextFactory;
 	/**
 	 * Test of registerTopicSession method, of class TopicManager.
 	 *

@@ -39,7 +39,7 @@ public class ServiceTools {
 
 	@Inject 
 	JsonMarshallerServices jsonMarshallerServices;
-
+	
 	/**
 	 * Return classname but in short formal java.lang.Collection&lt;java.lang.String&gt; to Collection&lt;String&gt;
 	 *
@@ -132,20 +132,6 @@ public class ServiceTools {
 			clsName = cls.getSimpleName();
 		}
 		return getInstanceName(clsName);
-	}
-
-	/**
-	 * Get class without proxy CDI based on $ separator
-	 *
-	 * @param proxy
-	 * @return
-	 */
-	public Class getRealClass(Class proxy) {
-		try {
-			return Class.forName(getRealClassname(proxy.getName()));
-		} catch (ClassNotFoundException ex) {
-		}
-		return proxy;
 	}
 
 	/**
@@ -328,21 +314,5 @@ public class ServiceTools {
 	 */
 	ObjectMapper getObjectMapper() {
 		return objectMapper;
-	}
-
-	/**
-	 * Get class without proxy CDI based on $ separator
-	 *
-	 * @param proxyname
-	 * @return
-	 * @throws java.lang.ClassNotFoundException
-	 */
-	String getRealClassname(String proxyname) throws ClassNotFoundException {
-		int index = proxyname.indexOf('$');
-		if (index != -1) {
-			return proxyname.substring(0, index);
-		} else {
-			throw new ClassNotFoundException();
-		}
 	}
 }

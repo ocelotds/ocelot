@@ -137,6 +137,16 @@ public class ArgumentServicesTest {
 		instance.checkType(mock(List.class), type);
 		verify(instance).checkClass(anyObject(), any(Class.class));
 	}
+	
+	/**
+	 * Test of checkType method, of class.
+	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
+	 */
+	@Test(expected = JsonUnmarshallingException.class)
+	public void checkTypeOtherTest() throws JsonUnmarshallingException {
+		System.out.println("checkType");
+		instance.checkType(mock(Result.class), mock(Type.class));
+	}
 
 	@Test(expected = JsonUnmarshallingException.class)
 	public void testCheckTypeFail() throws JsonUnmarshallingException {
