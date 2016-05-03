@@ -4,6 +4,7 @@
  */
 package org.ocelotds.processors;
 
+import java.beans.Introspector;
 import java.io.IOException;
 import org.ocelotds.annotations.TransientDataService;
 import java.io.Writer;
@@ -106,7 +107,7 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	 * @return
 	 */
 	String getJsInstancename(String classname) {
-		return classname.substring(0, 1).toLowerCase(Locale.US) + classname.substring(1);
+		return Introspector.decapitalize(classname);
 	}
 
 	/**
@@ -162,7 +163,6 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 		if (methodProceeds.contains(signature)) {
 			return false;
 		}
-		methodProceeds.add(signature);
 		// Herited from Object
 		TypeElement objectElement = environment.getElementUtils().getTypeElement(Object.class.getName());
 		if (objectElement.getEnclosedElements().contains(methodElement)) {
@@ -179,6 +179,7 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 				return false;
 			}
 		}
+		methodProceeds.add(signature);
 		return true;
 	}
 

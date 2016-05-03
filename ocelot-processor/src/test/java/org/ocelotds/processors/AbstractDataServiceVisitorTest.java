@@ -228,23 +228,27 @@ public class AbstractDataServiceVisitorTest {
 		// alreadyProcess
 		result = instance.isConsiderateMethod(methodProceeds, methodElement);
 		assertThat(result).isFalse();
+		assertThat(methodProceeds).hasSize(1);
 
 		// inherited from Object
 		methodProceeds.clear();
 		result = instance.isConsiderateMethod(methodProceeds, methodElement);
 		assertThat(result).isFalse();
+		assertThat(methodProceeds).hasSize(0);
 
 		// static
 		methodProceeds.clear();
 		modifiers.add(Modifier.STATIC);
 		result = instance.isConsiderateMethod(methodProceeds, methodElement);
 		assertThat(result).isFalse();
+		assertThat(methodProceeds).hasSize(0);
 
 		// non public
 		methodProceeds.clear();
 		modifiers.clear();
 		result = instance.isConsiderateMethod(methodProceeds, methodElement);
 		assertThat(result).isFalse();
+		assertThat(methodProceeds).hasSize(0);
 
 		// Transient
 		methodProceeds.clear();
@@ -253,6 +257,7 @@ public class AbstractDataServiceVisitorTest {
 		annotationMirrors.add(annoTransient);
 		result = instance.isConsiderateMethod(methodProceeds, methodElement);
 		assertThat(result).isFalse();
+		assertThat(methodProceeds).hasSize(0);
 	}
 
 	/**
