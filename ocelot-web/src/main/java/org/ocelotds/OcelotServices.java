@@ -78,7 +78,7 @@ public class OcelotServices {
 	 * @param options
 	 */
 	public void initCore(Options options) {
-		httpSession.setAttribute(Constants.Options.MONITOR, options.isMonitor());
+		httpSession.setAttribute(Constants.Options.OPTIONS, options);
 	}
 	
 	/**

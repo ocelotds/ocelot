@@ -13,6 +13,7 @@ import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageToClient;
+import org.ocelotds.objects.Options;
 import org.slf4j.Logger;
 
 /**
@@ -39,8 +40,8 @@ public abstract class RSMonitorDecorator implements RSMessageToClientService {
 	 */
 	public boolean isMonitored(HttpSession session) {
 		boolean monitor  =false;
-		if (null != session) {
-			monitor = session.getAttribute(Constants.Options.MONITOR)!=null && (boolean) session.getAttribute(Constants.Options.MONITOR);
+		if (null != session && session.getAttribute(Constants.Options.OPTIONS)!=null) {
+			monitor = ((Options) session.getAttribute(Constants.Options.OPTIONS)).isMonitor();
 		}
 		return monitor;
 	}

@@ -80,24 +80,11 @@ public class OcelotServicesTest {
 	 * Test of initCore method, of class.
 	 */
 	@Test
-	public void test_getInitCoreMonitorTrue() {
+	public void test_getInitCore() {
 		System.out.println("initCore");
-		Options options = new Options();
-		options.setMonitor(true);
+		Options options = mock(Options.class);
 		instance.initCore(options);
-		verify(httpSession).setAttribute(eq(Constants.Options.MONITOR), eq(true));
-	}
-
-	/**
-	 * Test of initCore method, of class.
-	 */
-	@Test
-	public void test_getInitCoreMonitorFalse() {
-		System.out.println("initCore");
-		Options options = new Options();
-		options.setMonitor(false);
-		instance.initCore(options);
-		verify(httpSession).setAttribute(eq(Constants.Options.MONITOR), eq(false));
+		verify(httpSession).setAttribute(eq(Constants.Options.OPTIONS), eq(options));
 	}
 
 	/**

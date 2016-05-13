@@ -20,6 +20,7 @@ import org.mockito.stubbing.Answer;
 import org.ocelotds.Constants;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.messaging.MessageToClient;
+import org.ocelotds.objects.Options;
 import org.slf4j.Logger;
 
 /**
@@ -62,7 +63,9 @@ public class RSMonitorDecoratorTest {
 		System.out.println("createMessageToClient");
 		MessageFromClient message = mock(MessageFromClient.class);
 		HttpSession session = mock(HttpSession.class);
-		when(session.getAttribute(Constants.Options.MONITOR)).thenReturn(true);
+		Options options = new Options();
+		options.setMonitor(true);
+		when(session.getAttribute(Constants.Options.OPTIONS)).thenReturn(options);
 
 		MessageToClient result = instance.createMessageToClient(message, session);
 		assertThat(result.getTime()).isGreaterThanOrEqualTo(WAIT);
@@ -78,7 +81,9 @@ public class RSMonitorDecoratorTest {
 		HttpSession session = mock(HttpSession.class);
 		Map<String, Object> map = new HashMap<>();
 
-		when(session.getAttribute(Constants.Options.MONITOR)).thenReturn(false);
+		Options options = new Options();
+		options.setMonitor(false);
+		when(session.getAttribute(Constants.Options.OPTIONS)).thenReturn(options);
 
 		MessageToClient result = instance.createMessageToClient(message, session);
 		assertThat(result.getTime()).isZero();
