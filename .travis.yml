@@ -7,8 +7,8 @@ before_install:
    - ls -lta
    - mv travis-ci_rsa ~/.ssh/travis-ci_rsa 
    - cp travis-ci_rsa.pub ~/.ssh/travis-ci_rsa.pub
-   - chmod 600 ~/.ssh/travis-ci_rsa
-   - chmod 600 ~/.ssh/travis-ci_rsa.pub
+   - chmod 400 ~/.ssh/travis-ci_rsa
+   - chmod 400 ~/.ssh/travis-ci_rsa.pub
    - pip install --user codecov
    - cp deployOrPerform.sh /tmp/deployOrPerform.sh
    - chmod ugo+x /tmp/deployOrPerform.sh
@@ -31,6 +31,9 @@ env:
    - secure: "Su5UCKSvwB6Ubw/ouRH9Eh3S3qWGBFbhAU/peuMjN13aQZoSCqL0MCA2dGWLTzgLQmkJGNt8+iIZeLODusFQ0kTaLupBRCJKCMbKVy/cFeJVZ5rdFzJfB5+hBa8sFL8cibARFVIKy9GftSSQKD/TWOOIbOwz3R5B8Wjqp4ylwYA="
    # COVERITY_SCAN_TOKEN
    - secure: "A4k3D6+FsZ1I5vUF9pAtXsZZxltthBb00jLXwP+pwe+Zfmf7rxAUL+01gUf5+ZoacWOKvgj+OdWJGCJMun3XaPGXpPWL0fIyWv8SvPQAIzHj9SnpoSHH+zpUHsEoq/m1MpzExWiBa4XEFIKCzTbPqWyOBbV/LGOYK6AQtRamJuc="
+   # GITHUB_API_KEY
+   - secure: "VT7CHdFFWk5H3UywZZgprVswLzODW5uDMAywqtqB55n0ubefeyPoVLWs9Z0gRXQUntqZO2sNiO3tKhfb7YNIHMtqAfOnCLSNMXAEsa0RIOzh43d64t4vTrMjdRCdjY2RiO/5f1wQ5OKv4O0S/OQn8bFMMRkjqPLOlKgxu3xUaW4="
+
 
 addons:
    coverity_scan:
