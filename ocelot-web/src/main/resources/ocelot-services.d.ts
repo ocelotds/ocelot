@@ -1,3 +1,6 @@
+declare class OcelotEvent extends Event {
+	promise: IOcelotPromise;
+}
 declare class OcelotResultEvent extends Event {
     dataservice: string;
     operation: string;
@@ -24,6 +27,7 @@ declare interface LastUpdatedMap {
 declare class IOcelotOptions {
     monitor: boolean;
     debug: boolean;
+    reconnect: boolean;
 }
 declare class Fault {
     message: string;
@@ -57,6 +61,7 @@ declare interface IOcelotPromise {
     response: OcelotResultEvent;
     json: MessageFromClient;
     cacheIgnored:boolean;
+    t:number;
     then(onFulfilled: Function, onRejected?: Function): IOcelotPromise;
     catch(onRejected: Function): IOcelotPromise;
     event(onEvented: Function): IOcelotPromise;

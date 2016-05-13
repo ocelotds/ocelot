@@ -1,7 +1,7 @@
 var ocelotController, OcelotPromiseFactory, MD5Tools;
 var Subscriber = (function (topic) {
 	var promise = ocelotServices.subscribe(topic);
-	Object.defineProperty(promise, "topic", {value: topic, writable: false}); // add topic property, readonly
+	Object.defineProperty(promise, "topic", { value: topic, writable: false }); // add topic property, readonly
 	delete promise.constraint;
 	promise.unsubscribe = function () {
 		return ocelotServices.unsubscribe(topic);
@@ -36,7 +36,7 @@ OcelotPromiseFactory = function () {
 							case FAULT:
 								fault = evt.response;
 								console.error(fault.classname + "(" + fault.message + ")");
-								if(ocelotController.options.debug) console.table(fault.stacktrace);
+								if (ocelotController.options.debug) console.table(fault.stacktrace);
 								while (handler = catchHandlers.shift()) {
 									handler(fault);
 								}
@@ -68,7 +68,7 @@ OcelotPromiseFactory = function () {
 						process();// event already receive ?
 						return this;
 					},
-					catch : function (onRejected) {
+					catch: function (onRejected) {
 						if (onRejected) {
 							catchHandlers.push(onRejected);
 						}
@@ -97,7 +97,7 @@ OcelotPromiseFactory = function () {
 						return this;
 					},
 					get json() {
-						return {"id": this.id, "ds": this.dataservice, "op": this.operation, "argNames": this.argNames, "args": this.args};
+						return { "id": this.id, "ds": this.dataservice, "op": this.operation, "argNames": this.argNames, "args": this.args };
 					}
 				};
 				var e = document.createEvent("Event");
@@ -110,7 +110,7 @@ OcelotPromiseFactory = function () {
 			})(ds, id, op, argNames, args);
 		}
 	};
-}();
+} ();
 /**
  * Add ocelotController events to document
  * @param {Event} event
@@ -194,7 +194,7 @@ MD5Tools = function () {
 			return this.cmn(c ^ (b | (~d)), a, b, x, s, t);
 		}
 	};
-}();
+} ();
 
 /*
  * Take a string and return the hex representation of its MD5.
@@ -286,10 +286,198 @@ String.prototype.md5 = function () {
 };
 if ("WebSocket" in window) {
 	ocelotController = (function () {
-		var options = {"monitor": false, "debug": false}, MSG = "MESSAGE", CONSTRAINT = "CONSTRAINT", RES = "RESULT", FAULT = "FAULT",
-				  ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove", CLEANCACHE = "ocelot-cleancache", STATUS = "ocelot-status",
-				  OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe",
-				  stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], closetimer, promises = {}, path, ws;
+		var opts = { "monitor": false, "debug": false, "reconnect": false }, MSG = "MESSAGE", CONSTRAINT = "CONSTRAINT", RES = "RESULT", FAULT = "FAULT",
+			ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove", CLEANCACHE = "ocelot-cleancache", STATUS = "ocelot-status",
+			OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe",
+			stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], closetimer, promises = {}, path, ws,
+			_cacheManager = (function () {
+				var LU = "ocelot-lastupdate", addHandlers = [], removeHandlers = [],
+					lastUpdateManager = (function () {
+						function _addEntry(id) {
+							var lastUpdates = _getLastUpdateCache();
+							lastUpdates[id] = Date.now();
+							localStorage.setItem(LU, JSON.stringify(lastUpdates));
+						}
+						function _removeEntry(id) {
+							var lastUpdates = _getLastUpdateCache();
+							delete lastUpdates[id];
+							localStorage.setItem(LU, JSON.stringify(lastUpdates));
+						}
+						function _getLastUpdateCache() {
+							var lastUpdates = localStorage.getItem(LU);
+							if (!lastUpdates) {
+								lastUpdates = {};
+							} else {
+								lastUpdates = JSON.parse(lastUpdates);
+							}
+							return lastUpdates;
+						}
+						return {
+							/**
+							 * Add an entry in lastUpdate manager
+							 * Add now moment for id
+							 * @param {String} id : the entry id
+							 */
+							addEntry: _addEntry,
+							/**
+							 * Remove entry in last update manager
+							 * Means the service id is not in cache
+							 * @param {String} id : the entry id
+							 */
+							removeEntry: _removeEntry,
+							/**
+							 * Return all entries date linked to cache entries
+							 * @returns {Object} : { id1:String : date:number, id2:String : date:number}
+							 */
+							getLastUpdateCache: _getLastUpdateCache
+						};
+					})()
+				function manageAddEvent(msgToClient) {
+					var evt = document.createEvent(EVT);
+					evt.initEvent(ADD, true, false);
+					evt.msg = msgToClient;
+					addHandlers.forEach(function (handler) {
+						handler(evt);
+					});
+				}
+				function manageRemoveEvent(compositeKey) {
+					var evt = document.createEvent(EVT);
+					evt.initEvent(RM, true, false);
+					evt.key = compositeKey;
+					removeHandlers.forEach(function (handler) {
+						handler(evt);
+					});
+				}
+				function _addEventListener(type, listener) {
+					if (type === ADD) {
+						addHandlers.push(listener);
+					} else if (type === RM) {
+						removeHandlers.push(listener);
+					}
+				}
+				function _removeEventListener(type, listener) {
+					var idx = -1;
+					if (type === ADD) {
+						idx = addHandlers.indexOf(listener);
+						if (idx !== -1) {
+							addHandlers.splice(idx, 1);
+						}
+					} else if (type === RM) {
+						idx = removeHandlers.indexOf(listener);
+						if (idx !== -1) {
+							removeHandlers.splice(idx, 1);
+						}
+					}
+				}
+				function _putResultInCache(msgToClient) {
+					var ids, json, obj;
+					if (!msgToClient.deadline) {
+						return;
+					}
+					lastUpdateManager.addEntry(msgToClient.id);
+					manageAddEvent(msgToClient);
+					ids = msgToClient.id.split("_");
+					json = localStorage.getItem(ids[0]);
+					obj = {};
+					if (json) {
+						obj = JSON.parse(json);
+					}
+					obj[ids[1]] = msgToClient;
+					json = JSON.stringify(obj);
+					localStorage.setItem(ids[0], json);
+				}
+				function _getResultInCache(compositeKey, ignoreCache) {
+					var ids, json, msgToClient, obj, now;
+					if (ignoreCache) {
+						return null;
+					}
+					ids = compositeKey.split("_");
+					msgToClient = null;
+					json = localStorage.getItem(ids[0]);
+					if (json) {
+						obj = JSON.parse(json);
+						msgToClient = obj[ids[1]];
+					}
+					if (msgToClient) {
+						now = new Date().getTime();
+						// check validity
+						if (now > msgToClient.deadline) {
+							this.removeEntryInCache(compositeKey);
+							msgToClient = null; // invalid
+						}
+					}
+					return msgToClient;
+				}
+				function _removeEntryInCache(compositeKey) {
+					var ids, entry, obj;
+					lastUpdateManager.removeEntry(compositeKey);
+					manageRemoveEvent(compositeKey);
+					ids = compositeKey.split("_");
+					entry = localStorage.getItem(ids[0]);
+					if (entry) {
+						obj = JSON.parse(entry);
+						if (ids.length === 2) {
+							delete obj[ids[1]];
+							localStorage.setItem(ids[0], JSON.stringify(obj));
+						} else {
+							localStorage.removeItem(ids[0]);
+						}
+					}
+				}
+				function _removeEntries(list) {
+					list.forEach(function (key) {
+						removeEntryInCache(key);
+					});
+				}
+				function _clearCache() {
+					localStorage.clear();
+				}
+				function _getLastUpdateCache() {
+					return lastUpdateManager.getLastUpdateCache();
+				}
+				return {
+					getLastUpdateCache: _getLastUpdateCache,
+					/**
+					 * Add listener for receive cache event
+					 * @param {String} type event : add, remove
+					 * @param {Function} listener
+					 */
+					addEventListener: _addEventListener,
+					/**
+					 * Remove listener for receive cache event
+					 * @param {String} type event : add, remove
+					 * @param {Function} listener
+					 */
+					removeEventListener: _removeEventListener,
+					/**
+					 * If msgToClient has deadline so we stock in cache
+					 * Add result in cache storage
+					 * @param {MessageToClient} msgToClient
+					 */
+					putResultInCache: _putResultInCache,
+					/**
+					 * get entry from cache
+					 * @param {String} compositeKey
+					 * @param {boolean} ignoreCache
+					 * @returns {MessageToClient}
+					 */
+					getResultInCache: _getResultInCache,
+					/**
+					 * Remove sub entry or entry in cache
+					 * @param {String} compositeKey
+					 */
+					removeEntryInCache: _removeEntryInCache,
+					/**
+					 * Remove all entries defined in list
+					 * @param {array} list
+					 */
+					removeEntries: _removeEntries,
+					/**
+					 * Clear cache storage
+					 */
+					clearCache: _clearCache
+				};
+			})()
 		function createEventFromPromise(type, promise, msgToClient) {
 			var evt = document.createEvent(EVT);
 			evt.initEvent(type, true, false);
@@ -302,11 +490,11 @@ if ("WebSocket" in window) {
 			evt.networktime = 0;
 			if (msgToClient) {
 				evt.response = msgToClient.response;
-				if (options.monitor) {
+				if (opts.monitor) {
 					evt.javatime = msgToClient.t; // backend timing
 				}
 			}
-			if (options.monitor) {
+			if (opts.monitor) {
 				evt.totaltime = new Date().getTime() - promise.t; // total timing
 			}
 			return evt;
@@ -325,8 +513,7 @@ if ("WebSocket" in window) {
 		}
 		function stateUpdated() {
 			foreachPromiseInPromisesDo(STATUS, function (promise) {
-				var response = createMessageEventFromPromise(promise, {"response": ocelotController.status, "t": 0});
-				promise.response = response;
+				promise.response = createMessageEventFromPromise(promise, { "response": ocelotController.status, "t": 0 });
 			});
 		}
 		function foreachPromiseInPromisesDo(id, func) {
@@ -376,8 +563,7 @@ if ("WebSocket" in window) {
 			var params = search.split("&");
 			params.forEach(function (param) {
 				if (param.search(/^\??ocelot=/) === 0) {
-					var opts = decodeURI(param.replace(/\??ocelot=/, ""));
-					options = JSON.parse(opts);
+					opts = JSON.parse(decodeURI(param.replace(/\??ocelot=/, "")));
 				}
 			});
 		}
@@ -393,7 +579,7 @@ if ("WebSocket" in window) {
 							msgToClient = JSON.parse(xhttp.responseText);
 							receiveMtc(msgToClient);
 						} else {
-							receiveMtc({"id": promise.id, "type": FAULT, "response": {"classname": "XMLHttpRequest", "message": "XMLHttpRequest request failed : code = " + xhttp.status, "stacktrace": []}, "t": 0});
+							receiveMtc({ "id": promise.id, "type": FAULT, "response": { "classname": "XMLHttpRequest", "message": "XMLHttpRequest request failed : code = " + xhttp.status, "stacktrace": [] }, "t": 0 });
 						}
 					}
 				};
@@ -405,7 +591,7 @@ if ("WebSocket" in window) {
 		function receiveMtc(msgToClient) {
 			if (msgToClient.type === RES) { // maybe should be store result in cache
 				// if msgToClient has dead line so we stock in cache
-				ocelotController.cacheManager.putResultInCache(msgToClient);
+				_cacheManager.putResultInCache(msgToClient);
 			}
 			foreachPromiseInPromisesDo(msgToClient.id, function (promise) {
 				switch (msgToClient.type) {
@@ -435,7 +621,7 @@ if ("WebSocket" in window) {
 			}
 		}
 		function onwsmessage(evt) {
-         if(options.debug) console.debug(evt.data);
+			if (opts.debug) console.debug(evt.data);
 			receiveMtc(JSON.parse(evt.data));
 		}
 		function onwserror(evt) {
@@ -444,16 +630,16 @@ if ("WebSocket" in window) {
 		}
 		function onwsclose(evt) {
 			stateUpdated();
-			if(evt.reason !== "ONUNLOAD") {
-				if(options.debug) console.debug("Websocket closed : " + evt.reason + " try reconnect each " + 1000 + "ms");
+			if (opts.reconnect && evt.reason !== "ONUNLOAD") {
+				if (opts.debug) console.debug("Websocket closed : " + evt.reason + " try reconnect each " + 1000 + "ms");
 				closetimer = setInterval(function () {
 					connect();
 				}, 1000);
 			}
 		}
 		function onwsopen(evt) {
-			clearInterval(closetimer);
-			if(options.debug) console.debug("Websocket opened");
+			if (closetimer) clearInterval(closetimer);
+			if (opts.debug) console.debug("Websocket opened");
 			var ps;
 			// handler, apromise, idx, promise;
 			stateUpdated();
@@ -461,12 +647,12 @@ if ("WebSocket" in window) {
 			promises = {};
 			Object.keys(ps).forEach(function (id) { // we redo the subscription
 				if (id !== ps[id].id) {
-					foreachPromiseDo(ps[id], ocelotController.addPromise);
+					foreachPromiseDo(ps[id], _addPromise);
 				}
 			});
 		}
 		function connect() {
-			if(options.debug) console.debug("Ocelotds initialization...");
+			if (opts.debug) console.debug("Ocelotds initialization...");
 			var re = /ocelot-core.js|ocelot\.js.*|ocelot\/core(\.min)?\.js/;
 			for (var i = 0; i < document.scripts.length; i++) {
 				var item = document.scripts[i];
@@ -476,13 +662,43 @@ if ("WebSocket" in window) {
 			}
 			extractOptions(document.location.search);
 			// init a standard httpsession and init websocket
-			return ocelotServices.initCore(options).then(function () {
+			return ocelotServices.initCore(opts).then(function () {
 				ws = new WebSocket("ws" + path + "ocelot-endpoint");
 				ws.onmessage = onwsmessage;
 				ws.onopen = onwsopen;
 				ws.onerror = onwserror;
 				ws.onclose = onwsclose;
 			});
+		}
+		function _close(reason) {
+			setTimeout(function (w) {
+				w.close(1000, reason | "Normal closure; the connection successfully completed whatever purpose for which it was created.");
+			}, 10, ws);
+		}
+		function _addPromise(promise) {
+			if (isTopicSubscription(promise, STATUS)) {
+				addPromiseToId(promise, STATUS);
+				stateUpdated();
+				return;
+			}
+			if (isTopicUnsubscription(promise, STATUS)) {
+				clearPromisesForId(STATUS);
+				return;
+			}
+			// if it's internal service like ocelotController.open or ocelotController.close
+			if (isOcelotControllerServices(promise)) {
+				addPromiseToId(promise, promise.id);
+				return;
+			}
+			// check entry cache
+			var msgToClient = _cacheManager.getResultInCache(promise.id, promise.cacheIgnored);
+			if (msgToClient) {
+				// present and valid, return response without call
+				promise.response = createResultEventFromPromise(promise, { "response": msgToClient.response, "t": 0 });
+				return;
+			}
+			// else call
+			sendMfc(promise);
 		}
 		function init() {
 			// init a standard httpsession and init websocket
@@ -494,7 +710,7 @@ if ("WebSocket" in window) {
 					} else {
 						ocelotController.cacheManager.removeEntryInCache(id);
 					}
-				}).then(function() {
+				}).then(function () {
 					// Get Locale from server or cache and re-set it in session, this launch a message in ocelot-cleancache
 					ocelotServices.getLocale().then(function (locale) {
 						if (locale) {
@@ -511,202 +727,14 @@ if ("WebSocket" in window) {
 		init();
 		return {
 			get options() {
-				return options;
+				return opts;
 			},
 			get status() {
 				return ws ? stateLabels[ws.readyState] : "CLOSED";
 			},
-			close: function (reason) {
-				setTimeout(function () {
-					ws.close(1000, reason | "Normal closure; the connection successfully completed whatever purpose for which it was created.");
-				}, 10);
-			},
-			addPromise: function (promise) {
-				if (isTopicSubscription(promise, STATUS)) {
-					addPromiseToId(promise, STATUS);
-					stateUpdated();
-					return;
-				}
-				if (isTopicUnsubscription(promise, STATUS)) {
-					clearPromisesForId(STATUS);
-					return;
-				}
-				// if it's internal service like ocelotController.open or ocelotController.close
-				if (isOcelotControllerServices(promise)) {
-					addPromiseToId(promise, promise.id);
-					return;
-				}
-				// check entry cache
-				var msgToClient = ocelotController.cacheManager.getResultInCache(promise.id, promise.cacheIgnored);
-				if (msgToClient) {
-					// present and valid, return response without call
-					promise.response = createResultEventFromPromise(promise, {"response": msgToClient.response, "t": 0});
-					return;
-				}
-				// else call
-				sendMfc(promise);
-			},
-			cacheManager: (function () {
-				var LU = "ocelot-lastupdate", addHandlers = [], removeHandlers = [], lastUpdateManager;
-				lastUpdateManager = {
-					addEntry: function (id) {
-						var lastUpdates = this.getLastUpdateCache();
-						lastUpdates[id] = Date.now();
-						localStorage.setItem(LU, JSON.stringify(lastUpdates));
-					},
-					removeEntry: function (id) {
-						var lastUpdates = this.getLastUpdateCache();
-						delete lastUpdates[id];
-						localStorage.setItem(LU, JSON.stringify(lastUpdates));
-					},
-					getLastUpdateCache: function () {
-						var lastUpdates = localStorage.getItem(LU);
-						if (!lastUpdates) {
-							lastUpdates = {};
-						} else {
-							lastUpdates = JSON.parse(lastUpdates);
-						}
-						return lastUpdates;
-					}
-				};
-				function manageAddEvent(msgToClient) {
-					var evt = document.createEvent(EVT);
-					evt.initEvent(ADD, true, false);
-					evt.msg = msgToClient;
-					addHandlers.forEach(function (handler) {
-						handler(evt);
-					});
-				}
-				function manageRemoveEvent(compositeKey) {
-					var evt = document.createEvent(EVT);
-					evt.initEvent(RM, true, false);
-					evt.key = compositeKey;
-					removeHandlers.forEach(function (handler) {
-						handler(evt);
-					});
-				}
-				return {
-					getLastUpdateCache: function () {
-						return lastUpdateManager.getLastUpdateCache();
-					},
-					/**
-					 * Add listener for receive cache event
-					 * @param {String} type event : add, remove
-					 * @param {Function} listener
-					 */
-					addEventListener: function (type, listener) {
-						if (type === ADD) {
-							addHandlers.push(listener);
-						} else if (type === RM) {
-							removeHandlers.push(listener);
-						}
-					},
-					/**
-					 * Remove listener for receive cache event
-					 * @param {String} type event : add, remove
-					 * @param {Function} listener
-					 */
-					removeEventListener: function (type, listener) {
-						var idx = -1;
-						if (type === ADD) {
-							idx = addHandlers.indexOf(listener);
-							if (idx !== -1) {
-								addHandlers.splice(idx, 1);
-							}
-						} else if (type === RM) {
-							idx = removeHandlers.indexOf(listener);
-							if (idx !== -1) {
-								removeHandlers.splice(idx, 1);
-							}
-						}
-					},
-					/**
-					 * If msgToClient has deadline so we stock in cache
-					 * Add result in cache storage
-					 * @param {MessageToClient} msgToClient
-					 */
-					putResultInCache: function (msgToClient) {
-						var ids, json, obj;
-						if (!msgToClient.deadline) {
-							return;
-						}
-						lastUpdateManager.addEntry(msgToClient.id);
-						manageAddEvent(msgToClient);
-						ids = msgToClient.id.split("_");
-						json = localStorage.getItem(ids[0]);
-						obj = {};
-						if (json) {
-							obj = JSON.parse(json);
-						}
-						obj[ids[1]] = msgToClient;
-						json = JSON.stringify(obj);
-						localStorage.setItem(ids[0], json);
-					},
-					/**
-					 * get entry from cache
-					 * @param {String} compositeKey
-					 * @param {boolean} ignoreCache
-					 * @returns {MessageToClient}
-					 */
-					getResultInCache: function (compositeKey, ignoreCache) {
-						var ids, json, msgToClient, obj, now;
-						if (ignoreCache) {
-							return null;
-						}
-						ids = compositeKey.split("_");
-						msgToClient = null;
-						json = localStorage.getItem(ids[0]);
-						if (json) {
-							obj = JSON.parse(json);
-							msgToClient = obj[ids[1]];
-						}
-						if (msgToClient) {
-							now = new Date().getTime();
-							// check validity
-							if (now > msgToClient.deadline) {
-								removeEntryInCache(compositeKey);
-								msgToClient = null; // invalid
-							}
-						}
-						return msgToClient;
-					},
-					/**
-					 * Remove sub entry or entry in cache
-					 * @param {String} compositeKey
-					 */
-					removeEntryInCache: function (compositeKey) {
-						var ids, entry, obj;
-						lastUpdateManager.removeEntry(compositeKey);
-						manageRemoveEvent(compositeKey);
-						ids = compositeKey.split("_");
-						entry = localStorage.getItem(ids[0]);
-						if (entry) {
-							obj = JSON.parse(entry);
-							if (ids.length === 2) {
-								delete obj[ids[1]];
-								localStorage.setItem(ids[0], JSON.stringify(obj));
-							} else {
-								localStorage.removeItem(ids[0]);
-							}
-						}
-					},
-					/**
-					 * Remove all entries defined in list
-					 * @param {array} list
-					 */
-					removeEntries: function (list) {
-						list.forEach(function (key) {
-							removeEntryInCache(key);
-						});
-					},
-					/**
-					 * Clear cache storage
-					 */
-					clearCache: function () {
-						localStorage.clear();
-					}
-				};
-			})()
+			close: _close,
+			addPromise: _addPromise,
+			cacheManager: _cacheManager
 		};
 	})();
 } else {

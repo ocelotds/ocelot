@@ -1,638 +1,4 @@
 /// <reference path="ocelot-services.d.ts" />
-let ocelotController: IOcelotController;
-interface IOcelotController {
-	cacheManager: IOcelotCacheManager,
-	options: IOcelotOptions,
-	status: string,
-	close(reason: string): void,
-	addPromise(promise: IOcelotPromise): void
-}
-interface ILastUpdateManager {
-	addEntry(id: string): void
-	removeEntry(id: string): void
-	getLastUpdateCache(): LastUpdatedMap
-}
-interface IOcelotCacheManager {
-	/**
-	 * Get map of last update cache
-	 */
-	getLastUpdateCache(): LastUpdatedMap
-	/**
-	 * Add listener for receive cache event
-	 * @param {String} type event : add, remove
-	 * @param {Function} listener
-	 */
-	addEventListener(type: string, listener: Function): void
-	/**
-	 * Remove listener for receive cache event
-	 * @param {String} type event : add, remove
-	 * @param {Function} listener
-	 */
-	removeEventListener(type: string, listener: Function): void
-	/**
-	 * If msgToClient has deadline so we stock in cache
-	 * Add result in cache storage
-	 * @param {MessageToClient} msgToClient
-	 */
-	putResultInCache(msgToClient: MessageToCLient): void
-	/**
-	 * get entry from cache
-	 * @param {String} compositeKey
-	 * @param {boolean} ignoreCache
-	 * @returns {MessageToClient}
-	 */
-	getResultInCache(compositeKey: string, ignoreCache: boolean): MessageToCLient
-	/**
-	 * Remove sub entry or entry in cache
-	 * @param {String} compositeKey
-	 */
-	removeEntryInCache(compositeKey: string): void
-	/**
-	 * Remove all entries defined in list
-	 * @param {array} list
-	 */
-	removeEntries(list: string[]): void
-	/**
-	 * Clear cache storage
-	 */
-	clearCache(): void
-}
-let OcelotConstants = {
-	get LU(): string {return "ocelot-lastupdate"},
-	get RES(): string {return "RESULT"},
-	get FAULT(): string {return "FAULT"},
-	get CONSTRAINT(): string {return "CONSTRAINT"},
-	get MSG(): string {return "MESSAGE"},
-	get ALL(): string {return "ALL"},
-	get EVT(): string {return "Event"},
-	get ADD(): string {return "add"},
-	get RM(): string {return "remove"},
-	get CLEANCACHE(): string {return "ocelot-cleancache"},
-	get STATUS(): string {return "ocelot-status"},
-	get OSRV(): string {return "org.ocelotds.OcelotServices"},
-	get SUB(): string {return "subscribe"},
-	get UNSUB(): string {return "unsubscribe"},
-	get stateLabels(): string[] {return ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED']}
-};
-class OcelotPromiseFactory {
-	static createPromise:Function = function(ds: string, id: string, op: string, argNames: string[], args: string[]): IOcelotPromise {
-		return new OcelotPromiseSrv(ds, id, op, argNames, args);
-	}
-}
-/**
- * Add ocelotController events to document
- * @param {Event} event
- */
-document.addEventListener("call", function (event: OcelotEvent) {
-	ocelotController.addPromise(event.promise);
-});
-window.addEventListener("beforeunload", function (e: Event) {
-	if (ocelotController) {
-		ocelotController.close("ONUNLOAD");
-	}
-});
-/*class OcelotOptions implements IOcelotOptions {
-	public constructor(public monitor: boolean = false, public debug: boolean = false) {}
-}*/
-abstract class OcelotPromise implements IOcelotPromise {
-	public constructor(public dataservice: string, public id: string, public operation: string, public argNames: string[], public args: any[]) {
-		this.key = id;
-		this.t = new Date().getTime();
-		this.launch();
-	}
-	protected key: string;
-	public t: number;
-	get cacheIgnored(): boolean {
-		return false;
-	}
-	protected fault: Fault;
-	protected thenHandlers: Function[] = [];
-	protected catchHandlers: Function[] = [];
-	protected constraintHandlers: Function[] = [];
-	protected eventHandlers: Function[] = []
-	protected evt: OcelotResultEvent;
-	private launch(): void {
-		let e: Event = document.createEvent("Event");
-		e.initEvent("call", true, false);
-		let oe: OcelotEvent = <OcelotEvent>e;
-		oe.promise = this;
-		setTimeout(function () {
-			document.dispatchEvent(oe);
-		}, 1);
-	}
-	set response(e: OcelotResultEvent) {
-		this.evt = e;
-		this.process();
-	}
-	get json(): MessageFromClient {
-		return { "id": this.id, "ds": this.dataservice, "op": this.operation, "argNames": this.argNames, "args": this.args };
-	}
-	public then(onFulfilled: Function, onRejected?: Function): OcelotPromise {
-		this.thenHandlers.push(onFulfilled);
-		if (onRejected) {
-			this.catchHandlers.push(onRejected);
-		}
-		this.process();// event already receive ?
-		return this;
-	}
-	public catch(onRejected: Function): OcelotPromise {
-		if (onRejected) {
-			this.catchHandlers.push(onRejected);
-		}
-		this.process();// event already receive ?
-		return this;
-	}
-	public event(onEvented: Function): OcelotPromise {
-		if (onEvented) {
-			this.eventHandlers.push(onEvented);
-		}
-		this.process();// event already receive ?
-		return this;
-	}
-	protected process(): void {
-		let handler: Function;
-		if (!this.evt) {
-			return;
-		}
-		while (handler = this.eventHandlers.shift()) {
-			handler(this.evt);
-		}
-		switch (this.evt.type) {
-			case OcelotConstants.RES:
-				while (handler = this.thenHandlers.shift()) {
-					handler(this.evt.response);
-				}
-				break;
-			case OcelotConstants.CONSTRAINT:
-				while (handler = this.constraintHandlers.shift()) {
-					handler(this.evt.response);
-				}
-				break;
-			case OcelotConstants.FAULT:
-				let fault: Fault = <Fault>this.evt.response;
-				console.error(fault.classname + "(" + fault.message + ")");
-				while (handler = this.catchHandlers.shift()) {
-					handler(fault);
-				}
-				break;
-		}
-	}
-}
-class OcelotPromiseSrv extends OcelotPromise {
-	private cignored:boolean = false; 
-	public constraint(onConstraint: Function): OcelotPromiseSrv {
-		if (onConstraint) {
-			this.constraintHandlers.push(onConstraint);
-		}
-		this.process();// event already receive ?
-		return this;
-	}
-	public ignoreCache(ignore: boolean): OcelotPromiseSrv {
-		this.cignored = ignore;
-		return this;
-	}
-	get cacheIgnored(): boolean {
-		return this.cignored;
-	}
-}
-class OcelotPromiseTopic extends OcelotPromise {
-	public constructor(p: IOcelotPromise) {
-		super(p.dataservice, p.id, p.operation, p.argNames, p.args);
-	}
-	get topic(): string {
-		return this.args[0];
-	}
-	protected messageHandlers: Function[] = [];
-	protected process(): void {
-		let handler: Function;
-		if (!this.evt) {
-			return;
-		}
-		if (this.evt.type !== OcelotConstants.MSG) {
-			super.process();
-		} else {
-			this.messageHandlers.forEach(function (messageHandler: Function) {
-				messageHandler(this.evt.response);
-			});
-		}
-	}
-	public message(onMessaged: Function): OcelotPromiseTopic {
-		if (onMessaged) {
-			this.messageHandlers.push(onMessaged);
-		}
-		this.process();// event already receive ?
-		return this;
-	}
-	public unsubscribe(): IOcelotPromise {
-		return ocelotServices.unsubscribe(this.topic);
-	}
-}
-class Subscriber extends OcelotPromiseTopic {
-	public constructor(public topic: string) {
-		super(<IOcelotPromise>ocelotServices.subscribe(topic));
-	}
-}
-class OcelotEvent extends Event {
-	public promise: IOcelotPromise;
-}
-if ("WebSocket" in window) {
-	ocelotController = (function (): IOcelotController {
-		function init() {
-			// init a standard httpsession and init websocket
-			connect().then(function () {
-				// Controller subscribe to ocelot-cleancache topic
-				new Subscriber(OcelotConstants.CLEANCACHE).message(function (id: string) {
-					if (id === OcelotConstants.ALL) {
-						ocelotCacheManager.clearCache();
-					} else {
-						ocelotCacheManager.removeEntryInCache(id);
-					}
-				}).then(function () {
-					// Get Locale from server or cache and re-set it in session, this launch a message in ocelot-cleancache
-					ocelotServices.getLocale().then(function (locale: Locale) {
-						if (locale) {
-							ocelotServices.setLocale(locale);
-						}
-					});
-				});
-				// send states or current objects in cache with lastupdate
-				ocelotServices.getOutDatedCache(ocelotCacheManager.getLastUpdateCache()).then(function (entries: string[]) {
-					ocelotCacheManager.removeEntries(entries);
-				});
-			});
-		}
-		let options: IOcelotOptions = {"monitor":false, "debug":false};
-		let ws: WebSocket;
-		let promisesMap: PromisesMap = {}
-		let path: string;
-		let closetimer: number;
-		let ocelotCacheManager = (function (): IOcelotCacheManager {
-			let addHandlers: Function[] = [];
-			let removeHandlers: Function[] = [];
-			let lastUpdateManager: ILastUpdateManager  = (function (): ILastUpdateManager {
-				return <ILastUpdateManager>{
-					addEntry(id: string): void {
-						let lastUpdates: LastUpdatedMap = this.getLastUpdateCache();
-						lastUpdates[id] = Date.now();
-						localStorage.setItem(OcelotConstants.LU, JSON.stringify(lastUpdates));
-					},
-					removeEntry(id: string): void {
-						let lastUpdates: LastUpdatedMap = this.getLastUpdateCache();
-						delete lastUpdates[id];
-						localStorage.setItem(OcelotConstants.LU, JSON.stringify(lastUpdates));
-					},
-					getLastUpdateCache(): LastUpdatedMap {
-						let lastUpdates: string = localStorage.getItem(OcelotConstants.LU);
-						if (!lastUpdates) {
-							return {};
-						} else {
-							return JSON.parse(lastUpdates);
-						}
-					}
-				}
-			})()
-			function manageAddEvent(msgToClient: MessageToCLient): void {
-				let evt: OcelotMsgEvent = <OcelotMsgEvent>document.createEvent(OcelotConstants.EVT);
-				evt.initEvent(OcelotConstants.ADD, true, false);
-				evt.msg = msgToClient;
-				this.addHandlers.forEach(function (handler: Function) {
-					handler(evt);
-				});
-			}
-			function manageRemoveEvent(compositeKey: string) {
-				let evt: OcelotKeyEvent = <OcelotKeyEvent>document.createEvent(OcelotConstants.EVT);
-				evt.initEvent(OcelotConstants.RM, true, false);
-				evt.key = compositeKey;
-				this.removeHandlers.forEach(function (handler: Function) {
-					handler(evt);
-				});
-			}
-			return <IOcelotCacheManager>{
-				getLastUpdateCache(): LastUpdatedMap {
-					return this.lastUpdateManager.getLastUpdateCache();
-				},
-				addEventListener(type: string, listener: Function): void {
-					if (type === OcelotConstants.ADD) {
-						this.addHandlers.push(listener);
-					} else if (type === OcelotConstants.RM) {
-						this.removeHandlers.push(listener);
-					}
-				},
-				removeEventListener(type: string, listener: Function): void {
-					let idx = -1;
-					if (type === OcelotConstants.ADD) {
-						idx = this.addHandlers.indexOf(listener);
-						if (idx !== -1) {
-							this.addHandlers.splice(idx, 1);
-						}
-					} else if (type === OcelotConstants.RM) {
-						idx = this.removeHandlers.indexOf(listener);
-						if (idx !== -1) {
-							this.removeHandlers.splice(idx, 1);
-						}
-					}
-				},
-				putResultInCache(msgToClient: MessageToCLient): void {
-					let ids: string[], json: string, obj: any;
-					if (!msgToClient.deadline) {
-						return;
-					}
-					this.lastUpdateManager.addEntry(msgToClient.id);
-					this.manageAddEvent(msgToClient);
-					ids = msgToClient.id.split("_");
-					json = localStorage.getItem(ids[0]);
-					obj = {};
-					if (json) {
-						obj = JSON.parse(json);
-					}
-					obj[ids[1]] = msgToClient;
-					json = JSON.stringify(obj);
-					localStorage.setItem(ids[0], json);
-				},
-				getResultInCache(compositeKey: string, ignoreCache: boolean): MessageToCLient {
-					let ids: string[], json: string, msgToClient: MessageToCLient, obj: any, now: number;
-					if (ignoreCache) {
-						return null;
-					}
-					ids = compositeKey.split("_");
-					msgToClient = null;
-					json = localStorage.getItem(ids[0]);
-					if (json) {
-						obj = JSON.parse(json);
-						msgToClient = obj[ids[1]];
-					}
-					if (msgToClient) {
-						now = new Date().getTime();
-						// check validity
-						if (now > msgToClient.deadline) {
-							this.removeEntryInCache(compositeKey);
-							msgToClient = null; // invalid
-						}
-					}
-					return msgToClient;
-				},
-				removeEntryInCache(compositeKey: string): void {
-					this.lastUpdateManager.removeEntry(compositeKey);
-					this.manageRemoveEvent(compositeKey);
-					let ids: string[] = compositeKey.split("_");
-					let entry: string = localStorage.getItem(ids[0]);
-					if (entry) {
-						let obj: any = JSON.parse(entry);
-						if (ids.length === 2) {
-							delete obj[ids[1]];
-							localStorage.setItem(ids[0], JSON.stringify(obj));
-						} else {
-							localStorage.removeItem(ids[0]);
-						}
-					}
-				},
-				removeEntries(list: string[]): void {
-					list.forEach(function (key) {
-						this.removeEntryInCache(key);
-					});
-				},
-				clearCache(): void {
-					localStorage.clear();
-				}
-			}
-		})();
-		function createEventFromPromise(type: string, promise: OcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
-			let evt: OcelotResultEvent = <OcelotResultEvent>document.createEvent(OcelotConstants.EVT);
-			evt.initEvent(type, true, false);
-			evt.dataservice = promise.dataservice;
-			evt.operation = promise.operation;
-			evt.args = promise.args;
-			evt.totaltime = 0;
-			evt.javatime = 0;
-			evt.jstime = 0;
-			evt.networktime = 0;
-			if (msgToClient) {
-				evt.response = msgToClient.response;
-				if (options.monitor) {
-					evt.javatime = msgToClient.t; // backend timing
-				}
-			}
-			if (options.monitor) {
-				evt.totaltime = new Date().getTime() - promise.t; // total timing
-			}
-			return evt;
-		}
-		function createMessageEventFromPromise(promise: OcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
-			return createEventFromPromise(OcelotConstants.MSG, promise, msgToClient);
-		}
-		function createResultEventFromPromise(promise: OcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
-			return createEventFromPromise(OcelotConstants.RES, promise, msgToClient);
-		}
-		function createConstraintEventFromPromise(promise: OcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
-			return createEventFromPromise(OcelotConstants.CONSTRAINT, promise, msgToClient);
-		}
-		function createFaultEventFromPromise(promise: OcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
-			return createEventFromPromise(OcelotConstants.FAULT, promise, msgToClient);
-		}
-		function stateUpdated(): void {
-			foreachPromiseInPromisesDo(OcelotConstants.STATUS, function (promise: OcelotPromise) {
-				let response = createMessageEventFromPromise(promise, { "response": status, "t": 0, "id":"", "type":"", deadline:0});
-				promise.response = response;
-			});
-		}
-		function foreachPromiseInPromisesDo(id: string, func: Function): void {
-			foreachPromiseDo(getPromises(id), func);
-		}
-		function foreachPromiseDo(aPromises: IOcelotPromise[], func: Function): void {
-			if (aPromises) {
-				for (let i: number = 0; i < aPromises.length; i++) {
-					func(aPromises[i]);
-				}
-			}
-		}
-		function addPromiseToId(promise: OcelotPromise, id: string): boolean { // add promise to promise list and return if some promises exists already for id
-			let exists = (promisesMap[id] !== undefined);
-			if (!exists) {
-				promisesMap[id] = [];
-			}
-			promisesMap[id].push(promise);
-			return exists;
-		}
-		function clearPromisesForId(id: string): void {
-			delete promisesMap[id];
-		}
-		function getPromises(id: string): IOcelotPromise[] {
-			return promisesMap[id] || [];
-		}
-		function isOcelotControllerServices(promise: OcelotPromise): boolean {
-			return promise && (promise.dataservice === "ocelotController");
-		}
-		function isSubscription(promise: OcelotPromise): boolean {
-			return promise.dataservice === OcelotConstants.OSRV && promise.operation === OcelotConstants.SUB;
-		}
-		function isTopicSubscription(promise: OcelotPromise, topic: string): boolean {
-			return isSubscription(promise) && isTopic(promise, topic);
-		}
-		function isUnsubscription(promise: OcelotPromise): boolean {
-			return promise.dataservice === OcelotConstants.OSRV && promise.operation === OcelotConstants.UNSUB;
-		}
-		function isTopicUnsubscription(promise: OcelotPromise, topic: string): boolean {
-			return isUnsubscription(promise) && isTopic(promise, topic);
-		}
-		function isTopic(promise: OcelotPromise, topic: string): boolean {
-			return topic ? (promise.args[0] === topic) : true;
-		}
-		function extractOptions(search: string): void {
-			let params = search.split("&");
-			params.forEach(function (param) {
-				if (param.search(/^\??ocelot=/) === 0) {
-					options = JSON.parse(decodeURI(param.replace(/\??ocelot=/, "")));
-				}
-			});
-		}
-		function sendMfc(promise: OcelotPromise): void {
-			if (!addPromiseToId(promise, promise.id)) {
-				// Subscription or unsubscription to topic, use websocket
-				let mfc: string = JSON.stringify(promise.json);
-				let xhttp: XMLHttpRequest = new XMLHttpRequest();
-				xhttp.onreadystatechange = function () {
-					if (xhttp.readyState === 4) {
-						if (xhttp.status === 200) {
-							let msgToClient: MessageToCLient = JSON.parse(xhttp.responseText);
-							receiveMtc(msgToClient);
-						} else {
-							receiveMtc(<MessageToCLient>{ "id": promise.id, "type": OcelotConstants.FAULT, "response": { "classname": "XMLHttpRequest", "message": "XMLHttpRequest request failed : code = " + xhttp.status, "stacktrace": [] }, "t": 0 });
-						}
-					}
-				};
-				xhttp.open("POST", "http" + path + "ocelot/endpoint", true);
-				xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-				xhttp.send("mfc=" + mfc);
-			}
-		}
-		function receiveMtc(msgToClient: MessageToCLient): void {
-			if (msgToClient.type === OcelotConstants.RES) { // maybe should be store result in cache
-				// if msgToClient has dead line so we stock in cache
-				ocelotCacheManager.putResultInCache(msgToClient);
-			}
-			foreachPromiseInPromisesDo(msgToClient.id, function (promise: OcelotPromise) {
-				switch (msgToClient.type) {
-					case OcelotConstants.FAULT:
-						promise.response = createFaultEventFromPromise(promise, msgToClient);
-						break;
-					case OcelotConstants.RES:
-						// if msg is response of subscribe request
-						if (isTopicSubscription(promise)) {
-							addPromiseToId(promise, promise.args[0]);
-						} else if (isTopicUnsubscription(promise)) {
-							clearPromisesForId(promise.args[0]);
-						}
-						promise.response = createResultEventFromPromise(promise, msgToClient);
-						break;
-					case OcelotConstants.CONSTRAINT:
-						promise.response = createConstraintEventFromPromise(promise, msgToClient);
-						break;
-					case OcelotConstants.MSG:
-						promise.response = createMessageEventFromPromise(promise, msgToClient);
-						break;
-				}
-			});
-			// when receive result or fault, remove handlers, except for topic
-			if (msgToClient.type !== OcelotConstants.MSG) {
-				clearPromisesForId(msgToClient.id);
-			}
-		}
-		function onwsmessage(evt: MessageEvent): void {
-			if (options.debug) console.debug(evt.data);
-			receiveMtc(JSON.parse(evt.data));
-		}
-		function onwserror(evt: ErrorEvent): void {
-			console.info("Websocket error : " + evt.error);
-			stateUpdated();
-		}
-		function onwsclose(evt: CloseEvent): void {
-			stateUpdated();
-			if (evt.reason !== "ONUNLOAD") {
-				if (options.debug) console.debug("Websocket closed : " + evt.reason + " try reconnect each " + 1000 + "ms");
-				closetimer = setInterval(function () {
-					connect();
-				}, 1000);
-			}
-		}
-		function onwsopen(evt: Event): void {
-			clearInterval(closetimer);
-			if (options.debug) console.debug("Websocket opened");
-			let ps: PromisesMap;
-			// handler, apromise, idx, promise;
-			stateUpdated();
-			ps = promisesMap;
-			promisesMap = {};
-			Object.keys(ps).forEach(function (id: string) { // we redo the subscription
-				if (ps[id].length && id !== ps[id][0].id) { // ps[id][0].id : topic name
-					foreachPromiseDo(ps[id], addPromise);
-				}
-			});
-		}
-		function connect(): IOcelotPromise {
-			if (options.debug) console.debug("Ocelotds initialization...");
-			let re = /ocelot-core.js|ocelot\.js.*|ocelot\/core(\.min)?\.js/;
-			for (let i = 0; i < document.scripts.length; i++) {
-				let item: HTMLScriptElement = <HTMLScriptElement>document.scripts[i];
-				if (item.src.match(re)) {
-					path = item.src.replace(/^http/, "").replace(re, "");
-				}
-			}
-			extractOptions(document.location.search);
-			// init a standard httpsession and init websocket
-			return ocelotServices.initCore(options).then(function () {
-				ws = new WebSocket("ws" + path + "ocelot-endpoint");
-				ws.onmessage = onwsmessage;
-				ws.onopen = onwsopen;
-				ws.onerror = onwserror;
-				ws.onclose = onwsclose;
-			});
-		}
-		init()
-		return {
-			get cacheManager(): IOcelotCacheManager {
-				return ocelotCacheManager;
-			},
-			get options(): IOcelotOptions {
-				return opts;
-			},
-			get status(): string {
-				return ws ? OcelotConstants.stateLabels[ws.readyState] : "CLOSED";
-			},
-			close(reason: string): void {
-				setTimeout(function () {
-					ws.close(1000, reason || "Normal closure; the connection successfully completed whatever purpose for which it was created.");
-				}, 10);
-			},
-			addPromise(promise: OcelotPromiseSrv): void {
-				if (isTopicSubscription(promise, OcelotConstants.STATUS)) {
-					addPromiseToId(promise, OcelotConstants.STATUS);
-					stateUpdated();
-					return;
-				}
-				if (isTopicUnsubscription(promise, OcelotConstants.STATUS)) {
-					clearPromisesForId(OcelotConstants.STATUS);
-					return;
-				}
-				// if it's internal service like ocelotController.open or ocelotController.close
-				if (isOcelotControllerServices(promise)) {
-					addPromiseToId(promise, promise.id);
-					return;
-				}
-				// check entry cache
-				let msgToClient: MessageToCLient = ocelotCacheManager.getResultInCache(promise.id, promise.cacheIgnored);
-				if (msgToClient) {
-					// present and valid, return response without call
-					promise.response = createResultEventFromPromise(promise, <MessageToCLient>{ "response": msgToClient.response, "t": 0 });
-					return;
-				}
-				// else call
-				sendMfc(promise);
-			}
-		}
-	})();
-} else {
-	alert("Sorry, but your browser doesn't support websocket");
-}
 /**
  * MD5Tools
  */
@@ -794,3 +160,1012 @@ interface String {
 	}
 	return MD5Tools.rhex(a) + MD5Tools.rhex(b) + MD5Tools.rhex(c) + MD5Tools.rhex(d);
 };
+class LastUpdateManager {
+	public addEntry(id: string): void {
+		let lastUpdates: LastUpdatedMap = this.getLastUpdateCache();
+		lastUpdates[id] = Date.now();
+		localStorage.setItem(OcelotConstants.LU, JSON.stringify(lastUpdates));
+	}
+	public removeEntry(id: string): void {
+		let lastUpdates: LastUpdatedMap = this.getLastUpdateCache();
+		delete lastUpdates[id];
+		localStorage.setItem(OcelotConstants.LU, JSON.stringify(lastUpdates));
+	}
+	public getLastUpdateCache(): LastUpdatedMap {
+		let lastUpdates: string = localStorage.getItem(OcelotConstants.LU);
+		if (!lastUpdates) {
+			return {};
+		} else {
+			return JSON.parse(lastUpdates);
+		}
+	}
+}
+class OcelotCacheManager implements IOcelotCacheManager {
+	private lastUpdateManager: LastUpdateManager = new LastUpdateManager();
+	private addHandlers: Function[] = [];
+	private removeHandlers: Function[] = [];
+	private manageAddEvent(msgToClient: MessageToCLient): void {
+		let evt: OcelotMsgEvent = <OcelotMsgEvent>document.createEvent(OcelotConstants.EVT);
+		evt.initEvent(OcelotConstants.ADD, true, false);
+		evt.msg = msgToClient;
+		this.addHandlers.forEach(function (handler: Function) {
+			handler(evt);
+		});
+	}
+	private manageRemoveEvent(compositeKey: string) {
+		let evt: OcelotKeyEvent = <OcelotKeyEvent>document.createEvent(OcelotConstants.EVT);
+		evt.initEvent(OcelotConstants.RM, true, false);
+		evt.key = compositeKey;
+		this.removeHandlers.forEach(function (handler: Function) {
+			handler(evt);
+		});
+	}
+	public getLastUpdateCache(): LastUpdatedMap {
+		return this.lastUpdateManager.getLastUpdateCache();
+	}
+	public addEventListener(type: string, listener: Function): void {
+		if (type === OcelotConstants.ADD) {
+			this.addHandlers.push(listener);
+		} else if (type === OcelotConstants.RM) {
+			this.removeHandlers.push(listener);
+		}
+	}
+	public removeEventListener(type: string, listener: Function): void {
+		let idx = -1;
+		if (type === OcelotConstants.ADD) {
+			idx = this.addHandlers.indexOf(listener);
+			if (idx !== -1) {
+				this.addHandlers.splice(idx, 1);
+			}
+		} else if (type === OcelotConstants.RM) {
+			idx = this.removeHandlers.indexOf(listener);
+			if (idx !== -1) {
+				this.removeHandlers.splice(idx, 1);
+			}
+		}
+	}
+	public putResultInCache(msgToClient: MessageToCLient): void {
+		let ids: string[], json: string, obj: any;
+		if (!msgToClient.deadline) {
+			return;
+		}
+		this.lastUpdateManager.addEntry(msgToClient.id);
+		this.manageAddEvent(msgToClient);
+		ids = msgToClient.id.split("_");
+		json = localStorage.getItem(ids[0]);
+		obj = {};
+		if (json) {
+			obj = JSON.parse(json);
+		}
+		obj[ids[1]] = msgToClient;
+		json = JSON.stringify(obj);
+		localStorage.setItem(ids[0], json);
+	}
+	public getResultInCache(compositeKey: string, ignoreCache: boolean): MessageToCLient {
+		let ids: string[], json: string, msgToClient: MessageToCLient, obj: any, now: number;
+		if (ignoreCache) {
+			return null;
+		}
+		ids = compositeKey.split("_");
+		msgToClient = null;
+		json = localStorage.getItem(ids[0]);
+		if (json) {
+			obj = JSON.parse(json);
+			msgToClient = obj[ids[1]];
+		}
+		if (msgToClient) {
+			now = new Date().getTime();
+			// check validity
+			if (now > msgToClient.deadline) {
+				this.removeEntryInCache(compositeKey);
+				msgToClient = null; // invalid
+			}
+		}
+		return msgToClient;
+	}
+	public removeEntryInCache(compositeKey: string): void {
+		this.lastUpdateManager.removeEntry(compositeKey);
+		this.manageRemoveEvent(compositeKey);
+		let ids: string[] = compositeKey.split("_");
+		let entry: string = localStorage.getItem(ids[0]);
+		if (entry) {
+			let obj: any = JSON.parse(entry);
+			if (ids.length === 2) {
+				delete obj[ids[1]];
+				localStorage.setItem(ids[0], JSON.stringify(obj));
+			} else {
+				localStorage.removeItem(ids[0]);
+			}
+		}
+	}
+	public removeEntries(list: string[]): void {
+		list.forEach(function (key) {
+			this.removeEntryInCache(key);
+		});
+	}
+	public clearCache(): void {
+		localStorage.clear();
+	}
+}
+class OcelotController {
+	private opts: IOcelotOptions = { "monitor": false, "debug": false, "reconnect": true };
+	private ws: WebSocket;
+	private promisesMap: PromisesMap = {}
+	private path: string;
+	private closetimer: number;
+	private ocelotCacheManager: IOcelotCacheManager = new OcelotCacheManager();
+	public constructor() {
+		// init a standard httpsession and init websocket
+		this.connect().then(function () {
+			// Controller subscribe to ocelot-cleancache topic
+			new Subscriber(OcelotConstants.CLEANCACHE).message(function (id: string) {
+				if (id === OcelotConstants.ALL) {
+					this.ocelotCacheManager.clearCache();
+				} else {
+					this.ocelotCacheManager.removeEntryInCache(id);
+				}
+			}).then(function () {
+				// Get Locale from server or cache and re-set it in session, this launch a message in ocelot-cleancache
+				ocelotServices.getLocale().then(function (locale: Locale) {
+					if (locale) {
+						ocelotServices.setLocale(locale);
+					}
+				});
+			});
+			// send states or current objects in cache with lastupdate
+			ocelotServices.getOutDatedCache(this.ocelotCacheManager.getLastUpdateCache()).then(function (entries: string[]) {
+				this.ocelotCacheManager.removeEntries(entries);
+			});
+		});
+	}
+	public get cacheManager(): IOcelotCacheManager {
+		return this.ocelotCacheManager;
+	}
+	public get options(): IOcelotOptions {
+		return this.opts;
+	}
+	public get status(): string {
+		return this.ws ? OcelotConstants.stateLabels[this.ws.readyState] : "CLOSED";
+	}
+	public close(reason: string): void {
+		setTimeout(function () {
+			this.ws.close(1000, reason || "Normal closure; the connection successfully completed whatever purpose for which it was created.");
+		}, 10);
+	}
+	public addPromise(promise: IOcelotPromise): void {
+		if (this.isTopicSubscription(promise, OcelotConstants.STATUS)) {
+			this.addPromiseToId(promise, OcelotConstants.STATUS);
+			this.stateUpdated();
+			return;
+		}
+		if (this.isTopicUnsubscription(promise, OcelotConstants.STATUS)) {
+			this.clearPromisesForId(OcelotConstants.STATUS);
+			return;
+		}
+		// if it's internal service like ocelotController.open or ocelotController.close
+		if (this.isOcelotControllerServices(promise)) {
+			this.addPromiseToId(promise, promise.id);
+			return;
+		}
+		// check entry cache
+		let msgToClient: MessageToCLient = this.ocelotCacheManager.getResultInCache(promise.id, promise.cacheIgnored);
+		if (msgToClient) {
+			// present and valid, return response without call
+			promise.response = this.createResultEventFromPromise(promise, <MessageToCLient>{ "response": msgToClient.response, "t": 0 });
+			return;
+		}
+		// else call
+		this.sendMfc(promise);
+	}
+	private createEventFromPromise(type: string, promise: IOcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
+		let evt: OcelotResultEvent = <OcelotResultEvent>document.createEvent(OcelotConstants.EVT);
+		evt.initEvent(type, true, false);
+		evt.dataservice = promise.dataservice;
+		evt.operation = promise.operation;
+		evt.args = promise.args;
+		evt.totaltime = 0;
+		evt.javatime = 0;
+		evt.jstime = 0;
+		evt.networktime = 0;
+		if (msgToClient) {
+			evt.response = msgToClient.response;
+			if (this.options.monitor) {
+				evt.javatime = msgToClient.t; // backend timing
+			}
+		}
+		if (this.options.monitor) {
+			evt.totaltime = new Date().getTime() - promise.t; // total timing
+		}
+		return evt;
+	}
+	private createMessageEventFromPromise(promise: OcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
+		return this.createEventFromPromise(OcelotConstants.MSG, promise, msgToClient);
+	}
+	private createResultEventFromPromise(promise: IOcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
+		return this.createEventFromPromise(OcelotConstants.RES, promise, msgToClient);
+	}
+	private createConstraintEventFromPromise(promise: OcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
+		return this.createEventFromPromise(OcelotConstants.CONSTRAINT, promise, msgToClient);
+	}
+	private createFaultEventFromPromise(promise: OcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
+		return this.createEventFromPromise(OcelotConstants.FAULT, promise, msgToClient);
+	}
+	private stateUpdated(): void {
+		this.foreachPromiseInPromisesDo(OcelotConstants.STATUS, function (promise: OcelotPromise) {
+			let response = this.createMessageEventFromPromise(promise, { "response": status, "t": 0, "id": "", "type": "", deadline: 0 });
+			promise.response = response;
+		});
+	}
+	private foreachPromiseInPromisesDo(id: string, func: Function): void {
+		this.foreachPromiseDo(this.getPromises(id), func);
+	}
+	private foreachPromiseDo(aPromises: IOcelotPromise[], func: Function): void {
+		if (aPromises) {
+			for (let i: number = 0; i < aPromises.length; i++) {
+				func(aPromises[i]);
+			}
+		}
+	}
+	private addPromiseToId(promise: IOcelotPromise, id: string): boolean { // add promise to promise list and return if some promises exists already for id
+		let exists = (this.promisesMap[id] !== undefined);
+		if (!exists) {
+			this.promisesMap[id] = [];
+		}
+		this.promisesMap[id].push(promise);
+		return exists;
+	}
+	private clearPromisesForId(id: string): void {
+		delete this.promisesMap[id];
+	}
+	private getPromises(id: string): IOcelotPromise[] {
+		return this.promisesMap[id] || [];
+	}
+	private isOcelotControllerServices(promise: IOcelotPromise): boolean {
+		return promise && (promise.dataservice === "ocelotController");
+	}
+	private isSubscription(promise: IOcelotPromise): boolean {
+		return promise.dataservice === OcelotConstants.OSRV && promise.operation === OcelotConstants.SUB;
+	}
+	private isTopicSubscription(promise: IOcelotPromise, topic: string): boolean {
+		return this.isSubscription(promise) && this.isTopic(promise, topic);
+	}
+	private isUnsubscription(promise: IOcelotPromise): boolean {
+		return promise.dataservice === OcelotConstants.OSRV && promise.operation === OcelotConstants.UNSUB;
+	}
+	private isTopicUnsubscription(promise: IOcelotPromise, topic: string): boolean {
+		return this.isUnsubscription(promise) && this.isTopic(promise, topic);
+	}
+	private isTopic(promise: IOcelotPromise, topic: string): boolean {
+		return topic ? (promise.args[0] === topic) : true;
+	}
+	private extractOptions(search: string): void {
+		let params = search.split("&");
+		params.forEach(function (param) {
+			if (param.search(/^\??ocelot=/) === 0) {
+				this.options = JSON.parse(decodeURI(param.replace(/\??ocelot=/, "")));
+			}
+		});
+	}
+	private sendMfc(promise: IOcelotPromise): void {
+		if (!this.addPromiseToId(promise, promise.id)) {
+			// Subscription or unsubscription to topic, use websocket
+			let mfc: string = JSON.stringify(promise.json);
+			let xhttp: XMLHttpRequest = new XMLHttpRequest();
+			let oc: OcelotController = this;
+			xhttp.onreadystatechange = function () {
+				if (xhttp.readyState === 4) {
+					if (xhttp.status === 200) {
+						let msgToClient: MessageToCLient = JSON.parse(xhttp.responseText);
+						oc.receiveMtc(msgToClient);
+					} else {
+						oc.receiveMtc(<MessageToCLient>{ "id": promise.id, "type": OcelotConstants.FAULT, "response": { "classname": "XMLHttpRequest", "message": "XMLHttpRequest request failed : code = " + xhttp.status, "stacktrace": [] }, "t": 0 });
+					}
+				}
+			};
+			xhttp.open("POST", "http" + this.path + "ocelot/endpoint", true);
+			xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			xhttp.send("mfc=" + mfc);
+		}
+	}
+	private receiveMtc(msgToClient: MessageToCLient): void {
+		if (msgToClient.type === OcelotConstants.RES) { // maybe should be store result in cache
+			// if msgToClient has dead line so we stock in cache
+			this.ocelotCacheManager.putResultInCache(msgToClient);
+		}
+		this.foreachPromiseInPromisesDo(msgToClient.id, function (promise: OcelotPromise) {
+			switch (msgToClient.type) {
+				case OcelotConstants.FAULT:
+					promise.response = this.createFaultEventFromPromise(promise, msgToClient);
+					break;
+				case OcelotConstants.RES:
+					// if msg is response of subscribe request
+					if (this.isTopicSubscription(promise)) {
+						this.addPromiseToId(promise, promise.args[0]);
+					} else if (this.isTopicUnsubscription(promise)) {
+						this.clearPromisesForId(promise.args[0]);
+					}
+					promise.response = this.createResultEventFromPromise(promise, msgToClient);
+					break;
+				case OcelotConstants.CONSTRAINT:
+					promise.response = this.createConstraintEventFromPromise(promise, msgToClient);
+					break;
+				case OcelotConstants.MSG:
+					promise.response = this.createMessageEventFromPromise(promise, msgToClient);
+					break;
+			}
+		});
+		// when receive result or fault, remove handlers, except for topic
+		if (msgToClient.type !== OcelotConstants.MSG) {
+			this.clearPromisesForId(msgToClient.id);
+		}
+	}
+	private onwsmessage(evt: MessageEvent): void {
+		if (this.options.debug) console.debug(evt.data);
+		this.receiveMtc(JSON.parse(evt.data));
+	}
+	private onwserror(evt: ErrorEvent): void {
+		console.info("Websocket error : " + evt.error);
+		this.stateUpdated();
+	}
+	private onwsclose(evt: CloseEvent): void {
+		this.stateUpdated();
+		if (evt.reason !== "ONUNLOAD") {
+			if (this.options.debug) console.debug("Websocket closed : " + evt.reason + " try reconnect each " + 1000 + "ms");
+			this.closetimer = setInterval(function () {
+				this.connect();
+			}, 1000);
+		}
+	}
+	private onwsopen(evt: Event): void {
+		clearInterval(this.closetimer);
+		if (this.options.debug) console.debug("Websocket opened");
+		let ps: PromisesMap;
+		// handler, apromise, idx, promise;
+		this.stateUpdated();
+		ps = this.promisesMap;
+		this.promisesMap = {};
+		Object.keys(ps).forEach(function (id: string) { // we redo the subscription
+			if (ps[id].length && id !== ps[id][0].id) { // ps[id][0].id : topic name
+				this.foreachPromiseDo(ps[id], this.addPromise);
+			}
+		});
+	}
+	private connect(): IOcelotPromise {
+		if (this.options.debug) console.debug("Ocelotds initialization...");
+		let re = /ocelot-core.js|ocelot\.js.*|ocelot\/core(\.min)?\.js/;
+		for (let i = 0; i < document.scripts.length; i++) {
+			let item: HTMLScriptElement = <HTMLScriptElement>document.scripts[i];
+			if (item.src.match(re)) {
+				this.path = item.src.replace(/^http/, "").replace(re, "");
+			}
+		}
+		this.extractOptions(document.location.search);
+		// init a standard httpsession and init websocket
+		return ocelotServices.initCore(this.options).then(function () {
+			this.ws = new WebSocket("ws" + this.path + "ocelot-endpoint");
+			this.ws.onmessage = this.onwsmessage;
+			this.ws.onopen = this.onwsopen;
+			this.ws.onerror = this.onwserror;
+			this.ws.onclose = this.onwsclose;
+		});
+	}
+
+}
+let ocelotController: OcelotController = new OcelotController();
+let OcelotPromiseFactory:any = {
+	createPromise: function(ds: string, id: string, op: string, argNames: string[], args: string[]): IOcelotPromise {
+		return new OcelotPromiseSrv(ds, id, op, argNames, args);
+	}
+}
+interface IOcelotCacheManager {
+	/**
+	 * Get map of last update cache
+	 */
+	getLastUpdateCache(): LastUpdatedMap
+	/**
+	 * Add listener for receive cache event
+	 * @param {String} type event : add, remove
+	 * @param {Function} listener
+	 */
+	addEventListener(type: string, listener: Function): void
+	/**
+	 * Remove listener for receive cache event
+	 * @param {String} type event : add, remove
+	 * @param {Function} listener
+	 */
+	removeEventListener(type: string, listener: Function): void
+	/**
+	 * If msgToClient has deadline so we stock in cache
+	 * Add result in cache storage
+	 * @param {MessageToClient} msgToClient
+	 */
+	putResultInCache(msgToClient: MessageToCLient): void
+	/**
+	 * get entry from cache
+	 * @param {String} compositeKey
+	 * @param {boolean} ignoreCache
+	 * @returns {MessageToClient}
+	 */
+	getResultInCache(compositeKey: string, ignoreCache: boolean): MessageToCLient
+	/**
+	 * Remove sub entry or entry in cache
+	 * @param {String} compositeKey
+	 */
+	removeEntryInCache(compositeKey: string): void
+	/**
+	 * Remove all entries defined in list
+	 * @param {array} list
+	 */
+	removeEntries(list: string[]): void
+	/**
+	 * Clear cache storage
+	 */
+	clearCache(): void
+}
+let OcelotConstants = {
+	get LU(): string { return "ocelot-lastupdate" },
+	get RES(): string { return "RESULT" },
+	get FAULT(): string { return "FAULT" },
+	get CONSTRAINT(): string { return "CONSTRAINT" },
+	get MSG(): string { return "MESSAGE" },
+	get ALL(): string { return "ALL" },
+	get EVT(): string { return "Event" },
+	get ADD(): string { return "add" },
+	get RM(): string { return "remove" },
+	get CLEANCACHE(): string { return "ocelot-cleancache" },
+	get STATUS(): string { return "ocelot-status" },
+	get OSRV(): string { return "org.ocelotds.OcelotServices" },
+	get SUB(): string { return "subscribe" },
+	get UNSUB(): string { return "unsubscribe" },
+	get stateLabels(): string[] { return ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'] }
+};
+/**
+ * Add ocelotController events to document
+ * @param {Event} event
+ */
+document.addEventListener("call", function (event: OcelotEvent) {
+	ocelotController.addPromise(event.promise);
+});
+window.addEventListener("beforeunload", function (e: Event) {
+	if (ocelotController) {
+		ocelotController.close("ONUNLOAD");
+	}
+});
+/*class OcelotOptions implements IOcelotOptions {
+	public constructor(public monitor: boolean = false, public debug: boolean = false) {}
+}*/
+abstract class OcelotPromise implements IOcelotPromise {
+	public constructor(public dataservice: string, public id: string, public operation: string, public argNames: string[], public args: any[]) {
+		this.key = id;
+		this.t = new Date().getTime();
+		this.launch();
+	}
+	protected key: string;
+	public t: number;
+	get cacheIgnored(): boolean {
+		return false;
+	}
+	protected fault: Fault;
+	protected thenHandlers: Function[] = [];
+	protected catchHandlers: Function[] = [];
+	protected constraintHandlers: Function[] = [];
+	protected eventHandlers: Function[] = []
+	protected evt: OcelotResultEvent;
+	private launch(): void {
+		let e: Event = document.createEvent("Event");
+		e.initEvent("call", true, false);
+		let oe: OcelotEvent = <OcelotEvent>e;
+		oe.promise = this;
+		setTimeout(function () {
+			document.dispatchEvent(oe);
+		}, 1);
+	}
+	set response(e: OcelotResultEvent) {
+		this.evt = e;
+		this.process();
+	}
+	get json(): MessageFromClient {
+		return { "id": this.id, "ds": this.dataservice, "op": this.operation, "argNames": this.argNames, "args": this.args };
+	}
+	public then(onFulfilled: Function, onRejected?: Function): OcelotPromise {
+		this.thenHandlers.push(onFulfilled);
+		if (onRejected) {
+			this.catchHandlers.push(onRejected);
+		}
+		this.process();// event already receive ?
+		return this;
+	}
+	public catch(onRejected: Function): OcelotPromise {
+		if (onRejected) {
+			this.catchHandlers.push(onRejected);
+		}
+		this.process();// event already receive ?
+		return this;
+	}
+	public event(onEvented: Function): OcelotPromise {
+		if (onEvented) {
+			this.eventHandlers.push(onEvented);
+		}
+		this.process();// event already receive ?
+		return this;
+	}
+	protected process(): void {
+		let handler: Function;
+		if (!this.evt) {
+			return;
+		}
+		while (handler = this.eventHandlers.shift()) {
+			handler(this.evt);
+		}
+		switch (this.evt.type) {
+			case OcelotConstants.RES:
+				while (handler = this.thenHandlers.shift()) {
+					handler(this.evt.response);
+				}
+				break;
+			case OcelotConstants.CONSTRAINT:
+				while (handler = this.constraintHandlers.shift()) {
+					handler(this.evt.response);
+				}
+				break;
+			case OcelotConstants.FAULT:
+				let fault: Fault = <Fault>this.evt.response;
+				console.error(fault.classname + "(" + fault.message + ")");
+				while (handler = this.catchHandlers.shift()) {
+					handler(fault);
+				}
+				break;
+		}
+	}
+}
+class OcelotPromiseSrv extends OcelotPromise {
+	private cignored: boolean = false;
+	public constraint(onConstraint: Function): OcelotPromiseSrv {
+		if (onConstraint) {
+			this.constraintHandlers.push(onConstraint);
+		}
+		this.process();// event already receive ?
+		return this;
+	}
+	public ignoreCache(ignore: boolean): OcelotPromiseSrv {
+		this.cignored = ignore;
+		return this;
+	}
+	get cacheIgnored(): boolean {
+		return this.cignored;
+	}
+}
+class OcelotPromiseTopic extends OcelotPromise {
+	public constructor(p: IOcelotPromise) {
+		super(p.dataservice, p.id, p.operation, p.argNames, p.args);
+	}
+	get topic(): string {
+		return this.args[0];
+	}
+	protected messageHandlers: Function[] = [];
+	protected process(): void {
+		if (!this.evt) {
+			return;
+		}
+		if (this.evt.type !== OcelotConstants.MSG) {
+			super.process();
+		} else {
+			this.messageHandlers.forEach(function (messageHandler: Function) {
+				messageHandler(this.evt.response);
+			});
+		}
+	}
+	public message(onMessaged: Function): OcelotPromiseTopic {
+		if (onMessaged) {
+			this.messageHandlers.push(onMessaged);
+		}
+		this.process();// event already receive ?
+		return this;
+	}
+	public unsubscribe(): IOcelotPromise {
+		return ocelotServices.unsubscribe(this.topic);
+	}
+}
+class Subscriber extends OcelotPromiseTopic {
+	public constructor(public topic: string) {
+		super(<IOcelotPromise>ocelotServices.subscribe(topic));
+	}
+}
+if ("WebSocket" in window) {
+	/*	(function (): IOcelotController {
+			function init() {
+				// init a standard httpsession and init websocket
+				connect().then(function () {
+					// Controller subscribe to ocelot-cleancache topic
+					new Subscriber(OcelotConstants.CLEANCACHE).message(function (id: string) {
+						if (id === OcelotConstants.ALL) {
+							ocelotCacheManager.clearCache();
+						} else {
+							ocelotCacheManager.removeEntryInCache(id);
+						}
+					}).then(function () {
+						// Get Locale from server or cache and re-set it in session, this launch a message in ocelot-cleancache
+						ocelotServices.getLocale().then(function (locale: Locale) {
+							if (locale) {
+								ocelotServices.setLocale(locale);
+							}
+						});
+					});
+					// send states or current objects in cache with lastupdate
+					ocelotServices.getOutDatedCache(ocelotCacheManager.getLastUpdateCache()).then(function (entries: string[]) {
+						ocelotCacheManager.removeEntries(entries);
+					});
+				});
+			}
+			let options: IOcelotOptions = { "monitor": false, "debug": false };
+			let ws: WebSocket;
+			let promisesMap: PromisesMap = {}
+			let path: string;
+			let closetimer: number;
+			let ocelotCacheManager = (function (): IOcelotCacheManager {
+				let addHandlers: Function[] = [];
+				let removeHandlers: Function[] = [];
+				let lastUpdateManager: ILastUpdateManager = (function (): ILastUpdateManager {
+					return <ILastUpdateManager>{
+						addEntry(id: string): void {
+							let lastUpdates: LastUpdatedMap = this.getLastUpdateCache();
+							lastUpdates[id] = Date.now();
+							localStorage.setItem(OcelotConstants.LU, JSON.stringify(lastUpdates));
+						},
+						removeEntry(id: string): void {
+							let lastUpdates: LastUpdatedMap = this.getLastUpdateCache();
+							delete lastUpdates[id];
+							localStorage.setItem(OcelotConstants.LU, JSON.stringify(lastUpdates));
+						},
+						getLastUpdateCache(): LastUpdatedMap {
+							let lastUpdates: string = localStorage.getItem(OcelotConstants.LU);
+							if (!lastUpdates) {
+								return {};
+							} else {
+								return JSON.parse(lastUpdates);
+							}
+						}
+					}
+				})()
+				function manageAddEvent(msgToClient: MessageToCLient): void {
+					let evt: OcelotMsgEvent = <OcelotMsgEvent>document.createEvent(OcelotConstants.EVT);
+					evt.initEvent(OcelotConstants.ADD, true, false);
+					evt.msg = msgToClient;
+					this.addHandlers.forEach(function (handler: Function) {
+						handler(evt);
+					});
+				}
+				function manageRemoveEvent(compositeKey: string) {
+					let evt: OcelotKeyEvent = <OcelotKeyEvent>document.createEvent(OcelotConstants.EVT);
+					evt.initEvent(OcelotConstants.RM, true, false);
+					evt.key = compositeKey;
+					this.removeHandlers.forEach(function (handler: Function) {
+						handler(evt);
+					});
+				}
+				return <IOcelotCacheManager>{
+					getLastUpdateCache(): LastUpdatedMap {
+						return this.lastUpdateManager.getLastUpdateCache();
+					},
+					addEventListener(type: string, listener: Function): void {
+						if (type === OcelotConstants.ADD) {
+							this.addHandlers.push(listener);
+						} else if (type === OcelotConstants.RM) {
+							this.removeHandlers.push(listener);
+						}
+					},
+					removeEventListener(type: string, listener: Function): void {
+						let idx = -1;
+						if (type === OcelotConstants.ADD) {
+							idx = this.addHandlers.indexOf(listener);
+							if (idx !== -1) {
+								this.addHandlers.splice(idx, 1);
+							}
+						} else if (type === OcelotConstants.RM) {
+							idx = this.removeHandlers.indexOf(listener);
+							if (idx !== -1) {
+								this.removeHandlers.splice(idx, 1);
+							}
+						}
+					},
+					putResultInCache(msgToClient: MessageToCLient): void {
+						let ids: string[], json: string, obj: any;
+						if (!msgToClient.deadline) {
+							return;
+						}
+						this.lastUpdateManager.addEntry(msgToClient.id);
+						this.manageAddEvent(msgToClient);
+						ids = msgToClient.id.split("_");
+						json = localStorage.getItem(ids[0]);
+						obj = {};
+						if (json) {
+							obj = JSON.parse(json);
+						}
+						obj[ids[1]] = msgToClient;
+						json = JSON.stringify(obj);
+						localStorage.setItem(ids[0], json);
+					},
+					getResultInCache(compositeKey: string, ignoreCache: boolean): MessageToCLient {
+						let ids: string[], json: string, msgToClient: MessageToCLient, obj: any, now: number;
+						if (ignoreCache) {
+							return null;
+						}
+						ids = compositeKey.split("_");
+						msgToClient = null;
+						json = localStorage.getItem(ids[0]);
+						if (json) {
+							obj = JSON.parse(json);
+							msgToClient = obj[ids[1]];
+						}
+						if (msgToClient) {
+							now = new Date().getTime();
+							// check validity
+							if (now > msgToClient.deadline) {
+								this.removeEntryInCache(compositeKey);
+								msgToClient = null; // invalid
+							}
+						}
+						return msgToClient;
+					},
+					removeEntryInCache(compositeKey: string): void {
+						this.lastUpdateManager.removeEntry(compositeKey);
+						this.manageRemoveEvent(compositeKey);
+						let ids: string[] = compositeKey.split("_");
+						let entry: string = localStorage.getItem(ids[0]);
+						if (entry) {
+							let obj: any = JSON.parse(entry);
+							if (ids.length === 2) {
+								delete obj[ids[1]];
+								localStorage.setItem(ids[0], JSON.stringify(obj));
+							} else {
+								localStorage.removeItem(ids[0]);
+							}
+						}
+					},
+					removeEntries(list: string[]): void {
+						list.forEach(function (key) {
+							this.removeEntryInCache(key);
+						});
+					},
+					clearCache(): void {
+						localStorage.clear();
+					}
+				}
+			})();
+			function createEventFromPromise(type: string, promise: OcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
+				let evt: OcelotResultEvent = <OcelotResultEvent>document.createEvent(OcelotConstants.EVT);
+				evt.initEvent(type, true, false);
+				evt.dataservice = promise.dataservice;
+				evt.operation = promise.operation;
+				evt.args = promise.args;
+				evt.totaltime = 0;
+				evt.javatime = 0;
+				evt.jstime = 0;
+				evt.networktime = 0;
+				if (msgToClient) {
+					evt.response = msgToClient.response;
+					if (options.monitor) {
+						evt.javatime = msgToClient.t; // backend timing
+					}
+				}
+				if (options.monitor) {
+					evt.totaltime = new Date().getTime() - promise.t; // total timing
+				}
+				return evt;
+			}
+			function createMessageEventFromPromise(promise: OcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
+				return createEventFromPromise(OcelotConstants.MSG, promise, msgToClient);
+			}
+			function createResultEventFromPromise(promise: OcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
+				return createEventFromPromise(OcelotConstants.RES, promise, msgToClient);
+			}
+			function createConstraintEventFromPromise(promise: OcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
+				return createEventFromPromise(OcelotConstants.CONSTRAINT, promise, msgToClient);
+			}
+			function createFaultEventFromPromise(promise: OcelotPromise, msgToClient: MessageToCLient): OcelotResultEvent {
+				return createEventFromPromise(OcelotConstants.FAULT, promise, msgToClient);
+			}
+			function stateUpdated(): void {
+				foreachPromiseInPromisesDo(OcelotConstants.STATUS, function (promise: OcelotPromise) {
+					let response = createMessageEventFromPromise(promise, { "response": status, "t": 0, "id": "", "type": "", deadline: 0 });
+					promise.response = response;
+				});
+			}
+			function foreachPromiseInPromisesDo(id: string, func: Function): void {
+				foreachPromiseDo(getPromises(id), func);
+			}
+			function foreachPromiseDo(aPromises: IOcelotPromise[], func: Function): void {
+				if (aPromises) {
+					for (let i: number = 0; i < aPromises.length; i++) {
+						func(aPromises[i]);
+					}
+				}
+			}
+			function addPromiseToId(promise: OcelotPromise, id: string): boolean { // add promise to promise list and return if some promises exists already for id
+				let exists = (promisesMap[id] !== undefined);
+				if (!exists) {
+					promisesMap[id] = [];
+				}
+				promisesMap[id].push(promise);
+				return exists;
+			}
+			function clearPromisesForId(id: string): void {
+				delete promisesMap[id];
+			}
+			function getPromises(id: string): IOcelotPromise[] {
+				return promisesMap[id] || [];
+			}
+			function isOcelotControllerServices(promise: OcelotPromise): boolean {
+				return promise && (promise.dataservice === "ocelotController");
+			}
+			function isSubscription(promise: OcelotPromise): boolean {
+				return promise.dataservice === OcelotConstants.OSRV && promise.operation === OcelotConstants.SUB;
+			}
+			function isTopicSubscription(promise: OcelotPromise, topic: string): boolean {
+				return isSubscription(promise) && isTopic(promise, topic);
+			}
+			function isUnsubscription(promise: OcelotPromise): boolean {
+				return promise.dataservice === OcelotConstants.OSRV && promise.operation === OcelotConstants.UNSUB;
+			}
+			function isTopicUnsubscription(promise: OcelotPromise, topic: string): boolean {
+				return isUnsubscription(promise) && isTopic(promise, topic);
+			}
+			function isTopic(promise: OcelotPromise, topic: string): boolean {
+				return topic ? (promise.args[0] === topic) : true;
+			}
+			function extractOptions(search: string): void {
+				let params = search.split("&");
+				params.forEach(function (param) {
+					if (param.search(/^\??ocelot=/) === 0) {
+						options = JSON.parse(decodeURI(param.replace(/\??ocelot=/, "")));
+					}
+				});
+			}
+			function sendMfc(promise: OcelotPromise): void {
+				if (!addPromiseToId(promise, promise.id)) {
+					// Subscription or unsubscription to topic, use websocket
+					let mfc: string = JSON.stringify(promise.json);
+					let xhttp: XMLHttpRequest = new XMLHttpRequest();
+					xhttp.onreadystatechange = function () {
+						if (xhttp.readyState === 4) {
+							if (xhttp.status === 200) {
+								let msgToClient: MessageToCLient = JSON.parse(xhttp.responseText);
+								receiveMtc(msgToClient);
+							} else {
+								receiveMtc(<MessageToCLient>{ "id": promise.id, "type": OcelotConstants.FAULT, "response": { "classname": "XMLHttpRequest", "message": "XMLHttpRequest request failed : code = " + xhttp.status, "stacktrace": [] }, "t": 0 });
+							}
+						}
+					};
+					xhttp.open("POST", "http" + path + "ocelot/endpoint", true);
+					xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+					xhttp.send("mfc=" + mfc);
+				}
+			}
+			function receiveMtc(msgToClient: MessageToCLient): void {
+				if (msgToClient.type === OcelotConstants.RES) { // maybe should be store result in cache
+					// if msgToClient has dead line so we stock in cache
+					ocelotCacheManager.putResultInCache(msgToClient);
+				}
+				foreachPromiseInPromisesDo(msgToClient.id, function (promise: OcelotPromise) {
+					switch (msgToClient.type) {
+						case OcelotConstants.FAULT:
+							promise.response = createFaultEventFromPromise(promise, msgToClient);
+							break;
+						case OcelotConstants.RES:
+							// if msg is response of subscribe request
+							if (this.isTopicSubscription(promise)) {
+								addPromiseToId(promise, promise.args[0]);
+							} else if (this.isTopicUnsubscription(promise)) {
+								clearPromisesForId(promise.args[0]);
+							}
+							promise.response = createResultEventFromPromise(promise, msgToClient);
+							break;
+						case OcelotConstants.CONSTRAINT:
+							promise.response = createConstraintEventFromPromise(promise, msgToClient);
+							break;
+						case OcelotConstants.MSG:
+							promise.response = createMessageEventFromPromise(promise, msgToClient);
+							break;
+					}
+				});
+				// when receive result or fault, remove handlers, except for topic
+				if (msgToClient.type !== OcelotConstants.MSG) {
+					clearPromisesForId(msgToClient.id);
+				}
+			}
+			function onwsmessage(evt: MessageEvent): void {
+				if (options.debug) console.debug(evt.data);
+				receiveMtc(JSON.parse(evt.data));
+			}
+			function onwserror(evt: ErrorEvent): void {
+				console.info("Websocket error : " + evt.error);
+				stateUpdated();
+			}
+			function onwsclose(evt: CloseEvent): void {
+				stateUpdated();
+				if (evt.reason !== "ONUNLOAD") {
+					if (options.debug) console.debug("Websocket closed : " + evt.reason + " try reconnect each " + 1000 + "ms");
+					closetimer = setInterval(function () {
+						connect();
+					}, 1000);
+				}
+			}
+			function onwsopen(evt: Event): void {
+				clearInterval(closetimer);
+				if (options.debug) console.debug("Websocket opened");
+				let ps: PromisesMap;
+				// handler, apromise, idx, promise;
+				stateUpdated();
+				ps = promisesMap;
+				promisesMap = {};
+				Object.keys(ps).forEach(function (id: string) { // we redo the subscription
+					if (ps[id].length && id !== ps[id][0].id) { // ps[id][0].id : topic name
+						foreachPromiseDo(ps[id], this.addPromise);
+					}
+				});
+			}
+			function connect(): IOcelotPromise {
+				if (options.debug) console.debug("Ocelotds initialization...");
+				let re = /ocelot-core.js|ocelot\.js.*|ocelot\/core(\.min)?\.js/;
+				for (let i = 0; i < document.scripts.length; i++) {
+					let item: HTMLScriptElement = <HTMLScriptElement>document.scripts[i];
+					if (item.src.match(re)) {
+						path = item.src.replace(/^http/, "").replace(re, "");
+					}
+				}
+				extractOptions(document.location.search);
+				// init a standard httpsession and init websocket
+				return ocelotServices.initCore(options).then(function () {
+					ws = new WebSocket("ws" + path + "ocelot-endpoint");
+					ws.onmessage = onwsmessage;
+					ws.onopen = onwsopen;
+					ws.onerror = onwserror;
+					ws.onclose = onwsclose;
+				});
+			}
+			init()
+			return {
+				get cacheManager(): IOcelotCacheManager {
+					return ocelotCacheManager;
+				},
+				get options(): IOcelotOptions {
+					return this.opts;
+				},
+				get status(): string {
+					return ws ? OcelotConstants.stateLabels[ws.readyState] : "CLOSED";
+				},
+				close(reason: string): void {
+					setTimeout(function () {
+						ws.close(1000, reason || "Normal closure; the connection successfully completed whatever purpose for which it was created.");
+					}, 10);
+				},
+				addPromise(promise: OcelotPromiseSrv): void {
+					if (isTopicSubscription(promise, OcelotConstants.STATUS)) {
+						addPromiseToId(promise, OcelotConstants.STATUS);
+						stateUpdated();
+						return;
+					}
+					if (isTopicUnsubscription(promise, OcelotConstants.STATUS)) {
+						clearPromisesForId(OcelotConstants.STATUS);
+						return;
+					}
+					// if it's internal service like ocelotController.open or ocelotController.close
+					if (isOcelotControllerServices(promise)) {
+						addPromiseToId(promise, promise.id);
+						return;
+					}
+					// check entry cache
+					let msgToClient: MessageToCLient = ocelotCacheManager.getResultInCache(promise.id, promise.cacheIgnored);
+					if (msgToClient) {
+						// present and valid, return response without call
+						promise.response = createResultEventFromPromise(promise, <MessageToCLient>{ "response": msgToClient.response, "t": 0 });
+						return;
+					}
+					// else call
+					sendMfc(promise);
+				}
+			}
+		})(); */
+} else {
+	alert("Sorry, but your browser doesn't support websocket");
+}
