@@ -1,0 +1,21 @@
+body { 
+	padding-top: 70px; 
+}
+.pink {
+	color: #AE70AF;
+}
+.green {
+	color: #9CCCB4;
+}
+.blue {
+	color: #1460AC;
+}
+.orange {
+	color: #EB9316;
+}
+.black {
+	color: #000000;
+}
+.CodeMirror {
+	height: 400px;
+}

@@ -1,0 +1,52 @@
+<div class="panel panel-default">
+	<div class="panel-heading" role="tab" id="heading{{methodCtrl.method.name}}">
+		<div aria-controls="collapse-{{methodCtrl.srvname}}-{{methodCtrl.method.name}}" aria-expanded="false" 
+			  href="#collapse-{{methodCtrl.srvname}}-{{methodCtrl.method.name}}" 
+			  data-toggle="collapse" role="button" class="collapsed">
+			<div class="row">
+				<div class="col-lg-10">
+					<h4 class="panel-title">
+						<span class="pink">{{methodCtrl.method.returntype}} </span>
+						<span class="blue">{{methodCtrl.srvname}}</span>
+						<b class="orange">.</b>
+						<span class="green">{{methodCtrl.method.name}}</span>
+						<b class="orange">(</b>
+						<span ng-repeat-start="argtype in methodCtrl.method.argtypes track by $index" class="pink">{{argtype}} </span>
+						<span class="black">{{methodCtrl.method.argnames[$index]}}</span>
+						<span ng-if="(methodCtrl.method.argtypes.length - 1) > $index" class="black" ng-repeat-end="true">, </span>
+						<b class="orange">)</b>
+					</h4>
+				</div>
+				<div class="col-lg-2">
+					<div role="group" class="btn-group btn-group-xs pull-right">
+						<button class="btn btn-warning" ng-click="methodCtrl.prevent($event); methodCtrl.clear()">Clear</button>
+						<button class="btn btn-primary" ng-click="methodCtrl.prevent($event); methodCtrl.send()">Send</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="collapse-{{methodCtrl.srvname}}-{{methodCtrl.method.name}}" class="panel-collapse collapse" role="tabpanel"
+		  aria-labelledby="heading-{{methodCtrl.srvname}}-{{methodCtrl.method.name}}">
+		<div class="panel-body">
+			<div class="input-group" ng-repeat="argtype in methodCtrl.method.argtypes track by $index">
+				<span class="input-group-addon">{{argtype}}</span>
+				<input placeholder="{{methodCtrl.args[$index]}}" class="form-control" type="text" 
+						 ng-model="methodCtrl.method.argtemplates[$index]"/>
+			</div>
+			<div class="row">
+				<div class="col-lg-6">
+					<canvas class="chart chart-line" chart-data="methodCtrl.chart.data"
+							  chart-labels="methodCtrl.chart.labels" chart-legend="true" chart-series="methodCtrl.chart.series">
+					</canvas>
+				</div>
+				<div class="col-lg-6">
+					<b>Click on view if not visible</b>
+					<ui-codemirror id="codemirror-{{methodCtrl.srvname}}-{{methodCtrl.method.name}}" class="CodeMirror" ng-model="methodCtrl.result"
+										ui-codemirror-opts="{lines: 70, theme: 'monokai', lineWrapping: false, readOnly: 'nocursor', mode: 'javascript'}">
+					</ui-codemirror>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
