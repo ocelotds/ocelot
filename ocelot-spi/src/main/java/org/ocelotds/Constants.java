@@ -42,6 +42,7 @@ public interface Constants {
 	String MINIFY_PARAMETER = "minify";
 	String JSTYPE = "text/javascript;charset=UTF-8";
 	String HTMLTYPE = "text/html;charset=UTF-8";
+	String CSSTYPE = "text/css;charset=UTF-8";
 	String FALSE = "false";
 	String TRUE = "true";
 
