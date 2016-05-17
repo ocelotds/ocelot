@@ -27,22 +27,15 @@ public interface Constants {
 	String PRINCIPAL = "PRINCIPAL";
 	String ANONYMOUS = "ANONYMOUS";
 
-	String CONTENT = "content";
 	String OCELOT = "ocelot";
 	String OCELOT_CORE = OCELOT + "-core";
 	String OCELOT_CORE_MIN = OCELOT_CORE + "-min";
-	String OCELOT_HTML = OCELOT + "-html";
 	String OCELOT_MIN = OCELOT + "-min";
-	String SLASH_OCELOT = SLASH + OCELOT;
-	String SLASH_OCELOT_CORE = SLASH + OCELOT_CORE;
-	String SLASH_OCELOT_CORE_JS = SLASH_OCELOT_CORE + JS;
-	String SLASH_OCELOT_JS = SLASH_OCELOT + JS;
-	String SLASH_OCELOT_HTML = SLASH_OCELOT + HTML;
+	String SLASH_OCELOT_CORE_JS = SLASH + OCELOT_CORE + JS;
+	String SLASH_OCELOT_JS = SLASH + OCELOT + JS;
 
 	String MINIFY_PARAMETER = "minify";
 	String JSTYPE = "text/javascript;charset=UTF-8";
-	String HTMLTYPE = "text/html;charset=UTF-8";
-	String CSSTYPE = "text/css;charset=UTF-8";
 	String FALSE = "false";
 	String TRUE = "true";
 
@@ -86,7 +79,7 @@ public interface Constants {
 
 	interface Resolver {
 		String CDI = "cdi";
-		String EJB = "cdi";
+		String EJB = "cdi"; // same resolver
 		String SPRING = "spring";
 	}
 
