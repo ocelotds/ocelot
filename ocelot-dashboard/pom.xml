@@ -6,11 +6,17 @@
 		<artifactId>ocelot</artifactId>
 		<version>2.10.3-SNAPSHOT</version>
 	</parent>
-	<artifactId>ocelot-app</artifactId>
-	<name>ocelot-app</name>
+	<artifactId>ocelot-dashboard</artifactId>
+	<name>ocelot-dashboard</name>
 	<packaging>jar</packaging>
 		
 	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ocelot-spi</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>

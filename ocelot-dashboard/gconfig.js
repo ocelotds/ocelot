@@ -6,7 +6,7 @@
 /**
  * The directory where gulp export 
  */
-module.exports.dist = 'target/classes/app';
+module.exports.dist = 'target/classes/dashboard';
 /**
  * The source root of website
  */

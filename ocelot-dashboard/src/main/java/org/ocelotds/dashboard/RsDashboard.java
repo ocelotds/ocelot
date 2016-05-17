@@ -1,30 +1,28 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.app;
+package org.ocelotds.dashboard;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import org.ocelotds.annotations.OcelotResource;
 
 /**
  *
  * @author hhfrancois
  */
 @RequestScoped
-@Path("app")
-public class RsApp {
+@OcelotResource
+@Path("dashboard")
+public class RsDashboard {
 
 	@Context
 	private UriInfo context;
@@ -62,6 +60,6 @@ public class RsApp {
 	 * @return
 	 */
 	URL getResource(String name) {
-		return RsApp.class.getResource(name);
+		return RsDashboard.class.getResource(name);
 	}
 }

@@ -4,3 +4,5 @@
 /**/node_modules/*
 /**/derby.log
 /target/
+/ocelot-app/bower_components/
+/ocelot-dashboard/bower_components/
