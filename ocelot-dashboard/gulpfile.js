@@ -9,8 +9,7 @@
 			  uglify = require('gulp-uglify'),
 			  concat = require('gulp-concat'),
 			  jshint = require('gulp-jshint'),
-			  plumber = require('gulp-plumber'),
-			  minify_css = require('gulp-minify-css'),
+			  clean_css = require('gulp-clean-css'),
 			  ngAnnotate = require('gulp-ng-annotate'),
 			  gconfig = require('./gconfig.js');
 
@@ -61,7 +60,7 @@
 		});
 		cssFiles.push(gconfig.rootApp + "/**/*.css"); // css from app
 		gulp.src(cssFiles)
-				  .pipe(util.env.dev ? util.noop() : minify_css())
+				  .pipe(util.env.dev ? util.noop() : clean_css())
 				  .pipe(concat(gconfig.cssName))
 				  .pipe(gulp.dest(gconfig.dist));
 	});
