@@ -8,6 +8,7 @@
 			  watch = require('gulp-watch'),
 			  uglify = require('gulp-uglify'),
 			  concat = require('gulp-concat'),
+           plumber = require('gulp-plumber'),
 			  jshint = require('gulp-jshint'),
 			  clean_css = require('gulp-clean-css'),
 			  ngAnnotate = require('gulp-ng-annotate'),
