@@ -4,7 +4,6 @@
 
 package org.ocelotds;
 
-import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
@@ -45,23 +44,9 @@ public class KeyMakerTest {
 	/**
 	 * Test of getMd5 method, of class CacheManager.
 	 * @throws java.security.NoSuchAlgorithmException
-	 * @throws java.io.UnsupportedEncodingException
 	 */
 	@Test
-	public void testGetMd5InError() throws NoSuchAlgorithmException, UnsupportedEncodingException {
-		System.out.println("getMd5InError");
-		when(instance.getMessageDigest()).thenThrow(UnsupportedEncodingException.class);
-		String result = instance.getMd5("");
-		assertThat(result).isNull();
-	}
-
-	/**
-	 * Test of getMd5 method, of class CacheManager.
-	 * @throws java.security.NoSuchAlgorithmException
-	 * @throws java.io.UnsupportedEncodingException
-	 */
-	@Test
-	public void testGetMd5InError2() throws NoSuchAlgorithmException, UnsupportedEncodingException {
+	public void testGetMd5InError2() throws NoSuchAlgorithmException {
 		System.out.println("getMd5InError2");
 		when(instance.getMessageDigest()).thenThrow(NoSuchAlgorithmException.class);
 		String result = instance.getMd5("");

@@ -1,7 +1,6 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 package org.ocelotds.core.services;
 
 import java.lang.annotation.Annotation;
@@ -18,10 +17,10 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ocelotds.configuration.AbstractFileInitializerImpl;
 import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.ocelotds.messaging.MessageFromClient;
+import org.ocelotds.objects.Result;
 import org.slf4j.Logger;
 
 /**
@@ -79,7 +78,7 @@ public class MethodServicesTest {
 		message.setOperation("methodWith2Arguments");
 		message.setParameters(Arrays.asList("\"toto\"", "5"));
 		List<Object> arguments = new ArrayList<>();
-		
+
 		when(argumentsServices.convertJsonToJava(anyString(), any(Type.class), any(Annotation[].class))).thenThrow(JsonUnmarshallingException.class);
 
 		instance.getMethodFromDataService(dsClass, message, arguments);
@@ -102,9 +101,9 @@ public class MethodServicesTest {
 		message.setParameters(Arrays.asList(json));
 		List<Object> arguments = new ArrayList<>();
 		Method expResult = dsClass.getMethod("methodWithUnmarshaller", new Class<?>[]{Locale.class});
-		
+
 		when(argumentsServices.convertJsonToJava(eq(json), any(Type.class), any(Annotation[].class))).thenReturn(Locale.FRANCE);
-		
+
 		Method result = instance.getMethodFromDataService(dsClass, message, arguments);
 		assertThat(result).isEqualTo(expResult);
 		assertThat(arguments).hasSize(1);
@@ -112,36 +111,36 @@ public class MethodServicesTest {
 		assertThat(l.getCountry()).isEqualTo("FR");
 		assertThat(l.getLanguage()).isEqualTo("fr");
 	}
-	
+
 	/**
 	 * Test of getNonProxiedMethod method, of class MethodServices.
-	 * 
+	 *
 	 * @throws java.lang.NoSuchMethodException
 	 */
 	@Test
 	public void testGetNonProxiedMethod() throws NoSuchMethodException {
 		System.out.println("getNonProxiedMethod");
-		Method m = instance.getNonProxiedMethod(AbstractFileInitializerImpl.class, "methodTest1");
+		Method m = instance.getNonProxiedMethod(Result.class, "getInteger");
 		assertThat(m).isNotNull();
-		
-		m = instance.getNonProxiedMethod(AbstractFileInitializerImpl.class, "methodTest2",String.class);
+
+		m = instance.getNonProxiedMethod(Result.class, "setInteger", Integer.TYPE);
 		assertThat(m).isNotNull();
 	}
-	
+
 	/**
 	 * Test of getNonProxiedMethod method, of class MethodServices.
-	 * 
+	 *
 	 * @throws java.lang.NoSuchMethodException
 	 */
 	@Test(expected = NoSuchMethodException.class)
 	public void testGetNonProxiedMethodFailed() throws NoSuchMethodException {
 		System.out.println("getNonProxiedMethod");
-		Method m = instance.getNonProxiedMethod(AbstractFileInitializerImpl.class, "methodTest3");
+		Method m = instance.getNonProxiedMethod(Result.class, "unknownMethod");
 	}
 
 	/**
 	 * Test of getNumberOfNullEnderParameter method, of class MethodServices.
-	 * 
+	 *
 	 */
 	@Test
 	public void testGetNumberOfNullEnderParameter() {
@@ -149,7 +148,7 @@ public class MethodServicesTest {
 		List<String> params = Arrays.asList("", "null", "", "null", "null");
 		int result = instance.getNumberOfNullEnderParameter(params);
 		assertThat(result).isEqualTo(2);
-		
+
 		params = Arrays.asList("", "null", "", "null");
 		result = instance.getNumberOfNullEnderParameter(params);
 		assertThat(result).isEqualTo(1);
@@ -158,10 +157,10 @@ public class MethodServicesTest {
 		result = instance.getNumberOfNullEnderParameter(params);
 		assertThat(result).isEqualTo(0);
 	}
-	
+
 	/**
 	 * Test of checkMethod method, of class MethodServices.
-	 * 
+	 *
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
 	 * @throws org.ocelotds.marshallers.JsonMarshallerException
@@ -174,7 +173,7 @@ public class MethodServicesTest {
 		List<Object> arguments = new ArrayList<>();
 		List<String> parameters = Arrays.asList("5", "\"foo\"");
 		int nbparam = 2;
-		
+
 		when(argumentsServices.convertJsonToJava(anyString(), any(Class.class), any(Annotation[].class))).thenReturn("ok");
 
 		instance.checkMethod(method, arguments, parameters, nbparam);
@@ -183,7 +182,7 @@ public class MethodServicesTest {
 
 	/**
 	 * Test of checkMethod method, of class MethodServices.
-	 * 
+	 *
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
 	 * @throws org.ocelotds.marshallers.JsonMarshallerException
@@ -196,7 +195,7 @@ public class MethodServicesTest {
 		List<Object> arguments = new ArrayList<>();
 		List<String> parameters = Arrays.asList("5", "\"foo\"");
 		int nbparam = 1;
-		
+
 		when(argumentsServices.convertJsonToJava(anyString(), any(Class.class), any(Annotation[].class))).thenReturn("ok");
 
 		instance.checkMethod(method, arguments, parameters, nbparam);

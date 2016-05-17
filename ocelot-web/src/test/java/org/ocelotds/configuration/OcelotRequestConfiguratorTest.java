@@ -3,16 +3,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.configuration;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
-import javax.ws.rs.core.HttpHeaders;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
@@ -170,13 +171,14 @@ public class OcelotTest extends AbstractOcelotTest {
 	@Test
 	public void testJavascriptCoreMinification() {
 		System.out.println("testJavascriptCoreMinification");
-		String resource = Constants.OCELOT + Constants.JS;
+		String resource = Constants.OCELOT + Constants.SLASH + "core" + Constants.JS;
+		String resource_min = Constants.OCELOT + Constants.SLASH + "core.min" + Constants.JS;
 		HttpURLConnection connection1 = null;
 		HttpURLConnection connection2 = null;
 		try {
-			connection1 = getConnectionForResource(Constants.OCELOT + Constants.SLASH + "core.min" + Constants.JS);
+			connection1 = getConnectionForResource(resource_min);
 			int minlength = countByte(connection1.getInputStream());
-			connection2 = getConnectionForResource(Constants.OCELOT + Constants.SLASH + "core" + Constants.JS);
+			connection2 = getConnectionForResource(resource);
 			int length = countByte(connection2.getInputStream());
 			assertThat(minlength).isLessThan(length).as("Minification of %s didn't work, same size of file magnifier : %s / minifer : %s", resource, length, minlength);
 		} catch (IOException e) {
@@ -192,27 +194,6 @@ public class OcelotTest extends AbstractOcelotTest {
 	}
 
 	/**
-	 * Check ocelot.js
-	 */
-	@Test
-	public void testJavascriptCoreAndServiceGeneration() {
-		System.out.println("testJavascriptCoreAndServiceGeneration");
-		try {
-			HttpURLConnection connection = getConnectionForResource(Constants.SLASH_OCELOT_JS);
-			int lines = 0;
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), Constants.UTF_8))) {
-				String inputLine;
-				while ((inputLine = in.readLine()) != null) {
-					lines++;
-				}
-			}
-			assertThat(lines).isNotZero();
-		} catch (Exception e) {
-			fail(e.getMessage());
-		}
-	}
-
-	/**
  	 * Check ocelot/core.js 
 	 */
 	@Test
@@ -221,7 +202,7 @@ public class OcelotTest extends AbstractOcelotTest {
 		try {
 			HttpURLConnection connection = getConnectionForResource(Constants.OCELOT + Constants.SLASH + "core" + Constants.JS);
 			int lines = 0;
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), Constants.UTF_8))) {
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
 				String inputLine;
 				while ((inputLine = in.readLine()) != null) {
 					lines++;
@@ -234,7 +215,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	}
 
 	/**
-	 * Check that ocelot-core.js is contextpath replaced
+ 	 * Check ocelot/services.js 
 	 */
 	@Test
 	public void testJavascriptServicesGeneration() {
@@ -242,7 +223,7 @@ public class OcelotTest extends AbstractOcelotTest {
 		try {
 			HttpURLConnection connection = getConnectionForResource(Constants.OCELOT + Constants.SLASH + "services" + Constants.JS);
 			int lines = 0;
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), Constants.UTF_8))) {
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
 				String inputLine;
 				while ((inputLine = in.readLine()) != null) {
 					lines++;

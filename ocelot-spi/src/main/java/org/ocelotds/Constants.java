@@ -13,13 +13,11 @@ public interface Constants {
 
 	String QUOTE = "\"";
 	String ALGORITHM = "MD5";
-	String UTF_8 = "UTF-8";
 	String JS = ".js";
-	String HTML = ".htm";
 	String SLASH = "/";
 	String BACKSLASH_N = "\n";
 	String LOCALE = "LOCALE";
-	String SESSION = "SESSION";
+	String SESSION = "SESSION"; // to remove
 	String HTTPSESSION = "HTTPSESSION";
 	String HTTPREQUEST = "HTTPREQUEST";
 	String HANDSHAKEREQUEST = "HANDSHAKEREQUEST";
@@ -30,11 +28,7 @@ public interface Constants {
 	String OCELOT = "ocelot";
 	String OCELOT_CORE = OCELOT + "-core";
 	String OCELOT_CORE_MIN = OCELOT_CORE + "-min";
-	String OCELOT_MIN = OCELOT + "-min";
-	String SLASH_OCELOT_CORE_JS = SLASH + OCELOT_CORE + JS;
-	String SLASH_OCELOT_JS = SLASH + OCELOT + JS;
 
-	String MINIFY_PARAMETER = "minify";
 	String JSTYPE = "text/javascript;charset=UTF-8";
 	String FALSE = "false";
 	String TRUE = "true";

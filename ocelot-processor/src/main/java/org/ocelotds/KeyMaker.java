@@ -4,6 +4,8 @@
 package org.ocelotds;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import org.slf4j.Logger;
@@ -26,14 +28,14 @@ public class KeyMaker {
 		MessageDigest md;
 		try {
 			md = getMessageDigest();
-			byte[] hash = md.digest(msg.getBytes(Constants.UTF_8));
+			byte[] hash = md.digest(msg.getBytes(StandardCharsets.UTF_8));
 			//converting byte array to Hexadecimal String
 			StringBuilder sb = new StringBuilder(2 * hash.length);
 			for (byte b : hash) {
 				sb.append(String.format("%02x", b & 0xff));
 			}
 			return sb.toString();
-		} catch (NoSuchAlgorithmException | UnsupportedEncodingException ex) {
+		} catch (NoSuchAlgorithmException ex) {
 			logger.error("Fail to get MD5 of String "+msg, ex);
 		}
 		return null;
