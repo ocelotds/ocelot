@@ -13,6 +13,9 @@ before_install:
    - cp deployOrPerform.sh /tmp/deployOrPerform.sh
    - chmod ugo+x /tmp/deployOrPerform.sh
 install: mvn clean install -DskipTests=true -Dgpg.skip=true
+cache:
+   directories:
+   - $HOME/.m2
 script:
    - /tmp/deployOrPerform.sh
 after_success: 
