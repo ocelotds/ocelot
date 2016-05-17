@@ -31,8 +31,8 @@
 		<div class="panel-body">
 			<div class="input-group" ng-repeat="argtype in methodCtrl.method.argtypes track by $index">
 				<span class="input-group-addon">{{argtype}}</span>
-				<input placeholder="{{methodCtrl.args[$index]}}" class="form-control" type="text" 
-						 ng-model="methodCtrl.method.argtemplates[$index]"/>
+				<input placeholder="{{methodCtrl.method.argtemplates[$index]}}" class="form-control" type="text" 
+						 ng-model="methodCtrl.args[$index]"/>
 			</div>
 			<div class="row">
 				<div class="col-lg-6">
