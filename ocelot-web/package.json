@@ -3,9 +3,11 @@
   "version": "2.10.2",
   "description": "generation ocelot-core-min.js",
   "main": "gulpfile.js",
-  "dependencies": {},
+  "dependencies": {
+  },
   "devDependencies": {
     "gulp": "^3.9.1",
+    "del": "^2.2.0",
     "gulp-concat": "^2.6.0",
     "gulp-filesize": "^0.0.6",
     "gulp-jshint": "^2.0.0",
