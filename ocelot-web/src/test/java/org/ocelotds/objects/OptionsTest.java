@@ -48,32 +48,6 @@ public class OptionsTest {
 	}
 
 	/**
-	 * Test of isReconnect method, of class Options.
-	 */
-	@Test
-	public void testIsReconnect() {
-		System.out.println("isReconnect");
-		instance.reconnect = false;
-		boolean result = instance.isReconnect();
-		assertThat(result).isFalse();
-		instance.reconnect = true;
-		result = instance.isReconnect();
-		assertThat(result).isTrue();
-	}
-
-	/**
-	 * Test of setReconnect method, of class Options.
-	 */
-	@Test
-	public void testSetReconnect() {
-		System.out.println("setReconnect");
-		instance.setReconnect(false);
-		assertThat(instance.reconnect).isFalse();
-		instance.setReconnect(true);
-		assertThat(instance.reconnect).isTrue();
-	}
-
-	/**
 	 * Test of isDebug method, of class Options.
 	 */
 	@Test

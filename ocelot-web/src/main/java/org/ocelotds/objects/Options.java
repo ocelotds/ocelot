@@ -10,15 +10,6 @@ package org.ocelotds.objects;
 public class Options {
 	boolean monitor = false;
 	boolean debug = false;
-	boolean reconnect = false;
-
-	public boolean isReconnect() {
-		return reconnect;
-	}
-
-	public void setReconnect(boolean reconnect) {
-		this.reconnect = reconnect;
-	}
 
 	public boolean isMonitor() {
 		return monitor;
