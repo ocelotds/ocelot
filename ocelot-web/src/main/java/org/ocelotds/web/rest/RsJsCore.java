@@ -17,6 +17,7 @@ import org.ocelotds.annotations.OcelotResource;
 /**
  *
  * @author hhfrancois
+ * The core include ocelotServices.js
  */
 @Path("cor{min}.js")
 @RequestScoped
@@ -28,7 +29,6 @@ public class RsJsCore extends AbstractRsJs {
 	@Override
 	List<InputStream> getStreams() {
 		List<InputStream> streams = new ArrayList<>();
-		addStream(streams, getJsFilename(OcelotServices.class.getName()));
 		addStream(streams, getJsCore());
 		return streams;
 	}

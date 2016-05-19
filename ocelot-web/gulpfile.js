@@ -16,18 +16,18 @@
 				  .pipe(jshint())
 				  .pipe(jshint.reporter('jshint-stylish'));
 	});
-	gulp.task('minify', function () {
+	gulp.task('minify', ['clean'], function () {
 		return gulp.src('./src/main/resources/ocelot-core.js')
 				  .pipe(uglify())
 				  .pipe(concat('ocelot-core-min.js'))
-				  .pipe(gulp.dest('target/classes/'));
+				  .pipe(gulp.dest('./target/classes/'));
 	});
-	gulp.task('add-ocelot-services', ['minify'],function () {
-		gulp.src(['./target/classes/org/ocelotds/OcelotServices.js', './src/main/resources/ocelot-core.js'])
+	gulp.task('add-ocelot-services', ['minify'], function () {
+				 gulp.src(['./target/classes/org/ocelotds/OcelotServices.js', './src/main/resources/ocelot-core.js'])
 				  .pipe(concat('ocelot-core.js'))
-				  .pipe(gulp.dest('target/classes/'));
-		return gulp.src(['./target/classes/org/ocelotds/OcelotServices.js', './src/main/resources/ocelot-core-min.js'])
+				  .pipe(gulp.dest('./target/classes/'));
+		return gulp.src(['./target/classes/org/ocelotds/OcelotServices.js', './target/classes/ocelot-core-min.js'])
 				  .pipe(concat('ocelot-core-min.js'))
-				  .pipe(gulp.dest('target/classes/'));
+				  .pipe(gulp.dest('./target/classes/'));
 	});
 })();
