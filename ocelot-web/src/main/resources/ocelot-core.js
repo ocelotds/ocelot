@@ -286,7 +286,7 @@ String.prototype.md5 = function () {
 };
 if ("WebSocket" in window) {
 	ocelotController = (function () {
-		var opts = { "monitor": false, "debug": false, "reconnect": false }, MSG = "MESSAGE", CONSTRAINT = "CONSTRAINT", RES = "RESULT", FAULT = "FAULT",
+		var opts = { "monitor": false, "debug": false}, MSG = "MESSAGE", CONSTRAINT = "CONSTRAINT", RES = "RESULT", FAULT = "FAULT",
 		ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove", CLEANCACHE = "ocelot-cleancache", STATUS = "ocelot-status",
 		OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe",
 		stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], closetimer, promises = {}, path, ws,
@@ -630,7 +630,8 @@ if ("WebSocket" in window) {
 		}
 		function onwsclose(evt) {
 			stateUpdated();
-			if (opts.reconnect && evt.reason !== "ONUNLOAD") {
+			// TODO think about autoreconnect, disabled for the moment
+			if (false && evt.reason !== "ONUNLOAD") {
 				if (opts.debug) console.debug("Websocket closed : " + evt.reason + " try reconnect each " + 1000 + "ms");
 				closetimer = setInterval(function () {
 					connect();
