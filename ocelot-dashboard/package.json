@@ -1,7 +1,7 @@
 {
-  "name": "ocelot-core",
-  "version": "2.10.3",
-  "description": "generation ocelot-core-min.js and ocelot.html",
+  "name": "ocelot-dashboard",
+  "version" : "2.10.3",
+  "description": "dashboard pages generation",
   "main": "gulpfile.js",
   "license": "MPL2.0",
   "devDependencies": {
