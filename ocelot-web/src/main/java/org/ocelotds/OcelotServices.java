@@ -141,11 +141,14 @@ public class OcelotServices {
 	 */
 	public List<OcelotService> getServices() {
 		List<OcelotService> result = new ArrayList<>();
+		Options options = (Options) httpSession.getAttribute(Constants.Options.OPTIONS);
 		for (Object dataservice : dataservices) {
-			Class cls = unProxyClassServices.getRealClass(dataservice.getClass());
-			OcelotService ocelotService = new OcelotService(serviceTools.getInstanceNameFromDataservice(cls));
-			result.add(ocelotService);
-			addMethodsToMethodsService(cls.getMethods(), ocelotService.getMethods());
+			if (!OcelotServices.class.isInstance(dataservice) || options.isDebug()) {
+				Class cls = unProxyClassServices.getRealClass(dataservice.getClass());
+				OcelotService ocelotService = new OcelotService(serviceTools.getInstanceNameFromDataservice(cls));
+				result.add(ocelotService);
+				addMethodsToMethodsService(cls.getMethods(), ocelotService.getMethods());
+			}
 		}
 		return result;
 	}
