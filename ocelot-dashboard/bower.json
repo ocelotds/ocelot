@@ -16,6 +16,7 @@
     "jquery": "2.2.0",
     "angular-bootstrap": "1.1.0",
     "angular-ui-codemirror": "0.3.0",
-    "angular-chart.js": "^0.10.2"
+    "angular-chart.js": "^0.10.2",
+    "angular-ui-router": "ui-router#^0.3.0"
   }
 }

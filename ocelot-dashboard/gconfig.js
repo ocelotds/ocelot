@@ -42,6 +42,7 @@ module.exports.vendorsJsFiles = [
    'angular-bootstrap/ui-bootstrap.js',
    'bootstrap/dist/js/bootstrap.js',
    'codemirror/lib/codemirror.js',
+	'angular-ui-router/release/angular-ui-router.js',
    'angular-ui-codemirror/ui-codemirror.js',
    'codemirror/mode/javascript/javascript.js',
 	'Chart.js/Chart.js',
