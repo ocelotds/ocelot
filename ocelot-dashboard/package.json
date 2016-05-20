@@ -1,6 +1,6 @@
 {
   "name": "ocelot-dashboard",
-  "version" : "2.10.3",
+  "version": "2.10.3",
   "description": "dashboard pages generation",
   "main": "gulpfile.js",
   "license": "MPL2.0",
