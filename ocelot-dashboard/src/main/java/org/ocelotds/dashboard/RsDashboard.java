@@ -28,29 +28,21 @@ public class RsDashboard {
 	private UriInfo context;
 
 	@GET
-	@Path("{name}.{type}")
+	@Path("")
 	public Response getRoot(@PathParam("type") String type) throws IOException {
-		return getResponse(type);
+		MediaType mtype = new MediaType("text", "html");
+		return getResponse("dashboard/index.html", mtype);
 	}
+	
 	@GET
-	@Path("css/{name}.{type}")
-	public Response getCss(@PathParam("type") String type) throws IOException {
-		return getResponse(type);
-	}
-	@GET
-	@Path("js/{name}.{type}")
-	public Response getJs(@PathParam("type") String type) throws IOException {
-		return getResponse(type);
-	}
-	@GET
-	@Path("fonts/{name}.{type}")
-	public Response getFonts(@PathParam("type") String type) throws IOException {
-		return getResponse(type);
+	@Path("{res:.+}.{type}")
+	public Response getResponse(@PathParam("type") String type) throws IOException {
+		MediaType mtype = new MediaType("text", "js".equals(type) ? "javascript" : type);
+		return getResponse(context.getPath(), mtype);
 	}
 
-	public Response getResponse(String type) throws IOException {
-		MediaType mtype = new MediaType("text", "js".equals(type) ? "javascript" : type);
-		return Response.ok((Object) getResource("/" + context.getPath()).openStream(), mtype).build();
+	public Response getResponse(String path, MediaType type) throws IOException {
+		return Response.ok((Object) getResource("/" + path).openStream(), type).build();
 	}
 
 	/**
