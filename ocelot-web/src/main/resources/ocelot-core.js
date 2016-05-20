@@ -9,7 +9,6 @@ var Subscriber = (function (topic) {
 	return promise;
 });
 OcelotPromiseFactory = function () {
-	var MSG = "MESSAGE", RES = "RESULT", FAULT = "FAULT", CONSTRAINT = "CONSTRAINT";
 	return {
 		createPromise: function (ds, id, op, argNames, args) {
 			return (function (ds, id, op, argNames, args) {
@@ -18,25 +17,24 @@ OcelotPromiseFactory = function () {
 					if (!evt) {
 						return;
 					}
-					if (evt.type !== MSG) {
+					if (evt.type !== "MESSAGE") {
 						while (eventHandlers.length) {
 							eventHandlers.shift()(evt);
 						}
 						switch (evt.type) {
-							case RES:
+							case "RESULT":
 								while (thenHandlers.length) {
 									thenHandlers.shift()(evt.response);
 								}
 								break;
-							case CONSTRAINT:
+							case "CONSTRAINT":
 								while (constraintHandlers.length) {
 									constraintHandlers.shift()(evt.response);
 								}
 								break;
-							case FAULT:
+							case "FAULT":
 								fault = evt.response;
 								console.error(fault.classname + "(" + fault.message + ")");
-								if (ocelotController.options.debug) console.table(fault.stacktrace);
 								while (catchHandlers.length) {
 									catchHandlers.shift()(fault);
 								}
@@ -699,6 +697,12 @@ if ("WebSocket" in window) {
 				return;
 			}
 			// else call
+			// if debug mode add handler for catch and log error 
+			if (opts.debug) {
+				promise.catch(function(fault) {
+					console.table(fault.stacktrace);
+				});
+			}
 			sendMfc(promise);
 		}
 		function init() {

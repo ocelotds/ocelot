@@ -39,7 +39,7 @@ public class RsJsCoreTest {
 		doReturn("").when(instance).getJsFilename(anyString());
 		doReturn("").when(instance).getJsCore();
 		List<InputStream> result = instance.getStreams();
-		verify(instance, times(2)).addStream(any(List.class), anyString());
+		verify(instance).addStream(any(List.class), anyString());
 		assertThat(result).isNotNull();
 	}
 

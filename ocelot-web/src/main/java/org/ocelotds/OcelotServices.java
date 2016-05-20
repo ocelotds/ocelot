@@ -3,21 +3,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheRemove;
 import org.ocelotds.annotations.JsCacheResult;
 import org.ocelotds.topic.TopicManager;
 import org.ocelotds.core.UpdatedCacheManager;
 import java.util.Collection;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
@@ -25,13 +18,9 @@ import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.context.OcelotContext;
-import org.ocelotds.core.UnProxyClassServices;
-import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
-import org.ocelotds.objects.OcelotMethod;
-import org.ocelotds.objects.OcelotService;
 import org.ocelotds.objects.Options;
 import org.ocelotds.topic.SessionManager;
 import org.slf4j.Logger;
@@ -48,9 +37,6 @@ public class OcelotServices {
 	private Logger logger;
 
 	@Inject
-	private ServiceTools serviceTools;
-
-	@Inject
 	private UpdatedCacheManager updatedCacheManager;
 
 	@Inject
@@ -65,14 +51,6 @@ public class OcelotServices {
 	@Inject
 	private HttpSession httpSession;
 	
-	@Inject
-	private UnProxyClassServices unProxyClassServices;
-
-	@Any
-	@Inject
-	@DataService(resolver = "")
-	private Instance<Object> dataservices;
-
 	/**
 	 * Init core
 	 * @param options
@@ -132,55 +110,5 @@ public class OcelotServices {
 
 	public Integer getNumberSubscribers(String topic) {
 		return topicManager.getNumberSubscribers(topic);
-	}
-
-	/**
-	 * Return all services present in application
-	 * [{"name":"instancename", methods=[{"name":"methodname","returntype":"void","argtypes":["",""],"argnames":["name1","name2"],"argtemplates":["",""]}]}]
-	 * @return 
-	 */
-	public List<OcelotService> getServices() {
-		List<OcelotService> result = new ArrayList<>();
-		Options options = (Options) httpSession.getAttribute(Constants.Options.OPTIONS);
-		for (Object dataservice : dataservices) {
-			if (!OcelotServices.class.isInstance(dataservice) || options.isDebug()) {
-				Class cls = unProxyClassServices.getRealClass(dataservice.getClass());
-				OcelotService ocelotService = new OcelotService(serviceTools.getInstanceNameFromDataservice(cls));
-				result.add(ocelotService);
-				addMethodsToMethodsService(cls.getMethods(), ocelotService.getMethods());
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * 
-	 * @param methods
-	 * @param ocelotService 
-	 */
-	void addMethodsToMethodsService(Method[] methods,  List<OcelotMethod> methodsService) {
-		for (Method method : methods) {
-			if (serviceTools.isConsiderateMethod(method)) {
-				methodsService.add(getOcelotMethod(method));
-			}
-		}
-	}
-	
-	OcelotMethod getOcelotMethod(Method method) {
-		OcelotMethod ocelotMethod = new OcelotMethod(method.getName(), serviceTools.getShortName(serviceTools.getLiteralType(method.getGenericReturnType())));
-		Annotation[][] annotations = method.getParameterAnnotations();
-		Type[] types = method.getGenericParameterTypes();
-		int index = 0;
-		for (Type type : types) {
-			ocelotMethod.getArgtypes().add(serviceTools.getShortName(serviceTools.getLiteralType(type)));
-			ocelotMethod.getArgnames().add("arg"+index); 
-			try {
-				ocelotMethod.getArgtemplates().add(serviceTools.getTemplateOfType(type, serviceTools.getJsonMarshaller(annotations[index])));
-			} catch (JsonMarshallerException ex) {
-				ocelotMethod.getArgtemplates().add(type.getTypeName());
-			}
-			index++;
-		}
-		return ocelotMethod;
 	}
 }

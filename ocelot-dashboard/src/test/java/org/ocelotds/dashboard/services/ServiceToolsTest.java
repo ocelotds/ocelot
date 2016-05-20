@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds;
+package org.ocelotds.dashboard.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,7 +33,7 @@ import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
-import org.ocelotds.objects.Result;
+import org.ocelotds.dashboard.objects.Result;
 import org.slf4j.Logger;
 
 /**

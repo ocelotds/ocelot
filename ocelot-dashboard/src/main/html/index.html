@@ -1,39 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="app" ng-strict-di>
 	<head>
 		<title>Ocelotds Services</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<link href="css/main.css" rel="stylesheet">
 	</head>
-	<body ng-app="service-app">
-		<div ng-controller="ServiceController as srvCtrl">
-			<nav class="navbar navbar-inverse navbar-fixed-top">
-				<div class="container-fluid">
-					<div class="navbar-header">
-						<a class="navbar-brand" href="#">
-							Ocelot<span style="color: #EB9316">ds</span>
-						</a>
-					</div>
-					<ul class="nav navbar-nav">
-						<li class="dropdown" ui-sref-active="active">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-								<i class="fa fa-lg fa-tachometer"></i>
-								Services <span class="caret"></span>
-							</a>
-							<ul class="dropdown-menu">
-								<li ng-repeat="srv in srvCtrl.services">
-									<a href="#{{srv.name}}">{{srv.name}}</a>
-								</li>
-							</ul>
-						</li>
-					</ul>
-					<ocelot-badge></ocelot-badge>
-				</div>
-			</nav>
-			<div class="container-fluid">
-				<ocelot-service ng-repeat="srv in srvCtrl.services" ds="srv"></ocelot-service>
-			</div>
-		</div>
+	<body>
+		<div ui-view="topmenu"></div>
+		<div ui-view="content"></div>
 		<script src="js/vendors.js" type="text/javascript"></script>
 		<script src="../../ocelot/services.js" type="text/javascript"></script>
 		<script src="../../ocelot/core.js" type="text/javascript"></script>
