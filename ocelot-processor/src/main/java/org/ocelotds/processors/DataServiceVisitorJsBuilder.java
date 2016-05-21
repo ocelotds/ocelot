@@ -4,8 +4,11 @@
  */
 package org.ocelotds.processors;
 
+import java.io.BufferedReader;
 import org.ocelotds.annotations.JsCacheResult;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +17,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import javax.tools.StandardLocation;
 import org.ocelotds.KeyMaker;
 import org.ocelotds.processors.stringDecorators.KeyForArgDecorator;
 import org.ocelotds.processors.stringDecorators.NothingDecorator;
@@ -45,6 +49,9 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 		String instanceName = getJsInstancename(jsclsname);
 		writer.append("var ").append(instanceName).append(SPACE).append("=").append(SPACE).append("(").append(FUNCTION).append(SPACE).append("()").append(SPACE).append("{").append(CR);
 		writer.append(TAB).append("'use strict';").append(CR);
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(DataServiceVisitorJsBuilder.class.getResource("/js/main.js").openStream()))) {
+			writer.append(TAB).append(reader.readLine());
+		}
 		String classname = typeElement.getQualifiedName().toString();
 		writer.append(TAB).append("var _ds").append(SPACE).append("=").append(SPACE).append(QUOTE).append(classname).append(QUOTE).append(";").append(CR);
 		writer.append(TAB).append("return").append(SPACE).append("{").append(CR);
@@ -142,7 +149,7 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 */
 	void createReturnOcelotPromiseFactory(String classname, String methodName, String paramNames, String args, String keys, Writer writer) throws IOException {
 		String md5 = keyMaker.getMd5(classname + "." + methodName);
-		writer.append(TAB3).append("return OcelotPromiseFactory.createPromise(_ds,").append(SPACE).append(QUOTE).append(md5).append("_").append(QUOTE).append(SPACE).append("+").append(SPACE).append("JSON.stringify([").append(keys).append("]).md5()").append(",").append(SPACE).append(QUOTE).append(methodName).append(QUOTE).append(",").append(SPACE).append("[").append(paramNames).append("],").append(SPACE).append("[").append(args).append("]").append(");").append(CR);
+		writer.append(TAB3).append("return _create(_ds,").append(SPACE).append(QUOTE).append(md5).append("_").append(QUOTE).append(SPACE).append("+").append(SPACE).append("JSON.stringify([").append(keys).append("]).md5()").append(",").append(SPACE).append(QUOTE).append(methodName).append(QUOTE).append(",").append(SPACE).append("[").append(paramNames).append("],").append(SPACE).append("[").append(args).append("]").append(");").append(CR);
 	}
 
 	/**
