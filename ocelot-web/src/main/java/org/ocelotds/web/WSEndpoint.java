@@ -64,6 +64,7 @@ public class WSEndpoint {
 		// Get infos from config and set in session, only one time by connexion
 		HandshakeRequest request = (HandshakeRequest) configProperties.get(Constants.HANDSHAKEREQUEST);
 		String id = ((HttpSession) request.getHttpSession()).getId();
+		getSessionManager().closeOldSessionForHttp(id);
 		getSessionManager().addSession(id, session);
 		getUserContextFactory().createUserContext(request, session.getId());
 	}
@@ -74,6 +75,7 @@ public class WSEndpoint {
 		if (!session.isOpen()) {
 			getUserContextFactory().destroyUserContext(session.getId());
 			getTopicManager().removeSessionToTopics(session);
+			getSessionManager().removeSession(session);
 		}
 	}
 
@@ -94,6 +96,7 @@ public class WSEndpoint {
 		}
 		getUserContextFactory().destroyUserContext(session.getId());
 		getTopicManager().removeSessionToTopics(session);
+		getSessionManager().removeSession(session);
 	}
 
 	/**
