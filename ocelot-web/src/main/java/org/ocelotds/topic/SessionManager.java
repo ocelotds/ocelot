@@ -3,67 +3,53 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.topic;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import javax.enterprise.context.ApplicationScoped;
 import javax.websocket.Session;
 
 /**
  * Link httpSession with wsSession
  * @author hhfrancois
  */
-@ApplicationScoped
-public class SessionManager {
-	private final Map<String, Session> map = new HashMap<>();
-
-	public Map<String, Session> getMap() {
-		return map;
-	}
-	
-	public void addSession(String httpid, Session session) {
-		closeOldSessionForHttp(httpid);
-		removeSession(session); // not possible normaly
-		map.put(httpid, session);
-	}
+public interface SessionManager {
+	/**
+	 * return map link httpid and wssession
+	 * @return 
+	 */
+	Map<String, Session> getMap();
 	
 	/**
-	 * if for http session there is already a old wssession, close it before replace
-	 * @param httpid 
+	 * link wssession and http session
+	 * @param httpid
+	 * @param session 
 	 */
-	void closeOldSessionForHttp(String httpid) {
-		if(map.containsKey(httpid)) {
-			try {
-				Session s = map.get(httpid);
-				s.close();
-			} catch (IOException ex) {
-			}
-		}
-	}
+	void addSession(String httpid, Session session);
 	
-	public void removeSession(Session session) {
-		if(map.containsValue(session)) {
-			Collection<String> ids = new ArrayList<>();
-			Set<Map.Entry<String, Session>> entries = map.entrySet();
-			for (Map.Entry<String, Session> entry : entries) {
-				if(entry.getValue().equals(session)) {
-					ids.add(entry.getKey());
-				}
-			}
-			for (String id : ids) {
-				removeSession(id);
-			}
-		}
-	}
+	/**
+	 * If for httpid there is already a old wssession, close it before replace
+	 * @param httpid 
+	 * @return  
+	 */
+	Session closeOldSessionForHttp(String httpid);
+	
+	/**
+	 * Remove link wssession and httpid
+	 * @param session 
+	 * @return  
+	 */
+	Collection<String> removeSession(Session session);
 
-	public void removeSession(String httpid) {
-		map.remove(httpid);
-	}
-	public Session getSessionById(String httpid) {
-		return map.get(httpid);
-	}
+	/**
+	 * get wssession for a httpid
+	 * @param httpid
+	 * @return 
+	 */
+	Session getSessionById(String httpid);
 	
+	/**
+	 * Get username from wssession
+	 * @param session
+	 * @return 
+	 */
+	String getUsername(Session session);
 }

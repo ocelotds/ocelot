@@ -31,6 +31,7 @@ import org.ocelotds.topic.UserContextFactory;
 import org.ocelotds.topic.TopicManager;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.topic.SessionManager;
+import org.ocelotds.topic.SessionManagerImpl;
 
 /**
  *
@@ -44,16 +45,16 @@ public class WSEndpointTest {
 	private WSEndpoint instance;
 	
 	@Mock
-	private TopicManager tManager;
+	private TopicManager topicManager;
 
 	@Mock
-	private CallServiceManager cManager;
+	private CallServiceManager callServiceManager;
 	
 	@Mock
-	private UserContextFactory uFactory;
+	private UserContextFactory userContextFactory;
 	
 	@Mock
-	private SessionManager sManager;
+	private SessionManager sessionManager;
 
 	/**
 	 * Test of handleOpenConnexion method, of class WSEndpoint.
@@ -74,14 +75,14 @@ public class WSEndpointTest {
 		when(request.getHttpSession()).thenReturn(httpSession);
 		when(httpSession.getId()).thenReturn("HTTPSESSIONID");
 		when(session.getId()).thenReturn("WSSESSIONID");
-		doReturn(sManager).when(instance).getSessionManager();
-		doReturn(uFactory).when(instance).getUserContextFactory();
+		doReturn(sessionManager).when(instance).getSessionManager();
+		doReturn(userContextFactory).when(instance).getUserContextFactory();
 
 
 		instance.handleOpenConnexion(session, config);
 
-		verify(sManager).addSession(anyString(), any(Session.class));
-		verify(uFactory).createUserContext(any(HandshakeRequest.class), eq("WSSESSIONID"));
+		verify(sessionManager).addSession(anyString(), any(Session.class));
+		verify(userContextFactory).createUserContext(any(HandshakeRequest.class), eq("WSSESSIONID"));
 	}
 
 	/**
@@ -133,12 +134,12 @@ public class WSEndpointTest {
 				  Constants.Message.OPERATION, "methodName",
 				  Constants.Message.ARGUMENTNAMES, Arrays.toString(parameterNames),
 				  Constants.Message.ARGUMENTS, Arrays.toString(parameters));
-		doReturn(cManager).when(instance).getCallServiceManager();
+		doReturn(callServiceManager).when(instance).getCallServiceManager();
 		instance.receiveCommandMessage(client, json);
 
 		ArgumentCaptor<MessageFromClient> captureMsg = ArgumentCaptor.forClass(MessageFromClient.class);
 		ArgumentCaptor<Session> captureSession = ArgumentCaptor.forClass(Session.class);
-		verify(cManager, times(1)).sendMessageToClient(captureMsg.capture(), captureSession.capture());
+		verify(callServiceManager, times(1)).sendMessageToClient(captureMsg.capture(), captureSession.capture());
 
 		MessageFromClient result = captureMsg.getValue();
 		assertThat(result.getId()).isEqualTo("111");
@@ -148,44 +149,44 @@ public class WSEndpointTest {
 		assertThat(result.getParameters()).containsExactly("\"toto\"", "5", "true");
 	}
 	
-	public <T> void testGetCDI(Class<T> cls, Method m) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public <T> void testGetCDI(Class<T> res, T inst, Method m) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		System.out.println("getSessionManager");
 		WSEndpoint oe = spy(new WSEndpoint());
 		CdiBeanResolver resolver = mock(CdiBeanResolver.class);
-		when(resolver.getBean(eq(cls))).thenReturn(cls.newInstance());
+		when(resolver.getBean(eq(res))).thenReturn(inst);
 		doReturn(resolver).when(oe).getCdiBeanResolver();
 
 		Object result = m.invoke(oe);
 
-		assertThat(result).isInstanceOf(cls);
+		assertThat(result).isInstanceOf(res);
 	}
 
 	@Test
 	public void testGetSessionManager() throws Exception {
 		System.out.println("getSessionManager");
 		Method m = WSEndpoint.class.getDeclaredMethod("getSessionManager");
-		testGetCDI(SessionManager.class, m);
+		testGetCDI(SessionManager.class, new SessionManagerImpl(), m);
 	}
 
 	@Test
 	public void testGetTopicManager() throws Exception {
 		System.out.println("getTopicManager");
 		Method m = WSEndpoint.class.getDeclaredMethod("getTopicManager");
-		testGetCDI(TopicManager.class, m);
+		testGetCDI(TopicManager.class, new TopicManager(), m);
 	}
 	
 	@Test
 	public void testGetUserContextFactory() throws Exception {
 		System.out.println("getUserContextFactory");
 		Method m = WSEndpoint.class.getDeclaredMethod("getUserContextFactory");
-		testGetCDI(UserContextFactory.class, m);
+		testGetCDI(UserContextFactory.class, new UserContextFactory(), m);
 	}
 
 	@Test
 	public void testGetCallServiceManager() throws Exception {
 		System.out.println("getCallServiceManager");
 		Method m = WSEndpoint.class.getDeclaredMethod("getCallServiceManager");
-		testGetCDI(CallServiceManager.class, m);
+		testGetCDI(CallServiceManager.class, new CallServiceManager(), m);
 	}
 	
 	@Test

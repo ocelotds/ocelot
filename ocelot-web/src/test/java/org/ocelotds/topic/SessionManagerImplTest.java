@@ -4,6 +4,7 @@
 package org.ocelotds.topic;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 import javax.websocket.Session;
 import org.junit.Test;
@@ -19,11 +20,11 @@ import org.mockito.runners.MockitoJUnitRunner;
  * @author hhfrancois
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SessionManagerTest {
+public class SessionManagerImplTest {
 
 	@InjectMocks
 	@Spy
-	SessionManager instance;
+	SessionManagerImpl instance;
 
 	/**
 	 * Test of getMap method, of class SessionManager.
@@ -46,8 +47,6 @@ public class SessionManagerTest {
 		Session session = mock(Session.class);
 		instance.addSession(id, session);
 		assertThat(instance.getMap()).isNotEmpty();
-		verify(instance).closeOldSessionForHttp(eq(id));
-		verify(instance).removeSession(eq(session));
 		instance.getMap().clear();
 	}
 	
@@ -61,11 +60,12 @@ public class SessionManagerTest {
 		Session session = mock(Session.class);
 		String id = "ID0";
 		instance.getMap().put(id, session);
-		instance.closeOldSessionForHttp(id);
+		Session closed = instance.closeOldSessionForHttp(id);
 		try {
 			verify(session).close();
 		} catch (IOException ex) {
 		}
+		assertThat(closed).isNotNull();
 	}
 
 	/**
@@ -79,9 +79,11 @@ public class SessionManagerTest {
 		instance.getMap().put("ID0", session);
 		instance.getMap().put("ID1", session);
 
-		instance.removeSession(session);
+		Collection<String> removeds = instance.removeSession(session);
 
 		verify(instance, times(2)).removeSession(any(String.class));
+		
+		assertThat(removeds).contains("ID0", "ID1");
 	}
 
 	/**
@@ -93,7 +95,6 @@ public class SessionManagerTest {
 		instance.getMap().clear();
 		String id = "ID0";
 		Session session = mock(Session.class);
-		doNothing().when(instance).removeSession(any(Session.class));
 		instance.addSession(id, session);
 		assertThat(instance.getMap()).isNotEmpty();
 		instance.removeSession(id);
@@ -109,7 +110,6 @@ public class SessionManagerTest {
 		instance.getMap().clear();
 		String id = "ID0";
 		Session session = mock(Session.class);
-		doNothing().when(instance).removeSession(any(Session.class));
 		instance.addSession(id, session);
 		assertThat(instance.getMap()).isNotEmpty();
 
