@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.topic;
 
+import java.io.IOException;
 import java.util.Map;
 import javax.websocket.Session;
 import org.junit.Test;
@@ -45,8 +46,26 @@ public class SessionManagerTest {
 		Session session = mock(Session.class);
 		instance.addSession(id, session);
 		assertThat(instance.getMap()).isNotEmpty();
-		verify(instance).removeSession(any(Session.class));
+		verify(instance).closeOldSessionForHttp(eq(id));
+		verify(instance).removeSession(eq(session));
 		instance.getMap().clear();
+	}
+	
+	/**
+	 * Test of closeOldSessionForHttp method, of class.
+	 */
+	@Test
+	public void closeOldSessionForHttpTest() {
+		System.out.println("closeOldSessionForHttp");
+		instance.getMap().clear();
+		Session session = mock(Session.class);
+		String id = "ID0";
+		instance.getMap().put(id, session);
+		instance.closeOldSessionForHttp(id);
+		try {
+			verify(session).close();
+		} catch (IOException ex) {
+		}
 	}
 
 	/**

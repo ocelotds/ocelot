@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.topic;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,8 +25,23 @@ public class SessionManager {
 	}
 	
 	public void addSession(String httpid, Session session) {
-		removeSession(session);
+		closeOldSessionForHttp(httpid);
+		removeSession(session); // not possible normaly
 		map.put(httpid, session);
+	}
+	
+	/**
+	 * if for http session there is already a old wssession, close it before replace
+	 * @param httpid 
+	 */
+	void closeOldSessionForHttp(String httpid) {
+		if(map.containsKey(httpid)) {
+			try {
+				Session s = map.get(httpid);
+				s.close();
+			} catch (IOException ex) {
+			}
+		}
 	}
 	
 	public void removeSession(Session session) {
