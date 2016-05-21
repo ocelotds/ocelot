@@ -56,8 +56,8 @@ public class RSEndpoint {
 		HttpSession httpSession = request.getSession();
 		setContext(httpSession);
 		MessageFromClient message = MessageFromClient.createFromJson(json);
-		MessageToClient createMessageToClient = messageToClientService.createMessageToClient(message, httpSession);
-		return createMessageToClient.toJson();
+		MessageToClient mtc = messageToClientService.createMessageToClient(message, httpSession);
+		return mtc.toJson();
 	}
 
 	void setContext(HttpSession httpSession) {
