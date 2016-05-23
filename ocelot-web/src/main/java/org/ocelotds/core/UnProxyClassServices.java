@@ -14,7 +14,7 @@ public class UnProxyClassServices {
 	 * @param proxy
 	 * @return
 	 */
-	public Class getRealClass(Class proxy) {
+	public Class<?> getRealClass(Class proxy) {
 		try {
 			return Class.forName(getRealClassname(proxy.getName()));
 		} catch (ClassNotFoundException ex) {
