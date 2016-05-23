@@ -9,10 +9,10 @@ import javax.inject.Inject;
 import org.ocelotds.annotations.JsTopicControl;
 import org.ocelotds.annotations.JsTopicControls;
 import org.ocelotds.annotations.OcelotLogger;
-import org.ocelotds.core.UnProxyClassServices;
 import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
 import org.ocelotds.security.JsTopicCtrlsAnnotationLiteral;
 import org.ocelotds.security.JsTopicMessageController;
+import org.ocelotds.topic.JsTopicControlsTools;
 import org.slf4j.Logger;
 
 /**
@@ -32,7 +32,7 @@ public class MessageControllerManager {
 	Instance<JsTopicMessageController<?>> topicMessageController;
 
 	@Inject
-	private UnProxyClassServices unProxyClassServices;
+	private JsTopicControlsTools jsTopicControlsTools;
 
 	/**
 	 * Get jstopic message controller
@@ -95,7 +95,7 @@ public class MessageControllerManager {
 			return null;
 		}
 		for (JsTopicMessageController<?> jsTopicMessageController : controllers) {
-			JsTopicControls jsTopicControls = getJsTopicControls(jsTopicMessageController);
+			JsTopicControls jsTopicControls = jsTopicControlsTools.getJsTopicControlsFromProxyClass(jsTopicMessageController.getClass());
 			if(null != jsTopicControls) {
 				JsTopicControl[] jsTopicControlList = jsTopicControls.value();
 				for (JsTopicControl jsTopicControl : jsTopicControlList) {
@@ -107,15 +107,5 @@ public class MessageControllerManager {
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * get JsTopicControls from JsTopicAccessController instance
-	 * @param jsTopicAccessController
-	 * @return 
-	 */
-	JsTopicControls getJsTopicControls(JsTopicMessageController jsTopicMessageController) {
-		Class<?> realClass = unProxyClassServices.getRealClass(jsTopicMessageController.getClass());
-		return realClass.getAnnotation(JsTopicControls.class);
 	}
 }
