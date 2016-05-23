@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 @Path("endpoint")
 @RequestScoped
 @OcelotResource
-public class RSEndpoint {
+public class RSEndpoint implements IEndpoint {
 
 	@Inject
 	@OcelotLogger
@@ -52,12 +52,18 @@ public class RSEndpoint {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Override
 	public String getMessageToClient(@FormParam(Constants.Message.MFC) String json) {
-		HttpSession httpSession = request.getSession();
+		HttpSession httpSession = getHttpSession();
 		setContext(httpSession);
 		MessageFromClient message = MessageFromClient.createFromJson(json);
 		MessageToClient mtc = messageToClientService.createMessageToClient(message, httpSession);
 		return mtc.toJson();
+	}
+
+	@Override
+	public HttpSession getHttpSession() {
+		return request.getSession();
 	}
 
 	void setContext(HttpSession httpSession) {
