@@ -13,11 +13,11 @@ import javax.inject.Inject;
 import org.ocelotds.annotations.JsTopicControl;
 import org.ocelotds.annotations.JsTopicControls;
 import org.ocelotds.annotations.OcelotLogger;
-import org.ocelotds.core.UnProxyClassServices;
 import org.ocelotds.security.JsTopicAccessController;
 import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
 import org.ocelotds.security.JsTopicCtrlsAnnotationLiteral;
 import org.ocelotds.security.UserContext;
+import org.ocelotds.topic.JsTopicControlsTools;
 import org.slf4j.Logger;
 
 /**
@@ -35,7 +35,7 @@ public class TopicAccessManager {
 	private Logger logger;
 	
 	@Inject
-	private UnProxyClassServices unProxyClassServices;
+	private JsTopicControlsTools jsTopicControlsTools;
 	
 	@Inject
 	@Any
@@ -127,7 +127,7 @@ public class TopicAccessManager {
 	 */
 	boolean checkAccessTopicFromController(UserContext ctx, String topic, JsTopicAccessController jsTopicAccessController) throws IllegalAccessException {
 		logger.debug("Looking for accessController for topic '{}' from JsTopicAccessController {}", topic, jsTopicAccessController);
-		JsTopicControls jsTopicControls = getJsTopicControls(jsTopicAccessController);
+		JsTopicControls jsTopicControls = jsTopicControlsTools.getJsTopicControlsFromProxyClass(jsTopicAccessController.getClass());
 		logger.debug("Looking for accessController for topic '{}' from jsTopicControls {}", topic, jsTopicControls);
 		if(null != jsTopicControls) {
 			logger.debug("Looking for accessController for topic '{}' from jsTopicControls {}, {}", topic, jsTopicControls, jsTopicControls.value());
@@ -140,16 +140,6 @@ public class TopicAccessManager {
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * get JsTopicControls from JsTopicAccessController instance
-	 * @param jsTopicAccessController
-	 * @return 
-	 */
-	JsTopicControls getJsTopicControls(JsTopicAccessController jsTopicAccessController) {
-		Class<?> realClass = unProxyClassServices.getRealClass(jsTopicAccessController.getClass());
-		return realClass.getAnnotation(JsTopicControls.class);
 	}
 
 	/**
