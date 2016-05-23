@@ -94,11 +94,19 @@ public class TopicManagerImpl implements TopicManager {
 		}
 		logger.debug("'{}' unsubscribe to '{}'", session.getId(), topic);
 		if (Constants.Topic.ALL.equals(topic)) {
-			for (Collection<Session> sessions : map.values()) {
+			for (Map.Entry<String, Set<Session>> entry : map.entrySet()) {
+				Set<Session> sessions = entry.getValue();
 				removeSessionToSessions(session, sessions);
+				if(sessions.isEmpty()) {
+					map.remove(entry.getKey());
+				}
 			}
 		} else {
-			removeSessionToSessions(session, map.get(topic));
+			Set<Session> sessions = map.get(topic);
+			removeSessionToSessions(session, sessions);
+				if(sessions.isEmpty()) {
+					map.remove(topic);
+				}
 		}
 		return getNumberSubscribers(topic);
 	}
@@ -139,11 +147,15 @@ public class TopicManagerImpl implements TopicManager {
 	 */
 	@Override
 	public boolean unregisterTopicSessions(String topic, Collection<Session> sessions) {
+		boolean unregister = false;
 		if (sessions != null && !sessions.isEmpty()) {
 			Collection<Session> all = map.get(topic);
-			return all.removeAll(sessions);
+			unregister = all.removeAll(sessions);
+			if(all.isEmpty()) {
+				map.remove(topic);
+			}
 		}
-		return false;
+		return unregister;
 	}
 
 	/**
