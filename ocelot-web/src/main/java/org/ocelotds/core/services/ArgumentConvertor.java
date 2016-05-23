@@ -21,6 +21,7 @@ import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshallers.JsonMarshallerServices;
 import org.ocelotds.marshalling.IJsonMarshaller;
+import org.ocelotds.marshalling.annotations.JsonMarshallerType;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.slf4j.Logger;
@@ -61,7 +62,7 @@ public class ArgumentConvertor implements IArgumentConvertor {
 		}
 		JsonUnmarshaller juma = getJsonUnmarshallerAnnotation(parameterAnnotations);
 		if (null != juma) {
-			Object result = getResult(jsonArg, jsonMarshallerServices.getIJsonMarshallerInstance(juma.value()), juma.iterable());
+			Object result = getResult(jsonArg, jsonMarshallerServices.getIJsonMarshallerInstance(juma.value()), juma.type());
 			argumentServices.checkType(result, paramType);
 			return result;
 		} else {
@@ -69,12 +70,19 @@ public class ArgumentConvertor implements IArgumentConvertor {
 		}
 	}
 
-	Object getResult(String jsonArg, IJsonMarshaller ijm, boolean iterable) throws JsonUnmarshallingException {
-		if (iterable) {
-			return argumentServices.getJavaResultFromSpecificUnmarshallerIterable(jsonArg, ijm);
-		} else {
-			return ijm.toJava(jsonArg);
+	Object getResult(String jsonArg, IJsonMarshaller ijm, JsonMarshallerType type) throws JsonUnmarshallingException {
+		Object result;
+		switch (type) {
+			case LIST:
+				result = argumentServices.getJavaResultFromSpecificUnmarshallerIterable(jsonArg, ijm);
+				break;
+			case MAP:
+				result = argumentServices.getJavaResultFromSpecificUnmarshallerMap(jsonArg, ijm);
+				break;
+			default:
+				result = ijm.toJava(jsonArg);
 		}
+		return result;
 	}
 
 	/**

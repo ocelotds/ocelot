@@ -7,8 +7,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -23,6 +25,7 @@ import org.ocelotds.marshallers.JsonMarshallerServices;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
+import org.ocelotds.marshalling.annotations.JsonMarshallerType;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.ocelotds.objects.BadMarshaller1;
@@ -54,15 +57,18 @@ public class ArgumentServicesTest {
 		JsonMarshaller jm = mock(JsonMarshaller.class);
 
 		when(jm.value()).thenReturn((Class) LocaleMarshaller.class);
-		when(jm.iterable()).thenReturn(false).thenReturn(true);
+		when(jm.type()).thenReturn(JsonMarshallerType.SINGLE).thenReturn(JsonMarshallerType.LIST).thenReturn(JsonMarshallerType.MAP);
 		when(ijm.toJson(any(Object.class))).thenReturn("LG1");
 		doReturn("[LG1,LG2]").when(instance).getJsonResultFromSpecificMarshallerIterable(any(Iterable.class), any(IJsonMarshaller.class));
-
+		doReturn("{\"FR\":LG1,\"US\":LG2}").when(instance).getJsonResultFromSpecificMarshallerMap(any(Map.class), any(IJsonMarshaller.class));
+		
 		when(jsonMarshallerServices.getIJsonMarshallerInstance(any(Class.class))).thenReturn(ijm);
 		String result = instance.getJsonResultFromSpecificMarshaller(jm, Locale.FRANCE);
 		assertThat(result).isEqualTo("LG1");
 		result = instance.getJsonResultFromSpecificMarshaller(jm, Arrays.asList(Locale.FRANCE, Locale.US));
 		assertThat(result).isEqualTo("[LG1,LG2]");
+		result = instance.getJsonResultFromSpecificMarshaller(jm, getMapOfLocale());
+		assertThat(result).isEqualTo("{\"FR\":LG1,\"US\":LG2}");
 	}
 
 	/**
@@ -113,6 +119,39 @@ public class ArgumentServicesTest {
 		LocaleMarshaller lm = new LocaleMarshaller();
 		String json = "BADJSON";
 		instance.getJavaResultFromSpecificUnmarshallerIterable(json, lm);
+	}
+
+	/**
+	 * Test of getJsonResultFromSpecificMarshaller method, of class ArgumentServices.
+	 *
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	public void testGetJsonResultFromSpecificMarshallerMap() throws Exception {
+		System.out.println("getJsonResultFromSpecificMarshallerMap");
+		IJsonMarshaller ijm = mock(IJsonMarshaller.class);
+		when(ijm.toJson(anyObject())).thenReturn("\"JSON\"");
+		String result = instance.getJsonResultFromSpecificMarshallerMap(getMapOfLocale(), ijm);
+		assertThat(result).isEqualTo("{\"FR\":\"JSON\",\"US\":\"JSON\"}");
+	}
+
+	@Test
+	public void testGetJavaResultFromSpecificUnmarshallerMap() throws JsonUnmarshallingException {
+		System.out.println("getJavaResultFromSpecificUnmarshallerMap");
+		LocaleMarshaller lm = new LocaleMarshaller();
+		String json = "{\"KEY1\":{\"country\":\"FR\",\"language\":\"fr\"},\"KEY2\":{\"country\":\"US\",\"language\":\"en\"}}";
+		Map result = instance.getJavaResultFromSpecificUnmarshallerMap(json, lm);
+		assertThat(result).hasSize(2);
+		assertThat(result.get("KEY1")).isEqualTo(Locale.FRANCE);
+		assertThat(result.get("KEY2")).isEqualTo(Locale.US);
+	}
+
+	@Test(expected = JsonUnmarshallingException.class)
+	public void testGetJavaResultFromSpecificUnmarshallerMapFail() throws JsonUnmarshallingException {
+		System.out.println("getJavaResultFromSpecificUnmarshallerMap");
+		LocaleMarshaller lm = new LocaleMarshaller();
+		String json = "{{\"KEY1\"}:{\"country\":\"FR\",\"language\":\"fr\"},{\"KEY2\"}:{\"country\":\"US\",\"language\":\"en\"}}";
+		instance.getJavaResultFromSpecificUnmarshallerMap(json, lm);
 	}
 
 	@Test
@@ -169,5 +208,12 @@ public class ArgumentServicesTest {
 
 	private List<Result> method() {
 		return null;
+	}
+	
+	private Map<String, Locale> getMapOfLocale() {
+		Map<String, Locale> map = new HashMap<>();
+		map.put("FR", Locale.FRANCE);
+		map.put("US", Locale.US);
+		return map;
 	}
 }
