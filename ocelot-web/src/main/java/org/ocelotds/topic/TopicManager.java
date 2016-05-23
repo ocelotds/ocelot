@@ -4,21 +4,10 @@
  */
 package org.ocelotds.topic;
 
-import org.ocelotds.topic.topicAccess.TopicAccessManager;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import javax.websocket.Session;
-import org.ocelotds.Constants;
-import org.ocelotds.annotations.OcelotLogger;
-import org.ocelotds.messaging.MessageToClient;
-import org.ocelotds.messaging.MessageType;
-import org.slf4j.Logger;
 
 /**
  * Singleton sessions manager
