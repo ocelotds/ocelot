@@ -46,12 +46,14 @@ public class JsTopicInterceptor implements Serializable {
 	 */
 	@AroundInvoke
 	public Object processJsTopic(InvocationContext ctx) throws Exception {
-		String topic = getStaticTopic(ctx.getMethod());
+		Method method = ctx.getMethod();
+		String topic = getStaticTopic(method);
+		boolean jsonPayload = isJsonPayload(method);
 		if (null == topic || topic.isEmpty()) {
-			topic = getDynamicTopic(ctx.getMethod(), ctx.getParameters());
+			topic = getDynamicTopic(method, ctx.getParameters());
 		}
 		if (null != topic && !topic.isEmpty()) { // topic name is specify
-			return proceedAndSendMessage(ctx, topic);
+			return proceedAndSendMessage(ctx, topic, jsonPayload);
 		}
 		throw new IllegalArgumentException("Topic name can't be empty.");
 	}
@@ -68,6 +70,20 @@ public class JsTopicInterceptor implements Serializable {
 		}
 		JsTopic jsTopic = method.getAnnotation(JsTopic.class);
 		return jsTopic.value();
+	}
+
+	/**
+	 * The topic receive directly payload in json
+	 *
+	 * @param method
+	 * @return
+	 */
+	boolean isJsonPayload(Method method) {
+		if(null == method || !method.isAnnotationPresent(JsTopic.class) ) {
+			return false;
+		}
+		JsTopic jsTopic = method.getAnnotation(JsTopic.class);
+		return jsTopic.jsonPayload();
 	}
 
 	/**
@@ -131,11 +147,18 @@ public class JsTopicInterceptor implements Serializable {
 	 * @return
 	 * @throws Exception
 	 */
-	Object proceedAndSendMessage(InvocationContext ctx, String topic) throws Exception {
+	Object proceedAndSendMessage(InvocationContext ctx, String topic, boolean jsonPayload) throws Exception {
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(topic);
 		Object result = ctx.proceed();
-		messageToClient.setResponse(result);
+		if(jsonPayload) {
+			if(!String.class.isInstance(result)) {
+				throw new java.lang.UnsupportedOperationException("Method annotated JsTopic(jsonPayload=true) must return String type and correct Json.");
+			}
+			messageToClient.setJson((String) result);
+		} else {
+			messageToClient.setResponse(result);
+		}
 		wsEvent.fire(messageToClient);
 		return result;
 	}
