@@ -22,11 +22,11 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.JsTopicControl;
 import org.ocelotds.annotations.JsTopicControls;
-import org.ocelotds.core.UnProxyClassServices;
 import org.ocelotds.security.JsTopicAccessController;
 import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
 import org.ocelotds.security.JsTopicCtrlsAnnotationLiteral;
 import org.ocelotds.security.UserContext;
+import org.ocelotds.topic.JsTopicControlsTools;
 import org.ocelotds.topic.UserContextFactory;
 import org.slf4j.Logger;
 
@@ -55,7 +55,7 @@ public class TopicAccessManagerTest {
 	private UserContextFactory userContextFactory;
 
 	@Mock
-	private UnProxyClassServices unProxyClassServices;
+	private JsTopicControlsTools jsTopicControlsTools;
 
 
 	@Before
@@ -240,7 +240,7 @@ public class TopicAccessManagerTest {
 		JsTopicControl[] controls1 = new JsTopicControl[] {new JsTopicCtrlAnnotationLiteral(TOPIC2)};
 		JsTopicControl[] controls2 = new JsTopicControl[] {new JsTopicCtrlAnnotationLiteral(TOPIC2), new JsTopicCtrlAnnotationLiteral(TOPIC1)};
 		when(jtcs.value()).thenReturn(controls1);
-		doReturn(jtcs).when(instance).getJsTopicControls(eq(jtac));
+		doReturn(jtcs).when(jsTopicControlsTools).getJsTopicControlsFromProxyClass(eq(jtac.getClass()));
 		doReturn(Boolean.TRUE).doThrow(IllegalAccessException.class).when(instance).checkAccessTopicFromControllers(eq(userContext), eq(TOPIC1), any(Collection.class));
 	
 		boolean result = instance.checkAccessTopicFromController(userContext, TOPIC1, jtac);
