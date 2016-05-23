@@ -22,6 +22,7 @@ import org.ocelotds.annotations.JsTopicControls;
 import org.ocelotds.security.JsTopicCtrlAnnotationLiteral;
 import org.ocelotds.security.JsTopicCtrlsAnnotationLiteral;
 import org.ocelotds.security.JsTopicMessageController;
+import org.ocelotds.topic.JsTopicControlsTools;
 import org.slf4j.Logger;
 
 /**
@@ -41,6 +42,9 @@ public class MessageControllerManagerTest {
 
 	@Mock
 	Instance<JsTopicMessageController<?>> topicMessageController;
+
+	@Mock
+	private JsTopicControlsTools jsTopicControlsTools;
 
 	@InjectMocks
 	@Spy
@@ -149,7 +153,7 @@ public class MessageControllerManagerTest {
 		JsTopicMessageController<?> jtmc = mock(JsTopicMessageController.class);
 		JsTopicControls jtcs = mock(JsTopicControls.class);
 		
-		doReturn(jtcs).when(instance).getJsTopicControls(eq(jtmc));
+		doReturn(jtcs).when(jsTopicControlsTools).getJsTopicControlsFromProxyClass(eq(jtmc.getClass()));
 		when(jtcs.value()).thenReturn(new JsTopicControl[]{})
 				  .thenReturn(new JsTopicControl[]{new JsTopicCtrlAnnotationLiteral("FOO")})
 				  .thenReturn(new JsTopicControl[]{new JsTopicCtrlAnnotationLiteral(TOPIC)});
