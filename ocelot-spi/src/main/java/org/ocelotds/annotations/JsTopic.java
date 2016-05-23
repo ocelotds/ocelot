@@ -13,7 +13,9 @@ import javax.enterprise.util.Nonbinding;
 import javax.interceptor.InterceptorBinding;
 
 /**
- * Annotation specifies that the method annotated result is public to Topic
+ * Annotation specifies that the method annotated result is publish to Topic
+ * topic can be specify on field value, or for dynamic topic by JsTopicName
+ * jsonPayload specify that method result is already in json. Only for String return
  * @author hhfrancois
  */
 @Inherited
@@ -22,4 +24,5 @@ import javax.interceptor.InterceptorBinding;
 @Target({METHOD, TYPE})
 public @interface JsTopic {
 	@Nonbinding String value() default "";
+	@Nonbinding boolean jsonPayload() default false;
 }
