@@ -247,7 +247,7 @@ public class DataServiceVisitorJsBuilderTest {
 	@Test
 	public void testCreateReturnOcelotPromiseFactory() throws IOException {
 		System.out.println("createReturnOcelotPromiseFactory");
-		String expresult = AbstractDataServiceVisitor.TAB3+"return OcelotPromiseFactory.createPromise(_ds,"+AbstractDataServiceVisitor.SPACE+"\"c4746bbdace1d5712da7b6fabe58fb9c_\""+AbstractDataServiceVisitor.SPACE+"+"+AbstractDataServiceVisitor.SPACE+"JSON.stringify([KEYS]).md5(),"+AbstractDataServiceVisitor.SPACE+"\"METHODNAME\","+AbstractDataServiceVisitor.SPACE+"[PARAMNAMES],"+AbstractDataServiceVisitor.SPACE+"[ARGS]);"+AbstractDataServiceVisitor.CR;
+		String expresult = AbstractDataServiceVisitor.TAB3+"return _create(_ds,"+AbstractDataServiceVisitor.SPACE+"\"c4746bbdace1d5712da7b6fabe58fb9c_\""+AbstractDataServiceVisitor.SPACE+"+"+AbstractDataServiceVisitor.SPACE+"JSON.stringify([KEYS]).md5(),"+AbstractDataServiceVisitor.SPACE+"\"METHODNAME\","+AbstractDataServiceVisitor.SPACE+"[PARAMNAMES],"+AbstractDataServiceVisitor.SPACE+"[ARGS]);"+AbstractDataServiceVisitor.CR;
 		StringWriter writer = new StringWriter();
 		instance.createReturnOcelotPromiseFactory("CLSNAME", "METHODNAME", "PARAMNAMES", "ARGS", "KEYS", writer);
 		String result = writer.toString();
