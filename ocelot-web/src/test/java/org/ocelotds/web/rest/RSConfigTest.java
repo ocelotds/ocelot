@@ -59,7 +59,7 @@ public class RSConfigTest {
 	public void testAddRestResourceClasses() {
 		System.out.println("addRestResourceClasses");
 		((FakeCDI) restEndpoints).add(new RSEndpoint());
-		when(unProxyClassServices.getRealClass(eq(RSEndpoint.class))).thenReturn(RSEndpoint.class);
+		when(unProxyClassServices.getRealClass(eq(RSEndpoint.class))).thenReturn((Class) RSEndpoint.class);
 		Set<Class<?>> set = new HashSet<>();
 		instance.addRestResourceClasses(set);
 		assertThat(set).isNotEmpty();
