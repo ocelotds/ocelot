@@ -14,6 +14,7 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
+import org.ocelotds.annotations.DashboardOnDebug;
 import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
 import org.ocelotds.annotations.OcelotLogger;
@@ -30,6 +31,7 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 @DataService(resolver = Constants.Resolver.CDI)
+@DashboardOnDebug
 public class OcelotServices {
 	
 	@Inject
