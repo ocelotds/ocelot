@@ -6,6 +6,7 @@ package org.ocelotds.topic;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import org.junit.Test;
@@ -46,6 +47,17 @@ public class TopicManagerImplTest {
 	
 	@Mock
 	private UserContextFactory userContextFactory;
+	
+	/**
+	 * Test of getSessionsByTopic method, of class.
+	 */
+	@Test
+	public void getSessionsByTopicTest() {
+		System.out.println("getSessionsByTopic");
+		
+		Map result = instance.getSessionsByTopic();
+		assertThat(result).isInstanceOf(Map.class);
+	}
 	/**
 	 * Test of registerTopicSession method, of class TopicManager.
 	 *

@@ -32,7 +32,7 @@ public class TopicManagerImpl implements TopicManager {
 	@OcelotLogger
 	private Logger logger;
 
-	private final Map<String, Set<Session>> map = new ConcurrentHashMap<>();
+	final Map<String, Set<Session>> map = new ConcurrentHashMap<>();
 
 	@Inject
 	TopicAccessManager topicAccessManager;
