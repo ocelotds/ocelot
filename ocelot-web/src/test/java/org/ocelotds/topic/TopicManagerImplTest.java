@@ -3,11 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.topic;
 
-import org.ocelotds.topic.topicAccess.TopicAccessManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import javax.inject.Inject;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import org.junit.Test;
@@ -22,6 +20,7 @@ import org.mockito.Spy;
 import org.ocelotds.Constants;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
+import org.ocelotds.topic.topicAccess.TopicAccessManager;
 import org.slf4j.Logger;
 
 /**
@@ -29,7 +28,7 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 @RunWith(MockitoJUnitRunner.class)
-public class TopicManagerTest {
+public class TopicManagerImplTest {
 
 	private static final String TOPIC1 = "TOPIC_1";
 	private static final String TOPIC2 = "TOPIC_2";
@@ -37,7 +36,7 @@ public class TopicManagerTest {
 
 	@InjectMocks
 	@Spy
-	private TopicManager instance;
+	private TopicManagerImpl instance;
 
 	@Mock
 	private Logger logger;
