@@ -4,6 +4,7 @@
 package org.ocelotds.topic;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.Collection;
 import java.util.Map;
 import javax.websocket.Session;
@@ -14,6 +15,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.Constants;
 
 /**
  *
@@ -69,6 +71,22 @@ public class SessionManagerImplTest {
 	}
 
 	/**
+	 * Test of closeOldSessionForHttp method, of class.
+	 */
+	@Test
+	public void closeOldSessionForHttpTestFailed() throws IOException {
+		System.out.println("closeOldSessionForHttp");
+		instance.getMap().clear();
+		Session session = mock(Session.class);
+		doThrow(IOException.class).when(session).close();
+		String id = "ID0";
+		instance.getMap().put(id, session);
+		Session closed = instance.closeOldSessionForHttp(id);
+		verify(session).close();
+		assertThat(closed).isNotNull();
+	}
+
+	/**
 	 * Test of removeSession method, of class SessionManager.
 	 */
 	@Test
@@ -115,6 +133,26 @@ public class SessionManagerImplTest {
 
 		Session result = instance.getSessionById(id);
 		assertThat(result).isEqualTo(session);
+	}
+	
+	/**
+	 * Test of getUsername method, of class.
+	 */
+	@Test
+	public void getUsernameTest() {
+		System.out.println("getUsername");
+		Session session = mock(Session.class);
+		Principal p = mock(Principal.class);
+		when(session.getUserPrincipal()).thenReturn(null).thenReturn(p);
+		when(p.getName()).thenReturn("USERNAME");
+		
+		String result = instance.getUsername(null);
+		assertThat(result).isEqualTo(Constants.ANONYMOUS);
+		result = instance.getUsername(session);
+		assertThat(result).isEqualTo(Constants.ANONYMOUS);
+		result = instance.getUsername(session);
+		assertThat(result).isEqualTo("USERNAME");
+
 	}
 
 }
