@@ -17,5 +17,5 @@ import org.ocelotds.marshalling.IJsonMarshaller;
 @Target({ElementType.PARAMETER})
 public @interface JsonUnmarshaller {
 	Class<? extends IJsonMarshaller> value();
-	boolean iterable() default false;
+	JsonMarshallerType type() default JsonMarshallerType.SINGLE;
 }

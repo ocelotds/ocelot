@@ -17,5 +17,6 @@ import org.ocelotds.marshalling.IJsonMarshaller;
 @Target({ElementType.METHOD, ElementType.FIELD})
 public @interface JsonMarshaller {
 	Class<? extends IJsonMarshaller> value();
-	boolean iterable() default false;
+	JsonMarshallerType type() default JsonMarshallerType.SINGLE;
+//	boolean iterable() default false;
 }
