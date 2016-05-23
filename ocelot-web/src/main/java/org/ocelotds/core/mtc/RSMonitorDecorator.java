@@ -35,12 +35,13 @@ public abstract class RSMonitorDecorator implements RSMessageToClientService {
 
 	/**
 	 * determine if request is monitored
+	 *
 	 * @param session
-	 * @return 
+	 * @return
 	 */
-	public boolean isMonitored(HttpSession session) {
-		boolean monitor  =false;
-		if (null != session && session.getAttribute(Constants.Options.OPTIONS)!=null) {
+	boolean isMonitored(HttpSession session) {
+		boolean monitor = false;
+		if (null != session && session.getAttribute(Constants.Options.OPTIONS) != null) {
 			monitor = ((Options) session.getAttribute(Constants.Options.OPTIONS)).isMonitor();
 		}
 		return monitor;
@@ -48,8 +49,9 @@ public abstract class RSMonitorDecorator implements RSMessageToClientService {
 
 	/**
 	 * get t0
+	 *
 	 * @param monitor
-	 * @return 
+	 * @return
 	 */
 	protected long getT0(boolean monitor) {
 		long t0 = 0;
@@ -61,9 +63,10 @@ public abstract class RSMonitorDecorator implements RSMessageToClientService {
 
 	/**
 	 * set timing
+	 *
 	 * @param monitor
 	 * @param t0
-	 * @param mtc 
+	 * @param mtc
 	 */
 	protected void setTiming(boolean monitor, long t0, MessageToClient mtc) {
 		if (monitor) {
@@ -74,13 +77,14 @@ public abstract class RSMonitorDecorator implements RSMessageToClientService {
 
 	/**
 	 * Decorate method
+	 *
 	 * @param message
 	 * @param session
-	 * @return 
+	 * @return
 	 */
 	@Override
 	public MessageToClient createMessageToClient(MessageFromClient message, HttpSession session) {
-		boolean monitor  = isMonitored(session);
+		boolean monitor = isMonitored(session);
 		logger.debug("Monitor is enabled : {}", monitor);
 		long t0 = getT0(monitor);
 		MessageToClient mtc = messageToClientService.createMessageToClient(message, session);
