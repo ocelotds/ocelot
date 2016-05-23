@@ -217,6 +217,22 @@ public class TopicsMessagesBroadcasterTest {
 		verify(sessionManager).removeSessionsToTopic(captureClosed.capture());
 		assertThat(captureClosed.getValue()).hasSize(1);
 	}
+	
+	/**
+	 * Test of getPayload method, of class.
+	 */
+	@Test
+	public void getPayloadTest() {
+		System.out.println("getPayload");
+		MessageToClient mtc = new MessageToClient();
+		mtc.setResponse("RESPONSE");
+		Object result = instance.getPayload(mtc);
+		assertThat(result).isEqualTo("RESPONSE");
+		mtc = new MessageToClient();
+		mtc.setJson("JSON");
+		result = instance.getPayload(mtc);
+		assertThat(result).isEqualTo("JSON");
+	}
 
 	/**
 	 * Test of checkAndSendMtcToSession method, of class.

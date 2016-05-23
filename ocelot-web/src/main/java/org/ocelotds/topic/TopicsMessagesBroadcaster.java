@@ -85,7 +85,17 @@ public class TopicsMessagesBroadcaster {
 	 * @return 
 	 */
 	public int sendMessageToTopic(@Observes @MessageEvent MessageToClient msg) {
-		return sendMessageToTopic(msg, msg.getResponse());
+		return sendMessageToTopic(msg, getPayload(msg));
+	}
+	
+	Object getPayload(MessageToClient msg) {
+		Object payload = null;
+		if(null != msg.getJson()) {
+			payload = msg.getJson();
+		} else {
+			payload = msg.getResponse();
+		}
+		return payload;
 	}
 	
 	/**
