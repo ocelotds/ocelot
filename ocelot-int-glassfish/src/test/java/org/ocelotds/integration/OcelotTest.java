@@ -627,6 +627,15 @@ public class OcelotTest extends AbstractOcelotTest {
 		testRSCallWithResult(ClassServices.class, "getClasses", getJson(list), getJson(list));
 	}
 
+	@Test
+	public void testMethodWithMarshallerMap() {
+		System.out.println("getMapClass");
+		Map<String, String> map = new HashMap<>();
+		map.put("STRING", String.class.getName());
+		map.put("LONG", Long.class.getName());
+		testRSCallWithResult(ClassServices.class, "getMapClass", getJson(map), getJson(map));
+	}
+
 	/**
 	 * VALIDATION
 	 */

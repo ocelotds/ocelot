@@ -4,10 +4,12 @@
 package org.ocelotds.integration.dataservices.marshalling;
 
 import java.util.List;
+import java.util.Map;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.integration.marshallers.ClassMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
+import org.ocelotds.marshalling.annotations.JsonMarshallerType;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 
 /**
@@ -22,8 +24,13 @@ public class ClassServices {
 		return cls;
 	}
 	
-	@JsonMarshaller(value=ClassMarshaller.class, iterable = true)
-	public List<Class> getClasses(@JsonUnmarshaller(value=ClassMarshaller.class, iterable = true) List<Class> clss) {
+	@JsonMarshaller(value=ClassMarshaller.class, type = JsonMarshallerType.LIST)
+	public List<Class> getClasses(@JsonUnmarshaller(value=ClassMarshaller.class, type = JsonMarshallerType.LIST) List<Class> clss) {
 		return clss;
+	}
+
+	@JsonMarshaller(value=ClassMarshaller.class, type = JsonMarshallerType.MAP)
+	public Map<String, Class> getMapClass(@JsonUnmarshaller(value=ClassMarshaller.class, type = JsonMarshallerType.MAP) Map<String, Class> mcls) {
+		return mcls;
 	}
 }

@@ -4,6 +4,7 @@
 package org.ocelotds.integration.literals;
 
 import javax.enterprise.util.AnnotationLiteral;
+import org.ocelotds.marshalling.annotations.JsonMarshallerType;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 
 /**
@@ -15,7 +16,7 @@ public class JsonUnmarshallerLiteral extends AnnotationLiteral<JsonUnmarshaller>
 
 	private static final long serialVersionUID = 1L;
 	private final Class<? extends org.ocelotds.marshalling.IJsonMarshaller> value;
-	private final boolean iterable = false;
+	private final JsonMarshallerType type = JsonMarshallerType.SINGLE;
 
 	public JsonUnmarshallerLiteral(Class<? extends org.ocelotds.marshalling.IJsonMarshaller> value) {
 		this.value = value;
@@ -27,7 +28,7 @@ public class JsonUnmarshallerLiteral extends AnnotationLiteral<JsonUnmarshaller>
 	}
 
 	@Override
-	public boolean iterable() {
-		return iterable;
+	public JsonMarshallerType type() {
+		return type;
 	}
 }
