@@ -132,10 +132,9 @@ public class MessageToClient {
 
 	public String toJson() {
 		ObjectMapper mapper = getObjectMapper();
-		String jsonResponse;
+		String jsonResponse = this.json;
 		try {
-			jsonResponse = this.json;
-			if (null == this.json) {
+			if (null == jsonResponse) {
 				if(MessageType.FAULT.equals(this.getType())) {
 					jsonResponse = ((Fault) this.getResponse()).toJson();
 				} else {
