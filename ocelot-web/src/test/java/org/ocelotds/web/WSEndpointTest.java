@@ -32,6 +32,7 @@ import org.ocelotds.topic.TopicManager;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.topic.SessionManager;
 import org.ocelotds.topic.SessionManagerImpl;
+import org.ocelotds.topic.TopicManagerImpl;
 
 /**
  *
@@ -172,7 +173,7 @@ public class WSEndpointTest {
 	public void testGetTopicManager() throws Exception {
 		System.out.println("getTopicManager");
 		Method m = WSEndpoint.class.getDeclaredMethod("getTopicManager");
-		testGetCDI(TopicManager.class, new TopicManager(), m);
+		testGetCDI(TopicManager.class, new TopicManagerImpl(), m);
 	}
 	
 	@Test
