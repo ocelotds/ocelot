@@ -38,7 +38,7 @@ public class JsTopicControlsToolsTest {
 	public void testGetJsTopicControlsFromProxyClass() {
 		System.out.println("getJsTopicControlsFromProxyClass");
 		Class proxy = String.class;
-		when(unProxyClassServices.getRealClass(eq(String.class))).thenReturn(String.class).thenReturn(RealClass.class);
+		when(unProxyClassServices.getRealClass(eq(String.class))).thenReturn((Class) String.class).thenReturn((Class) RealClass.class);
 		JsTopicControls result = instance.getJsTopicControlsFromProxyClass(proxy);
 		assertThat(result).isNull();
 		result = instance.getJsTopicControlsFromProxyClass(proxy);
