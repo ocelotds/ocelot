@@ -6,9 +6,6 @@ package org.ocelotds.topic;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import javax.enterprise.inject.spi.Annotated;
-import javax.enterprise.inject.spi.EventMetadata;
-import javax.enterprise.inject.spi.InjectionPoint;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import javax.websocket.SessionException;
@@ -22,11 +19,6 @@ import org.ocelotds.messaging.MessageToClient;
 import static org.mockito.Mockito.*;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ocelotds.annotations.JsTopicEvent;
-import org.ocelotds.core.services.ArgumentServices;
-import org.ocelotds.marshallers.JsonMarshallerException;
-import org.ocelotds.marshalling.annotations.JsonMarshaller;
-import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.security.JsTopicMessageController;
 import org.ocelotds.security.NotRecipientException;
 import org.ocelotds.security.UserContext;
@@ -50,9 +42,6 @@ public class TopicsMessagesBroadcasterTest {
 	private TopicManager sessionManager;
 
 	@Mock
-	private ArgumentServices argumentServices;
-
-	@Mock
 	private UserContextFactory userContextFactory;
 	
 	@Mock
@@ -61,119 +50,6 @@ public class TopicsMessagesBroadcasterTest {
 	@InjectMocks
 	@Spy
 	private TopicsMessagesBroadcaster instance;
-
-	/**
-	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
-	 *
-	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
-	 */
-	@Test
-	public void testSendObjectToTopicNotAnnotated() throws JsonMarshallingException {
-		System.out.println("sendObjectToTopic");
-		EventMetadata metadata = mock(EventMetadata.class);
-		InjectionPoint injectionPoint = mock(InjectionPoint.class);
-		Annotated annotated = mock(Annotated.class);
-
-		when(metadata.getInjectionPoint()).thenReturn(injectionPoint);
-		when(injectionPoint.getAnnotated()).thenReturn(annotated);
-		when(annotated.getAnnotation(JsTopicEvent.class)).thenReturn(null);
-
-		// no JsTopicEvent
-		instance.sendObjectToTopic(PAYLOAD, metadata);
-		verify(instance, never()).sendMessageToTopic(any(MessageToClient.class));
-	}
-
-	/**
-	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
-	 *
-	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
-	 */
-	@Test
-	public void testSendObjectToTopicWithoutMarshaller() throws JsonMarshallingException {
-		System.out.println("sendObjectToTopic");
-		EventMetadata metadata = mock(EventMetadata.class);
-		InjectionPoint injectionPoint = mock(InjectionPoint.class);
-		Annotated annotated = mock(Annotated.class);
-		JsTopicEvent jte = mock(JsTopicEvent.class);
-
-		when(metadata.getInjectionPoint()).thenReturn(injectionPoint);
-		when(injectionPoint.getAnnotated()).thenReturn(annotated);
-		when(annotated.getAnnotation(JsTopicEvent.class)).thenReturn(jte);
-		when(annotated.getAnnotation(JsonMarshaller.class)).thenReturn(null);
-		when(jte.value()).thenReturn(TOPIC);
-
-		// JsTopicEvent, no marshaller
-		instance.sendObjectToTopic(PAYLOAD, metadata);
-
-		ArgumentCaptor<MessageToClient> captureMtC = ArgumentCaptor.forClass(MessageToClient.class);
-		ArgumentCaptor<Object> captureObject = ArgumentCaptor.forClass(Object.class);
-		verify(instance).sendMessageToTopic(captureMtC.capture(), captureObject.capture());
-
-		assertThat(captureMtC.getValue().getResponse()).isEqualTo(PAYLOAD);
-		assertThat(captureObject.getValue()).isEqualTo(PAYLOAD);
-	}
-
-	/**
-	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
-	 *
-	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
-	 */
-	@Test
-	public void testSendObjectToTopicWithMarshaller() throws JsonMarshallingException, JsonMarshallerException {
-		System.out.println("sendObjectToTopic");
-		EventMetadata metadata = mock(EventMetadata.class);
-		InjectionPoint injectionPoint = mock(InjectionPoint.class);
-		Annotated annotated = mock(Annotated.class);
-		JsTopicEvent jte = mock(JsTopicEvent.class);
-		JsonMarshaller jm = mock(JsonMarshaller.class);
-
-		when(metadata.getInjectionPoint()).thenReturn(injectionPoint);
-		when(injectionPoint.getAnnotated()).thenReturn(annotated);
-		when(annotated.getAnnotation(JsTopicEvent.class)).thenReturn(jte);
-		when(annotated.getAnnotation(JsonMarshaller.class)).thenReturn(jm);
-		when(jte.value()).thenReturn(TOPIC);
-		when(argumentServices.getJsonResultFromSpecificMarshaller(eq(jm), eq(PAYLOAD))).thenReturn("MARSHALLED");
-
-		// JsTopicEvent, no marshaller
-		instance.sendObjectToTopic(PAYLOAD, metadata);
-
-		ArgumentCaptor<MessageToClient> captureMtC = ArgumentCaptor.forClass(MessageToClient.class);
-		ArgumentCaptor<Object> captureObject = ArgumentCaptor.forClass(Object.class);
-		verify(instance).sendMessageToTopic(captureMtC.capture(), captureObject.capture());
-
-		assertThat(captureMtC.getValue().getJson()).isEqualTo("MARSHALLED");
-		assertThat(captureObject.getValue()).isEqualTo(PAYLOAD);
-	}
-
-	/**
-	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
-	 *
-	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
-	 */
-	@Test
-	public void testSendObjectToTopicWithMarshallerFail() throws JsonMarshallingException, JsonMarshallerException {
-		System.out.println("sendObjectToTopic");
-		EventMetadata metadata = mock(EventMetadata.class);
-		InjectionPoint injectionPoint = mock(InjectionPoint.class);
-		Annotated annotated = mock(Annotated.class);
-		JsTopicEvent event = mock(JsTopicEvent.class);
-
-		when(metadata.getInjectionPoint()).thenReturn(injectionPoint);
-		when(injectionPoint.getAnnotated()).thenReturn(annotated);
-		when(annotated.getAnnotation(JsTopicEvent.class)).thenReturn(event);
-		when(annotated.getAnnotation(JsonMarshaller.class)).thenReturn(mock(JsonMarshaller.class));
-		when(argumentServices.getJsonResultFromSpecificMarshaller(any(JsonMarshaller.class), anyObject())).thenThrow(JsonMarshallingException.class).thenThrow(JsonMarshallerException.class).thenThrow(Throwable.class);
-		when(event.value()).thenReturn(TOPIC);
-
-		// JsTopicEvent, marshaller
-		instance.sendObjectToTopic(PAYLOAD, metadata);
-		instance.sendObjectToTopic(PAYLOAD, metadata);
-		instance.sendObjectToTopic(PAYLOAD, metadata);
-
-		verify(instance, never()).sendMessageToTopic(any(MessageToClient.class), anyObject());
-	}
 
 	/**
 	 * Test of sendMessageToTopic method, of class TopicsMessagesBroadcaster.
@@ -185,12 +61,12 @@ public class TopicsMessagesBroadcasterTest {
 		System.out.println("testSendMessageToTopicNoSessions");
 		Collection<Session> sessions = new ArrayList<>();
 
-		when(sessionManager.getSessionsForTopic(anyString())).thenReturn(null).thenReturn(sessions);
+		when(sessionManager.getSessionsForTopic(anyString())).thenReturn(null).thenReturn(sessions); // session is closed
 
-		int result = instance.sendMessageToTopic(new MessageToClient());
+		int result = instance.sendMessageToTopic(new MessageToClient(), PAYLOAD);
 		assertThat(result).isEqualTo(0);
 
-		result = instance.sendMessageToTopic(new MessageToClient());
+		result = instance.sendMessageToTopic(new MessageToClient(), PAYLOAD);
 		assertThat(result).isEqualTo(0);
 	}
 
@@ -210,7 +86,7 @@ public class TopicsMessagesBroadcasterTest {
 		doReturn(1).doThrow(SessionException.class).doReturn(1).when(instance).checkAndSendMtcToSession(any(Session.class), eq(jtmc), any(MessageToClient.class), anyObject());
 		when(sessionManager.getSessionsForTopic(anyString())).thenReturn(sessions);
 
-		int result = instance.sendMessageToTopic(new MessageToClient());
+		int result = instance.sendMessageToTopic(new MessageToClient(), PAYLOAD);
 		assertThat(result).isEqualTo(2);
 
 		ArgumentCaptor<Collection> captureClosed = ArgumentCaptor.forClass(Collection.class);
@@ -218,22 +94,6 @@ public class TopicsMessagesBroadcasterTest {
 		assertThat(captureClosed.getValue()).hasSize(1);
 	}
 	
-	/**
-	 * Test of getPayload method, of class.
-	 */
-	@Test
-	public void getPayloadTest() {
-		System.out.println("getPayload");
-		MessageToClient mtc = new MessageToClient();
-		mtc.setResponse("RESPONSE");
-		Object result = instance.getPayload(mtc);
-		assertThat(result).isEqualTo("RESPONSE");
-		mtc = new MessageToClient();
-		mtc.setJson("JSON");
-		result = instance.getPayload(mtc);
-		assertThat(result).isEqualTo("JSON");
-	}
-
 	/**
 	 * Test of checkAndSendMtcToSession method, of class.
 	 *

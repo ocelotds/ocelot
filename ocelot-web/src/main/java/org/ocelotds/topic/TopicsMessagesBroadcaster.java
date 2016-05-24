@@ -45,66 +45,15 @@ public class TopicsMessagesBroadcaster {
 	private UserContextFactory userContextFactory;
 
 	@Inject
-	private ArgumentServices argumentServices;
-	
-	@Inject
 	private MessageControllerManager messageControllerManager;
 
-	/**
-	 * Send message to topic
-	 *
-	 * @param payload
-	 * @param metadata
-	 */
-	public void sendObjectToTopic(@Observes @JsTopicEvent("") Object payload, EventMetadata metadata) {
-		MessageToClient msg = new MessageToClient();
-		InjectionPoint injectionPoint = metadata.getInjectionPoint();
-		Annotated annotated = injectionPoint.getAnnotated();
-		JsTopicEvent jte = annotated.getAnnotation(JsTopicEvent.class);
-		if (jte != null) {
-			JsonMarshaller jm = annotated.getAnnotation(JsonMarshaller.class);
-			try {
-				msg.setId(jte.value());
-				if (jm != null) {
-					msg.setJson(argumentServices.getJsonResultFromSpecificMarshaller(jm, payload));
-				} else {
-					msg.setResponse(payload);
-				}
-				sendMessageToTopic(msg, payload);
-			} catch (JsonMarshallerException ex) {
-				logger.error(jm+" can't be instantiate", ex);
-			} catch (Throwable ex) {
-				logger.error(payload+" can't be serialized with marshaller "+jm, ex);
-			}
-		}
-	}
-	
-	/**
-	 * Send message to topic, return number sended
-	 * @param msg
-	 * @return 
-	 */
-	public int sendMessageToTopic(@Observes @MessageEvent MessageToClient msg) {
-		return sendMessageToTopic(msg, getPayload(msg));
-	}
-	
-	Object getPayload(MessageToClient msg) {
-		Object payload = null;
-		if(null != msg.getJson()) {
-			payload = msg.getJson();
-		} else {
-			payload = msg.getResponse();
-		}
-		return payload;
-	}
-	
 	/**
 	 * Send message to topic, return number sended
 	 * @param mtc
 	 * @param payload
 	 * @return 
 	 */
-	int sendMessageToTopic(MessageToClient mtc, Object payload) {
+	public int sendMessageToTopic(MessageToClient mtc, Object payload) {
 		int sended = 0;
 		logger.debug("Sending message to topic {}...", mtc);
 		Collection<Session> sessions = sessionManager.getSessionsForTopic(mtc.getId());
