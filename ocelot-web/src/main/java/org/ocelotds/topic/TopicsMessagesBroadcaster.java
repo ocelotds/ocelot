@@ -5,23 +5,14 @@
 package org.ocelotds.topic;
 
 import org.ocelotds.topic.messageControl.MessageControllerManager;
-import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import java.util.ArrayList;
 import java.util.Collection;
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.spi.Annotated;
-import javax.enterprise.inject.spi.EventMetadata;
-import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import javax.websocket.SessionException;
-import org.ocelotds.annotations.JsTopicEvent;
 import org.ocelotds.annotations.OcelotLogger;
-import org.ocelotds.core.services.ArgumentServices;
-import org.ocelotds.marshallers.JsonMarshallerException;
-import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.security.UserContext;
 import org.ocelotds.security.JsTopicMessageController;
 import org.ocelotds.security.NotRecipientException;
