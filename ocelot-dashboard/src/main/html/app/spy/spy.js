@@ -46,21 +46,23 @@
 			$scope.$apply();
 		}
 		function update(session) {
-			ctrl.sessions.forEach(function (s, idx, arr) {
+			ctrl.sessions.every(function (s, idx, arr) {
 				if (s.id === session.id) {
 					arr.splice(idx, 1, session);
 					$scope.$apply();
-					return;
+					return false;
 				}
+				return true;
 			});
 		}
 		function remove(session) {
-			ctrl.sessions.forEach(function (s, idx, arr) {
+			ctrl.sessions.every(function (s, idx, arr) {
 				if (s.id === session.id) {
 					arr.splice(idx, 1);
 					$scope.$apply();
-					return;
+					return false;
 				}
+				return true;
 			});
 		}
 		
@@ -87,10 +89,10 @@
 					$scope.$apply();
 				});
 				sessionServices.monitorSession(id).then(function () {
-					ctrl.request = "// Monitoring "+id+" enabled"
+					ctrl.request = "// Monitoring "+id+" enabled";
 					$scope.$apply();
 				}).catch(function (fault) {
-					ctrl.request = "// Monitoring "+id+" failed\n"+JSON.stringify(fault, null, 3)
+					ctrl.request = "// Monitoring "+id+" failed\n"+JSON.stringify(fault, null, 3);
 					ctrl.monitored = null;
 					$scope.$apply();
 					ctrl.requestSubscriber.unsubscribe();

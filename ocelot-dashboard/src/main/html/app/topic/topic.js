@@ -13,19 +13,19 @@
 					controller: TopicCtrl,
 					controllerAs: "ctrl",
 					resolve: {
-						sessionsBytopic: initSessionsTopic,
-						addHandler: initAddHandler,
-						removeHandler: initRemoveHandler
+//						sessionsBytopic: initSessionsTopic,
+//						addHandler: initAddHandler,
+//						removeHandler: initRemoveHandler
 					}
 				}
 			}
 		});
 	}
 	/* @ngInject */
-	function TopicCtrl($scope, sessionsBytopic, addHandler, removeHandler) {
+	function TopicCtrl($scope/*, sessionsBytopic, addHandler, removeHandler*/) {
 		var ctrl = this;
-		ctrl.topics = Object.keys(sessionsBytopic);
-		ctrl.sessionsBytopic = sessionsBytopic; // {"topicname", [{"id":"sessionid","username":"principalname"}, {"id":"sessionid","username":"principalname"}]}
+		ctrl.topics = []; // Object.keys(sessionsBytopic);
+		ctrl.sessionsBytopic = {}; //sessionsBytopic; // {"topicname", [{"id":"sessionid","username":"principalname"}, {"id":"sessionid","username":"principalname"}]}
 		ctrl.topic = null; // topic selected
 		ctrl.subscription = null; // topic subscribed
 		ctrl.subscriber = null; // subscriber to ctrl.subscription
@@ -36,13 +36,29 @@
 		ctrl.selectSession = selectSession;
 		ctrl.subscribe = subscribe;
 		ctrl.sendPayload = sendPayload;
-		removeHandler(remove);
-		addHandler(add);
-		
-		
+//		removeHandler(remove);
+//		addHandler(add);
+		ctrl.subAdd = null;
+		ctrl.subRemove = null;
+		init();
+
+
+
+		function init() {
+			ctrl.subAdd = new Subscriber("session-topic-add").event(function (evt) {
+				ctrl.subRemove = new Subscriber("session-topic-remove").event(function (evt) {
+					topicServices.getSessionIdsByTopic().then(function (sessionsBytopic) {
+						ctrl.topics = Object.keys(sessionsBytopic);
+						ctrl.sessionsBytopic = sessionsBytopic; // {"topicname", [{"id":"sessionid","username":"principalname"}, {"id":"sessionid","username":"principalname"}]}
+						$scope.$apply();
+					});
+				}).message(remove);
+				$scope.$apply();
+			}).message(add);
+		}
 		function sendPayload(payload, topic, session) {
-			if(payload && topic) {
-				if(session) {
+			if (payload && topic) {
+				if (session) {
 					topicServices.sendJsonToTopicForSession(payload, topic, session.id);
 				} else {
 					topicServices.sendJsonToTopic(payload, topic);
@@ -54,7 +70,7 @@
 		 * @param {string} to
 		 */
 		function subscribe(to) {
-			ctrl.messages = ""
+			ctrl.messages = "";
 			if (ctrl.subscription && ctrl.subscriber) {
 				ctrl.subscriber.unsubscribe();
 				ctrl.messages = "// Unsubscription to " + ctrl.subscriber.topic;
@@ -98,7 +114,7 @@
 			var topic = topic_sessionInfo.topic;
 			if (ctrl.sessionsBytopic[topic]) {
 				var sessionInfo = topic_sessionInfo.sessionInfo;
-				ctrl.sessionsBytopic[topic].forEach(function (s, idx, arr) {
+				ctrl.sessionsBytopic[topic].every(function (s, idx, arr) {
 					if (s.id === sessionInfo.id) {
 						arr.splice(idx, 1);
 						if (!arr.length) {
@@ -106,8 +122,9 @@
 							ctrl.topics.splice(n, 1);
 						}
 						$scope.$apply();
-						return;
+						return false;
 					}
+					return true;
 				});
 			}
 		}

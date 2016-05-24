@@ -14,10 +14,7 @@ import org.ocelotds.annotations.DashboardOnDebug;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
-import org.ocelotds.dashboard.marshallers.SetSessionMarshaller;
 import org.ocelotds.dashboard.objects.SessionInfo;
-import org.ocelotds.marshalling.annotations.JsonMarshaller;
-import org.ocelotds.marshalling.annotations.JsonMarshallerType;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import org.ocelotds.topic.SessionManager;
@@ -38,13 +35,13 @@ public class TopicServices {
 	SessionManager sessionManager;
 
 	public Map<String, Collection<SessionInfo>> getSessionIdsByTopic() {
-		Map<String, Set<Session>> sessionsByTopic = topicManager.getSessionsByTopic();
-		Set<Map.Entry<String, Set<Session>>> entrySet = sessionsByTopic.entrySet();
+		Map<String, Collection<Session>> sessionsByTopic = topicManager.getSessionsByTopic();
+		Set<Map.Entry<String, Collection<Session>>> entrySet = sessionsByTopic.entrySet();
 		Map<String, Collection<SessionInfo>> result = new HashMap<>();
-		for (Map.Entry<String, Set<Session>> entry : entrySet) {
+		for (Map.Entry<String, Collection<Session>> entry : entrySet) {
 			Collection<SessionInfo> sessionInfos = new ArrayList<>();
 			result.put(entry.getKey(), sessionInfos);
-			Set<Session> value = entry.getValue();
+			Collection<Session> value = entry.getValue();
 			for (Session session : value) {
 				sessionInfos.add(new SessionInfo(session.getId(), sessionManager.getUsername(session), session.isOpen()));
 			}
