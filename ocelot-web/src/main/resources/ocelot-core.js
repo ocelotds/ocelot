@@ -4,7 +4,9 @@ var Subscriber = (function (topic) {
 	Object.defineProperty(promise, "topic", {value: topic, writable: false}); // add topic property, readonly
 	delete promise.constraint;
 	promise.unsubscribe = function () {
-		return ocelotServices.unsubscribe(topic);
+		var p = ocelotServices.unsubscribe(topic);
+		p.uid = this.uid;
+		return p;
 	};
 	return promise;
 });
@@ -438,14 +440,15 @@ if ("WebSocket" in window) {
 		function removePromiseForTopic(promise, topic) {
 			if (promises.hasOwnProperty(topic)) {
 				var promiseForTopic = promises[topic];
-				promiseForTopic.forEach(function(p, idx, arr) {
+				promiseForTopic.every(function(p, idx, arr) {
 					if(promise.uid === p.uid) {
-						arr.splice(idx, 1);
+						promiseForTopic.splice(idx, 1);
 						if (!promiseForTopic.length) {
 							clearPromisesForId(topic);
 						}
-						return;
+						return false;
 					}
+					return true;
 				});
 			}
 		}
@@ -475,10 +478,12 @@ if ("WebSocket" in window) {
 		}
 		function extractOptions(search) {
 			var params = search.split("&");
-			params.forEach(function (param) {
+			params.every(function (param) {
 				if (param.search(/^\??ocelot=/) === 0) {
 					opts = JSON.parse(decodeURI(param.replace(/\??ocelot=/, "")));
+					return false;
 				}
+				return true;
 			});
 		}
 		function sendMfc(promise) {
@@ -514,6 +519,8 @@ if ("WebSocket" in window) {
 					case RES:
 						// if msg is response of subscribe request
 						if (isTopicSubscription(promise)) {
+							promise.uid = getUid(); // useful for found promise
+							console.log("generation d'un uid pour promise lié au topic "+promise.args[0]+" : ", promise.uid)
 							addPromiseToId(promise, promise.args[0]);
 						} else if (isTopicUnsubscription(promise)) {
 							removePromiseForTopic(promise, promise.args[0]);
@@ -595,7 +602,6 @@ if ("WebSocket" in window) {
 			}, 10, ws);
 		}
 		function _addPromise(promise) {
-			promise.uid = getUid();
 			if (isTopicSubscription(promise, STATUS)) {
 				addPromiseToId(promise, STATUS);
 				stateUpdated();
