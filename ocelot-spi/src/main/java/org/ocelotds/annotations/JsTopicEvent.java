@@ -23,4 +23,10 @@ public @interface JsTopicEvent {
 	 * @return 
 	 */
 	@Nonbinding String value();
+	
+	/**
+	 * REceive directly json formated payload
+	 * @return 
+	 */
+	@Nonbinding boolean jsonPayload() default false;
 }
