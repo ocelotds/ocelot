@@ -1,36 +1,35 @@
 (function () {
 	'use strict';
-	angular.module('srvs.module', []).config(config);
+	angular.module('srv.module', []).config(config);
 
 	/* @ngInject */
 	function config($stateProvider) {
-		$stateProvider.state('root', {
+		$stateProvider.state('srv', {
 			parent: 'template',
-			url: '',
+			url: '/srv',
 			views: {
 				"content@": {
-					templateUrl: "app/srvs/srvs.html",
+					templateUrl: "app/srv/srv.html",
 					controller: TestCtrl,
 					controllerAs: "ctrl",
 					resolve: {
-						services: getServices
+						services: initServices
 					}
 				}
 			}
-		}).state('home', {
-			parent: 'root',
+		}).state('root', {
+			parent: 'srv',
 			url: '/'
-		}).state('srvs', {
-			parent: 'root',
-			url: '/srvs'
 		});
 	}
+	/* @ngInject */
 	function TestCtrl(services) {
 		var ctrl = this;
 		ctrl.services = services;
+		ctrl.service = services.length?services[0]:null;
 	}
 	/* @ngInject */
-	function getServices($q) {
+	function initServices($q) {
 		var deferred = $q.defer();
 		serviceServices.getServices().then(function (services) {
 			deferred.resolve(services);

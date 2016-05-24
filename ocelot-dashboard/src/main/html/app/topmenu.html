@@ -1,23 +1,36 @@
-<nav class="navbar navbar-inverse navbar-fixed-top">
-	<div class="container-fluid">
-		<div class="navbar-header">
-			<a class="navbar-brand" href="#">
-				Ocelot<span style="color: #EB9316">ds</span>
-			</a>
-		</div>
-		<ul class="nav navbar-nav">
-			<li ui-sref-active="active">
-				<a ui-sref="srvs"><i class="fa fa-lg fa-tachometer"></i>
-					&nbsp;Services
-				</a>
-			</li>
-			<li ui-sref-active="active">
-				<a ui-sref="sessions"><i class="fa fa-lg fa-user"></i>
-					&nbsp;Sessions
-				</a>
-			</li>
-		</ul>
-		<ws-badge></ws-badge>
+<div class="container-fluid">
+	<div class="navbar-header">
+		<a class="navbar-brand" ui-sref="srv">
+			Ocelot<span style="color: #EB9316">ds</span>
+		</a>
 	</div>
-</nav>
+	<ul class="nav navbar-nav">
+		<li ui-sref-active="active">
+			<a ui-sref="srv">
+				<i class="fa fa-lg fa-tasks"></i>
+				&nbsp;Services
+			</a>
+		</li>
+		<li ui-sref-active="active">
+			<a ui-sref="spy">
+				<i class="fa fa-lg fa-user-secret"></i>
+				&nbsp;Sessions
+			</a>
+		</li>
+		<li ui-sref-active="active">
+			<a ui-sref="topic">
+				<i class="fa fa-lg fa-envelope"></i>
+				&nbsp;Topics
+			</a>
+		</li>
+	</ul>
+	<ul class="nav navbar-nav navbar-right">
+		<li title="Current user">
+			<a class="fa fa-lg fa-user text-success">&nbsp;{{ctrl.username}}</a>
+		</li>
+	</ul>
+	<form class="navbar-brand navbar-right">
+		<ws-badge></ws-badge>
+	</form>
+</div>
 

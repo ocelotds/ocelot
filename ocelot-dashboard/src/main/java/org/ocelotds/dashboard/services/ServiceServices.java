@@ -13,7 +13,7 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 import org.ocelotds.Constants;
-import org.ocelotds.OcelotServices;
+import org.ocelotds.annotations.DashboardOnDebug;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.core.UnProxyClassServices;
 import org.ocelotds.dashboard.objects.OcelotMethod;
@@ -25,7 +25,8 @@ import org.ocelotds.objects.Options;
  *
  * @author hhfrancois
  */
-@DataService(resolver = Constants.Resolver.CDI)
+@DataService
+@DashboardOnDebug
 public class ServiceServices {
 	@Inject
 	private ServiceTools serviceTools;
@@ -38,7 +39,7 @@ public class ServiceServices {
 	
 	@Any
 	@Inject
-	@DataService(resolver = "")
+	@DataService
 	private Instance<Object> dataservices;
 
 	/**
@@ -50,8 +51,8 @@ public class ServiceServices {
 		List<OcelotService> result = new ArrayList<>();
 		Options options = (Options) httpSession.getAttribute(Constants.Options.OPTIONS);
 		for (Object dataservice : dataservices) {
-			if ((!OcelotServices.class.isInstance(dataservice) && !ServiceServices.class.isInstance(dataservice)) || options.isDebug()) {
-				Class cls = unProxyClassServices.getRealClass(dataservice.getClass());
+			Class<?> cls = unProxyClassServices.getRealClass(dataservice.getClass());
+			if(!cls.isAnnotationPresent(DashboardOnDebug.class) || options.isDebug()) {
 				OcelotService ocelotService = new OcelotService(serviceTools.getInstanceNameFromDataservice(cls));
 				result.add(ocelotService);
 				addMethodsToMethodsService(cls.getMethods(), ocelotService.getMethods());

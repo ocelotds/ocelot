@@ -1,0 +1,51 @@
+<div class="row">       
+	<div class="col-sm-4 col-md-3 sidebar">
+		<ul class="nav nav-sidebar">
+			<li ng-repeat="session in ctrl.sessions">
+				<a>
+					<b>{{session| sessioninfo}}</b>
+					<span class="pull-right">
+						<btn-switch onswitch="ctrl.switchMonitor(session.id)" 
+										title="Monitor client on/off" disabled="!session.open" options="{'size':'xs'}"
+										value="ctrl.monitored === session.id">
+						</btn-switch>
+					</span>
+				</a>
+			</li>
+		</ul>
+	</div>
+	<div class="col-sm-8 col-sm-offset-4 col-md-9 col-md-offset-3 main">
+		<form class="form-inline">
+			<a>Requests <span class="badge">{{ctrl.requests.length}}</span></a>
+			<input type="text" class="form-control" placeholder="Filter" ng-model="ctrl.filterInput">
+			<btn-switch options="{'size':'sm'}" title="Show only errors and delays"
+							value="ctrl.showOnlyWarning" 
+							onswitch="ctrl.showOnlyWarning=!ctrl.showOnlyWarning">
+			</btn-switch>
+			<div class="input-group">
+				<input type="number" class="form-control" ng-model="ctrl.triggerDelay">
+				<div class="input-group-addon">ms</div>
+			</div>
+			<a class="btn btn-danger" ng-click="ctrl.requests = []">
+				<i class="fa fa-trash"></i>
+			</a>
+		</form>
+		<div class="row">
+			<div class="col-md-6 list-spyed-container">
+				<div class="list-group">
+					
+					<button type="button" ng-click="ctrl.selectRequest(request)" 
+							  ng-if="(request.mfc.ds.search(ctrl.filterInput) !== -1 || request.mfc.op.search(ctrl.filterInput) !== -1) && (ctrl.showOnlyWarning ? (request.mtc.type === 'FAULT' || request.t > ctrl.triggerDelay) : true)"
+							  ng-repeat="request in ctrl.requests" 
+							  class="list-group-item {{(request.mtc.type==='FAULT')?'list-group-item-danger':(request.t&gt;ctrl.triggerDelay)?'list-group-item-warning':''}}">
+						<span class="badge">{{request.t}} ms</span>
+						{{request.mfc.ds| instance}}.{{request.mfc.op}}({{ request.mfc.args | arrjson }})
+					</button>
+				</div>
+			</div>
+			<ui-codemirror class="col-md-6 CodeMirror" ng-model="ctrl.request"
+								ui-codemirror-opts="{lines: 70, theme: 'monokai', lineWrapping: false, readOnly: 'nocursor', mode: 'javascript'}">
+			</ui-codemirror>
+		</div>
+	</div>
+</div>

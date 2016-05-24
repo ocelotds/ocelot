@@ -1,10 +1,10 @@
 (function () {
 	'use strict';
-	angular.module('srvs.module').directive('ocelotMethod', function () {
+	angular.module('srv.module').directive('ocelotMethod', function () {
 		return {
 			restrict: 'E',
 			transclude: true,
-			templateUrl: 'app/srvs/widgets/ocelot-method.html',
+			templateUrl: 'app/srv/widgets/ocelot-method.html',
 			controller: OcelotMethodCtrl,
 			controllerAs: 'omc',
 			scope: {

@@ -1,0 +1,19 @@
+<div class="row">       
+	<div class="col-sm-3 col-md-2 sidebar">
+		<ul class="nav nav-sidebar">
+			<li class="{{ctrl.service === srv?'active':''}}" ng-repeat="srv in ctrl.services">
+				<a ng-click="ctrl.service = srv">
+					<b>{{srv.name}}</b>
+				</a>
+			</li>
+		</ul>
+	</div>
+	<div  class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+		<div class="page-header">
+			<h1>{{ctrl.service.name}}</h1>
+		</div>
+		<div id="{{ctrl.service.name}}-methods">
+			<ocelot-method ng-repeat="method in ctrl.service.methods" srvname="ctrl.service.name" method="method"></ocelot-method>
+		</div>
+	</div>
+</div>

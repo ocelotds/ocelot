@@ -1,0 +1,52 @@
+<div class="row">       
+	<div class="col-sm-4 col-md-3 sidebar">
+		<ul class="nav nav-sidebar">
+			<li class="{{ctrl.topic === topic?'active':''}}" ng-repeat="topic in ctrl.topics" title="{{topic}}">
+				<a ng-click="ctrl.selectTopic(topic)">
+					<b>{{ topic | limitTo: 30 }}{{topic.length > 30 ? '...' : ''}}</b>
+					<span class="pull-right">
+						<span class="badge">{{ctrl.sessionsBytopic[topic].length}}</span>
+						<btn-switch onswitch="ctrl.subscribe(topic)" 
+										title="Monitor topic on/off" options="{'size':'xs'}"
+										value="ctrl.subscription === topic">
+						</btn-switch>
+					</span>
+				</a>
+				<ul class="nav nav-sidebar nav-subsidebar" ng-if="ctrl.topic === topic">
+					<li class="{{ctrl.session === session?'active':''}}" title="{{session| sessioninfo}}"
+						 ng-repeat="session in ctrl.sessionsBytopic[topic] track by $index">
+						<a ng-click="ctrl.selectSession(session)">
+							{{session| sessioninfo | limitTo: 30 }}{{(session| sessioninfo).length > 30 ? '...' : ''}}
+						</a>
+					</li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+	<div  class="col-sm-8 col-sm-offset-4 col-md-9 col-md-offset-3 main">
+		<div class="row">
+			<div class="col-md-6">
+				<div class="panel panel-default">
+					<div class="panel-heading">Messages intercepted to {{ctrl.subscription}}</div>
+					<div class="panel-body">
+						<ui-codemirror class="CodeMirror" ng-model="ctrl.messages"
+											ui-codemirror-opts="{lines: 70, theme: 'monokai', lineWrapping: false, readOnly: 'nocursor', mode: 'javascript'}">
+						</ui-codemirror>
+					</div>
+				</div>				
+			</div>
+			<div class="col-md-6">
+				<div class="page-header">
+					<b>To send :</b>
+					<b>{{ctrl.topic}}</b>
+					<b>{{ctrl.session| sessioninfo}}</b><br>
+					<b>Enter payload, json format</b>
+					<button type="button" class="btn btn-primary pull-right" ng-click="ctrl.sendPayload(ctrl.payload, ctrl.topic, ctrl.session.id)">Send</button>
+				</div>
+				<ui-codemirror class="CodeMirror" ng-model="ctrl.payload"
+									ui-codemirror-opts="{lines: 70, theme: 'monokai', lineWrapping: false, mode: 'javascript'}">
+				</ui-codemirror>
+			</div>
+		</div>
+	</div>
+</div>

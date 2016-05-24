@@ -17,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.annotations.DataService;
 import org.ocelotds.core.UnProxyClassServices;
 import org.ocelotds.dashboard.objects.FakeCDI;
 import org.ocelotds.marshallers.JsonMarshallerException;
@@ -55,7 +56,7 @@ public class ServiceServicesTest {
 	public void testGetServices() {
 		System.out.println("getServices");
 		((FakeCDI)dataservices).add(new ClassAsDataService());
-		when(unProxyClassServices.getRealClass(any(Class.class))).thenReturn(ClassAsDataService.class);
+		when(unProxyClassServices.getRealClass(any(Class.class))).thenReturn((Class) ClassAsDataService.class);
 		when(serviceTools.getInstanceNameFromDataservice(any(Class.class))).thenReturn("ClassAsDataService");
 		doNothing().when(instance).addMethodsToMethodsService(any(Method[].class), any(List.class));
 		List<OcelotService> services = instance.getServices();
