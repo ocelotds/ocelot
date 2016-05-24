@@ -53,11 +53,12 @@ public class JsTopicInterceptorTest {
 		InvocationContext ctx = mock(InvocationContext.class);
 		doReturn("STATICTOPIC").doReturn("").doReturn(null).when(instance).getStaticTopic(any(Method.class));
 		doReturn("DYNTOPIC").when(instance).getDynamicTopic(any(Method.class), any(Object[].class));
+		doReturn(false).when(instance).isJsonPayload(any(Method.class));
 		instance.processJsTopic(ctx);
 		instance.processJsTopic(ctx);
 		instance.processJsTopic(ctx);
 		ArgumentCaptor<String> captors = ArgumentCaptor.forClass(String.class);
-		verify(instance, times(3)).proceedAndSendMessage(eq(ctx), captors.capture());
+		verify(instance, times(3)).proceedAndSendMessage(eq(ctx), captors.capture(), eq(false));
 		List<String> topics = captors.getAllValues();
 		assertThat(topics.get(0)).isEqualTo("STATICTOPIC");
 		assertThat(topics.get(1)).isEqualTo("DYNTOPIC");
@@ -125,6 +126,24 @@ public class JsTopicInterceptorTest {
 		result = instance.getDynamicTopic(method, parameters);
 		assertThat(result).isNull();
 	}
+	
+	/**
+	 * Test of isJsonPayload method, of class.
+	 */
+	@Test
+	public void isJsonPayloadTest() throws SecurityException, NoSuchMethodException {
+		System.out.println("isJsonPayload");
+		boolean result = instance.isJsonPayload(null);
+		assertThat(result).isFalse();
+		
+		Method m = this.getClass().getMethod("methodWithJsTopicAndWithTopicName");
+		result = instance.isJsonPayload(m);
+		assertThat(result).isFalse();
+		
+		m = this.getClass().getMethod("methodWithJsTopicAndWithTopicNameAndJsonPayload");
+		result = instance.isJsonPayload(m);
+		assertThat(result).isTrue();
+	}
 
 	/**
 	 * Test of getJsTopicNameAnnotation method, of class JsTopicInterceptor.
@@ -182,7 +201,7 @@ public class JsTopicInterceptorTest {
 		when(ctx.proceed()).thenReturn("RESULT");
 		String topic = "";
 		Object expResult = null;
-		Object result = instance.proceedAndSendMessage(ctx, "TOPIC");
+		Object result = instance.proceedAndSendMessage(ctx, "TOPIC", false);
 		ArgumentCaptor<MessageToClient> argument = ArgumentCaptor.forClass(MessageToClient.class);
 		verify(wsEvent).fire(argument.capture());
 		assertThat(result).isEqualTo("RESULT");
@@ -195,6 +214,10 @@ public class JsTopicInterceptorTest {
 	public void methodWithJsTopicAndWithTopicName() {
 	}
 
+	@JsTopic(value = "TOPICNAME", jsonPayload = true)
+	public void methodWithJsTopicAndWithTopicNameAndJsonPayload() {
+	}
+	
 	public void methodWithoutJsTopic() {
 
 	}
