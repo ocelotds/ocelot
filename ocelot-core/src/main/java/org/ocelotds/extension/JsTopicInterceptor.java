@@ -73,20 +73,6 @@ public class JsTopicInterceptor implements Serializable {
 	}
 
 	/**
-	 * The topic receive directly payload in json
-	 *
-	 * @param method
-	 * @return
-	 */
-	boolean isJsonPayload(Method method) {
-		if(null == method || !method.isAnnotationPresent(JsTopic.class) ) {
-			return false;
-		}
-		JsTopic jsTopic = method.getAnnotation(JsTopic.class);
-		return jsTopic.jsonPayload();
-	}
-
-	/**
 	 * Get dynamic topicname from parameter annotated @JsTopicName
 	 *
 	 * @param method
@@ -104,6 +90,20 @@ public class JsTopicInterceptor implements Serializable {
 			idx++;
 		}
 		return null;
+	}
+
+	/**
+	 * The topic receive directly payload in json
+	 *
+	 * @param method
+	 * @return
+	 */
+	boolean isJsonPayload(Method method) {
+		if(null == method || !method.isAnnotationPresent(JsTopic.class) ) {
+			return false;
+		}
+		JsTopic jsTopic = method.getAnnotation(JsTopic.class);
+		return jsTopic.jsonPayload();
 	}
 
 	/**
@@ -153,7 +153,7 @@ public class JsTopicInterceptor implements Serializable {
 		Object result = ctx.proceed();
 		if(jsonPayload) {
 			if(!String.class.isInstance(result)) {
-				throw new java.lang.UnsupportedOperationException("Method annotated JsTopic(jsonPayload=true) must return String type and correct Json.");
+				throw new UnsupportedOperationException("Method annotated JsTopic(jsonPayload=true) must return String type and correct Json.");
 			}
 			messageToClient.setJson((String) result);
 		} else {
