@@ -4,6 +4,7 @@
  */
 package org.ocelotds.topic;
 
+import java.util.ArrayList;
 import org.ocelotds.topic.topicAccess.TopicAccessManager;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,20 +33,21 @@ public class TopicManagerImpl implements TopicManager {
 	@OcelotLogger
 	private Logger logger;
 
-	final Map<String, Set<Session>> map = new ConcurrentHashMap<>();
+	final Map<String, Collection<Session>> map = new ConcurrentHashMap<>();
 
 	@Inject
 	TopicAccessManager topicAccessManager;
 
 	@Inject
 	private UserContextFactory userContextFactory;
-	
+
 	/**
 	 * Return map topics and all sessions associate
-	 * @return 
+	 *
+	 * @return
 	 */
 	@Override
-	public Map<String, Set<Session>> getSessionsByTopic() {
+	public Map<String, Collection<Session>> getSessionsByTopic() {
 		return map;
 	}
 
@@ -62,15 +64,12 @@ public class TopicManagerImpl implements TopicManager {
 		if (isInconsistenceContext(topic, session)) {
 			return 0;
 		}
-		Set<Session> sessions;
+		Collection<Session> sessions;
 		if (map.containsKey(topic)) {
 			sessions = map.get(topic);
 		} else {
-			sessions = Collections.synchronizedSet(new HashSet<Session>());
+			sessions = Collections.synchronizedCollection(new ArrayList<Session>());
 			map.put(topic, sessions);
-		}
-		if (sessions.contains(session)) {
-			sessions.remove(session);
 		}
 		topicAccessManager.checkAccessTopic(userContextFactory.getUserContext(session.getId()), topic);
 		logger.debug("'{}' subscribe to '{}'", session.getId(), topic);
@@ -94,19 +93,19 @@ public class TopicManagerImpl implements TopicManager {
 		}
 		logger.debug("'{}' unsubscribe to '{}'", session.getId(), topic);
 		if (Constants.Topic.ALL.equals(topic)) {
-			for (Map.Entry<String, Set<Session>> entry : map.entrySet()) {
-				Set<Session> sessions = entry.getValue();
+			for (Map.Entry<String, Collection<Session>> entry : map.entrySet()) {
+				Collection<Session> sessions = entry.getValue();
 				removeSessionToSessions(session, sessions);
-				if(sessions.isEmpty()) {
+				if (sessions.isEmpty()) {
 					map.remove(entry.getKey());
 				}
 			}
 		} else {
-			Set<Session> sessions = map.get(topic);
+			Collection<Session> sessions = map.get(topic);
 			removeSessionToSessions(session, sessions);
-				if(sessions.isEmpty()) {
-					map.remove(topic);
-				}
+			if (sessions.isEmpty()) {
+				map.remove(topic);
+			}
 		}
 		return getNumberSubscribers(topic);
 	}
@@ -145,13 +144,12 @@ public class TopicManagerImpl implements TopicManager {
 	 * @param sessions
 	 * @return
 	 */
-	@Override
-	public boolean unregisterTopicSessions(String topic, Collection<Session> sessions) {
+	boolean unregisterTopicSessions(String topic, Collection<Session> sessions) {
 		boolean unregister = false;
 		if (sessions != null && !sessions.isEmpty()) {
 			Collection<Session> all = map.get(topic);
 			unregister = all.removeAll(sessions);
-			if(all.isEmpty()) {
+			if (all.isEmpty()) {
 				map.remove(topic);
 			}
 		}
@@ -222,7 +220,7 @@ public class TopicManagerImpl implements TopicManager {
 	public Collection<Session> getSessionsForTopic(String topic) {
 		Collection<Session> result;
 		if (map.containsKey(topic)) {
-			return Collections.unmodifiableSet(map.get(topic));
+			return Collections.unmodifiableCollection(map.get(topic));
 		} else {
 			result = Collections.EMPTY_LIST;
 		}

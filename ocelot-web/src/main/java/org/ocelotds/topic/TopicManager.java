@@ -20,7 +20,7 @@ public interface TopicManager {
 	 * Return map topics and all sessions associate
 	 * @return 
 	 */
-	public Map<String, Set<Session>> getSessionsByTopic();
+	public Map<String, Collection<Session>> getSessionsByTopic();
 
 	/**
 	 * Register session for topic
@@ -39,15 +39,6 @@ public interface TopicManager {
 	 * @return int : number subscribers remaining
 	 */
 	public int unregisterTopicSession(String topic, Session session);
-
-	/**
-	 * Unregister sessions for topic
-	 *
-	 * @param topic
-	 * @param sessions
-	 * @return
-	 */
-	public boolean unregisterTopicSessions(String topic, Collection<Session> sessions);
 
 	/**
 	 * Remove sessions cause they are closed

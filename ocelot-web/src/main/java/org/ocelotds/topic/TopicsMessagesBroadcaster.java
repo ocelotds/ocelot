@@ -9,6 +9,8 @@ import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import javax.websocket.SessionException;
@@ -47,8 +49,9 @@ public class TopicsMessagesBroadcaster {
 	public int sendMessageToTopic(MessageToClient mtc, Object payload) {
 		int sended = 0;
 		logger.debug("Sending message to topic {}...", mtc);
-		Collection<Session> sessions = sessionManager.getSessionsForTopic(mtc.getId());
-		if (sessions != null && !sessions.isEmpty()) {
+		Collection<Session> doublons = sessionManager.getSessionsForTopic(mtc.getId());
+		if (doublons != null && !doublons.isEmpty()) {
+			Set<Session> sessions = new HashSet<>(doublons);
 			JsTopicMessageController msgControl = messageControllerManager.getJsTopicMessageController(mtc.getId());
 			Collection<Session> sessionsClosed = new ArrayList<>();
 			for (Session session : sessions) {
