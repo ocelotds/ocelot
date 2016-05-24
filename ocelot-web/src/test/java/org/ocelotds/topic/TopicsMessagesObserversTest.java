@@ -101,6 +101,63 @@ public class TopicsMessagesObserversTest {
 	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
 	 *
 	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
+	 */
+	@Test
+	public void testSendObjectToTopicJsonPayload() throws JsonMarshallingException {
+		System.out.println("sendObjectToTopic");
+		EventMetadata metadata = mock(EventMetadata.class);
+		InjectionPoint injectionPoint = mock(InjectionPoint.class);
+		Annotated annotated = mock(Annotated.class);
+		JsTopicEvent jte = mock(JsTopicEvent.class);
+
+		when(metadata.getInjectionPoint()).thenReturn(injectionPoint);
+		when(injectionPoint.getAnnotated()).thenReturn(annotated);
+		when(annotated.getAnnotation(JsTopicEvent.class)).thenReturn(jte);
+		when(annotated.getAnnotation(JsonMarshaller.class)).thenReturn(null);
+		when(jte.value()).thenReturn(TOPIC);
+		when(jte.jsonPayload()).thenReturn(true);
+
+		// JsTopicEvent, jsonPayload <,no marshaller
+		instance.sendObjectToTopic(PAYLOAD, metadata);
+
+		ArgumentCaptor<MessageToClient> captureMtC = ArgumentCaptor.forClass(MessageToClient.class);
+		ArgumentCaptor<Object> captureObject = ArgumentCaptor.forClass(Object.class);
+		verify(topicsMessagesBroadcaster).sendMessageToTopic(captureMtC.capture(), captureObject.capture());
+
+		assertThat(captureMtC.getValue().getJson()).isEqualTo(PAYLOAD);
+		assertThat(captureObject.getValue()).isEqualTo(PAYLOAD);
+	}
+
+	/**
+	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
+	 *
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
+	 */
+	@Test
+	public void testSendObjectToTopicJsonPayloadFailed() throws JsonMarshallingException {
+		System.out.println("sendObjectToTopic");
+		EventMetadata metadata = mock(EventMetadata.class);
+		InjectionPoint injectionPoint = mock(InjectionPoint.class);
+		Annotated annotated = mock(Annotated.class);
+		JsTopicEvent jte = mock(JsTopicEvent.class);
+
+		when(metadata.getInjectionPoint()).thenReturn(injectionPoint);
+		when(injectionPoint.getAnnotated()).thenReturn(annotated);
+		when(annotated.getAnnotation(JsTopicEvent.class)).thenReturn(jte);
+		when(annotated.getAnnotation(JsonMarshaller.class)).thenReturn(null);
+		when(jte.value()).thenReturn(TOPIC);
+		when(jte.jsonPayload()).thenReturn(true);
+
+		// JsTopicEvent, jsonPayload <,no marshaller
+		instance.sendObjectToTopic(new Long(5), metadata);
+
+		verify(topicsMessagesBroadcaster, never()).sendMessageToTopic(any(MessageToClient.class), anyObject());
+	}
+
+	/**
+	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
+	 *
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
 	 * @throws org.ocelotds.marshallers.JsonMarshallerException
 	 */
 	@Test

@@ -16,6 +16,7 @@ import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.core.services.ArgumentServices;
 import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
+import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.slf4j.Logger;
 
 /**
@@ -47,19 +48,25 @@ public class TopicsMessagesObservers {
 		Annotated annotated = injectionPoint.getAnnotated();
 		JsTopicEvent jte = annotated.getAnnotation(JsTopicEvent.class);
 		if (jte != null) {
+			String topic = jte.value();
+			msg.setId(topic);
 			JsonMarshaller jm = annotated.getAnnotation(JsonMarshaller.class);
 			try {
-				msg.setId(jte.value());
 				if (jm != null) {
 					msg.setJson(argumentServices.getJsonResultFromSpecificMarshaller(jm, payload));
+				} else if(jte.jsonPayload()) {
+					if(!String.class.isInstance(payload)) {
+						throw new UnsupportedOperationException("'"+payload+"' cannot be a json object. Field annotated JsTopicEvent(jsonPayload=true) must be Event<String> type and fire correct Json.");
+					}
+					msg.setJson((String) payload);
 				} else {
 					msg.setResponse(payload);
 				}
 				topicsMessagesBroadcaster.sendMessageToTopic(msg, payload);
-			} catch (JsonMarshallerException ex) {
-				logger.error(jm+" can't be instantiate", ex);
+			} catch (JsonMarshallingException ex) {
+				logger.error("'"+payload+"' cannot be send to : '"+topic+"'. It cannot be serialized with marshaller "+jm, ex);
 			} catch (Throwable ex) {
-				logger.error(payload+" can't be serialized with marshaller "+jm, ex);
+				logger.error("'"+payload+"' cannot be send to : '"+topic+"'.", ex);
 			}
 		}
 	}
