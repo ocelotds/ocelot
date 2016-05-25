@@ -132,6 +132,7 @@ public class OcelotProcessorTest {
 		elements.add(mock(Element.class));
 		elements.add(mock(Element.class));
 
+		doReturn("").when(instance).getPromiseCreatorScript();
 		when(roundEnv.processingOver()).thenReturn(Boolean.FALSE);
 		when(roundEnv.getElementsAnnotatedWith(eq(DataService.class))).thenReturn(elements);
 

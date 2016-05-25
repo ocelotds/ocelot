@@ -33,14 +33,17 @@ import org.ocelotds.processors.stringDecorators.StringDecorator;
 public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 
 	protected final KeyMaker keyMaker;
+	protected final String promiseCreatorScript;
 
 	/**
 	 *
 	 * @param environment
+	 * @param promiseCreatorScript
 	 */
-	public DataServiceVisitorJsBuilder(ProcessingEnvironment environment) {
+	public DataServiceVisitorJsBuilder(ProcessingEnvironment environment, String promiseCreatorScript) {
 		super(environment);
 		this.keyMaker = new KeyMaker();
+		this.promiseCreatorScript = promiseCreatorScript;
 	}
 
 	@Override
@@ -49,9 +52,7 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 		String instanceName = getJsInstancename(jsclsname);
 		writer.append("var ").append(instanceName).append(SPACE).append("=").append(SPACE).append("(").append(FUNCTION).append(SPACE).append("()").append(SPACE).append("{").append(CR);
 		writer.append(TAB).append("'use strict';").append(CR);
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(DataServiceVisitorJsBuilder.class.getResource("/js/main.js").openStream()))) {
-			writer.append(TAB).append(reader.readLine());
-		}
+		writer.append(TAB).append(promiseCreatorScript);
 		String classname = typeElement.getQualifiedName().toString();
 		writer.append(TAB).append("var _ds").append(SPACE).append("=").append(SPACE).append(QUOTE).append(classname).append(QUOTE).append(";").append(CR);
 		writer.append(TAB).append("return").append(SPACE).append("{").append(CR);
