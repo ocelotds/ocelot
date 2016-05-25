@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.dashboard.decorators;
 
+import java.util.Collection;
 import javax.annotation.Priority;
 import javax.decorator.Decorator;
 import javax.decorator.Delegate;
@@ -57,6 +58,15 @@ public abstract class TopicManagerMonitor implements TopicManager {
 			removeSessionToTopic.fire(createMessage(topic, session));
 		}
 		return after;
+	}
+
+	@Override
+	public Collection<String> removeSessionToTopics(Session session) {
+		Collection<String> topicsUpdated = topicManager.removeSessionToTopics(session);
+		for (String topic : topicsUpdated) {
+			removeSessionToTopic.fire(createMessage(topic, session));
+		}
+		return topicsUpdated;
 	}
 	
 	private String createMessage(String topic, Session session) {
