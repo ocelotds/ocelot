@@ -12,20 +12,18 @@
 					templateUrl: "app/topic/topic.html",
 					controller: TopicCtrl,
 					controllerAs: "ctrl",
-					resolve: {
-//						sessionsBytopic: initSessionsTopic,
-//						addHandler: initAddHandler,
-//						removeHandler: initRemoveHandler
+					resolve : {
+						sessionsBytopic : initSessionsBytopic
 					}
 				}
 			}
 		});
 	}
 	/* @ngInject */
-	function TopicCtrl($scope/*, sessionsBytopic, addHandler, removeHandler*/) {
+	function TopicCtrl($scope, sessionsBytopic) {
 		var ctrl = this;
-		ctrl.topics = []; // Object.keys(sessionsBytopic);
-		ctrl.sessionsBytopic = {}; //sessionsBytopic; // {"topicname", [{"id":"sessionid","username":"principalname"}, {"id":"sessionid","username":"principalname"}]}
+		ctrl.topics = []; //Object.keys(sessionsBytopic);
+		ctrl.sessionsBytopic = {}; // sessionsBytopic; // {"topicname", [{"id":"sessionid","username":"principalname"}, {"id":"sessionid","username":"principalname"}]}
 		ctrl.topic = null; // topic selected
 		ctrl.subscription = null; // topic subscribed
 		ctrl.subscriber = null; // subscriber to ctrl.subscription
@@ -36,25 +34,37 @@
 		ctrl.selectSession = selectSession;
 		ctrl.subscribe = subscribe;
 		ctrl.sendPayload = sendPayload;
-//		removeHandler(remove);
-//		addHandler(add);
+		ctrl.refresh = refresh;
 		ctrl.subAdd = null;
 		ctrl.subRemove = null;
-		init();
+		activate();
+		$scope.$on('$destroy', desactivate);
 
-
-
-		function init() {
-			ctrl.subAdd = new Subscriber("session-topic-add").event(function (evt) {
-				ctrl.subRemove = new Subscriber("session-topic-remove").event(function (evt) {
-					topicServices.getSessionIdsByTopic().then(function (sessionsBytopic) {
-						ctrl.topics = Object.keys(sessionsBytopic);
-						ctrl.sessionsBytopic = sessionsBytopic; // {"topicname", [{"id":"sessionid","username":"principalname"}, {"id":"sessionid","username":"principalname"}]}
-						$scope.$apply();
-					});
-				}).message(remove);
+		function desactivate() {
+			if (ctrl.subAdd) {
+				ctrl.subAdd.unsubscribe();
+				ctrl.subAdd = null;
+			}
+			if (ctrl.subRemove) {
+				ctrl.subRemove.unsubscribe();
+				ctrl.subRemove = null;
+			}
+			if (ctrl.subscriber) {
+				ctrl.subscriber.unsubscribe();
+				ctrl.subscriber = null;
+			}
+		}
+		function activate() {
+			console.log("acivate topic view");
+			ctrl.subRemove = new Subscriber("session-topic-remove").message(remove);
+			ctrl.subAdd = new Subscriber("session-topic-add").message(add);
+		}
+		function refresh() {
+			topicServices.getSessionIdsByTopic().then(function (sessionsBytopic) {
+				ctrl.topics = Object.keys(sessionsBytopic);
+				ctrl.sessionsBytopic = sessionsBytopic; // {"topicname", [{"id":"sessionid","username":"principalname"}, {"id":"sessionid","username":"principalname"}]}
 				$scope.$apply();
-			}).message(add);
+			});
 		}
 		function sendPayload(payload, topic, session) {
 			if (payload && topic) {
@@ -73,7 +83,7 @@
 			ctrl.messages = "";
 			if (ctrl.subscription && ctrl.subscriber) {
 				ctrl.subscriber.unsubscribe();
-				ctrl.messages = "// Unsubscription to " + ctrl.subscriber.topic;
+				ctrl.messages = "// Unsubscription to " + ctrl.subscriber.topic+"\n";
 				ctrl.subscriber = null;
 			}
 			if (ctrl.subscription === to) {
@@ -86,7 +96,7 @@
 					ctrl.messages = "// Subscription to " + ctrl.subscription + " failed\n" + JSON.stringify(fault, null, 3);
 					$scope.$apply();
 				}).then(function (res) {
-					ctrl.messages = "// Subscription to " + ctrl.subscription + " done";
+					ctrl.messages = "// Subscription to " + ctrl.subscription + " done\n";
 					$scope.$apply();
 				}).message(function (msg) {
 					ctrl.messages += "// Receive message to " + ctrl.subscription + "\n" + JSON.stringify(msg, null, 3) + "\n";
@@ -130,20 +140,12 @@
 		}
 	}
 	/* @ngInject */
-	function initSessionsTopic($q) {
+	function initSessionsBytopic($q) {
 		var deferred = $q.defer();
 		topicServices.getSessionIdsByTopic().then(function (sessionsBytopic) {
 			deferred.resolve(sessionsBytopic);
 		});
 		return deferred.promise;
-	}
-	/* @ngInject */
-	function initAddHandler($q) {
-		return new Subscriber("session-topic-add").message;
-	}
-	/* @ngInject */
-	function initRemoveHandler($q) {
-		return new Subscriber("session-topic-remove").message;
 	}
 })();
 
