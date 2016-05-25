@@ -392,11 +392,9 @@ if ("WebSocket" in window) {
 			evt.networktime = 0;
 			if (msgToClient) {
 				evt.response = msgToClient.response;
-				if (opts.monitor) {
-					evt.javatime = msgToClient.t; // backend timing
-				}
+				evt.javatime = msgToClient.t; // backend timing
 			}
-			if (opts.monitor) {
+			if (evt.javatime) {
 				evt.totaltime = new Date().getTime() - promise.t; // total timing
 			}
 			return evt;
