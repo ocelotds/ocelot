@@ -24,9 +24,6 @@ body {
 .black {
 	color: #000000;
 }
-.CodeMirror {
-	height: 400px;
-}
 /*
  * Top navigation
  * Hide default border to remove 1px line.
