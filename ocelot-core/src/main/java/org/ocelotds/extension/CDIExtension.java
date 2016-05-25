@@ -22,7 +22,8 @@ public class CDIExtension implements Extension {
 	void afterTypeDiscovery(@Observes AfterTypeDiscovery afd, BeanManager beanManager) {
 		List<Class<?>> interceptors = afd.getInterceptors();
 		interceptors.add(JsTopicInterceptor.class);
-		logger.debug("CDI : Add Interceptor {}", JsTopicInterceptor.class);
+		interceptors.add(SecureInterceptor.class);
+		logger.debug("CDI : Add Interceptor {}, {}", JsTopicInterceptor.class, SecureInterceptor.class);
 	}
 
 }
