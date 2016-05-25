@@ -44,15 +44,17 @@ public interface TopicManager {
 	 * Remove sessions cause they are closed
 	 *
 	 * @param sessions
+	 * @return 
 	 */
-	public void removeSessionsToTopic(Collection<Session> sessions);
+	public Collection<String> removeSessionsToTopic(Collection<Session> sessions);
 
 	/**
 	 * Remove session cause it's closed by the endpoint
 	 *
 	 * @param session
+	 * @return 
 	 */
-	public void removeSessionToTopics(Session session);
+	public Collection<String> removeSessionToTopics(Session session);
 
 
 	/**

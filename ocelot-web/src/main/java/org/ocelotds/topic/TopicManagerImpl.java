@@ -5,12 +5,11 @@
 package org.ocelotds.topic;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import org.ocelotds.topic.topicAccess.TopicAccessManager;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -162,13 +161,18 @@ public class TopicManagerImpl implements TopicManager {
 	 * @param sessions
 	 */
 	@Override
-	public void removeSessionsToTopic(Collection<Session> sessions) {
+	public Collection<String> removeSessionsToTopic(Collection<Session> sessions) {
 		if (sessions != null && !sessions.isEmpty()) {
+			Collection<String> topicUpdated = new ArrayList<>();
 			for (String topic : map.keySet()) {
-				unregisterTopicSessions(topic, sessions);
-				sendSubscriptionEvent(Constants.Topic.SUBSCRIBERS + Constants.Topic.COLON + topic, getNumberSubscribers(topic));
+				if(unregisterTopicSessions(topic, sessions)) {
+					topicUpdated.add(topic);
+					sendSubscriptionEvent(Constants.Topic.SUBSCRIBERS + Constants.Topic.COLON + topic, getNumberSubscribers(topic));
+				}
 			}
+			return topicUpdated;
 		}
+		return Collections.EMPTY_LIST;
 	}
 
 	/**
@@ -177,12 +181,14 @@ public class TopicManagerImpl implements TopicManager {
 	 * @param session
 	 */
 	@Override
-	public void removeSessionToTopics(Session session) {
+	public Collection<String> removeSessionToTopics(Session session) {
 		if (session != null) {
-			for (String topic : map.keySet()) {
-				sendSubscriptionEvent(Constants.Topic.SUBSCRIBERS + Constants.Topic.COLON + topic, unregisterTopicSession(topic, session));
-			}
+			return removeSessionsToTopic(Arrays.asList(session));
+//			for (String topic : map.keySet()) {
+//				sendSubscriptionEvent(Constants.Topic.SUBSCRIBERS + Constants.Topic.COLON + topic, unregisterTopicSession(topic, session));
+//			}
 		}
+		return Collections.EMPTY_LIST;
 	}
 
 	/**
