@@ -84,15 +84,16 @@ public class TopicManagerImplTest {
 		assertThat(result).isEqualTo(2);
 		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(2);
 
+		// same session increment number subscriber, not a set, a collection
 		result = instance.registerTopicSession(TOPIC1, session);
-		assertThat(result).isEqualTo(2);
-		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(2);
+		assertThat(result).isEqualTo(3);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(3);
 
 		session = mock(Session.class);
 		when(session.isOpen()).thenReturn(false);
 		result = instance.registerTopicSession(TOPIC1, session);
-		assertThat(result).isEqualTo(2);
-		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(2);
+		assertThat(result).isEqualTo(3);
+		assertThat(instance.getNumberSubscribers(TOPIC1)).isEqualTo(3);
 	}
 
 	/**
