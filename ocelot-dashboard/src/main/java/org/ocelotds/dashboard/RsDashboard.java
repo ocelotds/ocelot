@@ -14,6 +14,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import org.ocelotds.annotations.OcelotResource;
+import org.ocelotds.dashboard.security.DashboardSecureProvider;
+import org.ocelotds.security.OcelotSecured;
 
 /**
  *
@@ -22,6 +24,7 @@ import org.ocelotds.annotations.OcelotResource;
 @RequestScoped
 @OcelotResource
 @Path("dashboard")
+@OcelotSecured(provider = DashboardSecureProvider.class)
 public class RsDashboard {
 
 	@Context

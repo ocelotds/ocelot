@@ -15,8 +15,10 @@ import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
 import org.ocelotds.dashboard.objects.SessionInfo;
+import org.ocelotds.dashboard.security.DashboardSecureProvider;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
+import org.ocelotds.security.OcelotSecured;
 import org.ocelotds.topic.SessionManager;
 import org.ocelotds.topic.TopicManager;
 
@@ -26,6 +28,7 @@ import org.ocelotds.topic.TopicManager;
  */
 @DataService
 @DashboardOnDebug
+@OcelotSecured(provider = DashboardSecureProvider.class)
 public class TopicServices {
 
 	@Inject

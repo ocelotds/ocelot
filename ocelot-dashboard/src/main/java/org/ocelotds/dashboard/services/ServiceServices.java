@@ -18,8 +18,10 @@ import org.ocelotds.annotations.DataService;
 import org.ocelotds.core.UnProxyClassServices;
 import org.ocelotds.dashboard.objects.OcelotMethod;
 import org.ocelotds.dashboard.objects.OcelotService;
+import org.ocelotds.dashboard.security.DashboardSecureProvider;
 import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.objects.Options;
+import org.ocelotds.security.OcelotSecured;
 
 /**
  *
@@ -27,6 +29,7 @@ import org.ocelotds.objects.Options;
  */
 @DataService
 @DashboardOnDebug
+@OcelotSecured(provider = DashboardSecureProvider.class)
 public class ServiceServices {
 	@Inject
 	private ServiceTools serviceTools;
@@ -50,7 +53,6 @@ public class ServiceServices {
 	public List<OcelotService> getServices() {
 		List<OcelotService> result = new ArrayList<>();
 		Options options = (Options) httpSession.getAttribute(Constants.Options.OPTIONS);
-		System.out.println("MONITOR : "+options.isMonitor() );
 		options.setMonitor(true);
 		for (Object dataservice : dataservices) {
 			Class<?> cls = unProxyClassServices.getRealClass(dataservice.getClass());

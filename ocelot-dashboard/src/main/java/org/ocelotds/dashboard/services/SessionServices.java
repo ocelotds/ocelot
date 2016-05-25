@@ -11,6 +11,8 @@ import javax.inject.Inject;
 import javax.websocket.Session;
 import org.ocelotds.annotations.DashboardOnDebug;
 import org.ocelotds.annotations.DataService;
+import org.ocelotds.dashboard.security.DashboardSecureProvider;
+import org.ocelotds.security.OcelotSecured;
 import org.ocelotds.topic.SessionManager;
 
 /**
@@ -19,6 +21,7 @@ import org.ocelotds.topic.SessionManager;
  */
 @DataService
 @DashboardOnDebug
+@OcelotSecured(provider = DashboardSecureProvider.class)
 public class SessionServices {
 	
 	@Inject
