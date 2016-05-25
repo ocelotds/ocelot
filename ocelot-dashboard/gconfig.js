@@ -31,6 +31,7 @@ module.exports.vendorsCssFiles = [
    'fontawesome/css/font-awesome.min.css',
    'codemirror/lib/codemirror.css',
    'codemirror/theme/monokai.css',
+   'codemirror/theme/eclipse.css',
 	'angular-chart.js/dist/angular-chart.css'
 ];
 /**
@@ -39,6 +40,7 @@ module.exports.vendorsCssFiles = [
 module.exports.vendorsJsFiles = [
    'jquery/dist/jquery.min.js',
    'angular/angular.js',
+   'angular-animate/angular-animate.min.js',
    'angular-bootstrap/ui-bootstrap.js',
    'bootstrap/dist/js/bootstrap.js',
    'codemirror/lib/codemirror.js',
