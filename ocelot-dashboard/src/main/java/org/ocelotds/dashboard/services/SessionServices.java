@@ -3,14 +3,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.dashboard.services;
 
-import java.security.Principal;
 import org.ocelotds.dashboard.objects.SessionInfo;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.websocket.Session;
-import org.ocelotds.Constants;
 import org.ocelotds.annotations.DashboardOnDebug;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.topic.SessionManager;
