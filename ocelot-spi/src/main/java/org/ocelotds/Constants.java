@@ -37,7 +37,9 @@ public interface Constants {
 
 	interface Options {
 		String STACKTRACE_LENGTH = "ocelot.stacktrace.length";
+		String DASHBOARD_ROLES = "ocelot.dashboard.roles";
 		String OPTIONS = "options";
+		String SEPARATOR = ",";
 	}
 
 	interface Topic {
