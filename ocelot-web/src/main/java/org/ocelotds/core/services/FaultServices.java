@@ -5,7 +5,7 @@ package org.ocelotds.core.services;
 
 import javax.inject.Inject;
 import org.ocelotds.annotations.OcelotLogger;
-import org.ocelotds.configuration.OcelotConfiguration;
+import org.ocelotds.configuration.StacktraceConfigurationManager;
 import org.ocelotds.messaging.Fault;
 import org.slf4j.Logger;
 
@@ -19,7 +19,7 @@ public class FaultServices {
 	private Logger logger;
 
 	@Inject
-	private OcelotConfiguration configuration;
+	private StacktraceConfigurationManager configuration;
 
 	/**
 	 * Build an fault Object from exception with stacktrace length from configuration

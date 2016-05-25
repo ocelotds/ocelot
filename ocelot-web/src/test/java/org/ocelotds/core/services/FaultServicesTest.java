@@ -12,7 +12,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ocelotds.configuration.OcelotConfiguration;
+import org.ocelotds.configuration.StacktraceConfigurationManager;
 import org.ocelotds.messaging.Fault;
 import org.slf4j.Logger;
 
@@ -30,7 +30,7 @@ public class FaultServicesTest {
 	private FaultServices instance;
 
 	@Mock
-	private OcelotConfiguration configuration;
+	private StacktraceConfigurationManager configuration;
 
 	/**
 	 * Test of buildFault method, of class FaultServices.
