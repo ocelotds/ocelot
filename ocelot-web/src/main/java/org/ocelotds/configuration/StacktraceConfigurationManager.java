@@ -11,6 +11,7 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import org.ocelotds.Constants;
+import org.ocelotds.annotations.OcelotConfiguration;
 import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
 
@@ -19,7 +20,7 @@ import org.slf4j.Logger;
  * @author hhfrancois
  */
 @ApplicationScoped
-public class OcelotConfiguration {
+public class StacktraceConfigurationManager {
 
 	@Inject
 	@OcelotLogger
@@ -27,7 +28,7 @@ public class OcelotConfiguration {
 
 	@Any
 	@Inject
-	@org.ocelotds.configuration.annotations.OcelotConfiguration(OcelotConfigurationName.STACKTRACELENGTH)
+	@OcelotConfiguration(Constants.Options.STACKTRACE_LENGTH)
 	private Instance<String> ocelotConfigurationsStack;
 
 	/**
@@ -36,7 +37,7 @@ public class OcelotConfiguration {
 	private static final String DEFAULTSTACKTRACE = "20";
 
 	/**
-	 * Read in web.xml the optional STACKTRACE_LENGTH config and set it in OcelotConfiguration
+	 * Read in web.xml the optional STACKTRACE_LENGTH config and set it in StacktraceConfigurationManager
 	 * @param sc 
 	 */
 	public void readStacktraceConfig(@Observes @Initialized(ApplicationScoped.class) ServletContext sc) {

@@ -21,20 +21,20 @@ import static org.assertj.core.api.Assertions.*;
  * @author hhfrancois
  */
 @RunWith(MockitoJUnitRunner.class)
-public class OcelotConfigurationTest {
+public class StacktraceConfigurationManagerTest {
 
 	@Mock
 	private Logger logger;
 
 	@InjectMocks
 	@Spy
-	private OcelotConfiguration ocelotConfiguration;
+	private StacktraceConfigurationManager ocelotConfiguration;
 	
 	@Mock
 	private Instance<String> ocelotConfigurationsStack;
 
 	/**
-	 * Test of readConfigFromContext method, of class OcelotConfiguration.
+	 * Test of readConfigFromContext method, of class StacktraceConfigurationManager.
 	 */
 	@Test
 	public void readConfigFromContext() {
@@ -56,7 +56,7 @@ public class OcelotConfigurationTest {
 	}
 
 	/**
-	 * Test of readConfigFromContext method, of class OcelotConfiguration.
+	 * Test of readConfigFromContext method, of class StacktraceConfigurationManager.
 	 */
 	@Test
 	public void readConfigFromProducer() {
@@ -74,7 +74,7 @@ public class OcelotConfigurationTest {
 	}
 
 	/**
-	 * Test of getStacktracelength method, of class OcelotConfiguration.
+	 * Test of getStacktracelength method, of class StacktraceConfigurationManager.
 	 */
 	@Test
 	public void testGetSetStacktracelength() {
