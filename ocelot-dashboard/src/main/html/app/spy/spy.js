@@ -13,20 +13,20 @@
 					controller: SpyCtrl,
 					controllerAs: "ctrl",
 					resolve: {
-						sessions: initSessions,
-						addHandler: initAddHandler,
-						removeHandler: initRemoveHandler,
-						updateHandler: initUpdateHandler
+						sessions: initSessions
 					}
 				}
 			}
 		});
 	}
 	/* @ngInject */
-	function SpyCtrl($scope, sessions, addHandler, removeHandler, updateHandler) {
+	function SpyCtrl($scope, sessions) {
 		var MSG = "// Enabled a client to monitor it !!!";
 		var ctrl = this;
 		ctrl.requestSubscriber = null;
+		ctrl.addSubscriber = null;
+		ctrl.removeSubscriber = null;
+		ctrl.updateSubscriber = null;
 		ctrl.sessions = sessions;
 		ctrl.requests = [];
 		ctrl.filterInput = "";
@@ -37,10 +37,34 @@
 		ctrl.refresh = refresh;
 		ctrl.switchMonitor = switchMonitor;
 		ctrl.selectRequest = selectRequest;
-		addHandler(add);
-		removeHandler(remove);
-		updateHandler(update);
+		activate();
+		$scope.$on('$destroy', desactivate);
 
+		function desactivate(){
+			if(ctrl.requestSubscriber) {
+				ctrl.requestSubscriber.unsubscribe();
+				ctrl.requestSubscriber = null;
+			}
+			if(ctrl.addSubscriber) {
+				ctrl.addSubscriber.unsubscribe();
+				ctrl.addSubscriber = null;
+			}
+			if(ctrl.removeSubscriber) {
+				ctrl.removeSubscriber.unsubscribe();
+				ctrl.removeSubscriber = null;
+			}
+			if(ctrl.updateSubscriber) {
+				ctrl.updateSubscriber.unsubscribe();
+				ctrl.updateSubscriber = null;
+			}
+		}
+
+		function activate() {
+			console.log("acivate spy view");
+			ctrl.addSubscriber = new Subscriber("sessioninfo-add").message(add);
+			ctrl.removeSubscriber = new Subscriber("sessioninfo-remove").message(remove);
+			ctrl.updateSubscriber = new Subscriber("sessioninfo-update").message(update);
+		}
 		function add(session) {
 			ctrl.sessions.push(session);
 			$scope.$apply();
@@ -113,18 +137,6 @@
 			deferred.resolve(sessions);
 		});
 		return deferred.promise;
-	}
-	/* @ngInject */
-	function initAddHandler($q) {
-		return new Subscriber("sessioninfo-add").message;
-	}
-	/* @ngInject */
-	function initRemoveHandler($q) {
-		return new Subscriber("sessioninfo-remove").message;
-	}
-	/* @ngInject */
-	function initUpdateHandler($q) {
-		return new Subscriber("sessioninfo-update").message;
 	}
 })();
 
