@@ -4,6 +4,7 @@
 		'ui.codemirror',
 		'chart.js',
 		'ui.router',
+		'ngAnimate',
 		'ui.bootstrap',
 		'srv.module',
 		'spy.module',
