@@ -215,6 +215,20 @@ public class TopicsMessagesObserversTest {
 
 		verify(topicsMessagesBroadcaster, never()).sendMessageToTopic(any(MessageToClient.class), anyObject());
 	}
+	
+	/**
+	 * Test of sendMessageToTopic method, of class.
+	 */
+	@Test
+	public void sendMessageToTopicTest() {
+		System.out.println("sendMessageToTopic");
+		MessageToClient mtc = mock(MessageToClient.class);
+		doReturn(PAYLOAD).when(instance).getPayload(eq(mtc));
+		when(topicsMessagesBroadcaster.sendMessageToTopic(eq(mtc), eq(PAYLOAD))).thenReturn(1);
+		int result = instance.sendMessageToTopic(mtc);
+		assertThat(result).isEqualTo(1);
+		verify(topicsMessagesBroadcaster).sendMessageToTopic(eq(mtc), eq(PAYLOAD));
+	}
 
 	/**
 	 * Test of getPayload method, of class.
