@@ -50,6 +50,8 @@ public class ServiceServices {
 	public List<OcelotService> getServices() {
 		List<OcelotService> result = new ArrayList<>();
 		Options options = (Options) httpSession.getAttribute(Constants.Options.OPTIONS);
+		System.out.println("MONITOR : "+options.isMonitor() );
+		options.setMonitor(true);
 		for (Object dataservice : dataservices) {
 			Class<?> cls = unProxyClassServices.getRealClass(dataservice.getClass());
 			if(!cls.isAnnotationPresent(DashboardOnDebug.class) || options.isDebug()) {
