@@ -518,7 +518,6 @@ if ("WebSocket" in window) {
 						// if msg is response of subscribe request
 						if (isTopicSubscription(promise)) {
 							promise.uid = getUid(); // useful for found promise
-							console.log("generation d'un uid pour promise lié au topic "+promise.args[0]+" : ", promise.uid)
 							addPromiseToId(promise, promise.args[0]);
 						} else if (isTopicUnsubscription(promise)) {
 							removePromiseForTopic(promise, promise.args[0]);
