@@ -188,7 +188,7 @@ if ("WebSocket" in window) {
 		var opts = {"monitor": false, "debug": false}, MSG = "MESSAGE", CONSTRAINT = "CONSTRAINT", RES = "RESULT", FAULT = "FAULT",
 				  ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove", CLEANCACHE = "ocelot-cleancache", STATUS = "ocelot-status",
 				  OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe", uid = 0,
-				  stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], closetimer, promises = {}, path, ws,
+				  stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], closetimer, promises = {}, path, ws = null,
 				  _cacheManager = (function () {
 					  var LU = "ocelot-lastupdate", addHandlers = [], removeHandlers = [],
 								 lastUpdateManager = (function () {
