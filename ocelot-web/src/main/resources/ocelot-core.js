@@ -595,7 +595,9 @@ if ("WebSocket" in window) {
 		}
 		function _close(reason) {
 			setTimeout(function (w) {
-				w.close(1000, reason | "Normal closure; the connection successfully completed whatever purpose for which it was created.");
+				if(w) {
+					w.close(1000, reason | "Normal closure; the connection successfully completed whatever purpose for which it was created.");
+				}
 			}, 10, ws);
 		}
 		function _addPromise(promise) {
