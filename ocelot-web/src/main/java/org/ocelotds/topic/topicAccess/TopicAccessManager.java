@@ -53,7 +53,7 @@ public class TopicAccessManager {
 		boolean tacPresent1 = checkAccessTopicFromJsTopicControl(ctx, topic);
 		boolean tacPresent2 = checkAccessTopicFromJsTopicControls(ctx, topic);
 		if (!(tacPresent0 | tacPresent1 | tacPresent2)) {
-			logger.info("No topic access control found in project, add {} implementation with optional Qualifier {} in your project for add subscription security.", JsTopicAccessController.class, JsTopicControl.class);
+			logger.info("No '{}' access control found in project, add {} implementation annotated with {}({}) in your project for add subscription security.", topic, JsTopicAccessController.class, JsTopicControl.class, topic);
 		}
 	}
 	

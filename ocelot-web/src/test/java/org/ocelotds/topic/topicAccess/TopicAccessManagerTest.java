@@ -79,7 +79,7 @@ public class TopicAccessManagerTest {
 		doReturn(Boolean.FALSE).when(instance).checkAccessTopicFromJsTopicControl(eq(userContext), eq(TOPIC1));
 		doReturn(Boolean.FALSE).when(instance).checkAccessTopicFromJsTopicControls(eq(userContext), eq(TOPIC1));
 		instance.checkAccessTopic(userContext, TOPIC1);
-		verify(logger).info(anyString(), any(), any());
+		verify(logger).info(anyString(), eq(TOPIC1), any(), any(), eq(TOPIC1));
 	}
 
 	/**
