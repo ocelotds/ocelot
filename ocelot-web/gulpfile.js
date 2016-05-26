@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 	var gulp = require('gulp'),
-           del = require('del'),
+			  del = require('del'),
 			  concat = require('gulp-concat'),
 			  size = require('gulp-filesize'),
 			  jshint = require('gulp-jshint'),
@@ -23,7 +23,7 @@
 				  .pipe(gulp.dest('./target/classes/'));
 	});
 	gulp.task('add-ocelot-services', ['minify'], function () {
-				 gulp.src(['./target/classes/org/ocelotds/OcelotServices.js', './src/main/resources/ocelot-core.js'])
+		gulp.src(['./target/classes/org/ocelotds/OcelotServices.js', './src/main/resources/ocelot-core.js'])
 				  .pipe(concat('ocelot-core.js'))
 				  .pipe(gulp.dest('./target/classes/'));
 		return gulp.src(['./target/classes/org/ocelotds/OcelotServices.js', './target/classes/ocelot-core-min.js'])
