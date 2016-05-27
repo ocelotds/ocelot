@@ -413,7 +413,7 @@ if ("WebSocket" in window) {
 		}
 		function stateUpdated() {
 			foreachPromiseInPromisesDo(STATUS, function (promise) {
-				promise.response = createMessageEventFromPromise(promise, {"response": ocelotController.status, "t": 0});
+				promise.response = createMessageEventFromPromise(promise, {"response": _status(), "t": 0});
 			});
 		}
 		function foreachPromiseInPromisesDo(id, func) {
@@ -631,6 +631,9 @@ if ("WebSocket" in window) {
 			}
 			sendMfc(promise);
 		}
+		function _status() {
+			return ws ? stateLabels[ws.readyState] : "CLOSED";
+		}
 		function init() {
 			// init a standard httpsession and init websocket
 			connect().then(function () {
@@ -661,7 +664,7 @@ if ("WebSocket" in window) {
 				return opts;
 			},
 			get status() {
-				return ws ? stateLabels[ws.readyState] : "CLOSED";
+				return _status();
 			},
 			close: _close,
 			addPromise: _addPromise,
