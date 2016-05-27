@@ -143,6 +143,10 @@ public class JsTopicInterceptorTest {
 		m = this.getClass().getMethod("methodWithJsTopicAndWithTopicNameAndJsonPayload");
 		result = instance.isJsonPayload(m);
 		assertThat(result).isTrue();
+
+		m = this.getClass().getMethod("methodWithoutJsTopic");
+		result = instance.isJsonPayload(m);
+		assertThat(result).isFalse();
 	}
 
 	/**
