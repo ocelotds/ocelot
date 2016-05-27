@@ -20,7 +20,7 @@
 		});
 	}
 	/* @ngInject */
-	function SpyCtrl($scope, sessions) {
+	function SpyCtrl($scope, sessionServices, sessions) {
 		var MSG = "// Enabled a client to monitor it !!!";
 		var ctrl = this;
 		ctrl.requestSubscriber = null;
@@ -131,7 +131,7 @@
 		}
 	}
 	/* @ngInject */
-	function initSessions($q) {
+	function initSessions($q, sessionServices) {
 		var deferred = $q.defer();
 		sessionServices.getSessionInfos().then(function (sessions) {
 			deferred.resolve(sessions);

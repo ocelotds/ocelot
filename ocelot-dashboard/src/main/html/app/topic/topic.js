@@ -20,7 +20,7 @@
 		});
 	}
 	/* @ngInject */
-	function TopicCtrl($scope, sessionsBytopic) {
+	function TopicCtrl($scope, topicServices, sessionsBytopic) {
 		var ctrl = this;
 		ctrl.topics = []; //Object.keys(sessionsBytopic);
 		ctrl.sessionsBytopic = {}; // sessionsBytopic; // {"topicname", [{"id":"sessionid","username":"principalname"}, {"id":"sessionid","username":"principalname"}]}
@@ -140,7 +140,7 @@
 		}
 	}
 	/* @ngInject */
-	function initSessionsBytopic($q) {
+	function initSessionsBytopic($q, topicServices) {
 		var deferred = $q.defer();
 		topicServices.getSessionIdsByTopic().then(function (sessionsBytopic) {
 			deferred.resolve(sessionsBytopic);

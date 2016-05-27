@@ -8,7 +8,8 @@
 		'ui.bootstrap',
 		'srv.module',
 		'spy.module',
-		'topic.module'
+		'topic.module', 
+		'ocelotds'
 	]).config(config);
 
 	/* @ngInject */

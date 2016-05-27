@@ -29,7 +29,7 @@
 		ctrl.service = services.length?services[0]:null;
 	}
 	/* @ngInject */
-	function initServices($q) {
+	function initServices($q, serviceServices) {
 		var deferred = $q.defer();
 		serviceServices.getServices().then(function (services) {
 			deferred.resolve(services);
