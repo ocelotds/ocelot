@@ -10,6 +10,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -24,6 +25,7 @@ import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
@@ -35,15 +37,8 @@ import org.ocelotds.annotations.DataService;
  *
  * @author hhfrancois
  */
-public abstract class AbstractDataServiceVisitor implements ElementVisitor<String, Writer> {
+public abstract class AbstractDataServiceVisitor implements ElementVisitor<String, Writer> ,ProcessorConstants  {
 
-	protected static final String QUOTE = "\"";
-	protected static final String FUNCTION = "function";
-	protected static final String TAB = ""; //"\t";
-	protected static final String SPACE = ""; //" ";
-	protected static final String TAB2 = TAB + TAB;
-	protected static final String TAB3 = TAB2 + TAB;
-	protected static final String CR = ""; //"\n";
 
 	protected final ProcessingEnvironment environment;
 	protected final Messager messager;
@@ -95,7 +90,7 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	 * @param writer
 	 * @throws IOException
 	 */
-	abstract void visitMethodElement(int first, String classname, ExecutableElement methodElement, Writer writer) throws IOException;
+	abstract void visitMethodElement(String classname, ExecutableElement methodElement, Writer writer) throws IOException;
 
 	/**
 	 * Compute the name of instance class
@@ -134,16 +129,30 @@ public abstract class AbstractDataServiceVisitor implements ElementVisitor<Strin
 	 * @return
 	 * @throws IOException
 	 */
-	int browseAndWriteMethods(List<ExecutableElement> methodElements, String classname, Writer writer) throws IOException {
+	void browseAndWriteMethods(List<ExecutableElement> methodElements, String classname, Writer writer) throws IOException {
 		Collection<String> methodProceeds = new ArrayList<>();
-		int nb = 0;
-		Collections.sort(methodElements, new MethodComparator());
+		boolean first = true;
 		for (ExecutableElement methodElement : methodElements) {
 			if (isConsiderateMethod(methodProceeds, methodElement)) {
-				visitMethodElement(nb++, classname, methodElement, writer);
+				if(!first) {
+					writer.append(COMMA).append(CR);
+				}
+				visitMethodElement(classname, methodElement, writer);
+				first = false;
 			}
 		}
-		return nb;
+	}
+	
+	/**
+	 * Return methods from typeElement ordered by comparator
+	 * @param typeElement
+	 * @param comparator
+	 * @return 
+	 */
+	protected List<ExecutableElement> getOrderedMethods(TypeElement typeElement, Comparator<ExecutableElement> comparator) {
+		List<ExecutableElement> methods = ElementFilter.methodsIn(typeElement.getEnclosedElements());
+		Collections.sort(methods, comparator);
+		return methods;
 	}
 
 	/**

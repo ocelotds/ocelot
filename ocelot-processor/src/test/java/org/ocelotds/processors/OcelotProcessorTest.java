@@ -30,6 +30,7 @@ import static org.mockito.Mockito.*;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.DataService;
+import org.ocelotds.frameworks.Frameworks;
 import org.slf4j.Logger;
 
 /**
@@ -46,6 +47,7 @@ public class OcelotProcessorTest {
 		Map<String, String> map = new HashMap<>();
 		map.put("jsdir", "/home/services");
 		when(processingEnv.getOptions()).thenReturn(map);
+		doReturn("").when(instance).getPromiseCreatorScript();
 		instance.init(processingEnv);
 		OcelotProcessor.setDone(false);
 	}
@@ -74,14 +76,37 @@ public class OcelotProcessorTest {
 		System.out.println("getJsDirectory");
 		Map<String, String> map = new HashMap<>();
 		String path = "/home/services";
-		map.put("jsdir", path);
+		map.put(ProcessorConstants.DIRECTORY, path);
 		Object result = instance.getJsDirectory(map);
 		assertThat(result).isEqualTo(path);
-		map.put("jsdir", null);
+		map.put(ProcessorConstants.DIRECTORY, null);
 		result = instance.getJsDirectory(map);
 		assertThat(result).isNull();
 		result = instance.getJsDirectory(null);
 		assertThat(result).isNull();
+	}
+
+	/**
+	 * Test of getJsFramework method, of class.
+	 */
+	@Test
+	public void test_getJsFramework() {
+		System.out.println("getJsDirectory");
+		Map<String, String> map = new HashMap<>();
+		map.put(ProcessorConstants.FRAMEWORK, "ANGULARJS");
+		Frameworks result = instance.getJsFramework(map);
+		assertThat(result).isEqualTo(Frameworks.ANGULARJS);
+
+		map.put(ProcessorConstants.FRAMEWORK, "BAD");
+		result = instance.getJsFramework(map);
+		assertThat(result).isEqualTo(Frameworks.NOFWK);
+
+		map.put(ProcessorConstants.FRAMEWORK, null);
+		result = instance.getJsFramework(map);
+		assertThat(result).isEqualTo(Frameworks.NOFWK);
+
+		result = instance.getJsFramework(null);
+		assertThat(result).isEqualTo(Frameworks.NOFWK);
 	}
 
 	/**
@@ -138,7 +163,7 @@ public class OcelotProcessorTest {
 
 		boolean result = instance.process(annotations, roundEnv);
 		assertThat(result).isTrue();
-		verify(instance, times(2)).processElement(any(Element.class), any(ElementVisitor.class));
+		verify(instance, times(2)).processElement(any(Element.class));
 	}
 
 	/**
@@ -147,10 +172,10 @@ public class OcelotProcessorTest {
 	@Test
 	public void test_processElement() {
 		System.out.println("processElement");
-		doNothing().when(instance).processTypeElement(any(TypeElement.class), any(ElementVisitor.class));
-		instance.processElement(mock(Element.class), mock(ElementVisitor.class));
-		instance.processElement(mock(TypeElement.class), mock(ElementVisitor.class));
-		verify(instance).processTypeElement(any(TypeElement.class), any(ElementVisitor.class));
+		doNothing().when(instance).processTypeElement(any(TypeElement.class));
+		instance.processElement(mock(Element.class));
+		instance.processElement(mock(TypeElement.class));
+		verify(instance).processTypeElement(any(TypeElement.class));
 	}
 
 	/**
@@ -163,7 +188,7 @@ public class OcelotProcessorTest {
 		doReturn("").when(instance).getFilename(any(TypeElement.class));
 		doNothing().when(instance).writeJsFileToJsDir(any(TypeElement.class), any(ElementVisitor.class), anyString(), anyString(), anyString());
 		doNothing().when(instance).writeJsFile(any(TypeElement.class), any(ElementVisitor.class), anyString(), anyString());
-		instance.processTypeElement(mock(TypeElement.class), mock(ElementVisitor.class));
+		instance.processTypeElement(mock(TypeElement.class));
 		verify(instance).writeJsFileToJsDir(any(TypeElement.class), any(ElementVisitor.class), anyString(), anyString(), anyString());
 		verify(instance).writeJsFile(any(TypeElement.class), any(ElementVisitor.class), anyString(), anyString());
 	}

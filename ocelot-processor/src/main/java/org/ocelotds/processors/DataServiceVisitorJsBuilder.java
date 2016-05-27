@@ -4,11 +4,8 @@
  */
 package org.ocelotds.processors;
 
-import java.io.BufferedReader;
 import org.ocelotds.annotations.JsCacheResult;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.List;
@@ -17,12 +14,12 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
-import javax.tools.StandardLocation;
 import org.ocelotds.KeyMaker;
 import org.ocelotds.processors.stringDecorators.KeyForArgDecorator;
 import org.ocelotds.processors.stringDecorators.NothingDecorator;
 import org.ocelotds.processors.stringDecorators.QuoteDecorator;
 import org.ocelotds.processors.stringDecorators.StringDecorator;
+import org.ocelotds.frameworks.FwkWriter;
 
 /**
  * Visitor of class annoted org.ocelotds.annotations.DataService<br>
@@ -34,31 +31,36 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 
 	protected final KeyMaker keyMaker;
 	protected final String promiseCreatorScript;
+	protected final FwkWriter fwk;
 
 	/**
 	 *
 	 * @param environment
 	 * @param promiseCreatorScript
 	 */
-	public DataServiceVisitorJsBuilder(ProcessingEnvironment environment, String promiseCreatorScript) {
+	public DataServiceVisitorJsBuilder(ProcessingEnvironment environment, String promiseCreatorScript, FwkWriter fwk) {
 		super(environment);
 		this.keyMaker = new KeyMaker();
 		this.promiseCreatorScript = promiseCreatorScript;
+		this.fwk = fwk;
 	}
 
 	@Override
 	void _visitType(TypeElement typeElement, Writer writer) throws IOException {
 		String jsclsname = getJsClassname(typeElement);
 		String instanceName = getJsInstancename(jsclsname);
-		writer.append("var ").append(instanceName).append(SPACE).append("=").append(SPACE).append("(").append(FUNCTION).append(SPACE).append("()").append(SPACE).append("{").append(CR);
-		writer.append(TAB).append("'use strict';").append(CR);
+		fwk.writeHeaderService(writer, instanceName);
+//		writer.append("var ").append(instanceName).append(SPACEOPTIONAL).append("=").append(SPACEOPTIONAL).append("(").append(FUNCTION).append(SPACEOPTIONAL).append("()").append(SPACEOPTIONAL).append("{").append(CR);
+//		writer.append(TAB).append("'use strict';").append(CR);
 		writer.append(TAB).append(promiseCreatorScript);
 		String classname = typeElement.getQualifiedName().toString();
-		writer.append(TAB).append("var _ds").append(SPACE).append("=").append(SPACE).append(QUOTE).append(classname).append(QUOTE).append(";").append(CR);
-		writer.append(TAB).append("return").append(SPACE).append("{").append(CR);
-		browseAndWriteMethods(ElementFilter.methodsIn(typeElement.getEnclosedElements()), classname, writer);
-		writer.append(CR).append(TAB).append("};");
-		writer.append(CR).append("})();").append(CR);
+		writer.append(TAB).append("var _ds").append(SPACEOPTIONAL).append(EQUALS).append(SPACEOPTIONAL).append(QUOTE).append(classname).append(QUOTE).append(SEMICOLON).append(CR);
+		writer.append(TAB).append("return").append(SPACEOPTIONAL).append(OPENBRACE).append(CR);
+		browseAndWriteMethods(getOrderedMethods(typeElement, new MethodComparator()), classname, writer);
+		writer.append(CR);
+		writer.append(TAB).append(CLOSEBRACE).append(SEMICOLON).append(CR);
+		fwk.writeFooterService(writer);
+//		writer.append(CR).append("})();").append(CR);
 	}
 
 	/**
@@ -70,28 +72,26 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 * @throws IOException
 	 */
 	@Override
-	void visitMethodElement(int first, String classname, ExecutableElement methodElement, Writer writer) throws IOException {
-		if (first != 0) { // previous method exist
-			writer.append(",").append(CR);
-		}
+	void visitMethodElement(String classname, ExecutableElement methodElement, Writer writer) throws IOException {
 		String methodName = methodElement.getSimpleName().toString();
 		List<String> argumentsType = getArgumentsType(methodElement);
 		List<String> arguments = getArguments(methodElement);
 		TypeMirror returnType = methodElement.getReturnType();
 
-		writer.append(TAB2).append(methodName).append(SPACE).append(":").append(SPACE).append(FUNCTION).append(SPACE).append("(");
+		writer.append(TAB2).append(methodName).append(SPACEOPTIONAL).append(COLON).append(SPACEOPTIONAL)
+				  .append(FUNCTION).append(SPACEOPTIONAL).append(OPENPARENTHESIS); //\t\tmethodName : function (
 		int i = 0;
 		while (i < argumentsType.size()) {
-			writer.append((String) arguments.get(i));
+			writer.append((String) arguments.get(i)); // argname
 			if ((++i) < arguments.size()) {
-				writer.append(",").append(SPACE);
+				writer.append(COMMA).append(SPACEOPTIONAL); //, 
 			}
 		}
-		writer.append(")").append(SPACE).append("{").append(CR);
+		writer.append(CLOSEPARENTHESIS).append(SPACEOPTIONAL).append(OPENBRACE).append(CR); //) {\n
 
 		createMethodBody(classname, methodElement, arguments, writer);
 
-		writer.append(TAB2).append("}");
+		writer.append(TAB2).append(CLOSEBRACE); //\t\t}
 	}
 
 	/**
@@ -105,8 +105,8 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 */
 	void createMethodBody(String classname, ExecutableElement methodElement, List<String> arguments, Writer writer) throws IOException {
 		String methodName = getMethodName(methodElement);
-		String args = stringJoinAndDecorate(arguments, ",", new NothingDecorator());
-		String paramNames = stringJoinAndDecorate(arguments, ",", new QuoteDecorator());
+		String args = stringJoinAndDecorate(arguments, COMMA, new NothingDecorator());
+		String paramNames = stringJoinAndDecorate(arguments, COMMA, new QuoteDecorator());
 		String keys = computeKeys(methodElement, arguments);
 		createReturnOcelotPromiseFactory(classname, methodName, paramNames, args, keys, writer);
 	}
@@ -127,12 +127,12 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 * @return 
 	 */
 	String computeKeys(ExecutableElement methodElement, List<String> arguments) {
-		String keys = stringJoinAndDecorate(arguments, ",", new NothingDecorator());
+		String keys = stringJoinAndDecorate(arguments, COMMA, new NothingDecorator());
 		if (arguments != null && !arguments.isEmpty()) {
 			JsCacheResult jcr = methodElement.getAnnotation(JsCacheResult.class);
 			// if there is a jcr annotation with value diferrent of *, so we dont use all arguments
 			if (!considerateAllArgs(jcr)) {
-				keys = stringJoinAndDecorate(Arrays.asList(jcr.keys()), ",", new KeyForArgDecorator());
+				keys = stringJoinAndDecorate(Arrays.asList(jcr.keys()), COMMA, new KeyForArgDecorator());
 			}
 		}
 		return keys;
@@ -149,8 +149,15 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 * @throws IOException 
 	 */
 	void createReturnOcelotPromiseFactory(String classname, String methodName, String paramNames, String args, String keys, Writer writer) throws IOException {
-		String md5 = keyMaker.getMd5(classname + "." + methodName);
-		writer.append(TAB3).append("return _create(_ds,").append(SPACE).append(QUOTE).append(md5).append("_").append(QUOTE).append(SPACE).append("+").append(SPACE).append("JSON.stringify([").append(keys).append("]).md5()").append(",").append(SPACE).append(QUOTE).append(methodName).append(QUOTE).append(",").append(SPACE).append("[").append(paramNames).append("],").append(SPACE).append("[").append(args).append("]").append(");").append(CR);
+		String md5 = keyMaker.getMd5(classname + DOT + methodName);
+		writer.append(TAB3).append("return _create").append(OPENPARENTHESIS).append("_ds").append(COMMA).append(SPACEOPTIONAL)
+				  .append(QUOTE).append(md5).append(UNDERSCORE).append(QUOTE).append(SPACEOPTIONAL).append(PLUS)
+				  .append(SPACEOPTIONAL).append("JSON.stringify").append(OPENPARENTHESIS).append(OPENBRACKET).append(keys)
+				  .append(CLOSEBRACKET).append(CLOSEPARENTHESIS).append(".md5").append(OPENPARENTHESIS).append(CLOSEPARENTHESIS)
+				  .append(COMMA).append(SPACEOPTIONAL).append(QUOTE).append(methodName).append(QUOTE).append(COMMA)
+				  .append(SPACEOPTIONAL).append(OPENBRACKET).append(paramNames).append(CLOSEBRACKET).append(COMMA)
+				  .append(SPACEOPTIONAL).append(OPENBRACKET).append(args).append(CLOSEBRACKET).append(CLOSEPARENTHESIS)
+				  .append(SEMICOLON).append(CR);
 	}
 
 	/**
@@ -192,6 +199,6 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 //			return false;
 //		}
 //		return "*".equals(jcr.keys()[0]);
-		return null == jcr || (jcr.keys().length != 0 && "*".equals(jcr.keys()[0]));
+		return null == jcr || (jcr.keys().length != 0 && ASTERISK.equals(jcr.keys()[0]));
 	}
 }

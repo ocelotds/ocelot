@@ -8,6 +8,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.KeyMaker;
 import org.ocelotds.annotations.JsCacheResult;
+import org.ocelotds.frameworks.NoFwk;
 import org.ocelotds.processors.stringDecorators.NothingDecorator;
 import org.ocelotds.processors.stringDecorators.QuoteDecorator;
 import org.ocelotds.processors.stringDecorators.StringDecorator;
@@ -60,7 +62,7 @@ public class DataServiceVisitorJsBuilderTest {
 		when(environment.getFiler()).thenReturn(filer);
 		when(environment.getMessager()).thenReturn(messager);
 		when(environment.getTypeUtils()).thenReturn(typeUtils);
-		instance = spy(new DataServiceVisitorJsBuilder(environment, ""));
+		instance = spy(new DataServiceVisitorJsBuilder(environment, "", new NoFwk()));
 	}
 
 	/**
@@ -73,7 +75,8 @@ public class DataServiceVisitorJsBuilderTest {
 		System.out.println("_visitType");
 		TypeElement typeElement = mock(TypeElement.class);
 		Writer writer = getMockWriter();
-		doReturn(0).when(instance).browseAndWriteMethods(anyListOf(ExecutableElement.class), anyString(), eq(writer));
+		doNothing().when(instance).browseAndWriteMethods(anyListOf(ExecutableElement.class), anyString(), eq(writer));
+		doReturn(null).when(instance).getOrderedMethods(eq(typeElement), any(Comparator.class));
 		doReturn("ClassName").when(instance).getJsClassname(eq(typeElement));
 
 		Name qname = mock(Name.class);
@@ -111,24 +114,31 @@ public class DataServiceVisitorJsBuilderTest {
 		doReturn(arguments).when(instance).getArguments(eq(methodElement));
 		when(methodElement.getReturnType()).thenReturn(tm);
 
-		instance.visitMethodElement(0, classname, methodElement, writer);
-		verify(writer, times(14)).append(anyString());
+		instance.visitMethodElement(classname, methodElement, writer);
+		ArgumentCaptor<String> appendCaptor = ArgumentCaptor.forClass(String.class);
+		verify(writer, atLeastOnce()).append(appendCaptor.capture()); // no arg : 14 calls
+		int withNoArg = appendCaptor.getAllValues().size();
 
 		writer = getMockWriter();
 		argumentsType.add(String.class.getName());
 		arguments.add("str");
-		instance.visitMethodElement(0, classname, methodElement, writer);
-		verify(writer, times(15)).append(anyString());
+		int withOneArg = withNoArg + 1; // 1 arg : noarg + 1 call
+		instance.visitMethodElement(classname, methodElement, writer);
+		verify(writer, times(withOneArg)).append(anyString()); // 1 arg : 14 calls + 1 call
 
 		writer = getMockWriter();
 		argumentsType.add(String.class.getName());
 		arguments.add("str2");
-		instance.visitMethodElement(0, classname, methodElement, writer);
-		verify(writer, times(18)).append(anyString());
+		int withTwoArg = withOneArg + 3; // 1 arg + 1 arg : noarg + 1 call + (3*1) calls
+		instance.visitMethodElement(classname, methodElement, writer);
+		verify(writer, times(withTwoArg)).append(anyString()); 
 
 		writer = getMockWriter();
-		instance.visitMethodElement(1, classname, methodElement, writer);
-		verify(writer, times(20)).append(anyString());
+		argumentsType.add(String.class.getName());
+		arguments.add("str3");
+		int withThreeArg = withTwoArg + 3; // 1 arg + 2 arg : noarg + 1 call + (3*2) calls
+		instance.visitMethodElement(classname, methodElement, writer);
+		verify(writer, times(withThreeArg)).append(anyString()); 
 	}
 
 	/**
@@ -247,7 +257,7 @@ public class DataServiceVisitorJsBuilderTest {
 	@Test
 	public void testCreateReturnOcelotPromiseFactory() throws IOException {
 		System.out.println("createReturnOcelotPromiseFactory");
-		String expresult = AbstractDataServiceVisitor.TAB3+"return _create(_ds,"+AbstractDataServiceVisitor.SPACE+"\"c4746bbdace1d5712da7b6fabe58fb9c_\""+AbstractDataServiceVisitor.SPACE+"+"+AbstractDataServiceVisitor.SPACE+"JSON.stringify([KEYS]).md5(),"+AbstractDataServiceVisitor.SPACE+"\"METHODNAME\","+AbstractDataServiceVisitor.SPACE+"[PARAMNAMES],"+AbstractDataServiceVisitor.SPACE+"[ARGS]);"+AbstractDataServiceVisitor.CR;
+		String expresult = ProcessorConstants.TAB3+"return _create(_ds,"+ProcessorConstants.SPACEOPTIONAL+"\"c4746bbdace1d5712da7b6fabe58fb9c_\""+ProcessorConstants.SPACEOPTIONAL+"+"+ProcessorConstants.SPACEOPTIONAL+"JSON.stringify([KEYS]).md5(),"+ProcessorConstants.SPACEOPTIONAL+"\"METHODNAME\","+ProcessorConstants.SPACEOPTIONAL+"[PARAMNAMES],"+ProcessorConstants.SPACEOPTIONAL+"[ARGS]);"+ProcessorConstants.CR;
 		StringWriter writer = new StringWriter();
 		instance.createReturnOcelotPromiseFactory("CLSNAME", "METHODNAME", "PARAMNAMES", "ARGS", "KEYS", writer);
 		String result = writer.toString();

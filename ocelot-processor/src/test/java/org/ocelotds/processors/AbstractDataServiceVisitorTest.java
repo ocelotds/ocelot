@@ -9,6 +9,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,6 +17,7 @@ import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
@@ -37,6 +39,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.TransientDataService;
+import org.ocelotds.frameworks.NoFwk;
 import org.slf4j.Logger;
 
 /**
@@ -73,7 +76,7 @@ public class AbstractDataServiceVisitorTest {
 		when(environment.getFiler()).thenReturn(filer);
 		when(environment.getMessager()).thenReturn(messager);
 		when(environment.getTypeUtils()).thenReturn(typeUtils);
-		instance = spy(new DataServiceVisitorJsBuilder(environment, ""));
+		instance = spy(new DataServiceVisitorJsBuilder(environment, "", new NoFwk()));
 	}
 
 	/**
@@ -164,21 +167,108 @@ public class AbstractDataServiceVisitorTest {
 	 * @throws IOException 
 	 */
 	@Test
-	public void testBrowseAndWriteMethods() throws IOException {
+	public void testBrowseAndWriteMethodsOneMethod() throws IOException {
 		System.out.println("browseAndWriteMethods");
 		List<ExecutableElement> methodElements = new ArrayList<>();
-		ExecutableElement element = mock(ExecutableElement.class);
-		methodElements.add(element);
+		methodElements.add(mock(ExecutableElement.class));
+		String classname = "packageName.ClassName";
+		Writer writer = getMockWriter();
+
+		doReturn(true).when(instance).isConsiderateMethod(anyCollection(), any(ExecutableElement.class));
+		doNothing().when(instance).visitMethodElement(anyString(), any(ExecutableElement.class), any(Writer.class));
+		// then
+		instance.browseAndWriteMethods(methodElements, classname, writer);
+		verify(writer, never()).append(anyString());
+		verify(instance).visitMethodElement(anyString(), any(ExecutableElement.class), any(Writer.class));
+	}
+
+	/**
+	 * Test of browseAndWriteMethods method, of class DataServiceVisitorJsBuilder.
+	 * 
+	 * @throws IOException 
+	 */
+	@Test
+	public void testBrowseAndWriteMethodsOneMethodUnconsiderate() throws IOException {
+		System.out.println("browseAndWriteMethods");
+		List<ExecutableElement> methodElements = new ArrayList<>();
+		methodElements.add(mock(ExecutableElement.class));
+		String classname = "packageName.ClassName";
+		Writer writer = getMockWriter();
+
+		doReturn(false).when(instance).isConsiderateMethod(anyCollection(), any(ExecutableElement.class));
+		doNothing().when(instance).visitMethodElement(anyString(), any(ExecutableElement.class), any(Writer.class));
+		// then
+		instance.browseAndWriteMethods(methodElements, classname, writer);
+		verify(writer, never()).append(anyString());
+		verify(instance, never()).visitMethodElement(anyString(), any(ExecutableElement.class), any(Writer.class));
+	}
+
+	/**
+	 * Test of browseAndWriteMethods method, of class DataServiceVisitorJsBuilder.
+	 * 
+	 * @throws IOException 
+	 */
+	@Test
+	public void testBrowseAndWriteMethodsTwoMethodsOneUnconsiderate() throws IOException {
+		System.out.println("browseAndWriteMethods");
+		List<ExecutableElement> methodElements = new ArrayList<>();
+		methodElements.add(mock(ExecutableElement.class));
+		methodElements.add(mock(ExecutableElement.class));
 		String classname = "packageName.ClassName";
 		Writer writer = getMockWriter();
 
 		doReturn(false).doReturn(true).when(instance).isConsiderateMethod(anyCollection(), any(ExecutableElement.class));
-		doNothing().when(instance).visitMethodElement(anyInt(), anyString(), any(ExecutableElement.class), any(Writer.class));
+		doNothing().when(instance).visitMethodElement(anyString(), any(ExecutableElement.class), any(Writer.class));
 		// then
-		int result = instance.browseAndWriteMethods(methodElements, classname, writer);
-		assertThat(result).isEqualTo(0);
-		result = instance.browseAndWriteMethods(methodElements, classname, writer);
-		assertThat(result).isEqualTo(1);
+		instance.browseAndWriteMethods(methodElements, classname, writer);
+		verify(writer, never()).append(anyString());
+		verify(instance).visitMethodElement(anyString(), any(ExecutableElement.class), any(Writer.class));
+	}
+
+	/**
+	 * Test of browseAndWriteMethods method, of class DataServiceVisitorJsBuilder.
+	 * 
+	 * @throws IOException 
+	 */
+	@Test
+	public void testBrowseAndWriteMethodsTwoMethods() throws IOException {
+		System.out.println("browseAndWriteMethods");
+		List<ExecutableElement> methodElements = new ArrayList<>();
+		methodElements.add(mock(ExecutableElement.class));
+		methodElements.add(mock(ExecutableElement.class));
+		String classname = "packageName.ClassName";
+		Writer writer = getMockWriter();
+
+		doReturn(true).when(instance).isConsiderateMethod(anyCollection(), any(ExecutableElement.class));
+		doNothing().when(instance).visitMethodElement(anyString(), any(ExecutableElement.class), any(Writer.class));
+		// then
+		instance.browseAndWriteMethods(methodElements, classname, writer);
+		verify(writer, times(2)).append(anyString());
+		verify(instance, times(2)).visitMethodElement(anyString(), any(ExecutableElement.class), any(Writer.class));
+	}
+	
+	/**
+	 * Test of getOrderedMethods method, of class.
+	 * 		List<ExecutableElement> methods = ElementFilter.methodsIn(typeElement.getEnclosedElements());
+		Collections.sort(methods, comparator);
+		return methods;
+
+	 */
+	@Test
+	public void getOrderedMethodsTest() {
+		System.out.println("getOrderedMethods");
+		TypeElement typeElement = mock(TypeElement.class);
+		Comparator comparator = mock(Comparator.class);
+		when(comparator.compare(any(ExecutableElement.class), any(ExecutableElement.class))).thenReturn(0);
+		ExecutableElement m1 = mock(ExecutableElement.class);
+		when(m1.getKind()).thenReturn(ElementKind.METHOD);
+		ExecutableElement m2 = mock(ExecutableElement.class);
+		when(m2.getKind()).thenReturn(ElementKind.METHOD);
+		List<ExecutableElement> list = Arrays.asList(m1, m2);
+		when(typeElement.getEnclosedElements()).thenReturn((List)list);
+		
+		List<ExecutableElement> result = instance.getOrderedMethods(typeElement, comparator);
+		assertThat(result).hasSize(2);
 	}
 
 	/**
