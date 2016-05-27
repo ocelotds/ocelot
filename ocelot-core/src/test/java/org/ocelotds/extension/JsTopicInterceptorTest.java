@@ -214,6 +214,40 @@ public class JsTopicInterceptorTest {
 		assertThat(mtc.getResponse()).isEqualTo("RESULT");
 	}
 
+	/**
+	 * Test of proceedAndSendMessage method, of class JsTopicInterceptor.
+	 * @throws java.lang.Exception
+	 */
+	@Test
+	public void testProceedAndSendMessageJson() throws Exception {
+		System.out.println("proceedAndSendMessage");
+		InvocationContext ctx = mock(InvocationContext.class);
+		when(ctx.proceed()).thenReturn("{\"json\":true}");
+		String topic = "";
+		Object expResult = null;
+		Object result = instance.proceedAndSendMessage(ctx, "TOPIC", true);
+		ArgumentCaptor<MessageToClient> argument = ArgumentCaptor.forClass(MessageToClient.class);
+		verify(wsEvent).fire(argument.capture());
+		assertThat(result).isEqualTo("{\"json\":true}");
+		MessageToClient mtc = argument.getValue();
+		assertThat(mtc.getId()).isEqualTo("TOPIC");
+		assertThat(mtc.getJson()).isEqualTo("{\"json\":true}");
+	}
+
+	/**
+	 * Test of proceedAndSendMessage method, of class JsTopicInterceptor.
+	 * @throws java.lang.Exception
+	 */
+	@Test(expected = UnsupportedOperationException.class)
+	public void testProceedAndSendMessageFailed() throws Exception {
+		System.out.println("proceedAndSendMessage");
+		InvocationContext ctx = mock(InvocationContext.class);
+		when(ctx.proceed()).thenReturn(5);
+		String topic = "";
+		Object expResult = null;
+		Object result = instance.proceedAndSendMessage(ctx, "TOPIC", true);
+	}
+
 	@JsTopic("TOPICNAME")
 	public void methodWithJsTopicAndWithTopicName() {
 	}
