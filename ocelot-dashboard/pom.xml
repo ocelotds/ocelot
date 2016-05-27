@@ -44,24 +44,45 @@
 	</dependencies>
 	<build>
 		<plugins>
-			<!--plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.5.1</version>
+				<version>3.5.1</version>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<compilerArgs>
+								<arg>-Ajsdir=/home/hhfrancois/NetBeansProjects/ocelot/ocelot-dashboard/src/main/html</arg>
+								<arg>-Ajsfwk=ANGULARJS</arg>
+							</compilerArgs>
+						</configuration>
+					</execution>
+				</executions>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
-					<compilerArguments>
+					<!-- WORK FINE with 2.5.1 BUT DEPRECATED FOR 3.5.1 -->
+					<!--compilerArguments>
 						<Ajsdir>/home/hhfrancois/NetBeansProjects/ocelot/ocelot-dashboard/src/main/html/app/services</Ajsdir>
-					</compilerArguments>
+					</compilerArguments-->
+					<!-- WORK FINE with 3.5.1-->
+					<!--compilerArgs>
+						<arg>-Ajsdir=/home/hhfrancois/NetBeansProjects/ocelot/ocelot-dashboard/src/main/html/app/services</arg>
+					</compilerArgs-->
+					<!-- WORK FINE with 3.5.1-->
+					<!--compilerArgument>-Ajsdir=/home/hhfrancois/NetBeansProjects/ocelot/ocelot-dashboard/src/main/html/app/services</compilerArgument-->
 				</configuration>
-			</plugin-->
+			</plugin>
 			<plugin>
 				<artifactId>exec-maven-plugin</artifactId>
 				<groupId>org.codehaus.mojo</groupId>
 				<version>1.5.0</version>
 				<executions>
-					<execution>
+					<!--execution>
 						<id>install npm</id>
 						<phase>validate</phase>
 						<goals>
@@ -86,7 +107,7 @@
 								<argument>install</argument>
 							</arguments>
 						</configuration>
-					</execution>
+					</execution-->
 					<execution>
 						<id>Gulp</id>
 						<phase>prepare-package</phase>

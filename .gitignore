@@ -6,3 +6,6 @@
 /target/
 /ocelot-app/bower_components/
 /ocelot-dashboard/bower_components/
+/ocelot-dashboard/src/main/html/org.ocelotds.dashboard.services.ServiceServices.js
+/ocelot-dashboard/src/main/html/org.ocelotds.dashboard.services.TopicServices.js
+/ocelot-dashboard/src/main/html/org.ocelotds.dashboard.services.SessionServices.js
