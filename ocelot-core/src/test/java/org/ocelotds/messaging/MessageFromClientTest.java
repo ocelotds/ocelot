@@ -3,14 +3,20 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.messaging;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.BeforeClass;
 import org.ocelotds.Constants;
+import static org.ocelotds.messaging.MessageFromClient.getArgumentsFromMessage;
 
 /**
  *
@@ -144,6 +150,56 @@ public class MessageFromClientTest {
 		String json = mfcToJson(msgWithArg);
 		MessageFromClient mfc = MessageFromClient.createFromJson(json);
 		assertThat(mfc).isEqualToComparingFieldByField(msgWithArg);
+	}
+	
+	/**
+	 * Test of getArgumentsFromMessage method, of class.
+	 */
+	@Test
+	public void getArgumentsFromMessageTest() {
+		System.out.println("getArgumentsFromMessage");
+		try (JsonReader reader = Json.createReader(new StringReader("[]"))) {
+			JsonArray array = reader.readArray();
+			List<String> result = MessageFromClient.getArgumentsFromMessage(array);
+			assertThat(result).isEmpty();
+		}
+		try (JsonReader reader = Json.createReader(new StringReader("[\"foo\"]"))) {
+			JsonArray array = reader.readArray();
+			List<String> result = MessageFromClient.getArgumentsFromMessage(array);
+			assertThat(result).hasSize(1);
+		}
+		try (JsonReader reader = Json.createReader(new StringReader("[\"foo\", 5]"))) {
+			JsonArray array = reader.readArray();
+			List<String> result = MessageFromClient.getArgumentsFromMessage(array);
+			assertThat(result).hasSize(2);
+			assertThat(result.get(0)).isEqualTo("\"foo\"");
+			assertThat(result.get(1)).isEqualTo("5");
+		}
+	}
+	
+	/**
+	 * Test of getArgumentNamesFromMessage method, of class.
+	 */
+	@Test
+	public void getArgumentNamesFromMessageTest() {
+		System.out.println("getArgumentNamesFromMessage");
+		try (JsonReader reader = Json.createReader(new StringReader("[]"))) {
+			JsonArray array = reader.readArray();
+			List<String> result = MessageFromClient.getArgumentNamesFromMessage(array);
+			assertThat(result).isEmpty();
+		}
+		try (JsonReader reader = Json.createReader(new StringReader("[\"arg1\"]"))) {
+			JsonArray array = reader.readArray();
+			List<String> result = MessageFromClient.getArgumentsFromMessage(array);
+			assertThat(result).hasSize(1);
+		}
+		try (JsonReader reader = Json.createReader(new StringReader("[\"arg1\", \"arg2\"]"))) {
+			JsonArray array = reader.readArray();
+			List<String> result = MessageFromClient.getArgumentsFromMessage(array);
+			assertThat(result).hasSize(2);
+			assertThat(result.get(0)).isEqualTo("\"arg1\"");
+			assertThat(result.get(1)).isEqualTo("\"arg2\"");
+		}
 	}
 
 	private String mfcToJson(MessageFromClient mfc) {

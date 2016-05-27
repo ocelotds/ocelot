@@ -104,30 +104,48 @@ public class MessageFromClient {
 			message.setId(root.getString(Constants.Message.ID));
 			message.setDataService(root.getString(Constants.Message.DATASERVICE));
 			message.setOperation(root.getString(Constants.Message.OPERATION));
-			JsonArray argArray = root.getJsonArray(Constants.Message.ARGUMENTS);
-			List<String> params = new ArrayList<>();
-			message.setParameters(params);
-			int idx = 0;
-			logger.debug("Get arguments and argumentNames from message '{}'", json);
-			if (!argArray.isEmpty()) {
-				while (idx < argArray.size()) {
-					JsonValue arg = argArray.get(idx++);
-					logger.debug("Get argument Type : '{}'. Value : '{}'", arg.getValueType().name(), arg.toString());
-					params.add(arg.toString());
-				}
-			}
-			argArray = root.getJsonArray(Constants.Message.ARGUMENTNAMES);
-			params = new ArrayList<>();
-			message.setParameterNames(params);
-			idx = 0;
-			if (!argArray.isEmpty()) {
-				while (idx < argArray.size()) {
-					JsonString arg = argArray.getJsonString(idx++);
-					logger.debug("Get argumentName : '{}'.", arg.toString());
-					params.add(arg.getString());
-				}
-			}
+			logger.debug("Get arguments from message '{}'", json);
+			message.setParameters(getArgumentsFromMessage(root.getJsonArray(Constants.Message.ARGUMENTS)));
+			message.setParameterNames(getArgumentNamesFromMessage(root.getJsonArray(Constants.Message.ARGUMENTNAMES)));
 		}
 		return message;
+	}
+
+	static List<String> getArgumentsFromMessage(JsonArray argArray) {
+		List<String> params = new ArrayList<>();
+		for (JsonValue arg : argArray) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Get argument Type : '{}'. Value : '{}'", arg.getValueType().name(), arg);
+			}
+			params.add(arg.toString());
+		}
+//		int idx = 0;
+//		if (!argArray.isEmpty()) {
+//			while (idx < argArray.size()) {
+//				JsonValue arg = argArray.get(idx++);
+//				if (logger.isDebugEnabled()) {
+//					logger.debug("Get argument Type : '{}'. Value : '{}'", arg.getValueType().name(), arg);
+//				}
+//				params.add(arg.toString());
+//			}
+//		}
+		return params;
+	}
+
+	static List<String> getArgumentNamesFromMessage(JsonArray argArray) {
+		List<String> params = new ArrayList<>();
+		for (JsonValue arg : argArray) {
+			logger.debug("Get argumentName : '{}'.", arg);
+			params.add(((JsonString) arg).getString());
+		}
+//		int idx = 0;
+//		if (!argArray.isEmpty()) {
+//			while (idx < argArray.size()) {
+//				JsonString arg = argArray.getJsonString(idx++);
+//				logger.debug("Get argumentName : '{}'.", arg);
+//				params.add(arg.getString());
+//			}
+//		}
+		return params;
 	}
 }
