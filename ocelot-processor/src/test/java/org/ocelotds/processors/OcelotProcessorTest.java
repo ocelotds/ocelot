@@ -75,9 +75,11 @@ public class OcelotProcessorTest {
 	public void test_getJsDirectory() {
 		System.out.println("getJsDirectory");
 		Map<String, String> map = new HashMap<>();
+		Object result = instance.getJsDirectory(map);
+		assertThat(result).isNull();
 		String path = "/home/services";
 		map.put(ProcessorConstants.DIRECTORY, path);
-		Object result = instance.getJsDirectory(map);
+		result = instance.getJsDirectory(map);
 		assertThat(result).isEqualTo(path);
 		map.put(ProcessorConstants.DIRECTORY, null);
 		result = instance.getJsDirectory(map);
