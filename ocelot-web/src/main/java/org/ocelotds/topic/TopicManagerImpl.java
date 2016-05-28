@@ -102,7 +102,7 @@ public class TopicManagerImpl implements TopicManager {
 		} else {
 			Collection<Session> sessions = map.get(topic);
 			removeSessionToSessions(session, sessions);
-			if (sessions.isEmpty()) {
+			if (sessions==null || sessions.isEmpty()) {
 				map.remove(topic);
 			}
 		}
