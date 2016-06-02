@@ -8,9 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.Path;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.UriInfo;
-import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotResource;
 
 /**
@@ -18,25 +15,19 @@ import org.ocelotds.annotations.OcelotResource;
  * @author hhfrancois
  * The core include ocelotServices.js
  */
-@Path("cor{min}.js")
+@Path("promise.js")
 @RequestScoped
 @OcelotResource
-public class RsJsCore extends AbstractRsJs {
-	@Context
-	private UriInfo context;
-	
+public class RsJsPromise extends AbstractRsJs {
 	@Override
 	List<InputStream> getStreams() {
 		List<InputStream> streams = new ArrayList<>();
-		addStream(streams, getJsCore());
+		addStream(streams, getJsPromise());
 		return streams;
 	}
 	
-	String getJsCore() {
-		if(context.getPath().contains(".min")) {
-			return Constants.SLASH + Constants.OCELOT_CORE_MIN + Constants.JS;
-		}
-		return Constants.SLASH + Constants.OCELOT_CORE + Constants.JS;
+	String getJsPromise() {
+		return "/promiseFactory.js";
 	}
 }
 

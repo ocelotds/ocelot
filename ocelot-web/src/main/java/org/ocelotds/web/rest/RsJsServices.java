@@ -35,9 +35,7 @@ public class RsJsServices extends AbstractRsJs {
 	List<InputStream> getStreams() {
 		List<InputStream> streams = new ArrayList<>();
 		for (Object dataservice : dataservices) {
-			if (!OcelotServices.class.isInstance(dataservice)) {
-				addStream(streams, getJsFilename(getClassnameFromProxy(dataservice)));
-			}
+			addStream(streams, getJsFilename(getClassnameFromProxy(dataservice)));
 		}
 		return streams;
 	}
