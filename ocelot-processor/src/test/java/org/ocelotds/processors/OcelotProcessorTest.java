@@ -160,7 +160,12 @@ public class OcelotProcessorTest {
 
 		when(roundEnv.processingOver()).thenReturn(Boolean.FALSE);
 		when(roundEnv.getElementsAnnotatedWith(eq(DataService.class))).thenReturn(elements);
+		
+		doNothing().when(instance).copyFileToDir(anyString(), anyString(), anyString());
+		doNothing().when(instance).copyFileToClassOutput(anyString());
+		doNothing().when(instance).copyFilesToFile(anyString(), anyString(), anyString());
 
+		
 		boolean result = instance.process(annotations, roundEnv);
 		assertThat(result).isTrue();
 		verify(instance, times(2)).processElement(any(Element.class));

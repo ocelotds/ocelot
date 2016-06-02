@@ -173,7 +173,7 @@ public class OcelotProcessor extends AbstractProcessor {
 		return true;
 	}
 
-	private void copyFilesToFile(String fwk, String dir, String target, String... filenames) {
+	void copyFilesToFile(String fwk, String dir, String target, String... filenames) {
 		try (Writer writer = getFileObjectWriter("org.ocelotds", target, dir+File.separatorChar)) {
 			for (String filename : filenames) {
 				messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " javascript copy js : "+filename+" to : "+dir);
@@ -184,7 +184,7 @@ public class OcelotProcessor extends AbstractProcessor {
 		}
 		
 	}
-	private void copyFileToDir(String fwk, String filename, String dir) {
+	void copyFileToDir(String fwk, String filename, String dir) {
 		messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " javascript copy js : "+filename+" to : "+dir);
 		try (Writer writer = getFileObjectWriter("org.ocelotds", filename, dir+File.separatorChar)) {
 			BodyWriter.write(writer, OcelotProcessor.class.getResourceAsStream("/js"+File.separatorChar+fwk+File.separatorChar+filename));
@@ -193,7 +193,7 @@ public class OcelotProcessor extends AbstractProcessor {
 		}
 	}
 
-	private void copyFileToClassOutput(String filename) {
+	void copyFileToClassOutput(String filename) {
 		messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " javascript copy js : "+filename+" to : class dir");
 		try (Writer writer = getResourceFileObjectWriter("", filename)) {
 			BodyWriter.write(writer, OcelotProcessor.class.getResourceAsStream("/js"+File.separatorChar+filename));
