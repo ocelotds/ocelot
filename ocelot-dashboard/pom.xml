@@ -82,7 +82,7 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<version>1.5.0</version>
 				<executions>
-					<!--execution>
+					<execution>
 						<id>install npm</id>
 						<phase>validate</phase>
 						<goals>
@@ -107,7 +107,7 @@
 								<argument>install</argument>
 							</arguments>
 						</configuration>
-					</execution-->
+					</execution>
 					<execution>
 						<id>Gulp</id>
 						<phase>prepare-package</phase>
@@ -116,9 +116,6 @@
 						</goals>
 						<configuration>
 							<executable>gulp</executable>
-							<arguments>
-								<argument>--dev=true</argument>
-							</arguments>
 						</configuration>
 					</execution>
 				</executions>
