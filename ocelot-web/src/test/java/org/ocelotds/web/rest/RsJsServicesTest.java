@@ -43,7 +43,7 @@ public class RsJsServicesTest {
 		doReturn("").when(instance).getClassnameFromProxy(anyObject());
 		doReturn("").when(instance).getJsFilename(anyString());
 		List<InputStream> result = instance.getStreams();
-		verify(instance, times(3)).addStream(any(List.class), anyString());
+		verify(instance, times(4)).addStream(any(List.class), anyString());
 		assertThat(result).isNotNull();
 	}
 
