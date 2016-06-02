@@ -6,6 +6,7 @@ package org.ocelotds.dashboard;
 import java.io.IOException;
 import java.net.URL;
 import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -13,9 +14,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.annotations.OcelotResource;
 import org.ocelotds.dashboard.security.DashboardSecureProvider;
 import org.ocelotds.security.OcelotSecured;
+import org.slf4j.Logger;
 
 /**
  *
@@ -29,6 +32,10 @@ public class RsDashboard {
 
 	@Context
 	private UriInfo context;
+	
+	@Inject
+	@OcelotLogger
+	Logger logger;
 
 	@GET
 	@Path("")
@@ -45,7 +52,12 @@ public class RsDashboard {
 	}
 
 	public Response getResponse(String path, MediaType type) throws IOException {
-		return Response.ok((Object) getResource("/" + path).openStream(), type).build();
+		try {
+			return Response.ok((Object) getResource("/" + path).openStream(), type).build();
+		} catch (NullPointerException e) {
+			logger.error("Request "+path+" but not present on server.");
+			return Response.noContent().build();
+		}
 	}
 
 	/**
