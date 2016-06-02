@@ -1,15 +1,14 @@
 (function () {
 	'use strict';
-	angular.module('app', [
+	angular.module('app.dashboard', [
 		'ui.codemirror',
 		'chart.js',
 		'ui.router',
-		'ngAnimate',
 		'ui.bootstrap',
 		'srv.module',
 		'spy.module',
 		'topic.module', 
-		'ocelotds'
+		'ocelot.ds'
 	]).config(config);
 
 	/* @ngInject */
@@ -38,7 +37,7 @@
 		ctrl.username = username;
 	}
 	/* @ngInject */
-	function initUsername($q) {
+	function initUsername($q, ocelotServices) {
 		var deferred = $q.defer();
 		ocelotServices.getUsername().then(function (username) {
 			deferred.resolve(username);

@@ -40,7 +40,6 @@ module.exports.vendorsCssFiles = [
 module.exports.vendorsJsFiles = [
    'jquery/dist/jquery.min.js',
    'angular/angular.js',
-   'angular-animate/angular-animate.min.js',
    'angular-bootstrap/ui-bootstrap.js',
    'bootstrap/dist/js/bootstrap.js',
    'codemirror/lib/codemirror.js',
@@ -48,12 +47,15 @@ module.exports.vendorsJsFiles = [
    'angular-ui-codemirror/ui-codemirror.js',
    'codemirror/mode/javascript/javascript.js',
 	'Chart.js/Chart.js',
+   'ocelotds/**/*.js',
    'angular-chart.js/dist/angular-chart.js'
 ];
 /**
  * Asset vendors files, can be a simple resource or structured object {"source":"", "target":""}
+ * Typiquely asset tah can't be concate with others, or library try to access dynamicly (map, fonts, images...)
  */
 module.exports.vendorsAssetFiles = [
-   {"source": 'fontawesome/fonts/*', "target":'fonts'}
+   {"source": 'fontawesome/fonts/*', "target":'fonts'},
+   {"source": 'bootstrap/dist/css/bootstrap.min.css.map', "target":'css'}
 ];
 

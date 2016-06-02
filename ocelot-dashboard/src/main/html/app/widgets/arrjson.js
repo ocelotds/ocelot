@@ -1,4 +1,4 @@
-angular.module('app').filter('arrjson', function () {
+angular.module('app.dashboard').filter('arrjson', function () {
 	return function (input) {
 		var result = [];
 		input.forEach(function (a, idx, arr) {

@@ -1,6 +1,6 @@
 (function () {
 	'use strict';
-	angular.module('app').directive('btnSwitch', btnSwitch);
+	angular.module('app.dashboard').directive('btnSwitch', btnSwitch);
 
 	function btnSwitch() {
 		var directive = {

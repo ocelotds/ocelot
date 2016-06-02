@@ -1,6 +1,6 @@
 (function () {
 	'use strict';
-	angular.module('app').directive('wsBadge', wsBadge);
+	angular.module('app.dashboard').directive('wsBadge', wsBadge);
 
 	function wsBadge() {
 		var directive = {
@@ -12,11 +12,11 @@
 		return directive;
 	}
 	/* @ngInject */
-	function WsBadgeCtrl($scope) {
+	function WsBadgeCtrl($scope, subscriberFactory) {
 		var vm = this;
 		vm.color = "#e05d44";
 		vm.status = "closed";
-		new Subscriber("ocelot-status").message(function (msg) {
+		subscriberFactory.createSubscriber("ocelot-status").message(function (msg) {
 			vm.color = "#97CA00";
 			vm.status = "opened";
 			if (msg !== "OPEN") {

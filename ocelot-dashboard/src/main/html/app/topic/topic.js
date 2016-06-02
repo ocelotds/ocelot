@@ -20,7 +20,7 @@
 		});
 	}
 	/* @ngInject */
-	function TopicCtrl($scope, topicServices, sessionsBytopic) {
+	function TopicCtrl($scope, topicServices, subscriberFactory, sessionsBytopic) {
 		var ctrl = this;
 		ctrl.topics = []; //Object.keys(sessionsBytopic);
 		ctrl.sessionsBytopic = {}; // sessionsBytopic; // {"topicname", [{"id":"sessionid","username":"principalname"}, {"id":"sessionid","username":"principalname"}]}
@@ -55,9 +55,8 @@
 			}
 		}
 		function activate() {
-			console.log("acivate topic view");
-			ctrl.subRemove = new Subscriber("session-topic-remove").message(remove);
-			ctrl.subAdd = new Subscriber("session-topic-add").message(add);
+			ctrl.subRemove = subscriberFactory.createSubscriber("session-topic-remove").message(remove);
+			ctrl.subAdd = subscriberFactory.createSubscriber("session-topic-add").message(add);
 		}
 		function refresh() {
 			topicServices.getSessionIdsByTopic().then(function (sessionsBytopic) {
@@ -90,7 +89,7 @@
 				ctrl.subscription = null;
 			} else {
 				ctrl.subscription = to;
-				ctrl.subscriber = new Subscriber(to).catch(function (fault) {
+				ctrl.subscriber = subscriberFactory.createSubscriber(to).catch(function (fault) {
 					ctrl.subscriber = null;
 					ctrl.subscription = null;
 					ctrl.messages = "// Subscription to " + ctrl.subscription + " failed\n" + JSON.stringify(fault, null, 3);

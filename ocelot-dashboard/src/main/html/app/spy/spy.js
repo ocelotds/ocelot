@@ -20,7 +20,7 @@
 		});
 	}
 	/* @ngInject */
-	function SpyCtrl($scope, sessionServices, sessions) {
+	function SpyCtrl($scope, sessionServices, subscriberFactory, sessions) {
 		var MSG = "// Enabled a client to monitor it !!!";
 		var ctrl = this;
 		ctrl.requestSubscriber = null;
@@ -60,10 +60,9 @@
 		}
 
 		function activate() {
-			console.log("acivate spy view");
-			ctrl.addSubscriber = new Subscriber("sessioninfo-add").message(add);
-			ctrl.removeSubscriber = new Subscriber("sessioninfo-remove").message(remove);
-			ctrl.updateSubscriber = new Subscriber("sessioninfo-update").message(update);
+			ctrl.addSubscriber = subscriberFactory.createSubscriber("sessioninfo-add").message(add);
+			ctrl.removeSubscriber = subscriberFactory.createSubscriber("sessioninfo-remove").message(remove);
+			ctrl.updateSubscriber = subscriberFactory.createSubscriber("sessioninfo-update").message(update);
 		}
 		function add(session) {
 			ctrl.sessions.push(session);
@@ -108,7 +107,7 @@
 				ctrl.monitored = null;
 			} else {
 				ctrl.monitored = id;
-				ctrl.requestSubscriber = new Subscriber("request-event-" + id).message(function (result) {
+				ctrl.requestSubscriber = subscriberFactory.createSubscriber("request-event-" + id).message(function (result) {
 					ctrl.requests.splice(0, 0, result);
 					$scope.$apply();
 				});

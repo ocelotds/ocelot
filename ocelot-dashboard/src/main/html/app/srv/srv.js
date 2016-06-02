@@ -26,7 +26,7 @@
 	function TestCtrl(services) {
 		var ctrl = this;
 		ctrl.services = services;
-		ctrl.service = services.length?services[0]:null;
+		ctrl.service = services&&services.length?services[0]:null;
 	}
 	/* @ngInject */
 	function initServices($q, serviceServices) {
