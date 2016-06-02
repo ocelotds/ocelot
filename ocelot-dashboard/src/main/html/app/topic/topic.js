@@ -22,8 +22,8 @@
 	/* @ngInject */
 	function TopicCtrl($scope, topicServices, subscriberFactory, sessionsBytopic) {
 		var ctrl = this;
-		ctrl.topics = []; //Object.keys(sessionsBytopic);
-		ctrl.sessionsBytopic = {}; // sessionsBytopic; // {"topicname", [{"id":"sessionid","username":"principalname"}, {"id":"sessionid","username":"principalname"}]}
+		ctrl.topics = Object.keys(sessionsBytopic).filter(filter);
+		ctrl.sessionsBytopic = sessionsBytopic; // {"topicname", [{"id":"sessionid","username":"principalname"}, {"id":"sessionid","username":"principalname"}]}
 		ctrl.topic = null; // topic selected
 		ctrl.subscription = null; // topic subscribed
 		ctrl.subscriber = null; // subscriber to ctrl.subscription
@@ -60,10 +60,14 @@
 		}
 		function refresh() {
 			topicServices.getSessionIdsByTopic().then(function (sessionsBytopic) {
-				ctrl.topics = Object.keys(sessionsBytopic);
+				ctrl.topics = Object.keys(sessionsBytopic).filter(filter);
 				ctrl.sessionsBytopic = sessionsBytopic; // {"topicname", [{"id":"sessionid","username":"principalname"}, {"id":"sessionid","username":"principalname"}]}
 				$scope.$apply();
 			});
+		}
+		function filter(elt) {
+			return elt !== "session-topic-add" && elt !== "session-topic-remove" && 
+					  elt !== "sessioninfo-update" && elt !== "sessioninfo-add" && elt !== "sessioninfo-remove";
 		}
 		function sendPayload(payload, topic, session) {
 			if (payload && topic) {
