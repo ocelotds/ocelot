@@ -147,9 +147,11 @@ public class TopicManagerImpl implements TopicManager {
 		boolean unregister = false;
 		if (sessions != null && !sessions.isEmpty()) {
 			Collection<Session> all = map.get(topic);
-			unregister = all.removeAll(sessions);
-			if (all.isEmpty()) {
-				map.remove(topic);
+			if(all != null) {
+				unregister = all.removeAll(sessions);
+				if (all.isEmpty()) {
+					map.remove(topic);
+				}
 			}
 		}
 		return unregister;
