@@ -10,13 +10,14 @@ package org.ocelotds.processors;
 public interface ProcessorConstants {
 
 	String FUNCTION = "function";
-	String SPACEOPTIONAL = ""; //" ";
+	String SPACEOPTIONAL = " "; //" ";
 	String SPACE = " "; //" ";
-	String TAB = ""; //"\t";
+	String TAB = "\t"; //"\t";
 	String TAB2 = TAB + TAB;
 	String QUOTE = "\"";
-	String CR = ""; //"\n";
+	String CR = "\n"; //"\n";
 	String TAB3 = TAB2 + TAB;
+	String TAB4 = TAB3 + TAB;
 	String OPENBRACE = "{";
 	String CLOSEBRACE = "}";
 	String PARENTHESIS = "()";
@@ -38,5 +39,10 @@ public interface ProcessorConstants {
 	String DATASERVICE_AT = "org.ocelotds.annotations.DataService";
 	String DIRECTORY = "jsdir";
 	String FRAMEWORK = "jsfwk";
-	String PROMISECREATORSCRIPT = "/js/main.js";
+	String JSPROMISECREATORSCRIPT = "/js/promisefactory.js";
+	String CORESCRIPT = "ocelot-core.js";
+	String COREMINSCRIPT = "ocelot-core-min.js";
+	String JSCORESCRIPT = "/js/ocelot-core.js";
+	String JSCOREMINSCRIPT = "/js/ocelot-core-min.js";
+	String JSOCELOTSERVICES = "/js/OcelotServices.js";
 }

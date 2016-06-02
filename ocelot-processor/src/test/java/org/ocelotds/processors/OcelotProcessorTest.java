@@ -47,7 +47,6 @@ public class OcelotProcessorTest {
 		Map<String, String> map = new HashMap<>();
 		map.put("jsdir", "/home/services");
 		when(processingEnv.getOptions()).thenReturn(map);
-		doReturn("").when(instance).getPromiseCreatorScript();
 		instance.init(processingEnv);
 		OcelotProcessor.setDone(false);
 	}
@@ -159,7 +158,6 @@ public class OcelotProcessorTest {
 		elements.add(mock(Element.class));
 		elements.add(mock(Element.class));
 
-		doReturn("").when(instance).getPromiseCreatorScript();
 		when(roundEnv.processingOver()).thenReturn(Boolean.FALSE);
 		when(roundEnv.getElementsAnnotatedWith(eq(DataService.class))).thenReturn(elements);
 

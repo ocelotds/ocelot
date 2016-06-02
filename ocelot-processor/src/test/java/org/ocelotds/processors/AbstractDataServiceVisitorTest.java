@@ -76,7 +76,7 @@ public class AbstractDataServiceVisitorTest {
 		when(environment.getFiler()).thenReturn(filer);
 		when(environment.getMessager()).thenReturn(messager);
 		when(environment.getTypeUtils()).thenReturn(typeUtils);
-		instance = spy(new DataServiceVisitorJsBuilder(environment, "", new NoFwk()));
+		instance = spy(new DataServiceVisitorJsBuilder(environment, new NoFwk()));
 	}
 
 	/**

@@ -5,7 +5,9 @@
 package org.ocelotds.frameworks;
 
 import java.io.Writer;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.mockito.ArgumentCaptor;
@@ -21,11 +23,14 @@ public abstract class AbstractFwkTest implements ProcessorConstants {
 
 	/**
 	 * Test of writeHeaderService method, of class AngularFwk.
+	 * @throws java.lang.Exception
 	 */
 	public void testWriteHeaderFooterService() throws Exception {
 		System.out.println("writeHeaderService");
 		Writer writer = mock(Writer.class);
 		when(writer.append(anyString())).thenReturn(writer);
+		Map<String, Object> params = new HashMap<>();
+		params.put("type", "factory");
 		getInstance().writeHeaderService(writer, "servicename");
 		getInstance().writeFooterService(writer);
 		ArgumentCaptor<String> appendCapture = ArgumentCaptor.forClass(String.class);

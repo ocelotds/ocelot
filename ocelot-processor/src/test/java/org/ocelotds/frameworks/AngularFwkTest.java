@@ -4,6 +4,7 @@
 
 package org.ocelotds.frameworks;
 
+import org.ocelotds.frameworks.angularjs.AngularFwk;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;

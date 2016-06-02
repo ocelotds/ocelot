@@ -8,12 +8,12 @@ import org.ocelotds.annotations.JsCacheResult;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.ElementFilter;
 import org.ocelotds.KeyMaker;
 import org.ocelotds.processors.stringDecorators.KeyForArgDecorator;
 import org.ocelotds.processors.stringDecorators.NothingDecorator;
@@ -30,18 +30,16 @@ import org.ocelotds.frameworks.FwkWriter;
 public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 
 	protected final KeyMaker keyMaker;
-	protected final String promiseCreatorScript;
 	protected final FwkWriter fwk;
 
 	/**
 	 *
 	 * @param environment
-	 * @param promiseCreatorScript
+	 * @param fwk
 	 */
-	public DataServiceVisitorJsBuilder(ProcessingEnvironment environment, String promiseCreatorScript, FwkWriter fwk) {
+	public DataServiceVisitorJsBuilder(ProcessingEnvironment environment, FwkWriter fwk) {
 		super(environment);
 		this.keyMaker = new KeyMaker();
-		this.promiseCreatorScript = promiseCreatorScript;
 		this.fwk = fwk;
 	}
 
@@ -50,9 +48,6 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 		String jsclsname = getJsClassname(typeElement);
 		String instanceName = getJsInstancename(jsclsname);
 		fwk.writeHeaderService(writer, instanceName);
-//		writer.append("var ").append(instanceName).append(SPACEOPTIONAL).append("=").append(SPACEOPTIONAL).append("(").append(FUNCTION).append(SPACEOPTIONAL).append("()").append(SPACEOPTIONAL).append("{").append(CR);
-//		writer.append(TAB).append("'use strict';").append(CR);
-		writer.append(TAB).append(promiseCreatorScript);
 		String classname = typeElement.getQualifiedName().toString();
 		writer.append(TAB).append("var _ds").append(SPACEOPTIONAL).append(EQUALS).append(SPACEOPTIONAL).append(QUOTE).append(classname).append(QUOTE).append(SEMICOLON).append(CR);
 		writer.append(TAB).append("return").append(SPACEOPTIONAL).append(OPENBRACE).append(CR);
@@ -60,7 +55,6 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 		writer.append(CR);
 		writer.append(TAB).append(CLOSEBRACE).append(SEMICOLON).append(CR);
 		fwk.writeFooterService(writer);
-//		writer.append(CR).append("})();").append(CR);
 	}
 
 	/**
@@ -150,7 +144,7 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 */
 	void createReturnOcelotPromiseFactory(String classname, String methodName, String paramNames, String args, String keys, Writer writer) throws IOException {
 		String md5 = keyMaker.getMd5(classname + DOT + methodName);
-		writer.append(TAB3).append("return _create").append(OPENPARENTHESIS).append("_ds").append(COMMA).append(SPACEOPTIONAL)
+		writer.append(TAB3).append("return promiseFactory.create").append(OPENPARENTHESIS).append("_ds").append(COMMA).append(SPACEOPTIONAL)
 				  .append(QUOTE).append(md5).append(UNDERSCORE).append(QUOTE).append(SPACEOPTIONAL).append(PLUS)
 				  .append(SPACEOPTIONAL).append("JSON.stringify").append(OPENPARENTHESIS).append(OPENBRACKET).append(keys)
 				  .append(CLOSEBRACKET).append(CLOSEPARENTHESIS).append(".md5").append(OPENPARENTHESIS).append(CLOSEPARENTHESIS)

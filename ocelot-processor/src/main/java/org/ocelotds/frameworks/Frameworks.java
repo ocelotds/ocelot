@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.frameworks;
 
+import org.ocelotds.frameworks.angularjs.AngularFwk;
+
 /**
  *
  * @author hhfrancois
