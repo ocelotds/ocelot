@@ -71,7 +71,7 @@
 					</compilerArguments-->
 					<!-- WORK FINE with 3.5.1-->
 					<!--compilerArgs>
-						<arg>-Ajsdir=/home/hhfrancois/NetBeansProjects/ocelot/ocelot-dashboard/src/main/html/app/services</arg>
+						<arg>-Ajsdir=/home/travis/build/ocelotds/ocelot/ocelot-dashboard/src/main/html/app/services</arg>
 					</compilerArgs-->
 					<!-- WORK FINE with 3.5.1-->
 					<!--compilerArgument>-Ajsdir=/home/hhfrancois/NetBeansProjects/ocelot/ocelot-dashboard/src/main/html/app/services</compilerArgument-->
