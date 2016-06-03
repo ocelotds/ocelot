@@ -56,7 +56,7 @@
 						</goals>
 						<configuration>
 							<compilerArgs>
-								<arg>-Ajsdir=/home/hhfrancois/NetBeansProjects/ocelot/ocelot-dashboard/bower_components/ocelotds</arg>
+								<arg>-Ajsdir=/home/travis/build/ocelotds/ocelot/ocelot-dashboard/bower_components/ocelotds</arg>
 								<arg>-Ajsfwk=ANGULARJS</arg>
 							</compilerArgs>
 						</configuration>
