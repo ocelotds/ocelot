@@ -5,8 +5,8 @@ package org.ocelotds.objects;
 
 import java.security.Principal;
 import javax.websocket.server.HandshakeRequest;
-import org.ocelotds.Constants;
 import org.ocelotds.security.UserContext;
+import org.ocelotds.web.PrincipalTools;
 
 /**
  *
@@ -14,27 +14,20 @@ import org.ocelotds.security.UserContext;
  */
 public class WsUserContext implements UserContext {
 
-	private final Principal ANONYMOUS = new Principal() {
-		@Override
-		public String getName() {
-			return Constants.ANONYMOUS;
-		}
-	};
-
-	Principal principal;
+	Principal principal = null;
 	HandshakeRequest handshakeRequest;
+	PrincipalTools principalTools;
 
 	public WsUserContext(HandshakeRequest handshakeRequest) {
 		this.handshakeRequest = handshakeRequest;
-		if (null != handshakeRequest) {
-			this.principal = handshakeRequest.getUserPrincipal();
-		} else {
-			this.principal = ANONYMOUS;
-		}
+		this.principalTools = new PrincipalTools();
 	}
 
 	@Override
 	public Principal getPrincipal() {
+		if (null == principal) {
+			principal = principalTools.getPrincipal(handshakeRequest);
+		}
 		return principal;
 	}
 
@@ -45,5 +38,4 @@ public class WsUserContext implements UserContext {
 		}
 		return false;
 	}
-
 }
