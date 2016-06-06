@@ -1,7 +1,7 @@
 <div class="row">       
 	<div class="col-sm-4 col-md-3 sidebar">
 		<ul class="nav nav-sidebar">
-			<li ng-repeat="session in ctrl.sessions">
+			<li ng-repeat="session in ctrl.sessions" class="{{session.open?'':'disabled'}}">
 				<a>
 					<b>{{session| sessioninfo}}</b>
 					<span class="pull-right">
@@ -35,8 +35,7 @@
 				<div class="list-group">
 					
 					<button type="button" ng-click="ctrl.selectRequest(request)" 
-							  ng-if="(request.mfc.ds.search(ctrl.filterInput) !== -1 || request.mfc.op.search(ctrl.filterInput) !== -1) && (ctrl.showOnlyWarning ? (request.mtc.type === 'FAULT' || request.t > ctrl.triggerDelay) : true)"
-							  ng-repeat="request in ctrl.requests" 
+							  ng-repeat="request in ctrl.requests | filterrequest:ctrl.filterInput:ctrl.triggerDelay:ctrl.showOnlyWarning" 
 							  class="list-group-item {{(request.mtc.type==='FAULT')?'list-group-item-danger':(request.t&gt;ctrl.triggerDelay)?'list-group-item-warning':''}}">
 						<span class="badge">{{request.t}} ms</span>
 						{{request.mfc.ds| instance}}.{{request.mfc.op}}({{ request.mfc.args | arrjson }})

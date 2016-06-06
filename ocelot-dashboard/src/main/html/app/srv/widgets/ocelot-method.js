@@ -14,7 +14,7 @@
 		};
 	});
 	/* @ngInject */
-	function OcelotMethodCtrl($scope) {
+	function OcelotMethodCtrl($scope, $injector) {
 		var vm = this;
 		vm.srvname = $scope.srvname;
 		vm.method = $scope.method;
@@ -59,7 +59,13 @@
 			vm.chart.data = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
 		}
 		function send() {
-			var methodcall = vm.srvname + "." + vm.method.name + "(";
+			var srv;
+			try {
+				srv = $injector.get(vm.srvname);
+			} catch(e) {
+				srv = eval(vm.srvname);
+			}
+			var methodcall = "srv." + vm.method.name + "(";
 			vm.args.forEach(function (arg, idx, array) {
 				methodcall += arg;
 				methodcall += (idx < array.length - 1) ? ", " : "";

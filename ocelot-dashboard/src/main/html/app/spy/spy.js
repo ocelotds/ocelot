@@ -41,10 +41,7 @@
 		$scope.$on('$destroy', desactivate);
 
 		function desactivate(){
-			if(ctrl.requestSubscriber) {
-				ctrl.requestSubscriber.unsubscribe();
-				ctrl.requestSubscriber = null;
-			}
+			unmonitor();
 			if(ctrl.addSubscriber) {
 				ctrl.addSubscriber.unsubscribe();
 				ctrl.addSubscriber = null;
@@ -64,12 +61,23 @@
 			ctrl.removeSubscriber = subscriberFactory.createSubscriber("sessioninfo-remove").message(remove);
 			ctrl.updateSubscriber = subscriberFactory.createSubscriber("sessioninfo-update").message(update);
 		}
+
+		function unmonitor() {
+			ctrl.monitored = null;
+			if(ctrl.requestSubscriber) {
+				ctrl.requestSubscriber.unsubscribe();
+				ctrl.requestSubscriber = null;
+			}
+		}
 		function add(session) {
 			ctrl.sessions.push(session);
 			$scope.$apply();
 		}
 		function update(session) {
 			ctrl.sessions.every(function (s, idx, arr) {
+				if(session.id === ctrl.monitored) {
+					unmonitor();
+				}
 				if (s.id === session.id) {
 					arr.splice(idx, 1, session);
 					$scope.$apply();
@@ -96,8 +104,9 @@
 			ctrl.requests = [];
 			if (ctrl.monitored) {
 				if (ctrl.requestSubscriber) {
+					var m = ctrl.monitored;
 					ctrl.requestSubscriber.unsubscribe().event(function (event) {
-						sessionServices.unmonitorSession(ctrl.monitored);
+						sessionServices.unmonitorSession(m);
 					});
 				}
 			}

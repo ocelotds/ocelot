@@ -31,7 +31,7 @@
 	/* @ngInject */
 	function initServices($q, serviceServices) {
 		var deferred = $q.defer();
-		serviceServices.getServices().then(function (services) {
+		serviceServices.getServices(null).then(function (services) {
 			deferred.resolve(services);
 		});
 		return deferred.promise;
