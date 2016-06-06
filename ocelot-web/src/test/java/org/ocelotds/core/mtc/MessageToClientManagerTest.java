@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.enterprise.inject.Instance;
+import javax.servlet.http.HttpSession;
 import javax.validation.ConstraintViolationException;
 import javax.websocket.Session;
 import org.junit.Test;
@@ -197,6 +198,7 @@ public class MessageToClientManagerTest {
 		doReturn(obj).when(instance).getDataService(any(Session.class), any(Class.class));
 		doReturn(Arrays.asList("v")).when(instance).getArrayList();
 		when(methodServices.getMethodFromDataService(any(Class.class), any(MessageFromClient.class), anyList())).thenReturn(method);
+		doNothing().when(instance).injectSession(any(Class[].class), anyList(), anyObject());
 		when(methodServices.getNonProxiedMethod(any(Class.class), anyString(), any(Class[].class))).thenReturn(method);
 		
 		MessageToClient result = instance.createMessageToClient(message, session);
@@ -228,6 +230,7 @@ public class MessageToClientManagerTest {
 		doReturn(obj).when(instance).getDataService(any(Session.class), any(Class.class));
 		doReturn(Arrays.asList("v")).when(instance).getArrayList();
 		when(methodServices.getMethodFromDataService(any(Class.class), any(MessageFromClient.class), anyList())).thenReturn(method);
+		doNothing().when(instance).injectSession(any(Class[].class), anyList(), anyObject());
 		when(methodServices.getNonProxiedMethod(any(Class.class), anyString(), any(Class[].class))).thenThrow(NoSuchMethodException.class);
 		
 		MessageToClient result = instance.createMessageToClient(message, session);
@@ -263,6 +266,7 @@ public class MessageToClientManagerTest {
 		doReturn(obj).when(instance).getDataService(any(Session.class), any(Class.class));
 		doReturn(Arrays.asList("v")).when(instance).getArrayList();
 		when(methodServices.getMethodFromDataService(any(Class.class), any(MessageFromClient.class), anyList())).thenReturn(method);
+		doNothing().when(instance).injectSession(any(Class[].class), anyList(), anyObject());
 		when(methodServices.getNonProxiedMethod(any(Class.class), anyString(), any(Class[].class))).thenReturn(method);
 		when(argumentServices
 				  .getJsonResultFromSpecificMarshaller(any(JsonMarshaller.class), any(Object.class)))
@@ -299,6 +303,7 @@ public class MessageToClientManagerTest {
 		doReturn(obj).when(instance).getDataService(any(Session.class), any(Class.class));
 		doReturn(Arrays.asList("v")).when(instance).getArrayList();
 		when(methodServices.getMethodFromDataService(any(Class.class), any(MessageFromClient.class), anyList())).thenReturn(method);
+		doNothing().when(instance).injectSession(any(Class[].class), anyList(), anyObject());
 		when(faultServices.buildFault(any(Throwable.class))).thenReturn(fault);
 		
 		MessageToClient result = instance.createMessageToClient(message, session);
@@ -352,11 +357,70 @@ public class MessageToClientManagerTest {
 		doReturn(obj).when(instance).getDataService(any(Session.class), any(Class.class));
 		doReturn(Arrays.asList("v")).when(instance).getArrayList();
 		when(methodServices.getMethodFromDataService(any(Class.class), any(MessageFromClient.class), anyList())).thenReturn(method);
+		doNothing().when(instance).injectSession(any(Class[].class), anyList(), anyObject());
 		when(faultServices.buildFault(any(Throwable.class))).thenReturn(fault);
 		when(constraintServices.extractViolations(any(ConstraintViolationException.class), any(List.class))).thenReturn(null);
 		
 		MessageToClient result = instance.createMessageToClient(message, session);
 		verify(constraintServices).extractViolations(any(ConstraintViolationException.class), any(List.class));
+	}
+	
+	/**
+	 * Test of injectSession method, of class.
+	 */
+	@Test
+	public void injectSessionTest() {
+		System.out.println("injectSession");
+		Class<?>[] parameterTypes0 = new Class<?>[] {};
+		Class<?>[] parameterTypes1 = new Class<?>[] {String.class};
+		Class<?>[] parameterTypes2 = new Class<?>[] {String.class, Session.class};
+		Class<?>[] parameterTypes3 = new Class<?>[] {HttpSession.class, String.class};
+		List<Object> arguments = Arrays.asList(null, null); 
+		Object session = mock(Session.class);
+		HttpSession httpSession = mock(HttpSession.class);
+		instance.injectSession(null, arguments, null);
+		assertThat(arguments.get(0)).isNull();
+		assertThat(arguments.get(1)).isNull();
+		arguments = Arrays.asList(null, null); 
+
+		instance.injectSession(parameterTypes0, arguments, session);
+		assertThat(arguments.get(0)).isNull();
+		assertThat(arguments.get(1)).isNull();
+		arguments = Arrays.asList(null, null); 
+		
+		instance.injectSession(parameterTypes0, arguments, httpSession);
+		assertThat(arguments.get(0)).isNull();
+		assertThat(arguments.get(1)).isNull();
+		arguments = Arrays.asList(null, null); 
+
+		instance.injectSession(parameterTypes1, arguments, session);
+		assertThat(arguments.get(0)).isNull();
+		assertThat(arguments.get(1)).isNull();
+		arguments = Arrays.asList(null, null); 
+		
+		instance.injectSession(parameterTypes1, arguments, httpSession);
+		assertThat(arguments.get(0)).isNull();
+		assertThat(arguments.get(1)).isNull();
+		arguments = Arrays.asList(null, null); 
+
+		instance.injectSession(parameterTypes2, arguments, session);
+		assertThat(arguments.get(0)).isNull();
+		assertThat(arguments.get(1)).isEqualTo(session);
+		arguments = Arrays.asList(null, null); 
+
+		instance.injectSession(parameterTypes2, arguments, httpSession);
+		assertThat(arguments.get(0)).isNull();
+		assertThat(arguments.get(1)).isNull();
+		arguments = Arrays.asList(null, null); 
+
+		instance.injectSession(parameterTypes3, arguments, session);
+		assertThat(arguments.get(0)).isNull();
+		assertThat(arguments.get(1)).isNull();
+		arguments = Arrays.asList(null, null); 
+
+		instance.injectSession(parameterTypes3, arguments, httpSession);
+		assertThat(arguments.get(0)).isEqualTo(httpSession);
+		assertThat(arguments.get(1)).isNull();
 	}
 
 	/**

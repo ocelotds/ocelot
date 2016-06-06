@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.web.PrincipalTools;
 
 /**
  *
@@ -19,34 +20,24 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class WsUserContextTest {
 
-	@Mock
-	Principal principal;
-	
-
 	/**
 	 * Test of getPrincipal method, of class WsUserContext.
 	 */
 	@Test
 	public void testGetPrincipal() {
 		System.out.println("getPrincipal");
+		Principal principal = mock(Principal.class);
+		PrincipalTools principalTools = mock(PrincipalTools.class);
 		HandshakeRequest handshakeRequest = mock(HandshakeRequest.class);
-		when(handshakeRequest.getUserPrincipal()).thenReturn(principal);
+		when(principalTools.getPrincipal(eq(handshakeRequest))).thenReturn(principal);
+
 		WsUserContext instance = new WsUserContext(handshakeRequest);
+		instance.principalTools = principalTools;
+
 		Principal result = instance.getPrincipal();
+
 		assertThat(result).isNotNull();
 		assertThat(result).isEqualTo(principal);
-	}
-
-	/**
-	 * Test of getPrincipal method, of class WsUserContext.
-	 */
-	@Test
-	public void testGetAnonymous() {
-		System.out.println("getPrincipal");
-		WsUserContext instance = new WsUserContext(null);
-		Principal result = instance.getPrincipal();
-		assertThat(result).isNotNull();
-		assertThat(result.getName()).isEqualTo("ANONYMOUS");
 	}
 
 	/**

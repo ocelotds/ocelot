@@ -63,7 +63,7 @@ public class AbstractRsJsTest {
 		System.out.println("getJsFilename");
 		String classname = "";
 		String expResult = "";
-		String result = instance.getJsFilename(classname);
+		String result = instance.getJsFilename(classname, "ng");
 		assertThat(result);
 	}
 

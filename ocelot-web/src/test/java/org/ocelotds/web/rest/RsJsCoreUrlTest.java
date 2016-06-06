@@ -4,15 +4,10 @@
 
 package org.ocelotds.web.rest;
 
-import java.io.InputStream;
-import java.util.List;
 import org.junit.Test;
-import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -21,21 +16,21 @@ import org.mockito.runners.MockitoJUnitRunner;
  * @author hhfrancois
  */
 @RunWith(MockitoJUnitRunner.class)
-public class RsJsPromiseTest {
+public class RsJsCoreUrlTest {
 
 	@InjectMocks
 	@Spy
-	RsJsPromise instance;
+	RsJsCoreUrl instance;
 
 	/**
-	 * Test of getStreams method, of class RsJsPromise.
+	 * Test of getJs method, of class RsJsCoreUrl.
 	 */
 	@Test
-	public void testGetStreams() {
-		System.out.println("getStreams");
-		doNothing().when(instance).addStream(anyList(), anyString());
-		List<InputStream> result = instance.getStreams();
-		assertThat(result).isNotNull();
-		verify(instance).addStream(anyList(), eq("/promiseFactory.js"));
+	public void testGetJs() {
+		System.out.println("getJs");
+		String expResult = "// ok";
+		String result = instance.getJs();
+		assertThat(result).isEqualTo(expResult);
 	}
+
 }

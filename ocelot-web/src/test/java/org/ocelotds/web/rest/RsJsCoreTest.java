@@ -36,7 +36,7 @@ public class RsJsCoreTest {
 	@Test
 	public void testGetStreams() {
 		System.out.println("getStreams");
-		doReturn("").when(instance).getJsFilename(anyString());
+		doReturn("").when(instance).getJsFilename(anyString(), anyString());
 		doReturn("").when(instance).getJsCore();
 		List<InputStream> result = instance.getStreams();
 		verify(instance).addStream(any(List.class), anyString());
@@ -51,9 +51,9 @@ public class RsJsCoreTest {
 		System.out.println("getJsCore");
 		when(context.getPath()).thenReturn("core.js").thenReturn("core.min.js");
 		String result = instance.getJsCore();
-		assertThat(result).isEqualTo(Constants.SLASH + Constants.OCELOT_CORE + Constants.JS);
+		assertThat(result).isEqualTo(Constants.SLASH + Constants.CORE + Constants.JS);
 		result = instance.getJsCore();
-		assertThat(result).isEqualTo(Constants.SLASH + Constants.OCELOT_CORE_MIN + Constants.JS);
+		assertThat(result).isEqualTo(Constants.SLASH + Constants.CORE_MIN + Constants.JS);
 	}
 
 }

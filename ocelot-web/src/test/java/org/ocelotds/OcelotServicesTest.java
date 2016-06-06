@@ -26,7 +26,6 @@ import org.ocelotds.topic.TopicManager;
 import org.ocelotds.core.UpdatedCacheManager;
 import org.slf4j.Logger;
 import org.ocelotds.objects.Options;
-import org.ocelotds.topic.SessionManager;
 
 /**
  *
@@ -47,12 +46,6 @@ public class OcelotServicesTest {
 	@Mock
 	private OcelotContext ocelotContext;
 
-	@Mock
-	private SessionManager sessionManager;
-
-	@Mock
-	private HttpSession httpSession;
-
 	@InjectMocks
 	@Spy
 	private OcelotServices instance;
@@ -64,7 +57,8 @@ public class OcelotServicesTest {
 	public void test_getInitCore() {
 		System.out.println("initCore");
 		Options options = mock(Options.class);
-		instance.initCore(options);
+		HttpSession httpSession = mock(HttpSession.class);
+		instance.initCore(options, httpSession);
 		verify(httpSession).setAttribute(eq(Constants.Options.OPTIONS), eq(options));
 	}
 
@@ -140,8 +134,7 @@ public class OcelotServicesTest {
 	@Test
 	public void testSubscribe_String() throws IllegalAccessException {
 		System.out.println("subscribe");
-		when(sessionManager.getSessionById(anyString())).thenReturn(mock(Session.class));
-		instance.subscribe("TOPIC");
+		instance.subscribe("TOPIC", null);
 		verify(topicManager).registerTopicSession(eq("TOPIC"), any(Session.class));
 	}
 
@@ -151,8 +144,7 @@ public class OcelotServicesTest {
 	@Test
 	public void testUnsubscribe_String() {
 		System.out.println("unsubscribe");
-		when(sessionManager.getSessionById(anyString())).thenReturn(mock(Session.class));
-		instance.unsubscribe("TOPIC");
+		instance.unsubscribe("TOPIC", null);
 		verify(topicManager).unregisterTopicSession(eq("TOPIC"), any(Session.class));
 	}
 
@@ -164,7 +156,7 @@ public class OcelotServicesTest {
 	public void testSubscribe_Session_String() throws IllegalAccessException {
 		System.out.println("subscribe");
 		when(topicManager.registerTopicSession(anyString(), any(Session.class))).thenReturn(1);
-		Integer result = instance.subscribe("TOPIC");
+		Integer result = instance.subscribe("TOPIC", null);
 		assertThat(result).isEqualTo(1);
 	}
 
@@ -175,7 +167,7 @@ public class OcelotServicesTest {
 	public void testUnsubscribe_Session_String() {
 		System.out.println("unsubscribe");
 		when(topicManager.unregisterTopicSession(anyString(), any(Session.class))).thenReturn(0);
-		Integer result = instance.unsubscribe("TOPIC");
+		Integer result = instance.unsubscribe("TOPIC", null);
 		assertThat(result).isEqualTo(0);
 	}
 

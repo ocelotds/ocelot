@@ -22,6 +22,7 @@ import org.ocelotds.Constants;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import org.ocelotds.topic.topicAccess.TopicAccessManager;
+import org.ocelotds.web.PrincipalTools;
 import org.slf4j.Logger;
 
 /**

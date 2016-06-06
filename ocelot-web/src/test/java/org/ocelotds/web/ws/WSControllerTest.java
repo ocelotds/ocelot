@@ -1,20 +1,24 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.web;
+package org.ocelotds.web.ws;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 import javax.websocket.server.HandshakeRequest;
+import javax.ws.rs.core.HttpHeaders;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
@@ -25,25 +29,27 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
+import org.ocelotds.configuration.LocaleExtractor;
+import org.ocelotds.context.ThreadLocalContextHolder;
 import org.ocelotds.core.CdiBeanResolver;
 import org.ocelotds.core.ws.CallServiceManager;
+import org.ocelotds.exceptions.LocaleNotFoundException;
 import org.ocelotds.topic.UserContextFactory;
 import org.ocelotds.topic.TopicManager;
 import org.ocelotds.messaging.MessageFromClient;
-import org.ocelotds.topic.SessionManager;
-import org.ocelotds.topic.SessionManagerImpl;
 import org.ocelotds.topic.TopicManagerImpl;
+import org.slf4j.Logger;
 
 /**
  *
  * @author hhfrancois
  */
 @RunWith(MockitoJUnitRunner.class)
-public class WSEndpointTest {
+public class WSControllerTest {
 
 	@InjectMocks
 	@Spy
-	private WSEndpoint instance;
+	private WSController instance;
 	
 	@Mock
 	private TopicManager topicManager;
@@ -55,7 +61,10 @@ public class WSEndpointTest {
 	private UserContextFactory userContextFactory;
 	
 	@Mock
-	private SessionManager sessionManager;
+	private Logger logger;
+
+	@Mock
+	private LocaleExtractor localeExtractor;
 
 	/**
 	 * Test of handleOpenConnexion method, of class WSEndpoint.
@@ -66,23 +75,17 @@ public class WSEndpointTest {
 	public void testHandleOpenConnexionFromBrowser() throws IOException {
 		System.out.println("handleOpenConnexion");
 		HandshakeRequest request = mock(HandshakeRequest.class);
-		HttpSession httpSession = mock(HttpSession.class);
 		EndpointConfig config = mock(EndpointConfig.class);
 		Map<String, Object> map = new HashMap<>();
 		map.put(Constants.HANDSHAKEREQUEST, request);
 		Session session = mock(Session.class);
 
 		when(config.getUserProperties()).thenReturn(map);
-		when(request.getHttpSession()).thenReturn(httpSession);
-		when(httpSession.getId()).thenReturn("HTTPSESSIONID");
 		when(session.getId()).thenReturn("WSSESSIONID");
-		doReturn(sessionManager).when(instance).getSessionManager();
-		doReturn(userContextFactory).when(instance).getUserContextFactory();
-
+		doNothing().when(instance).setContext(eq(request));
 
 		instance.handleOpenConnexion(session, config);
 
-		verify(sessionManager).addSession(anyString(), any(Session.class));
 		verify(userContextFactory).createUserContext(any(HandshakeRequest.class), eq("WSSESSIONID"));
 	}
 
@@ -135,12 +138,11 @@ public class WSEndpointTest {
 				  Constants.Message.OPERATION, "methodName",
 				  Constants.Message.ARGUMENTNAMES, Arrays.toString(parameterNames),
 				  Constants.Message.ARGUMENTS, Arrays.toString(parameters));
-		doReturn(callServiceManager).when(instance).getCallServiceManager();
 		instance.receiveCommandMessage(client, json);
 
 		ArgumentCaptor<MessageFromClient> captureMsg = ArgumentCaptor.forClass(MessageFromClient.class);
 		ArgumentCaptor<Session> captureSession = ArgumentCaptor.forClass(Session.class);
-		verify(callServiceManager, times(1)).sendMessageToClient(captureMsg.capture(), captureSession.capture());
+		verify(callServiceManager).sendMessageToClient(captureMsg.capture(), captureSession.capture());
 
 		MessageFromClient result = captureMsg.getValue();
 		assertThat(result.getId()).isEqualTo("111");
@@ -150,50 +152,95 @@ public class WSEndpointTest {
 		assertThat(result.getParameters()).containsExactly("\"toto\"", "5", "true");
 	}
 	
-	public <T> void testGetCDI(Class<T> res, T inst, Method m) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		System.out.println("getSessionManager");
-		WSEndpoint oe = spy(new WSEndpoint());
-		CdiBeanResolver resolver = mock(CdiBeanResolver.class);
-		when(resolver.getBean(eq(res))).thenReturn(inst);
-		doReturn(resolver).when(oe).getCdiBeanResolver();
-
-		Object result = m.invoke(oe);
-
-		assertThat(result).isInstanceOf(res);
-	}
-
-	@Test
-	public void testGetSessionManager() throws Exception {
-		System.out.println("getSessionManager");
-		Method m = WSEndpoint.class.getDeclaredMethod("getSessionManager");
-		testGetCDI(SessionManager.class, new SessionManagerImpl(), m);
-	}
-
-	@Test
-	public void testGetTopicManager() throws Exception {
-		System.out.println("getTopicManager");
-		Method m = WSEndpoint.class.getDeclaredMethod("getTopicManager");
-		testGetCDI(TopicManager.class, new TopicManagerImpl(), m);
-	}
+//	public <T> void testGetCDI(Class<T> res, T inst, Method m) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+//		WSEndpoint oe = spy(new WSEndpoint());
+//		CdiBeanResolver resolver = mock(CdiBeanResolver.class);
+//		when(resolver.getBean(eq(res))).thenReturn(inst);
+//		doReturn(resolver).when(oe).getCdiBeanResolver();
+//
+//		Object result = m.invoke(oe);
+//
+//		assertThat(result).isInstanceOf(res);
+//	}
+//
+//	@Test
+//	public void testGetTopicManager() throws Exception {
+//		System.out.println("getTopicManager");
+//		Method m = WSEndpoint.class.getDeclaredMethod("getTopicManager");
+//		testGetCDI(TopicManager.class, new TopicManagerImpl(), m);
+//	}
+//	
+//	@Test
+//	public void testGetUserContextFactory() throws Exception {
+//		System.out.println("getUserContextFactory");
+//		Method m = WSEndpoint.class.getDeclaredMethod("getUserContextFactory");
+//		testGetCDI(UserContextFactory.class, new UserContextFactory(), m);
+//	}
+//
+//	@Test
+//	public void testGetCallServiceManager() throws Exception {
+//		System.out.println("getCallServiceManager");
+//		Method m = WSEndpoint.class.getDeclaredMethod("getCallServiceManager");
+//		testGetCDI(CallServiceManager.class, new CallServiceManager(), m);
+//	}
 	
+//	@Test
+//	public void testGetCDIBeanResolver() {
+//		System.out.println("getCDIBeanResolver");
+//		CdiBeanResolver cdiBeanResolver = instance.getCdiBeanResolver();
+//		assertThat(cdiBeanResolver).isInstanceOf(CdiBeanResolver.class);
+//	}
+
+	/**
+	 * Test of setContext method, of class.
+	 */
 	@Test
-	public void testGetUserContextFactory() throws Exception {
-		System.out.println("getUserContextFactory");
-		Method m = WSEndpoint.class.getDeclaredMethod("getUserContextFactory");
-		testGetCDI(UserContextFactory.class, new UserContextFactory(), m);
+	public void setContextTest() {
+		System.out.println("setContext");
+		ThreadLocalContextHolder.cleanupThread();
+		HandshakeRequest request = mock(HandshakeRequest.class);
+		HttpSession httpSession = mock(HttpSession.class);
+		when(request.getHttpSession()).thenReturn(httpSession);
+		when(httpSession.getAttribute(eq(Constants.LOCALE))).thenReturn(null).thenReturn(Locale.CHINA);
+		doReturn(Locale.CANADA).when(instance).getLocale(eq(request));
+		instance.setContext(request);
+		Object result = ThreadLocalContextHolder.get(Constants.HTTPSESSION);
+		verify(httpSession).setAttribute(eq(Constants.LOCALE), eq(Locale.CANADA));
+		assertThat(result).isEqualTo(httpSession);
 	}
 
+	/**
+	 * Test of getLocale method, of class RSEndpoint.
+	 * @throws org.ocelotds.exceptions.LocaleNotFoundException
+	 */
 	@Test
-	public void testGetCallServiceManager() throws Exception {
-		System.out.println("getCallServiceManager");
-		Method m = WSEndpoint.class.getDeclaredMethod("getCallServiceManager");
-		testGetCDI(CallServiceManager.class, new CallServiceManager(), m);
+	public void testGetLocaleNotFound() throws LocaleNotFoundException {
+		Locale result = instance.getLocale(null);
+		assertThat(result).isEqualTo(Locale.US);
+		
+		HandshakeRequest request = mock(HandshakeRequest.class);
+		when(request.getHeaders()).thenReturn(null);
+		result = instance.getLocale(request);
+		assertThat(result).isEqualTo(Locale.US);
+
+		Map<String, List<String>> headers = new HashMap<>();
+		when(request.getHeaders()).thenReturn(headers);
+		assertThat(result).isEqualTo(Locale.US);
 	}
-	
+	/**
+	 * Test of getLocale method, of class RSEndpoint.
+	 * @throws org.ocelotds.exceptions.LocaleNotFoundException
+	 */
 	@Test
-	public void testGetCDIBeanResolver() {
-		System.out.println("getCDIBeanResolver");
-		CdiBeanResolver cdiBeanResolver = instance.getCdiBeanResolver();
-		assertThat(cdiBeanResolver).isInstanceOf(CdiBeanResolver.class);
+	public void testGetLocale() throws LocaleNotFoundException {
+		System.out.println("getLocale");
+		HandshakeRequest request = mock(HandshakeRequest.class);
+		Map<String, List<String>> headers = new HashMap<>();
+		when(request.getHeaders()).thenReturn(headers);
+		when(localeExtractor.extractFromAccept(any(String.class))).thenThrow(LocaleNotFoundException.class).thenReturn(Locale.FRANCE).thenReturn(Locale.CHINA);
+		headers.put(HttpHeaders.ACCEPT_LANGUAGE, Arrays.asList(null, "acceptFrance", "acceptChina"));
+
+		Locale result = instance.getLocale(request);
+		assertThat(result).isEqualTo(Locale.FRANCE);
 	}
 }

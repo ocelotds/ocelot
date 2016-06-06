@@ -6,11 +6,13 @@ package org.ocelotds.web.rest;
 import java.io.InputStream;
 import java.util.List;
 import javax.enterprise.inject.Instance;
+import javax.ws.rs.core.UriInfo;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.OcelotServices;
@@ -30,6 +32,8 @@ public class RsJsServicesTest {
 	@Spy
 	Instance<Object> dataservices = new FakeCDI();
 
+	@Mock
+	UriInfo context;
 	/**
 	 * Test of getStreams method, of class RsJsServices.
 	 */
@@ -40,10 +44,11 @@ public class RsJsServicesTest {
 		((FakeCDI) dataservices).add("service2");
 		((FakeCDI) dataservices).add(new OcelotServices());
 		((FakeCDI) dataservices).add("service4");
+		when(context.getPath()).thenReturn("");
 		doReturn("").when(instance).getClassnameFromProxy(anyObject());
-		doReturn("").when(instance).getJsFilename(anyString());
+		doReturn("").when(instance).getJsFilename(anyString(), anyString());
 		List<InputStream> result = instance.getStreams();
-		verify(instance, times(4)).addStream(any(List.class), anyString());
+		verify(instance, times(3)).addStream(any(List.class), anyString());
 		assertThat(result).isNotNull();
 	}
 
