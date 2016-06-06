@@ -22,12 +22,8 @@ public class RsJsPromise extends AbstractRsJs {
 	@Override
 	List<InputStream> getStreams() {
 		List<InputStream> streams = new ArrayList<>();
-		addStream(streams, getJsPromise());
+		addStream(streams, "/promiseFactory.js");
 		return streams;
-	}
-	
-	String getJsPromise() {
-		return "/promiseFactory.js";
 	}
 }
 
