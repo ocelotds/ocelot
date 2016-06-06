@@ -11,11 +11,12 @@ import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 import org.ocelotds.annotations.OcelotLogger;
+import org.ocelotds.dashboard.services.HttpSessionManager;
 import org.ocelotds.dashboard.services.MonitorSessionManager;
 import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
-import org.ocelotds.web.rest.IEndpoint;
 import org.slf4j.Logger;
+import org.ocelotds.web.rest.IRSEndpoint;
 
 /**
  *
@@ -23,7 +24,7 @@ import org.slf4j.Logger;
  */
 @Decorator
 @Priority(1)
-public abstract class IEndpointMonitor implements IEndpoint {
+public abstract class IRSEndpointMonitor implements IRSEndpoint {
 
 	@Inject
 	@OcelotLogger
@@ -32,25 +33,17 @@ public abstract class IEndpointMonitor implements IEndpoint {
 	@Inject
 	@Delegate
 	@Any
-	IEndpoint iEndpoint;
+	IRSEndpoint iRSEndpoint;
 
 	@Inject
 	MonitorSessionManager monitorSessionManager;
+	
+	@Inject
+	HttpSessionManager httpSessionManager;
 
 	@Inject
 	@MessageEvent
 	Event<MessageToClient> wsEvent;
-
-	/**
-	 * determine if request is monitored
-	 *
-	 * @param session
-	 * @return
-	 */
-	boolean isMonitored(HttpSession session) {
-		boolean monitor = true;
-		return monitor;
-	}
 
 	/**
 	 * Decorate method
@@ -60,14 +53,15 @@ public abstract class IEndpointMonitor implements IEndpoint {
 	 */
 	@Override
 	public String getMessageToClient(String mfc) {
-		HttpSession httpSession = iEndpoint.getHttpSession();
+		HttpSession httpSession = iRSEndpoint.getHttpSession();
+		httpSessionManager.addHttpSession(httpSession);
 		String httpid = httpSession.getId();
 		boolean monitored = monitorSessionManager.isMonitored(httpid);
 		long t0 = 0;
 		if(monitored) {
 			t0 = System.currentTimeMillis();
 		}
-		String mtc = iEndpoint.getMessageToClient(mfc);
+		String mtc = iRSEndpoint.getMessageToClient(mfc);
 		if(monitored) {
 			long t1 = System.currentTimeMillis();
 			publish("request-event-"+httpid, mfc, mtc, t1 - t0);
