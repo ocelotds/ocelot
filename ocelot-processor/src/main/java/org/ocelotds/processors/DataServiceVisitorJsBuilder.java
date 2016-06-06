@@ -8,13 +8,14 @@ import org.ocelotds.annotations.JsCacheResult;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
+import javax.tools.Diagnostic;
 import org.ocelotds.KeyMaker;
+import org.ocelotds.annotations.WsDataService;
 import org.ocelotds.processors.stringDecorators.KeyForArgDecorator;
 import org.ocelotds.processors.stringDecorators.NothingDecorator;
 import org.ocelotds.processors.stringDecorators.QuoteDecorator;
@@ -99,12 +100,22 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 */
 	void createMethodBody(String classname, ExecutableElement methodElement, List<String> arguments, Writer writer) throws IOException {
 		String methodName = getMethodName(methodElement);
+		boolean ws = isWebsocketDataService(methodElement);
 		String args = stringJoinAndDecorate(arguments, COMMA, new NothingDecorator());
 		String paramNames = stringJoinAndDecorate(arguments, COMMA, new QuoteDecorator());
-		String keys = computeKeys(methodElement, arguments);
-		createReturnOcelotPromiseFactory(classname, methodName, paramNames, args, keys, writer);
+//		String keys = computeKeys(methodElement, arguments);
+		createReturnOcelotPromiseFactory(classname, methodName, ws, paramNames, args, writer);
 	}
 	
+	/**
+	 * Return if method have to called by websocket
+	 * @param methodElement
+	 * @return 
+	 */
+	boolean isWebsocketDataService(ExecutableElement methodElement) {
+		return methodElement.getAnnotation(WsDataService.class) != null;
+	}
+
 	/**
 	 * Return method name from Excecutable element
 	 * @param methodElement
@@ -138,17 +149,14 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 * @param methodName
 	 * @param paramNames
 	 * @param args
-	 * @param keys
 	 * @param writer
 	 * @throws IOException 
 	 */
-	void createReturnOcelotPromiseFactory(String classname, String methodName, String paramNames, String args, String keys, Writer writer) throws IOException {
+	void createReturnOcelotPromiseFactory(String classname, String methodName, boolean ws, String paramNames, String args, Writer writer) throws IOException {
 		String md5 = keyMaker.getMd5(classname + DOT + methodName);
 		writer.append(TAB3).append("return promiseFactory.create").append(OPENPARENTHESIS).append("_ds").append(COMMA).append(SPACEOPTIONAL)
-				  .append(QUOTE).append(md5).append(UNDERSCORE).append(QUOTE).append(SPACEOPTIONAL).append(PLUS)
-				  .append(SPACEOPTIONAL).append("JSON.stringify").append(OPENPARENTHESIS).append(OPENBRACKET).append(keys)
-				  .append(CLOSEBRACKET).append(CLOSEPARENTHESIS).append(".md5").append(OPENPARENTHESIS).append(CLOSEPARENTHESIS)
-				  .append(COMMA).append(SPACEOPTIONAL).append(QUOTE).append(methodName).append(QUOTE).append(COMMA)
+				  .append(QUOTE).append(md5).append(QUOTE).append(COMMA).append(SPACEOPTIONAL)
+				  .append(QUOTE).append(methodName).append(QUOTE).append(COMMA).append(SPACEOPTIONAL).append(""+ws).append(COMMA)
 				  .append(SPACEOPTIONAL).append(OPENBRACKET).append(paramNames).append(CLOSEBRACKET).append(COMMA)
 				  .append(SPACEOPTIONAL).append(OPENBRACKET).append(args).append(CLOSEBRACKET).append(CLOSEPARENTHESIS)
 				  .append(SEMICOLON).append(CR);

@@ -19,7 +19,7 @@ public class ModuleWriter implements ProcessorConstants, AngularConstants {
 	 * @param writer
 	 * @throws IOException
 	 */
-	public static void writeModule(Writer writer) throws IOException {
+	public void writeModule(Writer writer) throws IOException {
 		writer.append(TAB).append("try").append(SPACEOPTIONAL).append(OPENBRACE).append(CR); // \ttry {\n
 		writer.append(TAB2).append(ANGULAR_MODULE).append(OPENPARENTHESIS).append(MODULENAME).append(CLOSEPARENTHESIS)
 				  .append(SEMICOLON).append(CR); // \tangular.module('ocelot.ds');\n
@@ -39,7 +39,7 @@ public class ModuleWriter implements ProcessorConstants, AngularConstants {
 	 * @param name
 	 * @throws IOException 
 	 */
-	public static void writeAddition(Writer writer, String type, String name) throws IOException {
+	public void writeAddition(Writer writer, String type, String name) throws IOException {
 		writer.append(TAB).append(ANGULAR_MODULE).append(OPENPARENTHESIS).append(MODULENAME).append(CLOSEPARENTHESIS)
 				  .append(DOT).append(type).append(OPENPARENTHESIS);
 		if(name!=null) {

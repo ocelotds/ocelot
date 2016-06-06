@@ -1,4 +1,4 @@
-var promiseFactory = (function () {
+var subscriberFactory = (function () {
 	'use strict';
 	return {
 		createSubscriber:function(topic) {

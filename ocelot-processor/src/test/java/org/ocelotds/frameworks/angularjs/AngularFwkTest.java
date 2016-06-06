@@ -2,14 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package org.ocelotds.frameworks;
+package org.ocelotds.frameworks.angularjs;
 
-import org.ocelotds.frameworks.angularjs.AngularFwk;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.frameworks.AbstractFwkTest;
+import org.ocelotds.frameworks.FwkWriter;
 
 /**
  *
@@ -23,7 +24,7 @@ public class AngularFwkTest extends AbstractFwkTest  {
 	AngularFwk instance;
 
 	@Override
-	FwkWriter getInstance() {
+	public FwkWriter getInstance() {
 		return instance;
 	}
 

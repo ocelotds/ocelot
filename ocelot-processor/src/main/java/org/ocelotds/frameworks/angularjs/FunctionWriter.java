@@ -6,21 +6,6 @@ package org.ocelotds.frameworks.angularjs;
 import java.io.IOException;
 import java.io.Writer;
 import org.ocelotds.processors.ProcessorConstants;
-import static org.ocelotds.processors.ProcessorConstants.CLOSEBRACE;
-import static org.ocelotds.processors.ProcessorConstants.CLOSEBRACKET;
-import static org.ocelotds.processors.ProcessorConstants.CLOSEPARENTHESIS;
-import static org.ocelotds.processors.ProcessorConstants.COMMA;
-import static org.ocelotds.processors.ProcessorConstants.CR;
-import static org.ocelotds.processors.ProcessorConstants.DOT;
-import static org.ocelotds.processors.ProcessorConstants.EQUALS;
-import static org.ocelotds.processors.ProcessorConstants.FUNCTION;
-import static org.ocelotds.processors.ProcessorConstants.OPENBRACE;
-import static org.ocelotds.processors.ProcessorConstants.OPENBRACKET;
-import static org.ocelotds.processors.ProcessorConstants.OPENPARENTHESIS;
-import static org.ocelotds.processors.ProcessorConstants.SEMICOLON;
-import static org.ocelotds.processors.ProcessorConstants.SPACE;
-import static org.ocelotds.processors.ProcessorConstants.SPACEOPTIONAL;
-import static org.ocelotds.processors.ProcessorConstants.TAB;
 
 /**
  *
@@ -35,7 +20,7 @@ public class FunctionWriter implements ProcessorConstants, AngularConstants {
 	 * @param dependencies
 	 * @throws IOException
 	 */
-	public static void writeInjectDependenciesOnObject(Writer writer, String object, String... dependencies) throws IOException {
+	public void writeInjectDependenciesOnObject(Writer writer, String object, String... dependencies) throws IOException {
 		if (dependencies != null && dependencies.length > 0) {
 			writer.append(TAB).append(object).append(DOT).append("$inject").append(SPACEOPTIONAL).append(EQUALS).append(SPACEOPTIONAL).append(OPENBRACKET);
 			writeDependencies(writer, "'", dependencies);
@@ -51,7 +36,7 @@ public class FunctionWriter implements ProcessorConstants, AngularConstants {
 	 * @param dependencies
 	 * @throws IOException
 	 */
-	static void writeDependencies(Writer writer, String deco, String... dependencies) throws IOException {
+	void writeDependencies(Writer writer, String deco, String... dependencies) throws IOException {
 		boolean first = true;
 		for (String dependency : dependencies) {
 			if (!first) {
@@ -70,7 +55,7 @@ public class FunctionWriter implements ProcessorConstants, AngularConstants {
 	 * @param dependencies
 	 * @throws IOException
 	 */
-	public static void writeOpenFunctionWithDependencies(Writer writer, String object, String... dependencies) throws IOException {
+	public void writeOpenFunctionWithDependencies(Writer writer, String object, String... dependencies) throws IOException {
 		writer.append(TAB).append("/* @ngInject */").append(CR);
 		writer.append(TAB).append(FUNCTION).append(SPACE).append(object).append(OPENPARENTHESIS);
 		writeDependencies(writer, "", dependencies);
@@ -83,7 +68,7 @@ public class FunctionWriter implements ProcessorConstants, AngularConstants {
 	 * @param writer
 	 * @throws IOException 
 	 */
-	public static void writeCloseFunction(Writer writer) throws IOException {
+	public void writeCloseFunction(Writer writer) throws IOException {
 		writer.append(TAB).append(CLOSEBRACE).append(CR);
 	}
 	

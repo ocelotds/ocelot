@@ -15,18 +15,45 @@ import org.ocelotds.processors.ProcessorConstants;
  */
 public class AngularFwk implements FwkWriter, ProcessorConstants {
 	
+	ClosureWriter closureWriter = null;
+	FunctionWriter functionWriter = null;
+	ModuleWriter moduleWriter = null;
+	
 	@Override
 	public void writeHeaderService(Writer writer, String servicename) throws IOException {
-		ClosureWriter.writeOpen(writer);
-		ModuleWriter.writeModule(writer);
-		ModuleWriter.writeAddition(writer, FACTORY, servicename);
-		FunctionWriter.writeInjectDependenciesOnObject(writer, FACTORY, "promiseFactory");
-		FunctionWriter.writeOpenFunctionWithDependencies(writer, FACTORY, "promiseFactory");
+		getClosureWriter().writeOpen(writer);
+		getModuleWriter().writeModule(writer);
+		getModuleWriter().writeAddition(writer, FACTORY, servicename);
+		getFunctionWriter().writeInjectDependenciesOnObject(writer, FACTORY, "promiseFactory");
+		getFunctionWriter().writeOpenFunctionWithDependencies(writer, FACTORY, "promiseFactory");
 	}
 
 	@Override
 	public void writeFooterService(Writer writer) throws IOException {
-		FunctionWriter.writeCloseFunction(writer);
-		ClosureWriter.writeClose(writer);
+		functionWriter.writeCloseFunction(writer);
+		getClosureWriter().writeClose(writer);
 	}
+
+	public ClosureWriter getClosureWriter() {
+		if(closureWriter==null) {
+			closureWriter = new ClosureWriter();
+		}
+		return closureWriter;
+	}
+
+	public FunctionWriter getFunctionWriter() {
+		if(functionWriter==null) {
+			functionWriter = new FunctionWriter();
+		}
+		return functionWriter;
+	}
+
+	public ModuleWriter getModuleWriter() {
+		if(moduleWriter==null) {
+			moduleWriter = new ModuleWriter();
+		}
+		return moduleWriter;
+	}
+
+ 
 }

@@ -17,19 +17,17 @@ import org.ocelotds.processors.ProcessorConstants;
 public class BodyWriter implements ProcessorConstants, AngularConstants {
 	
 	
-	 public static void write(Writer writer, InputStream body) throws IOException {
+	 public void write(Writer writer, InputStream body) throws IOException {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(body))) {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				writer.write(line);
 				writer.write("\n");
 			}
-		} catch (NullPointerException | IOException ex) {
-			ex.printStackTrace();
 		}
 	}
 	
-	public static InputStream getInputStream(String resource) {
+	public InputStream getInputStream(String resource) {
 		return BodyWriter.class.getResourceAsStream(resource);
 	}
 	

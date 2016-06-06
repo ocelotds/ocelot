@@ -8,9 +8,6 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.*;
-import org.mockito.ArgumentCaptor;
 import org.ocelotds.processors.ProcessorConstants;
 
 /**
@@ -19,7 +16,7 @@ import org.ocelotds.processors.ProcessorConstants;
  */
 public abstract class AbstractFwkTest implements ProcessorConstants {
 
-	abstract FwkWriter getInstance();
+	public abstract FwkWriter getInstance();
 
 	/**
 	 * Test of writeHeaderService method, of class AngularFwk.
@@ -27,36 +24,11 @@ public abstract class AbstractFwkTest implements ProcessorConstants {
 	 */
 	public void testWriteHeaderFooterService() throws Exception {
 		System.out.println("writeHeaderService");
-		Writer writer = mock(Writer.class);
-		when(writer.append(anyString())).thenReturn(writer);
+		Writer writer = WriterTest.getMockWriter();
 		Map<String, Object> params = new HashMap<>();
 		params.put("type", "factory");
 		getInstance().writeHeaderService(writer, "servicename");
 		getInstance().writeFooterService(writer);
-		ArgumentCaptor<String> appendCapture = ArgumentCaptor.forClass(String.class);
-		verify(writer, atLeastOnce()).append(appendCapture.capture());
-		List<String> allValues = appendCapture.getAllValues();
-		int countOpenBrace = 0;
-		int countCloseBrace = 0;
-		int countOpenParenthesis = 0;
-		int countCloseParenthesis = 0;
-		for (String value : allValues) {
-			switch (value) {
-				case OPENBRACE:
-					countOpenBrace++;
-					break;
-				case CLOSEBRACE:
-					countCloseBrace++;
-					break;
-				case OPENPARENTHESIS:
-					countOpenParenthesis++;
-					break;
-				case CLOSEPARENTHESIS:
-					countCloseParenthesis++;
-					break;
-			}
-		}
-		assertThat(countOpenBrace).isEqualTo(countCloseBrace);
-		assertThat(countOpenParenthesis).isEqualTo(countCloseParenthesis);
+		List<String> allValues = WriterTest.testBraces(writer);
 	}
 }

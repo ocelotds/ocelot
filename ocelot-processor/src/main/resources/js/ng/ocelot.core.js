@@ -1,4 +1,4 @@
-(function() {
+(function () {
 	'use strict';
 	try {
 		angular.module("ocelot.ds");
@@ -6,9 +6,9 @@
 		angular.module("ocelot.ds", []);
 	}
 	angular.module("ocelot.ds").config(config);
-	config.$inject = ['ocelotServicesProvider'];
+	config.$inject = ['ocelotServicesProvider', 'subscriberFactoryProvider'];
 	/* @ngInject */
-	function config(ocelotServicesProvider) {
+	function config(ocelotServicesProvider, subscriberFactoryProvider) {
 		function connect() {
 			if (opts.debug)
 				console.debug("Ocelotds initialization...");
@@ -21,7 +21,7 @@
 			}
 			extractOptions(document.location.search);
 			// init a standard httpsession and init websocket
-			return ocelotServicesProvider.$get().initCore(opts).then(function () {
+			return ocelotServicesProvider.$get().initCore(opts, null).then(function () {
 				ws = new WebSocket("ws" + path + "ocelot-endpoint");
 				ws.onmessage = onwsmessage;
 				ws.onopen = onwsopen;
@@ -41,7 +41,7 @@
 			// init a standard httpsession and init websocket
 			connect().then(function () {
 				// Controller subscribe to ocelot-cleancache topic
-				ocelotServicesProvider.$get().subscribe(CLEANCACHE).message(function (id) {
+				subscriberFactoryProvider.$get().createSubscriber(CLEANCACHE).message(function (id) {
 					if (id === ALL) {
 						_cacheManager.clearCache();
 					} else {
@@ -58,6 +58,9 @@
 				// send states or current objects in cache with lastupdate
 				ocelotServicesProvider.$get().getOutDatedCache(_cacheManager.getLastUpdateCache()).then(function (entries) {
 					_cacheManager.removeEntries(entries);
+				});
+				subscriberFactoryProvider.$get().createSubscriber(ALERT).message(function (message) {
+					alert(message);
 				});
 			});
 		}
@@ -78,7 +81,7 @@
 		};
 	}
 	var opts = {"monitor": false, "debug": false}, MSG = "MESSAGE", CONSTRAINT = "CONSTRAINT", RES = "RESULT";
-	var FAULT = "FAULT", ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove", CLEANCACHE = "ocelot-cleancache";
+	var FAULT = "FAULT", ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove", CLEANCACHE = "ocelot-cleancache", ALERT = "ocelot-alert";
 	var STATUS = "ocelot-status", OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe";
 	var uid = 0, stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], closetimer, promises = {}, path, ws = null;
 	var _cacheManager = (function () {
@@ -380,20 +383,28 @@
 		var msgToClient, mfc, xhttp;
 		if (!addPromiseToId(promise, promise.id)) {
 			mfc = JSON.stringify(promise.json);
-			xhttp = new XMLHttpRequest();
-			xhttp.onreadystatechange = function () {
-				if (xhttp.readyState === 4) {
-					if (xhttp.status === 200) {
-						msgToClient = JSON.parse(xhttp.responseText);
-						receiveMtc(msgToClient);
-					} else {
-						receiveMtc({"id": promise.id, "type": FAULT, "response": {"classname": "XMLHttpRequest", "message": "XMLHttpRequest request failed : code = " + xhttp.status, "stacktrace": []}, "t": 0});
-					}
+			if (promise.ws) {
+				if (ws.readyState === 1) {
+					ws.send(mfc);
+				} else {
+					promise.response = createFaultEventFromPromise(promise, {"response": {"classname": "Websocket", "message": "Websocket is not ready : status = " + status, "stacktrace": []}, "t": 0});
 				}
-			};
-			xhttp.open("POST", "http" + path + "ocelot/endpoint", true);
-			xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-			xhttp.send("mfc=" + mfc);
+			} else {
+				xhttp = new XMLHttpRequest();
+				xhttp.onreadystatechange = function () {
+					if (xhttp.readyState === 4) {
+						if (xhttp.status === 200) {
+							msgToClient = JSON.parse(xhttp.responseText);
+							receiveMtc(msgToClient);
+						} else {
+							receiveMtc({"id": promise.id, "type": FAULT, "response": {"classname": "XMLHttpRequest", "message": "XMLHttpRequest request failed : code = " + xhttp.status, "stacktrace": []}, "t": 0});
+						}
+					}
+				};
+				xhttp.open("POST", "http" + path + "ocelot/endpoint", true);
+				xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+				xhttp.send("mfc=" + mfc);
+			}
 		}
 	}
 	function receiveMtc(msgToClient) {

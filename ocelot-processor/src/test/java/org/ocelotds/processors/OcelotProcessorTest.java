@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -25,12 +26,13 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import static org.mockito.Mockito.*;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.FileWriterServices;
 import org.ocelotds.annotations.DataService;
-import org.ocelotds.frameworks.Frameworks;
 import org.slf4j.Logger;
 
 /**
@@ -47,7 +49,11 @@ public class OcelotProcessorTest {
 		Map<String, String> map = new HashMap<>();
 		map.put("jsdir", "/home/services");
 		when(processingEnv.getOptions()).thenReturn(map);
+		doNothing().when(instance).initVisitors(null);
 		instance.init(processingEnv);
+		instance.visitorfwk = visitorfwk;
+		instance.visitorNofwk = visitorNofwk;
+		instance.fws = fws;
 		OcelotProcessor.setDone(false);
 	}
 
@@ -67,11 +73,34 @@ public class OcelotProcessorTest {
 	@Mock
 	private Messager messager;
 
+	@Mock
+	ElementVisitor visitorfwk;
+
+	@Mock
+	ElementVisitor visitorNofwk;
+
+	@Mock
+	FileWriterServices fws;
+
+	/**
+	 * Test of initVisitors method, of class.
+	 */
+	@Test
+	public void initVisitorsTest() {
+		System.out.println("initVisitors");
+		doCallRealMethod().when(instance).initVisitors(null);
+		instance.initVisitors(null);
+		assertThat(instance.visitorfwk).isEqualTo(instance.visitorNofwk);
+		instance.initVisitors("bad");
+		assertThat(instance.visitorfwk).isEqualTo(instance.visitorNofwk);
+		instance.initVisitors("ng");
+		assertThat(instance.visitorfwk).isNotEqualTo(instance.visitorNofwk);
+	}
 	/**
 	 * Test of getJsDirectory method, of class.
 	 */
 	@Test
-	public void test_getJsDirectory() {
+	public void getJsDirectoryTest() {
 		System.out.println("getJsDirectory");
 		Map<String, String> map = new HashMap<>();
 		Object result = instance.getJsDirectory(map);
@@ -91,30 +120,27 @@ public class OcelotProcessorTest {
 	 * Test of getJsFramework method, of class.
 	 */
 	@Test
-	public void test_getJsFramework() {
-		System.out.println("getJsDirectory");
+	public void getJsFrameworkTest() {
+		System.out.println("getJsFramework");
 		Map<String, String> map = new HashMap<>();
-		map.put(ProcessorConstants.FRAMEWORK, "ANGULARJS");
-		Frameworks result = instance.getJsFramework(map);
-		assertThat(result).isEqualTo(Frameworks.ANGULARJS);
-
-		map.put(ProcessorConstants.FRAMEWORK, "BAD");
+		Object result = instance.getJsFramework(map);
+		assertThat(result).isNull();
+		String fwk = "ng";
+		map.put(ProcessorConstants.FRAMEWORK, fwk);
 		result = instance.getJsFramework(map);
-		assertThat(result).isEqualTo(Frameworks.NOFWK);
-
+		assertThat(result).isEqualTo(fwk);
 		map.put(ProcessorConstants.FRAMEWORK, null);
 		result = instance.getJsFramework(map);
-		assertThat(result).isEqualTo(Frameworks.NOFWK);
-
+		assertThat(result).isNull();
 		result = instance.getJsFramework(null);
-		assertThat(result).isEqualTo(Frameworks.NOFWK);
+		assertThat(result).isNull();
 	}
 
 	/**
 	 * Test of isDone method, of class OcelotProcessor.
 	 */
 	@Test
-	public void testIsDone() {
+	public void isDoneTest() {
 		System.out.println("isDone");
 		boolean expResult = Boolean.FALSE;
 		boolean result = OcelotProcessor.isDone();
@@ -129,18 +155,20 @@ public class OcelotProcessorTest {
 	 * Test of process method, of class OcelotProcessor.
 	 */
 	@Test
-	public void testProcessIsDone() {
+	public void processIsDoneTest() {
 		System.out.println("processingOver is true/false");
 		Set<? extends TypeElement> annotations = mock(Set.class);
 		RoundEnvironment roundEnv = mock(RoundEnvironment.class);
-		when(roundEnv.processingOver()).thenReturn(Boolean.TRUE);
+		when(roundEnv.processingOver()).thenReturn(Boolean.TRUE).thenReturn(Boolean.FALSE).thenReturn(Boolean.TRUE);
 		OcelotProcessor.setDone(Boolean.FALSE);
 		boolean result = instance.process(annotations, roundEnv);
-		assertThat(result).isTrue();
-		when(roundEnv.processingOver()).thenReturn(Boolean.FALSE);
+		assertThat(result).isTrue(); // true | false
 		OcelotProcessor.setDone(Boolean.TRUE);
 		result = instance.process(annotations, roundEnv);
-		assertThat(result).isTrue();
+		assertThat(result).isTrue(); // false | true
+		OcelotProcessor.setDone(Boolean.TRUE);
+		result = instance.process(annotations, roundEnv);
+		assertThat(result).isTrue();// true | true
 	}
 
 	/**
@@ -149,7 +177,7 @@ public class OcelotProcessorTest {
 	 * @throws java.io.IOException
 	 */
 	@Test
-	public void testProcess() throws IOException {
+	public void processTest() throws IOException {
 		System.out.println("process");
 		OcelotProcessor.setDone(Boolean.FALSE);
 		RoundEnvironment roundEnv = mock(RoundEnvironment.class);
@@ -159,12 +187,9 @@ public class OcelotProcessorTest {
 		elements.add(mock(Element.class));
 
 		when(roundEnv.processingOver()).thenReturn(Boolean.FALSE);
+		doNothing().when(instance).writeCoreInClassesOutput();
+		doNothing().when(instance).writeCoreInDirectory(anyString(), anyString());
 		when(roundEnv.getElementsAnnotatedWith(eq(DataService.class))).thenReturn(elements);
-		
-		doNothing().when(instance).copyFileToDir(anyString(), anyString(), anyString());
-		doNothing().when(instance).copyFileToClassOutput(anyString());
-		doNothing().when(instance).copyFilesToFile(anyString(), anyString(), anyString());
-
 		
 		boolean result = instance.process(annotations, roundEnv);
 		assertThat(result).isTrue();
@@ -175,27 +200,46 @@ public class OcelotProcessorTest {
 	 * Test of processElement method, of class.
 	 */
 	@Test
-	public void test_processElement() {
+	public void processElementTest() {
 		System.out.println("processElement");
-		doNothing().when(instance).processTypeElement(any(TypeElement.class));
+		doNothing().when(instance).writeGeneratedJsInDiferentTargets(any(TypeElement.class));
 		instance.processElement(mock(Element.class));
 		instance.processElement(mock(TypeElement.class));
-		verify(instance).processTypeElement(any(TypeElement.class));
+		verify(instance).writeGeneratedJsInDiferentTargets(any(TypeElement.class));
 	}
 
 	/**
-	 * Test of processTypeElement method, of class.
+	 * Test of writeGeneratedJsInDiferentTargets method, of class.
 	 */
 	@Test
-	public void test_processTypeElement() {
-		System.out.println("processTypeElement");
-		doReturn("").when(instance).getPackagePath(any(TypeElement.class));
-		doReturn("").when(instance).getFilename(any(TypeElement.class));
-		doNothing().when(instance).writeJsFileToJsDir(any(TypeElement.class), any(ElementVisitor.class), anyString(), anyString(), anyString());
-		doNothing().when(instance).writeJsFile(any(TypeElement.class), any(ElementVisitor.class), anyString(), anyString());
-		instance.processTypeElement(mock(TypeElement.class));
-		verify(instance).writeJsFileToJsDir(any(TypeElement.class), any(ElementVisitor.class), anyString(), anyString(), anyString());
-		verify(instance).writeJsFile(any(TypeElement.class), any(ElementVisitor.class), anyString(), anyString());
+	public void writeGeneratedJsInDiferentTargetsTestNoFwk() {
+		System.out.println("writeGeneratedJsInDiferentTargets");
+		TypeElement typeElement = mock(TypeElement.class);
+		doReturn("packagePath").when(instance).getPackagePath(eq(typeElement));
+		doReturn("filename.js").when(instance).getFilename(eq(typeElement), eq((String) null));
+		instance.jsfwk = null;
+		instance.writeGeneratedJsInDiferentTargets(typeElement);
+		verify(instance).writeJsFileToJsDir(eq(typeElement), eq(visitorfwk), eq("packagePath"), eq("filename.js"), anyString());
+		verify(instance).writeJsFile(eq(typeElement), eq(visitorNofwk), eq("packagePath"), eq("filename.js"));
+		verify(instance, times(2)).getFilename(eq(typeElement), eq((String) null));
+	}
+	
+	/**
+	 * Test of writeGeneratedJsInDiferentTargets method, of class.
+	 */
+	@Test
+	public void writeGeneratedJsInDiferentTargetsTestFwk() {
+		System.out.println("writeGeneratedJsInDiferentTargets");
+		TypeElement typeElement = mock(TypeElement.class);
+		doReturn("packagePath").when(instance).getPackagePath(eq(typeElement));
+		doReturn("filename.ng.js").when(instance).getFilename(eq(typeElement), eq("ng"));
+		doReturn("filename.js").when(instance).getFilename(eq(typeElement), eq((String) null));
+		instance.jsfwk = "ng";
+		instance.writeGeneratedJsInDiferentTargets(typeElement);
+		verify(instance).writeJsFileToJsDir(eq(typeElement), eq(visitorfwk), eq("packagePath"), eq("filename.ng.js"), anyString());
+		verify(instance).writeJsFile(eq(typeElement), eq(visitorfwk), eq("packagePath"), eq("filename.ng.js"));
+		verify(instance).writeJsFile(eq(typeElement), eq(visitorNofwk), eq("packagePath"), eq("filename.js"));
+		verify(instance, times(3)).getFilename(eq(typeElement), anyString());
 	}
 
 	/**
@@ -207,11 +251,12 @@ public class OcelotProcessorTest {
 	public void test_writeJsFile() throws IOException {
 		System.out.println("writeJsFile");
 		TypeElement element = mock(TypeElement.class);
-		doThrow(IOException.class).doReturn(mock(Writer.class)).when(instance).getResourceFileObjectWriter(anyString(), anyString());
-		instance.writeJsFile(element, mock(ElementVisitor.class), "", "");
-		instance.writeJsFile(element, mock(ElementVisitor.class), "", "");
-		instance.writeJsFile(element, mock(ElementVisitor.class), "", "");
-		verify(element, times(2)).accept(any(ElementVisitor.class), any(Writer.class));
+		ElementVisitor visitor = mock(ElementVisitor.class);
+		Writer writer = mock(Writer.class);
+		when(fws.getFileObjectWriterInClassOutput(eq("packagePath"), eq("fn"))).thenReturn(writer).thenThrow(IOException.class);
+		instance.writeJsFile(element, visitor, "packagePath", "fn");
+		instance.writeJsFile(element, visitor, "packagePath", "fn");
+		verify(element).accept(eq(visitor), eq(writer));
 	}
 
 	/**
@@ -223,11 +268,12 @@ public class OcelotProcessorTest {
 	public void test_writeJsFileToJsDir() throws IOException {
 		System.out.println("writeJsFileToJsDir");
 		TypeElement element = mock(TypeElement.class);
-		doThrow(IOException.class).doReturn(mock(Writer.class)).when(instance).getFileObjectWriter(anyString(), anyString(), anyString());
-		instance.writeJsFileToJsDir(element, mock(ElementVisitor.class), "", "", "");
-		instance.writeJsFileToJsDir(element, mock(ElementVisitor.class), "", "", "");
-		instance.writeJsFileToJsDir(element, mock(ElementVisitor.class), "", "", null);
-		verify(element).accept(any(ElementVisitor.class), any(Writer.class));
+		ElementVisitor visitor = mock(ElementVisitor.class);
+		Writer writer = mock(Writer.class);
+		when(fws.getFileObjectWriter(eq("dir/srvs"), eq("packagePath.fn"))).thenReturn(writer).thenThrow(IOException.class);
+		instance.writeJsFileToJsDir(element, visitor, "packagePath", "fn", "dir");
+		instance.writeJsFileToJsDir(element, visitor, "packagePath", "fn", "dir");
+		verify(element).accept(eq(visitor), eq(writer));
 	}
 
 	/**
@@ -256,67 +302,59 @@ public class OcelotProcessorTest {
 		System.out.println("getFilename");
 		TypeElement element = mock(TypeElement.class);
 		Name name = mock(Name.class);
-
 		when(name.toString()).thenReturn("Test");
 		when(element.getSimpleName()).thenReturn(name);
 
-		String result = instance.getFilename(element);
+		String result = instance.getFilename(element, null);
 		assertThat(result).isNotNull();
 		assertThat(result).isEqualTo("Test.js");
+
+		result = instance.getFilename(element, "ng");
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo("Test.ng.js");
+	}
+	
+	/**
+	 * Test of writeCoreInDirectory method, of class.
+	 */
+	@Test
+	public void writeCoreInDirectoryTestDoNothing() {
+		System.out.println("writeCoreInDirectory");
+		instance.writeCoreInDirectory(null, "ng");
+		instance.writeCoreInDirectory(null, null);
+		verify(fws, never()).copyFileToDir(anyString(), anyString(), anyString());
 	}
 
 	/**
-	 * Test of getSourceFileObjectWriter method, of class.
+	 * Test of writeCoreInDirectory method, of class.
 	 */
 	@Test
-	public void test_getSourceFileObjectWriter() throws IOException {
-		System.out.println("getSourceFileObjectWriter");
-		Writer writer = mock(Writer.class);
-		JavaFileObject source = mock(JavaFileObject.class);
-		when(source.openWriter()).thenReturn(writer);
-		when(filer.createSourceFile(anyString())).thenReturn(source);
-		Writer result = instance.getSourceFileObjectWriter("");
-		assertThat(result).isNotNull();
-		assertThat(result).isEqualTo(writer);
+	public void writeCoreInDirectoryTestDoNoFwk() {
+		System.out.println("writeCoreInDirectory");
+		instance.writeCoreInDirectory("/tmp", null);
+		verify(fws).copyFileToDir(anyString(), eq("core.js"), anyString());
 	}
 
 	/**
-	 * Test of getResourceFileObjectWriter method, of class.
-	 *
-	 * @throws java.io.IOException
+	 * Test of writeCoreInDirectory method, of class.
 	 */
 	@Test
-	public void test_getResourceFileObjectWriter() throws IOException {
-		System.out.println("getResourceFileObjectWriter");
-		Writer writer = mock(Writer.class);
-		JavaFileObject source = mock(JavaFileObject.class);
-		when(source.openWriter()).thenReturn(writer);
-		when(filer.createResource(any(StandardLocation.class), anyString(), anyString())).thenReturn(source);
-		Writer result = instance.getResourceFileObjectWriter("", "");
-		assertThat(result).isNotNull();
-		assertThat(result).isEqualTo(writer);
+	public void writeCoreInDirectoryTestNg() {
+		System.out.println("writeCoreInDirectory");
+		instance.writeCoreInDirectory("/tmp", "ng");
+		verify(fws).copyFileToDir(anyString(), eq("core.ng.js"), anyString());
 	}
-
+	
 	/**
-	 * Test of getFileObjectWriter method, of class.
-	 * @throws java.io.IOException
+	 * Test of writeCoreInClassesOutput method, of class.
 	 */
 	@Test
-	public void test_getFileObjectWriter() throws IOException {
-		System.out.println("getFileObjectWriter");
-		Writer result = instance.getFileObjectWriter("a.b", "File.js", "/tmp");
-		assertThat(result).isNotNull();
-		File file = new File("/tmp/a.b.File.js");
-		assertThat(file).exists();
-		file.delete();
-
-		result = instance.getFileObjectWriter("a.b", "File.js", "/tmp/sub");
-		assertThat(result).isNotNull();
-		file = new File("/tmp/sub/a.b.File.js");
-		assertThat(file).exists();
-		file.delete();
-		file = new File("/tmp/sub");
-		assertThat(file).exists();
-		file.delete();
+	public void writeCoreInClassesOutputTest() {
+		System.out.println("writeCoreInClassesOutput");
+		instance.writeCoreInClassesOutput();
+		verify(fws).copyFileToClassesOutput(eq("/js"), eq("core.ng.min.js"));
+		verify(fws).copyFileToClassesOutput(eq("/js"), eq("core.ng.js"));
+		verify(fws).copyFileToClassesOutput(eq("/js"), eq("core.min.js"));
+		verify(fws).copyFileToClassesOutput(eq("/js"), eq("core.js"));
 	}
 }

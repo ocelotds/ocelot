@@ -8,11 +8,12 @@
 	angular.module("ocelot.ds").provider('promiseFactory', provider);
 	/* @ngInject */
 	function provider() {
-		this.$get = function() {
+		this.$get = function () {
 			return {
-				create: function (ds, id, op, argNames, args) {
-					return (function (ds, id, op, argNames, args) {
-						var fault, evt = null, thenHandlers = [], catchHandlers = [], constraintHandlers = [], eventHandlers = [], messageHandlers = [];
+				create: function (ds, id, op, ws, argNames, args) {
+					return (function (ds, id, op, ws, argNames, args) {
+						var fault, evt = null, cacheIgnored = false, start = new Date().getTime(), timeout = 10000, key = id + "_" + JSON.stringify(args).md5();
+						var thenHandlers = [], catchHandlers = [], constraintHandlers = [], eventHandlers = [], messageHandlers = [];
 						function process() {
 							if (!evt) {
 								return;
@@ -47,13 +48,30 @@
 							}
 						}
 						var promise = {
-							id: id, key: id, dataservice: ds, operation: op, args: args, argNames: argNames, cacheIgnored: false, t: new Date().getTime(),
+							get id() {
+								return key;
+							},
+							get dataservice() {
+								return ds;
+							},
+							get operation() {
+								return op;
+							},
+							get args() {
+								return args;
+							},
+							get t() {
+								return start;
+							},
+							get ws() {
+								return ws;
+							},
 							set response(e) {
 								evt = e;
 								process();
 							},
 							ignoreCache: function (ignore) {
-								this.cacheIgnored = ignore;
+								cacheIgnored = ignore;
 								return this;
 							},
 							then: function (onFulfilled, onRejected) {
@@ -95,7 +113,7 @@
 								return this;
 							},
 							get json() {
-								return {"id": this.id, "ds": this.dataservice, "op": this.operation, "argNames": this.argNames, "args": this.args};
+								return {"id": key, "ds": ds, "op": op, "argNames": argNames, "args": args};
 							}
 						};
 						var e = document.createEvent("Event");
@@ -105,7 +123,7 @@
 							document.dispatchEvent(e);
 						}, 1);
 						return promise;
-					})(ds, id, op, argNames, args);
+					})(ds, id, op, ws, argNames, args);
 				}
 			};
 		};

@@ -22,7 +22,7 @@ public class NoFwkTest extends AbstractFwkTest  {
 	NoFwk instance;
 
 	@Override
-	FwkWriter getInstance() {
+	public FwkWriter getInstance() {
 		return instance;
 	}
 
