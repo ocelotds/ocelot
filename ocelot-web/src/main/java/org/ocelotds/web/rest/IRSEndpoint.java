@@ -4,14 +4,12 @@
 package org.ocelotds.web.rest;
 
 import javax.servlet.http.HttpSession;
-import javax.ws.rs.FormParam;
-import org.ocelotds.Constants;
 
 /**
  *
  * @author hhfrancois
  */
-public interface IEndpoint {
+public interface IRSEndpoint {
 	public String getMessageToClient(String json);
 	
 	public HttpSession getHttpSession();
