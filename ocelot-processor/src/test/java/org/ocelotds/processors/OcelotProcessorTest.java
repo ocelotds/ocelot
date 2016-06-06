@@ -3,14 +3,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.processors;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -19,14 +17,11 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardLocation;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import static org.mockito.Mockito.*;
 import org.mockito.Spy;
@@ -52,6 +47,7 @@ public class OcelotProcessorTest {
 		doNothing().when(instance).initVisitors(null);
 		instance.init(processingEnv);
 		instance.visitorfwk = visitorfwk;
+		instance.visitorNgfwk = visitorNgfwk;
 		instance.visitorNofwk = visitorNofwk;
 		instance.fws = fws;
 		OcelotProcessor.setDone(false);
@@ -80,6 +76,9 @@ public class OcelotProcessorTest {
 	ElementVisitor visitorNofwk;
 
 	@Mock
+	ElementVisitor visitorNgfwk;
+
+	@Mock
 	FileWriterServices fws;
 
 	/**
@@ -94,7 +93,7 @@ public class OcelotProcessorTest {
 		instance.initVisitors("bad");
 		assertThat(instance.visitorfwk).isEqualTo(instance.visitorNofwk);
 		instance.initVisitors("ng");
-		assertThat(instance.visitorfwk).isNotEqualTo(instance.visitorNofwk);
+		assertThat(instance.visitorfwk).isEqualTo(instance.visitorNgfwk);
 	}
 	/**
 	 * Test of getJsDirectory method, of class.
@@ -217,11 +216,12 @@ public class OcelotProcessorTest {
 		TypeElement typeElement = mock(TypeElement.class);
 		doReturn("packagePath").when(instance).getPackagePath(eq(typeElement));
 		doReturn("filename.js").when(instance).getFilename(eq(typeElement), eq((String) null));
+		doReturn("filename.ng.js").when(instance).getFilename(eq(typeElement), eq("ng"));
 		instance.jsfwk = null;
 		instance.writeGeneratedJsInDiferentTargets(typeElement);
 		verify(instance).writeJsFileToJsDir(eq(typeElement), eq(visitorfwk), eq("packagePath"), eq("filename.js"), anyString());
+		verify(instance).writeJsFile(eq(typeElement), eq(visitorNgfwk), eq("packagePath"), eq("filename.ng.js"));
 		verify(instance).writeJsFile(eq(typeElement), eq(visitorNofwk), eq("packagePath"), eq("filename.js"));
-		verify(instance, times(2)).getFilename(eq(typeElement), eq((String) null));
 	}
 	
 	/**
@@ -237,9 +237,8 @@ public class OcelotProcessorTest {
 		instance.jsfwk = "ng";
 		instance.writeGeneratedJsInDiferentTargets(typeElement);
 		verify(instance).writeJsFileToJsDir(eq(typeElement), eq(visitorfwk), eq("packagePath"), eq("filename.ng.js"), anyString());
-		verify(instance).writeJsFile(eq(typeElement), eq(visitorfwk), eq("packagePath"), eq("filename.ng.js"));
+		verify(instance).writeJsFile(eq(typeElement), eq(visitorNgfwk), eq("packagePath"), eq("filename.ng.js"));
 		verify(instance).writeJsFile(eq(typeElement), eq(visitorNofwk), eq("packagePath"), eq("filename.js"));
-		verify(instance, times(3)).getFilename(eq(typeElement), anyString());
 	}
 
 	/**

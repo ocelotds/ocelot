@@ -68,6 +68,7 @@ public class OcelotProcessor extends AbstractProcessor {
 	String jsfwk = null;
 
 	ElementVisitor visitorfwk;
+	ElementVisitor visitorNgfwk;
 	ElementVisitor visitorNofwk;
 	FileWriterServices fws;
 
@@ -92,9 +93,10 @@ public class OcelotProcessor extends AbstractProcessor {
 	
 	void initVisitors(String fwk) {
 		visitorNofwk = new DataServiceVisitorJsBuilder(processingEnv, new NoFwk());
+		visitorNgfwk = new DataServiceVisitorJsBuilder(processingEnv, new AngularFwk());
 		visitorfwk = visitorNofwk;
 		if ("ng".equals(fwk)) {
-			visitorfwk = new DataServiceVisitorJsBuilder(processingEnv, new AngularFwk());
+			visitorfwk = visitorNgfwk;
 		}
 	}
 
@@ -135,7 +137,7 @@ public class OcelotProcessor extends AbstractProcessor {
 			return true; //if is it : stop
 		}
 		writeCoreInClassesOutput();
-		writeCoreInDirectory(jsdir, jsfwk);
+		writeCoreInDirectory(jsdir, jsfwk); // one core.js in same time
 		for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
 			processElement(element);
 		}
@@ -164,10 +166,8 @@ public class OcelotProcessor extends AbstractProcessor {
 	void writeGeneratedJsInDiferentTargets(TypeElement element) {
 		String packagePath = getPackagePath(element);
 		messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " javascript generation class : " + element);
-		writeJsFileToJsDir(element, visitorfwk, packagePath, getFilename(element, jsfwk), jsdir);
-		if (null != jsfwk) {
-			writeJsFile(element, visitorfwk, packagePath, getFilename(element, jsfwk));
-		}
+		writeJsFileToJsDir(element, visitorfwk, packagePath, getFilename(element, jsfwk), jsdir); // one core.js in same time
+		writeJsFile(element, visitorNgfwk, packagePath, getFilename(element, "ng"));
 		writeJsFile(element, visitorNofwk, packagePath, getFilename(element, null));
 	}
 
