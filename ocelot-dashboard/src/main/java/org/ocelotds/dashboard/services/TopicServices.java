@@ -19,8 +19,8 @@ import org.ocelotds.dashboard.security.DashboardSecureProvider;
 import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import org.ocelotds.security.OcelotSecured;
-import org.ocelotds.topic.SessionManager;
 import org.ocelotds.topic.TopicManager;
+import org.ocelotds.web.PrincipalTools;
 
 /**
  *
@@ -33,9 +33,9 @@ public class TopicServices {
 
 	@Inject
 	private TopicManager topicManager;
-
+	
 	@Inject
-	SessionManager sessionManager;
+	PrincipalTools principalTools;
 
 	public Map<String, Collection<SessionInfo>> getSessionIdsByTopic() {
 		Map<String, Collection<Session>> sessionsByTopic = topicManager.getSessionsByTopic();
@@ -46,7 +46,7 @@ public class TopicServices {
 			result.put(entry.getKey(), sessionInfos);
 			Collection<Session> value = entry.getValue();
 			for (Session session : value) {
-				sessionInfos.add(new SessionInfo(session.getId(), sessionManager.getUsername(session), session.isOpen()));
+				sessionInfos.add(new SessionInfo(session.getId(), principalTools.getPrincipal(session).getName(), session.isOpen()));
 			}
 		}
 		return result;
