@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 @Path("endpoint")
 @RequestScoped
 @OcelotResource
-public class RSEndpoint implements IEndpoint {
+public class RSEndpoint implements IRSEndpoint {
 
 	@Inject
 	@OcelotLogger
