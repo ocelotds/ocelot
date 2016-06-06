@@ -13,6 +13,8 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriInfo;
 import org.ocelotds.OcelotServices;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.OcelotResource;
@@ -21,10 +23,13 @@ import org.ocelotds.annotations.OcelotResource;
  *
  * @author hhfrancois
  */
-@Path("services.js")
+@Path("{a:services|services.ng}.js")
 @RequestScoped
 @OcelotResource
 public class RsJsServices extends AbstractRsJs {
+
+	@Context
+	private UriInfo context;
 
 	@Any
 	@Inject
@@ -33,9 +38,15 @@ public class RsJsServices extends AbstractRsJs {
 
 	@Override
 	List<InputStream> getStreams() {
+		String fwk = null;
+		if("services.ng.js".equals(context.getPath())) {
+			fwk = "ng";
+		}
 		List<InputStream> streams = new ArrayList<>();
 		for (Object dataservice : dataservices) {
-			addStream(streams, getJsFilename(getClassnameFromProxy(dataservice)));
+			if (!OcelotServices.class.isInstance(dataservice)) {
+				addStream(streams, getJsFilename(getClassnameFromProxy(dataservice), fwk));
+			}
 		}
 		return streams;
 	}
