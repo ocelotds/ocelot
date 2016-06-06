@@ -18,12 +18,12 @@ import org.ocelotds.annotations.DashboardOnDebug;
 import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
 import org.ocelotds.annotations.OcelotLogger;
+import org.ocelotds.annotations.WsDataService;
 import org.ocelotds.context.OcelotContext;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.objects.Options;
-import org.ocelotds.topic.SessionManager;
 import org.slf4j.Logger;
 
 /**
@@ -47,17 +47,12 @@ public class OcelotServices {
 	@Inject
 	private OcelotContext ocelotContext;
 
-	@Inject
-	private SessionManager sessionManager;
-
-	@Inject
-	private HttpSession httpSession;
-	
 	/**
 	 * Init core
 	 * @param options
+	 * @param httpSession
 	 */
-	public void initCore(Options options) {
+	public void initCore(Options options, HttpSession httpSession) {
 		httpSession.setAttribute(Constants.Options.OPTIONS, options);
 	}
 	
@@ -99,14 +94,14 @@ public class OcelotServices {
 	}
 
 	@JsTopic
-	public Integer subscribe(@JsTopicName(prefix = Constants.Topic.SUBSCRIBERS) String topic) throws IllegalAccessException {
-		Session session = sessionManager.getSessionById(httpSession.getId());
+	@WsDataService
+	public Integer subscribe(@JsTopicName(prefix = Constants.Topic.SUBSCRIBERS) String topic, Session session) throws IllegalAccessException {
 		return topicManager.registerTopicSession(topic, session);
 	}
 
 	@JsTopic
-	public Integer unsubscribe(@JsTopicName(prefix = Constants.Topic.SUBSCRIBERS) String topic) {
-		Session session = sessionManager.getSessionById(httpSession.getId());
+	@WsDataService
+	public Integer unsubscribe(@JsTopicName(prefix = Constants.Topic.SUBSCRIBERS) String topic, Session session) {
 		return topicManager.unregisterTopicSession(topic, session);
 	}
 
