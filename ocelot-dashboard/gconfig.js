@@ -47,7 +47,6 @@ module.exports.vendorsJsFiles = [
    'angular-ui-codemirror/ui-codemirror.js',
    'codemirror/mode/javascript/javascript.js',
 	'Chart.js/Chart.js',
-   'ocelotds/**/*.js',
    'angular-chart.js/dist/angular-chart.js'
 ];
 /**
