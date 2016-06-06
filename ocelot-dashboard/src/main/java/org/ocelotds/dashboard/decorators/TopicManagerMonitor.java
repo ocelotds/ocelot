@@ -12,9 +12,8 @@ import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 import javax.websocket.Session;
 import org.ocelotds.annotations.JsTopicEvent;
-import org.ocelotds.dashboard.objects.SessionInfo;
-import org.ocelotds.topic.SessionManager;
 import org.ocelotds.topic.TopicManager;
+import org.ocelotds.web.PrincipalTools;
 
 /**
  *
@@ -30,7 +29,7 @@ public abstract class TopicManagerMonitor implements TopicManager {
 	TopicManager topicManager;
 
 	@Inject
-	SessionManager sessionManager;
+	PrincipalTools principalTools;
 
 	@Inject
 	@JsTopicEvent(value = "session-topic-add", jsonPayload = true)
@@ -44,7 +43,7 @@ public abstract class TopicManagerMonitor implements TopicManager {
 	public int registerTopicSession(String topic, Session session) throws IllegalAccessException {
 		int before = topicManager.getNumberSubscribers(topic);
 		int after = topicManager.registerTopicSession(topic, session);
-		if(after>before) {
+		if (after > before) {
 			addSessionToTopic.fire(createMessage(topic, session));
 		}
 		return after;
@@ -54,7 +53,7 @@ public abstract class TopicManagerMonitor implements TopicManager {
 	public int unregisterTopicSession(String topic, Session session) {
 		int before = topicManager.getNumberSubscribers(topic);
 		int after = topicManager.unregisterTopicSession(topic, session);
-		if(after<before) {
+		if (after < before) {
 			removeSessionToTopic.fire(createMessage(topic, session));
 		}
 		return after;
@@ -68,9 +67,8 @@ public abstract class TopicManagerMonitor implements TopicManager {
 		}
 		return topicsUpdated;
 	}
-	
-	private String createMessage(String topic, Session session) {
-		return "{\"topic\":\""+topic+"\", \"sessionInfo\":{\"id\":\""+session.getId()+"\", \"username\":\""+sessionManager.getUsername(session)+"\",\"open\":\""+session.isOpen()+"\"}}";
-	}
 
+	private String createMessage(String topic, Session session) {
+		return "{\"topic\":\"" + topic + "\", \"sessionInfo\":{\"id\":\"" + session.getId() + "\", \"username\":\"" + principalTools.getPrincipal(session).getName() + "\",\"open\":\"" + session.isOpen() + "\"}}";
+	}
 }

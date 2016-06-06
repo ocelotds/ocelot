@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.dashboard.services;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
@@ -18,20 +17,18 @@ public class MonitorSessionManager {
 	private final Set<String> httpids = new HashSet<>();
 	
 	public void setMonitored(String httpid) {
-		this.httpids.add(httpid);
+		httpids.add(httpid);
 	}
 	
 	public void unsetMonitored(String httpid) {
-		if(isMonitored(httpid)) {
-			this.httpids.remove(httpid);
-		}
+		httpids.remove(httpid);
 	}
 
 	public boolean isMonitored(String httpid) {
 		if(httpid == null) {
 			return false;
 		}
-		return this.httpids.contains(httpid);
+		return httpids.contains(httpid);
 	}
 	
 	

@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.annotations.TransientDataService;
+import org.ocelotds.annotations.WsDataService;
 import org.ocelotds.marshallers.JsonMarshallerException;
 import org.ocelotds.marshallers.JsonMarshallerServices;
 import org.ocelotds.marshallers.TemplateMarshaller;
@@ -141,7 +142,7 @@ public class ServiceTools {
 	 * @return
 	 */
 	public boolean isConsiderateMethod(Method method) {
-		if (method.isAnnotationPresent(TransientDataService.class) || method.getDeclaringClass().isAssignableFrom(Object.class)) {
+		if (method.isAnnotationPresent(TransientDataService.class) || method.isAnnotationPresent(WsDataService.class) || method.getDeclaringClass().isAssignableFrom(Object.class)) {
 			return false;
 		}
 		int modifiers = method.getModifiers();

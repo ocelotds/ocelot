@@ -4,16 +4,12 @@
 package org.ocelotds.dashboard.services;
 
 import org.ocelotds.dashboard.objects.SessionInfo;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 import javax.inject.Inject;
-import javax.websocket.Session;
 import org.ocelotds.annotations.DashboardOnDebug;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.dashboard.security.DashboardSecureProvider;
 import org.ocelotds.security.OcelotSecured;
-import org.ocelotds.topic.SessionManager;
 
 /**
  *
@@ -25,7 +21,7 @@ import org.ocelotds.topic.SessionManager;
 public class SessionServices {
 	
 	@Inject
-	SessionManager sessionManager;
+	HttpSessionManager httpSessionManager;
 	
 	@Inject
 	MonitorSessionManager monitorSessionManager;
@@ -36,14 +32,7 @@ public class SessionServices {
 	 * @return 
 	 */
 	public Collection<SessionInfo> getSessionInfos() {
-		Map<String, Session> map = sessionManager.getMap();
-		Collection<SessionInfo> result = new ArrayList<>();
-		for (Map.Entry<String, Session> entry : map.entrySet()) {
-			Session session = entry.getValue();
-			String username = sessionManager.getUsername(session);
-			result.add(new SessionInfo(entry.getKey(), username, session.isOpen()));
-		}
-		return result;
+		return httpSessionManager.getSessionInfos();
 	}
 	
 	public void monitorSession(String httpid) {

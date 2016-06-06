@@ -35,9 +35,6 @@ public class ServiceServices {
 	private ServiceTools serviceTools;
 
 	@Inject
-	private HttpSession httpSession;
-	
-	@Inject
 	private UnProxyClassServices unProxyClassServices;
 	
 	@Any
@@ -48,9 +45,10 @@ public class ServiceServices {
 	/**
 	 * Return all services present in application
 	 * [{"name":"instancename", methods=[{"name":"methodname","returntype":"void","argtypes":["",""],"argnames":["name1","name2"],"argtemplates":["",""]}]}]
+	 * @param httpSession
 	 * @return 
 	 */
-	public List<OcelotService> getServices() {
+	public List<OcelotService> getServices(HttpSession httpSession) {
 		List<OcelotService> result = new ArrayList<>();
 		Options options = (Options) httpSession.getAttribute(Constants.Options.OPTIONS);
 		options.setMonitor(true);
