@@ -30,14 +30,16 @@ public abstract class AbstractRsJs {
 
 	/**
 	 * Get stream list for this resource
-	 * @return 
+	 *
+	 * @return
 	 */
 	abstract List<InputStream> getStreams();
 
 	/**
 	 * Get resource
+	 *
 	 * @return
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	@GET
 	@Produces(Constants.JSTYPE)
@@ -46,21 +48,26 @@ public abstract class AbstractRsJs {
 	}
 
 	/**
-	 * GEt URL Resource
+	 * Get URL Resource
+	 *
 	 * @param name
-	 * @return 
+	 * @return
 	 */
 	URL getResource(String name) {
 		return AbstractRsJs.class.getResource(name);
 	}
 
 	/**
-	 * p1.p2.p3.Cls1 -&gt; /p1/p2/p3/Cls1.js
+	 * p1.p2.p3.Cls1 -&gt; /p1/p2/p3/Cls1.js or /p1/p2/p3/Cls1.fwk.js
+	 *
 	 * @param classname
-	 * @return 
+	 * @return
 	 */
-	String getJsFilename(String classname) {
+	String getJsFilename(String classname, String fwk) {
 		String path = classname.replaceAll("\\.", File.separator);
+		if (null != fwk) {
+			return File.separator + path + "." + fwk + Constants.JS;
+		}
 		return File.separator + path + Constants.JS;
 	}
 
@@ -72,7 +79,7 @@ public abstract class AbstractRsJs {
 			logger.error("Fail to stream : " + filename, ex);
 		}
 	}
-	
+
 	protected SequenceInputStream getSequenceInputStream(List<InputStream> streams) {
 		return new SequenceInputStream(Collections.enumeration(streams));
 	}
