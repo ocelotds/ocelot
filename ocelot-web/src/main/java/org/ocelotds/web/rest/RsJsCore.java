@@ -18,7 +18,7 @@ import org.ocelotds.annotations.OcelotResource;
  * @author hhfrancois
  * The core include ocelotServices.js
  */
-@Path("cor{min}.js")
+@Path("{a:core|core.min|core.ng|core.ng.min}.js")
 @RequestScoped
 @OcelotResource
 public class RsJsCore extends AbstractRsJs {
@@ -33,10 +33,7 @@ public class RsJsCore extends AbstractRsJs {
 	}
 	
 	String getJsCore() {
-		if(context.getPath().contains(".min")) {
-			return Constants.SLASH + Constants.OCELOT_CORE_MIN + Constants.JS;
-		}
-		return Constants.SLASH + Constants.OCELOT_CORE + Constants.JS;
+		return Constants.SLASH+context.getPath();
 	}
 }
 
