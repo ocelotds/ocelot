@@ -39,7 +39,7 @@ public class TopicManagerImpl implements TopicManager {
 
 	@Inject
 	private UserContextFactory userContextFactory;
-
+	
 	/**
 	 * Return map topics and all sessions associate
 	 *
