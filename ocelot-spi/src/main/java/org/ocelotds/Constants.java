@@ -26,8 +26,8 @@ public interface Constants {
 	String ANONYMOUS = "ANONYMOUS";
 
 	String OCELOT = "ocelot";
-	String OCELOT_CORE = OCELOT + "-core";
-	String OCELOT_CORE_MIN = OCELOT_CORE + "-min";
+	String CORE = "core";
+	String CORE_MIN = CORE + ".min";
 
 	String JSTYPE = "text/javascript;charset=UTF-8";
 	String FALSE = "false";
