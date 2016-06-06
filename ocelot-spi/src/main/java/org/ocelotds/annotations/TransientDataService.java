@@ -10,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation permettant d'identifier les classes à exposer aux clients
+ * Annotation for exclude service to js access
  * @author hhfrancois
  */
 @Retention(RetentionPolicy.RUNTIME)
