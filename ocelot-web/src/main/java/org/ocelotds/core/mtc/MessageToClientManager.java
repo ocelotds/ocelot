@@ -78,7 +78,7 @@ public abstract class MessageToClientManager<T> {
 		if (cls.isAnnotationPresent(DataService.class)) {
 			return _getDataService(session, cls);
 		} else {
-			throw new DataServiceException(dataServiceClassName +" is not annotated with @"+DataService.class.getSimpleName());
+			throw new DataServiceException(dataServiceClassName + " is not annotated with @" + DataService.class.getSimpleName());
 		}
 	}
 
@@ -139,6 +139,7 @@ public abstract class MessageToClientManager<T> {
 			logger.debug("Process message {}", message);
 			List<Object> arguments = getArrayList();
 			Method method = methodServices.getMethodFromDataService(cls, message, arguments);
+			injectSession(method.getParameterTypes(), arguments, session);
 			messageToClient.setResult(method.invoke(dataService, arguments.toArray()));
 			if (method.isAnnotationPresent(JsonMarshaller.class)) {
 				messageToClient.setJson(argumentServices.getJsonResultFromSpecificMarshaller(method.getAnnotation(JsonMarshaller.class), messageToClient.getResponse()));
@@ -161,6 +162,26 @@ public abstract class MessageToClientManager<T> {
 			messageToClient.setFault(faultServices.buildFault(ex));
 		}
 		return messageToClient;
+	}
+
+	/**
+	 * Inject Session or HttpSession if necessary
+	 *
+	 * @param parameterTypes
+	 * @param arguments
+	 * @param session
+	 */
+	void injectSession(Class<?>[] parameterTypes, List<Object> arguments, T session) {
+		if (parameterTypes != null) {
+			int i = 0;
+			for (Class<?> parameterType : parameterTypes) {
+				if (parameterType.isInstance(session)) {
+					arguments.set(i, session);
+					break;
+				}
+				i++;
+			}
+		}
 	}
 
 	List<Object> getArrayList() {
