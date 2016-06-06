@@ -250,6 +250,5 @@ public class OcelotProcessor extends AbstractProcessor {
 		fws.copyFileToClassesOutput(File.separatorChar + "js", "core.ng.js");
 		fws.copyFileToClassesOutput(File.separatorChar + "js", "core.min.js");
 		fws.copyFileToClassesOutput(File.separatorChar + "js", "core.js");
-		fws.copyFileToClassesOutput(File.separatorChar + "js", "promiseFactory.js"); // usefull only for dashboard
 	}
 }

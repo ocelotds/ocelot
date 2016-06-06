@@ -8,8 +8,7 @@
 			  uglify = require('gulp-uglify');
 	gulp.task('default', ['clean', 'jshint', 
 		'createCore', 'minifyCore', 
-		'createAngular', 'minifyAngular', 
-		'copyAndMinifyPromiseFactory'
+		'createAngular', 'minifyAngular'
 	]);
 	gulp.task('clean', function () {
 		return del.sync('./target/classes/js/*');
@@ -19,11 +18,6 @@
 				  .pipe(size())
 				  .pipe(jshint())
 				  .pipe(jshint.reporter('jshint-stylish'));
-	});
-	gulp.task('copyAndMinifyPromiseFactory', ['clean'], function () {
-			return gulp.src(['./src/main/resources/js/nofwk/promiseFactory.js'])
-					  .pipe(uglify())
-					  .pipe(gulp.dest('./target/classes/js'));
 	});
 	gulp.task('createAngular', ['clean'], function () {
 			return gulp.src([ 
@@ -53,12 +47,6 @@
 			return gulp.src('./target/classes/js/core.js')
 				  .pipe(uglify())
 				  .pipe(concat('core.min.js'))
-				  .pipe(gulp.dest('./target/classes/js'));
-	});
-	gulp.task('minifyPromise', ['clean'], function () {
-			return gulp.src('./src/main/resources/js/promisefactory.js')
-				  .pipe(uglify())
-				  .pipe(concat('promisefactory.js'))
 				  .pipe(gulp.dest('./target/classes/js'));
 	});
 })();
