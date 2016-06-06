@@ -18,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
-import org.ocelotds.annotations.DataService;
 import org.ocelotds.core.UnProxyClassServices;
 import org.ocelotds.dashboard.objects.FakeCDI;
 import org.ocelotds.marshallers.JsonMarshallerException;
@@ -42,9 +41,6 @@ public class ServiceServicesTest {
 	private ServiceTools serviceTools;
 
 	@Mock
-	private HttpSession httpSession;
-
-	@Mock
 	private UnProxyClassServices unProxyClassServices;
 
 	@Spy
@@ -58,11 +54,12 @@ public class ServiceServicesTest {
 	public void testGetServices() {
 		System.out.println("getServices");
 		((FakeCDI)dataservices).add(new ClassAsDataService());
+		HttpSession httpSession = mock(HttpSession.class);
 		when(unProxyClassServices.getRealClass(any(Class.class))).thenReturn((Class) ClassAsDataService.class);
 		when(serviceTools.getInstanceNameFromDataservice(any(Class.class))).thenReturn("ClassAsDataService");
 		doNothing().when(instance).addMethodsToMethodsService(any(Method[].class), any(List.class));
 		when(httpSession.getAttribute(Constants.Options.OPTIONS)).thenReturn(new Options());
-		List<OcelotService> services = instance.getServices();
+		List<OcelotService> services = instance.getServices(httpSession);
 		assertThat(services).hasSize(1);
 	}
 	
