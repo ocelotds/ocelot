@@ -507,7 +507,7 @@ public abstract class AbstractOcelotTest {
 	}
 
 	MessageToClient testRSCallWithoutResult(Client client, MessageFromClient mfc, MessageType resType) {
-		WebTarget target = client.target("http://localhost:" + PORT).path(CTXPATH).path("ocelot").path("endpoint").queryParam("monitor", true);
+		WebTarget target = client.target("http://localhost:" + PORT).path(CTXPATH).path("ocelot").path("endpoint");
 		Response res = target.request(MediaType.APPLICATION_FORM_URLENCODED).accept(MediaType.APPLICATION_JSON).post(Entity.form(new Form("mfc", mfcToJson(mfc))));
 		String result = res.readEntity(String.class);
 		MessageToClient mtc = null;

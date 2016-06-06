@@ -30,7 +30,6 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ocelotds.Constants;
-import org.ocelotds.FileNameProvider;
 import org.ocelotds.OcelotServices;
 import org.ocelotds.integration.dataservices.cache.CacheDataService;
 import org.ocelotds.integration.dataservices.cdi.RequestCdiDataService;
@@ -117,10 +116,6 @@ public class OcelotTest extends AbstractOcelotTest {
 
 	@Inject
 	@Any
-	private Instance<FileNameProvider> jsProviders;
-
-	@Inject
-	@Any
 	private Instance<IDataServiceResolver> resolvers;
 	
 	@Inject
@@ -148,31 +143,14 @@ public class OcelotTest extends AbstractOcelotTest {
 	}
 
 	/**
-	 * Test that provider return name of js
-	 *
-	 */
-	@Test
-	public void testJsServiceProvider() {
-		System.out.println("testJsServiceProvider");
-		for (FileNameProvider provider : jsProviders) {
-			Package aPackage = provider.getClass().getPackage();
-			try {
-				String filename = provider.getFilename();
-				assertThat(filename).isEqualTo(aPackage.getName() + Constants.JS);
-			} catch (IllegalAccessError ex) {
-			}
-		}
-	}
-
-	/**
 	 * Check minification javascripts
 	 *
 	 */
 	@Test
 	public void testJavascriptCoreMinification() {
 		System.out.println("testJavascriptCoreMinification");
-		String resource = Constants.OCELOT + Constants.SLASH + "core" + Constants.JS;
-		String resource_min = Constants.OCELOT + Constants.SLASH + "core.min" + Constants.JS;
+		String resource = Constants.OCELOT + Constants.SLASH + Constants.CORE + Constants.JS;
+		String resource_min = Constants.OCELOT + Constants.SLASH + Constants.CORE_MIN + Constants.JS;
 		HttpURLConnection connection1 = null;
 		HttpURLConnection connection2 = null;
 		try {
@@ -884,7 +862,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	/**
 	 * Check monitor works
 	 */
-	@Test
+//	@Test
 	public void testGetTime() {
 		Class clazz = MonitorDataService.class;
 		String methodName = "testMonitor";
