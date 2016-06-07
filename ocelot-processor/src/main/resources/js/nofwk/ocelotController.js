@@ -382,22 +382,6 @@ if ("WebSocket" in window) {
 				}, 1000);
 			}
 		}
-		function onwsopen(evt) {
-			if (closetimer)
-				clearInterval(closetimer);
-			if (opts.debug)
-				console.debug("Websocket opened");
-			var ps;
-			// handler, apromise, idx, promise;
-			stateUpdated();
-			ps = promises;
-			promises = {};
-			Object.keys(ps).forEach(function (id) { // we redo the subscription
-				if (id !== ps[id].id) {
-					foreachPromiseDo(ps[id], _addPromise);
-				}
-			});
-		}
 		function connect() {
 			if (opts.debug)
 				console.debug("Ocelotds initialization...");
@@ -462,6 +446,50 @@ if ("WebSocket" in window) {
 		function _status() {
 			return ws ? stateLabels[ws.readyState] : "CLOSED";
 		}
+		function onwsopen(evt) {
+			if (closetimer)
+				clearInterval(closetimer);
+			if (opts.debug)
+				console.debug("Websocket opened");
+			var pss;
+			// handler, apromise, idx, promise;
+			stateUpdated();
+			pss = promises; // {"md5_1" : [p1, p2], "md5_2" : [p3, p4]... }
+			promises = {};
+			var first = true;
+			Object.keys(pss).forEach(function (id) { // we redo the subscription
+				var ps = pss[id];
+				if(ps && ps.length && ps[0].id !== id) { // if ps[0].id !== id then topic. we can test the md5 of ocelotServices.subscribe(...)
+					first = false;
+					ps.forEach(function(p) {
+						foreachPromiseDo(p, _addPromise);
+					});
+				}
+			});
+			if(first) {
+				initSubscribers();
+			}
+		}
+		function initSubscribers() {
+			// Controller subscribe to ocelot-cleancache topic
+			subscriberFactory.createSubscriber(CLEANCACHE).message(function (id) {
+				if (id === ALL) {
+					_cacheManager.clearCache();
+				} else {
+					_cacheManager.removeEntryInCache(id);
+				}
+			}).then(function () {
+				// Get Locale from server or cache and re-set it in session, this launch a message in ocelot-cleancache
+				ocelotServices.getLocale().then(function (locale) {
+					if (locale) {
+						ocelotServices.setLocale(locale);
+					}
+				});
+			});
+			subscriberFactory.createSubscriber(ALERT).message(function (message) {
+				alert(message);
+			});
+		}
 		function init() {
 			/**
 			 * Add ocelotController events to document
@@ -473,24 +501,6 @@ if ("WebSocket" in window) {
 			});
 			// init a standard httpsession and init websocket
 			connect().then(function () {
-				// Controller subscribe to ocelot-cleancache topic
-				subscriberFactory.createSubscriber(CLEANCACHE).message(function (id) {
-					if (id === ALL) {
-						_cacheManager.clearCache();
-					} else {
-						_cacheManager.removeEntryInCache(id);
-					}
-				}).then(function () {
-					// Get Locale from server or cache and re-set it in session, this launch a message in ocelot-cleancache
-					ocelotServices.getLocale().then(function (locale) {
-						if (locale) {
-							ocelotServices.setLocale(locale);
-						}
-					});
-				});
-				subscriberFactory.createSubscriber(ALERT).message(function (message) {
-					alert(message);
-				});
 				// send states or current objects in cache with lastupdate
 				ocelotServices.getOutDatedCache(_cacheManager.getLastUpdateCache()).then(function (entries) {
 					_cacheManager.removeEntries(entries);
