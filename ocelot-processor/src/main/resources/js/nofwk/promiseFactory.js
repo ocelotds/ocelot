@@ -3,7 +3,7 @@ var promiseFactory = (function () {
 	return {
 		create: function (ds, id, op, ws, argNames, args) {
 			return (function (ds, id, op, ws, argNames, args) {
-				var fault, evt = null, cacheIgnored = false, start = new Date().getTime(), timeout = 10000, key = id + "_" + JSON.stringify(args).md5();
+				var fault, evt = null, _cacheIgnored = false, start = new Date().getTime(), _timeout = 10000, key = id + "_" + JSON.stringify(args).md5();
 				var thenHandlers = [], catchHandlers = [], constraintHandlers = [], eventHandlers = [], messageHandlers = [];
 				function process() {
 					if (!evt) {
@@ -61,8 +61,18 @@ var promiseFactory = (function () {
 						evt = e;
 						process();
 					},
+					get maxtime() {
+						return _timeout;
+					},
+					get cacheIgnored() {
+						return _cacheIgnored;
+					},
+					timeout: function (timeout) {
+						_timeout = timeout;
+						return this;
+					},
 					ignoreCache: function (ignore) {
-						cacheIgnored = ignore;
+						_cacheIgnored = ignore;
 						return this;
 					},
 					then: function (onFulfilled, onRejected) {
