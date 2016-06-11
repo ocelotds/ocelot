@@ -72,7 +72,7 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 		List<String> argumentsType = getArgumentsType(methodElement);
 		List<String> arguments = getArguments(methodElement);
 		TypeMirror returnType = methodElement.getReturnType();
-		writeMethodComment(methodElement, argumentsType.iterator(), arguments.iterator(), returnType, writer);
+		writeMethodComment(getMethodComment(methodElement), argumentsType.iterator(), arguments.iterator(), returnType, writer);
 		writer.append(TAB2).append(methodName).append(SPACEOPTIONAL).append(COLON).append(SPACEOPTIONAL)
 				  .append(FUNCTION).append(SPACEOPTIONAL).append(OPENPARENTHESIS); //\t\tmethodName : function (
 		writeArguments(arguments.iterator(), writer);
@@ -106,10 +106,52 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 * @param argumentsName
 	 * @param returnType
 	 */
-	void writeMethodComment(ExecutableElement methodElement, Iterator<String> argumentsType, Iterator<String> argumentsName, TypeMirror returnType, Writer writer) throws IOException {
-		String methodComment = environment.getElementUtils().getDocComment(methodElement);
-
+	void writeMethodComment(String methodComment, Iterator<String> argumentsType, Iterator<String> argumentsName, TypeMirror returnType, Writer writer) throws IOException {
 		writer.append(TAB2).append("/**").append(CR);
+		// From javadoc
+		writeJavadocComment(methodComment, writer);
+		// Arguments
+		writeArgumentsComment(argumentsType, argumentsName, writer);
+		// Return
+		writeReturnComment(returnType, writer);
+		writer.append(TAB2).append(" */").append(CR);
+	}
+
+	/**
+	 * write js documentation for return type
+	 * @param returnType
+	 * @param writer
+	 * @throws IOException 
+	 */
+	void writeReturnComment(TypeMirror returnType, Writer writer) throws IOException {
+		String type = returnType.toString();
+		if (!"void".equals(type)) {
+			writer.append(TAB2).append(" * @return ").append(OPENBRACE).append(type).append(CLOSEBRACE).append(CR);
+		}
+	}
+	
+	
+	/**
+	 * write js documentation for arguments
+	 * @param argumentsType
+	 * @param argumentsName
+	 * @param writer
+	 * @throws IOException 
+	 */
+	void writeArgumentsComment(Iterator<String> argumentsType, Iterator<String> argumentsName, Writer writer) throws IOException {
+		while(argumentsType.hasNext()) {
+			String type = argumentsType.next();
+			String name = argumentsName.next();
+			writer.append(TAB2).append(" * @param ").append(OPENBRACE).append(type).append(CLOSEBRACE).append(SPACE).append(name).append(CR);
+		}
+	}
+	/**
+	 * write js documentation from javadoc
+	 * @param methodComment
+	 * @param writer
+	 * @throws IOException 
+	 */
+	void writeJavadocComment(String methodComment, Writer writer) throws IOException {
 		// From javadoc
 		if (methodComment != null) {
 			methodComment = methodComment.split("@")[0];
@@ -120,18 +162,16 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 			String comment = methodComment.replaceAll("\n", CR+TAB2+" *");
 			writer.append(TAB2).append(" *").append(comment).append(CR);
 		}
-		// Arguments
-		while(argumentsType.hasNext()) {
-			String type = argumentsType.next();
-			String name = argumentsName.next();
-			writer.append(TAB2).append(" * @param ").append(OPENBRACE).append(type).append(CLOSEBRACE).append(SPACE).append(name).append(CR);
-		}
-		// Return
-		String type = returnType.toString();
-		if (!"void".equals(type)) {
-			writer.append(TAB2).append(" * @return ").append(OPENBRACE).append(type).append(CLOSEBRACE).append(CR);
-		}
-		writer.append(TAB2).append(" */").append(CR);
+	}
+	
+	/**
+	 * Return the javadoc
+	 * 
+	 * @param methodElement
+	 * @return 
+	 */
+	String getMethodComment(ExecutableElement methodElement) {
+		return environment.getElementUtils().getDocComment(methodElement);
 	}
 
 	/**
