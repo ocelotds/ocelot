@@ -82,10 +82,7 @@
 			 * @param {Event} event
 			 */
 			document.addEventListener("call", addPromiseEvent);
-			_listenerSetted = true;
-			if (readyFunction) {
-				readyFunction();
-			}
+			document["promiseEventListener"] = true;
 			window.addEventListener("beforeunload", function (e) {
 				_close("ONUNLOAD");
 			});
@@ -110,14 +107,13 @@
 				return _status();
 			},
 			close: _close,
-			cacheManager: _cacheManager,
-			onready: _onready
+			cacheManager: _cacheManager
 		};
 	}
 	var opts = {"monitor": false, "debug": false}, MSG = "MESSAGE", CONSTRAINT = "CONSTRAINT", RES = "RESULT";
 	var FAULT = "FAULT", ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove", CLEANCACHE = "ocelot-cleancache", ALERT = "ocelot-alert";
 	var STATUS = "ocelot-status", OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe", initialized = false;
-	var uid = 0, stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], closetimer, promises = {}, path, ws = null, _listenerSetted = false, readyFunction;
+	var uid = 0, stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], closetimer, promises = {}, path, ws = null;
 	var _cacheManager = (function () {
 		var LU = "ocelot-lastupdate", addHandlers = [], removeHandlers = [];
 		var lastUpdateManager = (function () {
@@ -547,14 +543,5 @@
 	}
 	function _status() {
 		return ws ? stateLabels[ws.readyState] : "CLOSED";
-	}
-	function _onready(func) {
-		if (_listenerSetted) {
-			if (func !== null) {
-				func();
-			}
-		} else {
-			readyFunction = func;
-		}
 	}
 })();

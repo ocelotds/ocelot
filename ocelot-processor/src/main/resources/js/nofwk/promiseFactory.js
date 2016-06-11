@@ -120,9 +120,17 @@ var promiseFactory = (function () {
 				var e = document.createEvent("Event");
 				e.initEvent("call", true, false);
 				e.promise = promise;
-				setTimeout(function () {
-					document.dispatchEvent(e);
-				}, 1);
+				// if this event is dispatch too early, we try in 200 ms
+				if(document["promiseEventListener"] === undefined) {
+					retry = setTimeout(function(evt) {
+						console.debug("Retry to dispatch event");
+						document.dispatchEvent(evt);
+					}, 200, e);
+				} else {
+					setTimeout(function (evt) {
+						document.dispatchEvent(evt);
+					}, 1, e);
+				}
 				return promise;
 			})(ds, id, op, ws, argNames, args);
 		}
