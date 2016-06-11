@@ -3,8 +3,8 @@
 [![Codecov Status](https://codecov.io/github/ocelotds/ocelot/coverage.svg?branch=master)](https://codecov.io/github/ocelotds)
 [![Coverity Status](https://scan.coverity.com/projects/7127/badge.svg)](https://scan.coverity.com/projects/7127)
 [![Build Status](https://travis-ci.org/ocelotds/ocelot.svg?branch=master)](https://travis-ci.org/ocelotds/ocelot)
-[![Maven](https://img.shields.io/badge/Maven central-2.10.2-blue.svg)](http://search.maven.org/#search|ga|1|ocelot)
-[![Maven](https://img.shields.io/badge/OSS Sonatype-2.10.3--SNAPSHOT-lightgrey.svg)](https://oss.sonatype.org/#nexus-search;gav~org.ocelotds~ocelot~~~)
+[![Maven](https://img.shields.io/badge/Maven central-2.11.0-blue.svg)](http://search.maven.org/#search|ga|1|ocelot)
+[![Maven](https://img.shields.io/badge/OSS Sonatype-2.11.1--SNAPSHOT-lightgrey.svg)](https://oss.sonatype.org/#nexus-search;gav~org.ocelotds~ocelot~~~)
 
 ## The best and easiest communication way between java 7 and javascript
 
@@ -13,12 +13,12 @@
 <dependency>
   <groupId>org.ocelotds</groupId>
   <artifactId>ocelot-core</artifactId>
-  <version>2.10.2</version>
+  <version>2.11.0</version>
 </dependency>
 <dependency>
   <groupId>org.ocelotds</groupId>
   <artifactId>ocelot-web</artifactId>
-  <version>2.10.2</version>
+  <version>2.11.0</version>
 </dependency>
 ```
 ## EAR Package 
@@ -27,7 +27,7 @@
 <dependency>
   <groupId>org.ocelotds</groupId>
   <artifactId>ocelot-web</artifactId>
-  <version>2.10.2</version>
+  <version>2.11.0</version>
 </dependency>
 ```
 ### Dependencies EJB Module
@@ -35,7 +35,7 @@
 <dependency>
   <groupId>org.ocelotds</groupId>
   <artifactId>ocelot-core</artifactId>
-  <version>2.10.2</version>
+  <version>2.11.0</version>
 </dependency>
 ```
 
