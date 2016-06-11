@@ -89,22 +89,47 @@ public class OcelotServices {
 		return ocelotContext.getPrincipal().getName();
 	}
 
+	/**
+	 * GEt outdated cache among list
+	 * @param states
+	 * @return 
+	 */
 	public Collection<String> getOutDatedCache(Map<String, Long> states) {
 		return updatedCacheManager.getOutDatedCache(states);
 	}
 
+	/**
+	 * Subscribe to topic
+	 * 
+	 * @param topic
+	 * @param session
+	 * @return
+	 * @throws IllegalAccessException 
+	 */
 	@JsTopic
 	@WsDataService
 	public Integer subscribe(@JsTopicName(prefix = Constants.Topic.SUBSCRIBERS) String topic, Session session) throws IllegalAccessException {
 		return topicManager.registerTopicSession(topic, session);
 	}
 
+	/**
+	 * Unsubscribe to topic
+	 * @param topic
+	 * @param session
+	 * @return 
+	 */
 	@JsTopic
 	@WsDataService
 	public Integer unsubscribe(@JsTopicName(prefix = Constants.Topic.SUBSCRIBERS) String topic, Session session) {
 		return topicManager.unregisterTopicSession(topic, session);
 	}
 
+	/**
+	 * Get number of subscriber
+	 * 
+	 * @param topic
+	 * @return 
+	 */
 	public Integer getNumberSubscribers(String topic) {
 		return topicManager.getNumberSubscribers(topic);
 	}
