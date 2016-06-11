@@ -4,8 +4,8 @@ if ("WebSocket" in window) {
 		'use strict';
 		var opts = {"monitor": false, "debug": false}, MSG = "MESSAGE", CONSTRAINT = "CONSTRAINT", RES = "RESULT";
 		var FAULT = "FAULT", ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove", CLEANCACHE = "ocelot-cleancache", ALERT = "ocelot-alert";
-		var STATUS = "ocelot-status", OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe";
-		var uid = 0, stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], closetimer, promises = {}, path, ws = null;
+		var STATUS = "ocelot-status", OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe", initialized = false;
+		var uid = 0, stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], closetimer, promises = {}, path, ws = null, _listenerSetted = false, readyFunction;
 		var _cacheManager = (function () {
 			var LU = "ocelot-lastupdate", addHandlers = [], removeHandlers = [];
 			var lastUpdateManager = (function () {
@@ -306,20 +306,28 @@ if ("WebSocket" in window) {
 			if (!addPromiseToId(promise, promise.id)) {
 				mfc = JSON.stringify(promise.json);
 				if (promise.ws) {
-					if (ws.readyState === 1) {
+					if (ws.readyState === WebSocket.OPEN) {
 						ws.send(mfc);
 					} else {
-						promise.response = createFaultEventFromPromise(promise, {"response": {"classname": "Websocket", "message": "Websocket is not ready : status = " + status, "stacktrace": []}, "t": 0});
+						if(opts.debug) 
+							console.debug("warning : Websocket is not ready, defer "+promise.dataservice+"."+promise.operation+"("+promise.args+");")
 					}
 				} else {
 					xhttp = new XMLHttpRequest();
-					xhttp.onreadystatechange = function () {
-						if (xhttp.readyState === 4) {
+					xhttp.timeout = promise.maxtime;
+					xhttp.ontimeout = function() {
+						receiveMtc({"id": promise.id, "type": FAULT, "response": {"classname": "XMLHttpRequest", "message": xhttp.statusText, "stacktrace": []}, "t": 0});
+					};
+					xhttp.onerror = function () {
+						receiveMtc({"id": promise.id, "type": FAULT, "response": {"classname": "XMLHttpRequest", "message": xhttp.statusText, "stacktrace": []}, "t": 0});
+					};
+					xhttp.onload = function () {
+						if (xhttp.readyState === XMLHttpRequest.DONE) {
 							if (xhttp.status === 200) {
 								msgToClient = JSON.parse(xhttp.responseText);
 								receiveMtc(msgToClient);
 							} else {
-								receiveMtc({"id": promise.id, "type": FAULT, "response": {"classname": "XMLHttpRequest", "message": "XMLHttpRequest request failed : code = " + xhttp.status, "stacktrace": []}, "t": 0});
+								receiveMtc({"id": promise.id, "type": FAULT, "response": {"classname": "XMLHttpRequest", "message": xhttp.statusText, "stacktrace": []}, "t": 0});
 							}
 						}
 					};
@@ -335,6 +343,8 @@ if ("WebSocket" in window) {
 				_cacheManager.putResultInCache(msgToClient);
 			}
 			foreachPromiseInPromisesDo(msgToClient.id, function (promise) {
+				if (opts.debug)
+					console.debug(promise.dataservice+"."+promise.operation+" : ", msgToClient);
 				switch (msgToClient.type) {
 					case FAULT:
 						promise.response = createFaultEventFromPromise(promise, msgToClient);
@@ -363,8 +373,6 @@ if ("WebSocket" in window) {
 			}
 		}
 		function onwsmessage(evt) {
-			if (opts.debug)
-				console.debug(evt.data);
 			receiveMtc(JSON.parse(evt.data));
 		}
 		function onwserror(evt) {
@@ -446,6 +454,15 @@ if ("WebSocket" in window) {
 		function _status() {
 			return ws ? stateLabels[ws.readyState] : "CLOSED";
 		}
+		function _onready(func) {
+			if(_listenerSetted) {
+				if(func!==null) {
+					func();
+				}
+			} else {
+				readyFunction = func;
+			}
+		}
 		function onwsopen(evt) {
 			if (closetimer)
 				clearInterval(closetimer);
@@ -455,19 +472,21 @@ if ("WebSocket" in window) {
 			// handler, apromise, idx, promise;
 			stateUpdated();
 			pss = promises; // {"md5_1" : [p1, p2], "md5_2" : [p3, p4]... }
-			promises = {};
-			var first = true;
 			Object.keys(pss).forEach(function (id) { // we redo the subscription
 				var ps = pss[id];
 				if(ps && ps.length && ps[0].id !== id) { // if ps[0].id !== id then topic. we can test the md5 of ocelotServices.subscribe(...)
-					first = false;
 					ps.forEach(function(p) {
+			         if(opts.debug) 
+				         console.debug("Send defered ws-calls : "+p.dataservice+"."+p.operation+"("+p.args+")");
 						foreachPromiseDo(p, _addPromise);
 					});
 				}
 			});
-			if(first) {
-				initSubscribers();
+         if(!initialized) {
+            if(opts.debug) 
+               console.debug("Initialisation des subscribers...");
+            initSubscribers();
+            initialized = true;
 			}
 		}
 		function initSubscribers() {
@@ -496,6 +515,10 @@ if ("WebSocket" in window) {
 			 * @param {Event} event
 			 */
 			document.addEventListener("call", addPromiseEvent);
+			_listenerSetted = true;
+			if(readyFunction) {
+				readyFunction();
+			}
 			window.addEventListener("beforeunload", function (e) {
 				_close("ONUNLOAD");
 			});
@@ -516,9 +539,9 @@ if ("WebSocket" in window) {
 				return _status();
 			},
 			close: _close,
-			cacheManager: _cacheManager
+			cacheManager: _cacheManager,
+			onready: _onready
 		};
-
 	})();
 } else {
 	alert("Sorry, but your browser doesn't support websocket");
