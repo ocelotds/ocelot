@@ -8,12 +8,12 @@ import org.ocelotds.annotations.JsCacheResult;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
-import javax.tools.Diagnostic;
 import org.ocelotds.KeyMaker;
 import org.ocelotds.annotations.WsDataService;
 import org.ocelotds.processors.stringDecorators.KeyForArgDecorator;
@@ -72,21 +72,66 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 		List<String> argumentsType = getArgumentsType(methodElement);
 		List<String> arguments = getArguments(methodElement);
 		TypeMirror returnType = methodElement.getReturnType();
-
+		writeMethodComment(methodElement, argumentsType.iterator(), arguments.iterator(), returnType, writer);
 		writer.append(TAB2).append(methodName).append(SPACEOPTIONAL).append(COLON).append(SPACEOPTIONAL)
 				  .append(FUNCTION).append(SPACEOPTIONAL).append(OPENPARENTHESIS); //\t\tmethodName : function (
-		int i = 0;
-		while (i < argumentsType.size()) {
-			writer.append((String) arguments.get(i)); // argname
-			if ((++i) < arguments.size()) {
-				writer.append(COMMA).append(SPACEOPTIONAL); //, 
-			}
-		}
+		writeArguments(arguments.iterator(), writer);
 		writer.append(CLOSEPARENTHESIS).append(SPACEOPTIONAL).append(OPENBRACE).append(CR); //) {\n
 
 		createMethodBody(classname, methodElement, arguments, writer);
 
 		writer.append(TAB2).append(CLOSEBRACE); //\t\t}
+	}
+	
+	/**
+	 * Write argument whit comma if necessary
+	 * @param names
+	 * @param writer
+	 * @throws IOException 
+	 */
+	void writeArguments(Iterator<String> names, Writer writer) throws IOException {
+		while(names.hasNext()) {
+			String name = names.next();
+			writer.append(name); // argname
+			if(names.hasNext()) {
+				writer.append(COMMA).append(SPACEOPTIONAL); //, 
+			}
+		}
+	}
+
+	/**
+	 * Create documentation
+	 *
+	 * @param methodElement
+	 * @param argumentsName
+	 * @param returnType
+	 */
+	void writeMethodComment(ExecutableElement methodElement, Iterator<String> argumentsType, Iterator<String> argumentsName, TypeMirror returnType, Writer writer) throws IOException {
+		String methodComment = environment.getElementUtils().getDocComment(methodElement);
+
+		writer.append(TAB2).append("/**").append(CR);
+		// From javadoc
+		if (methodComment != null) {
+			methodComment = methodComment.split("@")[0];
+			int lastIndexOf = methodComment.lastIndexOf("\n");
+			if (lastIndexOf >= 0) {
+				methodComment = methodComment.substring(0, lastIndexOf);
+			}
+			String comment = methodComment.replaceAll("\n", CR+TAB2+" *");
+			writer.append(TAB2).append(" *").append(comment).append(CR);
+		}
+		// Arguments
+		while(argumentsType.hasNext()) {
+			String type = argumentsType.next();
+			String name = argumentsName.next();
+			writer.append(TAB2).append(" * @param ").append(OPENBRACE).append(type).append(CLOSEBRACE).append(SPACE).append(name).append(CR);
+		}
+		// Return
+		String type = returnType.toString();
+		if (!"void".equals(type)) {
+			writer.append(TAB2).append(" * @return ").append(OPENBRACE).append(type).append(CLOSEBRACE).append(CR);
+		}
+		writer.append(TAB2).append(" */").append(CR);
 	}
 
 	/**

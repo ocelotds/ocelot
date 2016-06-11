@@ -9,6 +9,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -30,6 +31,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.KeyMaker;
 import org.ocelotds.annotations.JsCacheResult;
 import org.ocelotds.frameworks.NoFwk;
+import org.ocelotds.frameworks.WriterTest;
 import org.ocelotds.processors.stringDecorators.NothingDecorator;
 import org.ocelotds.processors.stringDecorators.QuoteDecorator;
 import org.ocelotds.processors.stringDecorators.StringDecorator;
@@ -39,7 +41,7 @@ import org.ocelotds.processors.stringDecorators.StringDecorator;
  * @author hhfrancois
  */
 @RunWith(MockitoJUnitRunner.class)
-public class DataServiceVisitorJsBuilderTest {
+public class DataServiceVisitorJsBuilderTest implements ProcessorConstants{
 
 	@Mock
 	private Messager messager;
@@ -74,7 +76,7 @@ public class DataServiceVisitorJsBuilderTest {
 	public void test_VisitType() throws IOException {
 		System.out.println("_visitType");
 		TypeElement typeElement = mock(TypeElement.class);
-		Writer writer = getMockWriter();
+		Writer writer = WriterTest.getMockWriter();
 		doNothing().when(instance).browseAndWriteMethods(anyListOf(ExecutableElement.class), anyString(), eq(writer));
 		doReturn(null).when(instance).getOrderedMethods(eq(typeElement), any(Comparator.class));
 		doReturn("ClassName").when(instance).getJsClassname(eq(typeElement));
@@ -99,7 +101,7 @@ public class DataServiceVisitorJsBuilderTest {
 	@Test
 	public void visitMethodElement() throws IOException {
 		System.out.println("visitMethodElement");
-		Writer writer = getMockWriter();
+		Writer writer = WriterTest.getMockWriter();
 		String classname = "packageName.ClassName";
 		ExecutableElement methodElement = mock(ExecutableElement.class);
 		Name name = mock(Name.class);
@@ -112,33 +114,43 @@ public class DataServiceVisitorJsBuilderTest {
 		when(name.toString()).thenReturn("ClassName");
 		doReturn(argumentsType).when(instance).getArgumentsType(eq(methodElement));
 		doReturn(arguments).when(instance).getArguments(eq(methodElement));
+		doNothing().when(instance).writeArguments(any(Iterator.class), eq(writer));
+		doNothing().when(instance).writeMethodComment(eq(methodElement), any(Iterator.class), any(Iterator.class), eq(tm), eq(writer));
 		when(methodElement.getReturnType()).thenReturn(tm);
 
 		instance.visitMethodElement(classname, methodElement, writer);
-		ArgumentCaptor<String> appendCaptor = ArgumentCaptor.forClass(String.class);
-		verify(writer, atLeastOnce()).append(appendCaptor.capture()); // no arg : 14 calls
-		int withNoArg = appendCaptor.getAllValues().size();
+		WriterTest.testBraces(writer);
+	}
+	
+	/**
+	 * Test of writeArguments method, of class.
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void writeArgumentsTest() throws IOException {
+		System.out.println("writeArguments");
+		Writer writer;
+		List<String> arguments;
 
-		writer = getMockWriter();
-		argumentsType.add(String.class.getName());
-		arguments.add("str");
-		int withOneArg = withNoArg + 1; // 1 arg : noarg + 1 call
-		instance.visitMethodElement(classname, methodElement, writer);
-		verify(writer, times(withOneArg)).append(anyString()); // 1 arg : 14 calls + 1 call
+		arguments = new ArrayList<>();
+		writer = new StringWriter();
+		instance.writeArguments(arguments.iterator(), writer);
+		assertThat(writer.toString()).isEmpty();
 
-		writer = getMockWriter();
-		argumentsType.add(String.class.getName());
-		arguments.add("str2");
-		int withTwoArg = withOneArg + 3; // 1 arg + 1 arg : noarg + 1 call + (3*1) calls
-		instance.visitMethodElement(classname, methodElement, writer);
-		verify(writer, times(withTwoArg)).append(anyString()); 
+		arguments = Arrays.asList("a");
+		writer = new StringWriter();
+		instance.writeArguments(arguments.iterator(), writer);
+		assertThat(writer.toString()).isEqualTo("a");
 
-		writer = getMockWriter();
-		argumentsType.add(String.class.getName());
-		arguments.add("str3");
-		int withThreeArg = withTwoArg + 3; // 1 arg + 2 arg : noarg + 1 call + (3*2) calls
-		instance.visitMethodElement(classname, methodElement, writer);
-		verify(writer, times(withThreeArg)).append(anyString()); 
+		arguments = Arrays.asList("a", "b");
+		writer = new StringWriter();
+		instance.writeArguments(arguments.iterator(), writer);
+		assertThat(writer.toString()).isEqualTo("a,"+SPACEOPTIONAL+"b");
+
+		arguments = Arrays.asList("a", "b", "c");
+		writer = new StringWriter();
+		instance.writeArguments(arguments.iterator(), writer);
+		assertThat(writer.toString()).isEqualTo("a,"+SPACEOPTIONAL+"b,"+SPACEOPTIONAL+"c");
 	}
 
 	/**
@@ -288,7 +300,7 @@ public class DataServiceVisitorJsBuilderTest {
 
 		List<String> arguments = Arrays.asList("a", "b", "c", "d");
 
-		Writer writer = getMockWriter();
+		Writer writer = WriterTest.getMockWriter();
 
 		instance.createMethodBody(classname, methodElement, arguments, writer);
 
@@ -349,11 +361,5 @@ public class DataServiceVisitorJsBuilderTest {
 		public String decorate(String str) {
 				return "_"+str+"_";
 		}
-	}
-
-	Writer getMockWriter() throws IOException {
-		Writer writer = mock(Writer.class);
-		when(writer.append(anyString())).thenReturn(writer);
-		return writer;
 	}
 }
