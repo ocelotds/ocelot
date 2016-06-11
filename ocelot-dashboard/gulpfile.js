@@ -84,7 +84,11 @@
 		gconfig.vendorsJsFiles.forEach(function (vendorJsFile) {
 			jsFiles.push(vendorsFolder + "/" + vendorJsFile);
 		});
-		gulp.src(jsFiles).pipe(concat(gconfig.bowerJs)).pipe(size()).pipe(gulp.dest(gconfig.dist)); // js from vendors
+		gulp.src(jsFiles)
+				  .pipe(util.env.dev ? util.noop() : uglify())
+				  .pipe(concat(gconfig.bowerJs))
+				  .pipe(size())
+				  .pipe(gulp.dest(gconfig.dist)); // js from vendors
 	});
 	var vendorsFolder = "bower_components";
 	gulp.task("init", function () {
