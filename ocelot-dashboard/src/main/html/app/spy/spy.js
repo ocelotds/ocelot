@@ -75,9 +75,6 @@
 		}
 		function update(session) {
 			ctrl.sessions.every(function (s, idx, arr) {
-				if(session.id === ctrl.monitored) {
-					unmonitor();
-				}
 				if (s.id === session.id) {
 					arr.splice(idx, 1, session);
 					$scope.$apply();

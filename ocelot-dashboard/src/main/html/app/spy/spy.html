@@ -1,13 +1,13 @@
 <div class="row">       
 	<div class="col-sm-4 col-md-3 sidebar">
 		<ul class="nav nav-sidebar">
-			<li ng-repeat="session in ctrl.sessions" class="{{session.open?'':'disabled'}}">
+			<li ng-repeat="session in ctrl.sessions" class="animate-session {{session.open?'':'disabled'}}">
 				<a>
 					<b>{{session| sessioninfo}}</b>
 					<span class="pull-right">
 						<btn-switch onswitch="ctrl.switchMonitor(session.id)" 
 										title="Monitor client on/off" disabled="!session.open" options="{'size':'xs'}"
-										value="ctrl.monitored === session.id">
+										value="(ctrl.monitored === session.id) && session.open">
 						</btn-switch>
 					</span>
 				</a>
