@@ -23,7 +23,8 @@
 					</span>
 				</a>
 				<ul class="nav nav-sidebar nav-subsidebar" ng-if="ctrl.topic === topic">
-					<li class="{{ctrl.session === session?'active':''}}" title="{{session| sessioninfo}}"
+					<li class="{{ctrl.session === session?'active':''}} {{session.new?'animated flipInX infinite':''}}" ng-click="session.new = false" 
+						 title="{{session| sessioninfo}}"
 						 ng-repeat="session in ctrl.sessionsBytopic[topic] track by $index"
 						 ng-disabled="!session.open">
 						<a ng-click="ctrl.selectSession(session)">

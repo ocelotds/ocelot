@@ -110,6 +110,10 @@
 		function selectSession(session) {
 			ctrl.session = session;
 		}
+		function animateSession(session, animate, duration) {
+			session.new = animate;
+			setTimeout(function(s) {s.new = false;$scope.$apply();}, duration, session);
+		}
 		function add(topic_sessionInfo) {
 			var topic = topic_sessionInfo.topic;
 			if (ctrl.topics.indexOf(topic) === -1) {
@@ -117,6 +121,7 @@
 				ctrl.sessionsBytopic[topic] = [];
 			}
 			ctrl.sessionsBytopic[topic].push(topic_sessionInfo.sessionInfo);
+			animateSession(topic_sessionInfo.sessionInfo, true, 5000);
 			$scope.$apply();
 		}
 		function remove(topic_sessionInfo) {

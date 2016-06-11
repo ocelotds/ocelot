@@ -34,7 +34,6 @@
 		ctrl.monitored = null;
 		ctrl.showOnlyWarning = false;
 		ctrl.triggerDelay = 20;
-		ctrl.refresh = refresh;
 		ctrl.switchMonitor = switchMonitor;
 		ctrl.selectRequest = selectRequest;
 		activate();
@@ -62,6 +61,10 @@
 			ctrl.updateSubscriber = subscriberFactory.createSubscriber("sessioninfo-update").message(update);
 		}
 
+		function animateSession(session, animate, duration) {
+			session.new = animate;
+			setTimeout(function(s) {s.new = false;$scope.$apply();}, duration, session);
+		}
 		function unmonitor() {
 			ctrl.monitored = null;
 			if(ctrl.requestSubscriber) {
@@ -71,12 +74,14 @@
 		}
 		function add(session) {
 			ctrl.sessions.push(session);
+			animateSession(session, true, 5000);
 			$scope.$apply();
 		}
 		function update(session) {
 			ctrl.sessions.every(function (s, idx, arr) {
 				if (s.id === session.id) {
 					arr.splice(idx, 1, session);
+					animateSession(session, session.open, 5000);
 					$scope.$apply();
 					return false;
 				}
@@ -127,12 +132,6 @@
 					ctrl.requestSubscriber.unsubscribe();
 				});
 			}
-		}
-		function refresh() {
-			sessionServices.getSessionInfos().then(function (sessions) {
-				ctrl.sessions = sessions;
-				$scope.$apply();
-			});
 		}
 	}
 	/* @ngInject */
