@@ -115,7 +115,8 @@ public class DataServiceVisitorJsBuilderTest implements ProcessorConstants{
 		doReturn(argumentsType).when(instance).getArgumentsType(eq(methodElement));
 		doReturn(arguments).when(instance).getArguments(eq(methodElement));
 		doNothing().when(instance).writeArguments(any(Iterator.class), eq(writer));
-		doNothing().when(instance).writeMethodComment(eq(methodElement), any(Iterator.class), any(Iterator.class), eq(tm), eq(writer));
+		doReturn("").when(instance).getMethodComment(eq(methodElement));
+		doNothing().when(instance).writeMethodComment(anyString(), any(Iterator.class), any(Iterator.class), eq(tm), eq(writer));
 		when(methodElement.getReturnType()).thenReturn(tm);
 
 		instance.visitMethodElement(classname, methodElement, writer);
@@ -151,6 +152,103 @@ public class DataServiceVisitorJsBuilderTest implements ProcessorConstants{
 		writer = new StringWriter();
 		instance.writeArguments(arguments.iterator(), writer);
 		assertThat(writer.toString()).isEqualTo("a,"+SPACEOPTIONAL+"b,"+SPACEOPTIONAL+"c");
+	}
+	
+	/**
+	 * Test of writeMethodComment method, of class.
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void writeMethodCommentTest() throws IOException {
+		System.out.println("writeMethodComment");
+		String methodComment = "";
+		Iterator<String> argumentsType = mock(Iterator.class);
+		Iterator<String> argumentsName = mock(Iterator.class);
+		TypeMirror returnType = mock(TypeMirror.class);
+		Writer writer = WriterTest.getMockWriter();
+
+		doNothing().when(instance).writeJavadocComment(anyString(), eq(writer));
+		doNothing().when(instance).writeReturnComment(eq(returnType), eq(writer));
+		doNothing().when(instance).writeArgumentsComment(any(Iterator.class), any(Iterator.class), eq(writer));
+
+		instance.writeMethodComment(methodComment, argumentsType, argumentsName, returnType, writer);
+	}
+	
+	/**
+	 * Test of writeReturnComment method, of class.
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void writeReturnCommentTest() throws IOException {
+		System.out.println("writeReturnComment");
+		Writer writer = new StringWriter();
+		TypeMirror returnType = mock(TypeMirror.class);
+		when(returnType.toString()).thenReturn("void").thenReturn("java.lang.String");
+		instance.writeReturnComment(returnType, writer);
+		assertThat(writer.toString()).isEqualTo("");
+		instance.writeReturnComment(returnType, writer);
+		assertThat(writer.toString()).isEqualTo(TAB2+" * @return {java.lang.String}"+CR);
+	}
+	
+	/**
+	 * Test of writeArgumentsComment method, of class.
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void writeArgumentsCommentTest() throws IOException {
+		System.out.println("writeArgumentsComment");
+		Writer writer;
+		Iterator<String> argumentsType0 = new ArrayList<String>().iterator();
+		Iterator<String> argumentsName0 = new ArrayList<String>().iterator();
+		Iterator<String> argumentsType1 = Arrays.asList("java.lang.String").iterator();
+		Iterator<String> argumentsName1 = Arrays.asList("a").iterator();
+		Iterator<String> argumentsType2 = Arrays.asList("java.lang.String", "long").iterator();
+		Iterator<String> argumentsName2 = Arrays.asList("a", "b").iterator();
+		
+		writer = new StringWriter();
+		instance.writeArgumentsComment(argumentsType0, argumentsName0, writer);
+		assertThat(writer.toString()).isEmpty();
+
+		writer = new StringWriter();
+		instance.writeArgumentsComment(argumentsType1, argumentsName1, writer);
+		assertThat(writer.toString()).isEqualTo(TAB2+" * @param {java.lang.String}"+SPACE+"a"+CR);
+
+		writer = new StringWriter();
+		instance.writeArgumentsComment(argumentsType2, argumentsName2, writer);
+		assertThat(writer.toString()).isEqualTo(TAB2+" * @param {java.lang.String}"+SPACE+"a"+CR+TAB2+" * @param {long}"+SPACE+"b"+CR);
+	}
+	
+	/**
+	 * Test of writeJavadocComment method, of class.
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void writeJavadocCommentTest() throws IOException {
+		System.out.println("writeJavadocComment");
+		Writer writer = new StringWriter();
+		String methodComment = "";
+		instance.writeJavadocComment(methodComment, writer);
+		assertThat(writer.toString()).isEqualTo(TAB2+" *"+CR);
+
+		writer = new StringWriter();
+		instance.writeJavadocComment(" method do that\n@param a", writer);
+		assertThat(writer.toString()).isEqualTo(TAB2+" * method do that"+CR);
+
+		writer = new StringWriter();
+		instance.writeJavadocComment(" method do that\n and that\n@param a", writer);
+		assertThat(writer.toString()).isEqualTo(TAB2+" * method do that"+CR+TAB2+" * and that"+CR);
+	}
+	
+	/**
+	 * Test of getMethodComment method, of class.
+	 */
+	@Test
+	public void getMethodCommentTest() {
+		System.out.println("getMethodComment");
+		ExecutableElement methodElement = mock(ExecutableElement.class);
+		when(elementUtils.getDocComment(eq(methodElement))).thenReturn("DOC");
+		String result = instance.getMethodComment(methodElement);
+		assertThat(result).isEqualTo("DOC");
 	}
 
 	/**
