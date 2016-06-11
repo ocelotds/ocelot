@@ -27,8 +27,9 @@ module.exports.bowerJs = 'js/vendors.js';
  * All vendors css files, they will be concat in cssName file
  */
 module.exports.vendorsCssFiles = [
-   'bootstrap/dist/css/bootstrap.min.css',
-   'fontawesome/css/font-awesome.min.css',
+   'bootstrap/dist/css/bootstrap.css',
+   'fontawesome/css/font-awesome.css',
+   'animate.css/animate.css',
    'codemirror/lib/codemirror.css',
    'codemirror/theme/monokai.css',
    'codemirror/theme/eclipse.css',
@@ -55,6 +56,6 @@ module.exports.vendorsJsFiles = [
  */
 module.exports.vendorsAssetFiles = [
    {"source": 'fontawesome/fonts/*', "target":'fonts'},
-   {"source": 'bootstrap/dist/css/bootstrap.min.css.map', "target":'css'}
+   {"source": 'bootstrap/dist/css/bootstrap.css.map', "target":'css'}
 ];
 
