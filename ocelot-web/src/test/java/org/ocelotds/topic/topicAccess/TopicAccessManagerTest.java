@@ -78,8 +78,9 @@ public class TopicAccessManagerTest {
 		doReturn(Boolean.FALSE).when(instance).checkAccessTopicGlobalAC(eq(userContext), eq(TOPIC1));
 		doReturn(Boolean.FALSE).when(instance).checkAccessTopicFromJsTopicControl(eq(userContext), eq(TOPIC1));
 		doReturn(Boolean.FALSE).when(instance).checkAccessTopicFromJsTopicControls(eq(userContext), eq(TOPIC1));
+		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
 		instance.checkAccessTopic(userContext, TOPIC1);
-		verify(logger).info(anyString(), eq(TOPIC1), any(), any(), eq(TOPIC1));
+		verify(logger).debug(anyString(), eq(TOPIC1), any(), any(), eq(TOPIC1));
 	}
 
 	/**
