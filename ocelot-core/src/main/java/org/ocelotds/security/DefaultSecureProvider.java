@@ -5,7 +5,6 @@ package org.ocelotds.security;
 
 import javax.inject.Inject;
 import org.ocelotds.context.OcelotContext;
-import org.ocelotds.security.InvocationContext;
 
 /**
  *
@@ -26,7 +25,7 @@ public class DefaultSecureProvider implements SecureProvider {
 			}
 		}
 		if(!allowed) {
-			throw new IllegalAccessException(context.getPrincipal().getName()+" no access to "+ctx.getMethod().getDeclaringClass().getName()+"."+ctx.getMethod().getName());
+			throw new IllegalAccessException(context.getPrincipal().getName()+" no access to "+ctx);
 		}
 	}
 	

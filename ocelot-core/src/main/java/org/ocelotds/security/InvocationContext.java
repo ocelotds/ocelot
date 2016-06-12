@@ -27,6 +27,14 @@ public class InvocationContext {
 		return parameters;
 	}
 	
+	@Override
+	public String toString() {
+		if(null != this.method) {
+			return this.method.getDeclaringClass().getName()+"."+this.method.getName();
+		}
+		return "null";
+	}
+	
 	
 	
 }
