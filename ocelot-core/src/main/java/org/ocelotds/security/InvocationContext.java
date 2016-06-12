@@ -32,7 +32,7 @@ public class InvocationContext {
 		if(null != this.method) {
 			return this.method.getDeclaringClass().getName()+"."+this.method.getName();
 		}
-		return "null";
+		return null;
 	}
 	
 	

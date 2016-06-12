@@ -49,5 +49,21 @@ public class InvocationContextTest {
 		Object[] result = instance.getParameters();
 		assertThat(result).isEqualTo(parameters);
 	}
+	
+	/**
+	 * Test of toString method, of class.
+	 * @throws java.lang.NoSuchMethodException
+	 */
+	@Test
+	public void toStringTest() throws NoSuchMethodException {
+		System.out.println("toString");
+		Method method = this.getClass().getMethod("testGetMethod");
+		InvocationContext instance = new InvocationContext(method, null);
+		Object result = instance.toString();
+		assertThat(result).isEqualTo("org.ocelotds.security.InvocationContextTest.testGetMethod");
+		instance = new InvocationContext(null, null);
+		result = instance.toString();
+		assertThat(result).isNull();
+	}
 
 }
