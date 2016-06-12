@@ -30,8 +30,7 @@ public class DashboardSecureProvider implements SecureProvider {
 			}
 		}
 		if(!allowed) {
-			throw new IllegalAccessException(context.getPrincipal().getName()+" no access to "+ctx.getMethod().getDeclaringClass().getName()+"."+ctx.getMethod().getName());
+			throw new IllegalAccessException(context.getPrincipal().getName()+" no access to "+ctx);
 		}
 	}
-	
 }

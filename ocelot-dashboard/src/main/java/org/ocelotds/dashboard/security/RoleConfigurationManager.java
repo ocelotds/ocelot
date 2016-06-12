@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 @ApplicationScoped
 public class RoleConfigurationManager {
 
-	private Collection<String> roles = new HashSet<>();
+	private final Collection<String> roles = new HashSet<>();
 
 	@Inject
 	@OcelotLogger

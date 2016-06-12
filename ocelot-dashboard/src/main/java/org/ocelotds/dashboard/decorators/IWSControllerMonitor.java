@@ -51,9 +51,9 @@ public abstract class IWSControllerMonitor implements IWSController {
 	}
 
 	@Override
-	public void handleClosedConnection(Session session, CloseReason closeReason) {
+	public void handleClosedConnexion(Session session, CloseReason closeReason) {
 		logger.debug("Decorate websocket, close connexion '{}'", session.getId());
 		httpSessionManager.removeSession(session);
-		iwse.handleClosedConnection(session, closeReason);
+		iwse.handleClosedConnexion(session, closeReason);
 	}
 }
