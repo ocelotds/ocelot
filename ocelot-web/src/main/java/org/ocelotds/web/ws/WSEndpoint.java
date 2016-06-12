@@ -40,8 +40,8 @@ public class WSEndpoint {
 	}
 
 	@OnClose
-	public void handleClosedConnection(Session session, CloseReason closeReason) {
-		getWSController().handleClosedConnection(session, closeReason);
+	public void handleClosedConnexion(Session session, CloseReason closeReason) {
+		getWSController().handleClosedConnexion(session, closeReason);
 	}
 
 	@OnMessage

@@ -102,7 +102,7 @@ public class WSControllerTest {
 	}
 
 	/**
-	 * Test of handleClosedConnection method, of class WSEndpoint.
+	 * Test of handleClosedConnexion method, of class WSEndpoint.
 	 *
 	 * @throws java.io.IOException
 	 */
@@ -114,13 +114,13 @@ public class WSControllerTest {
 		when(session.isOpen()).thenReturn(true);
 		CloseReason closeReason = mock(CloseReason.class);
 		when(closeReason.getCloseCode()).thenReturn(CloseReason.CloseCodes.TOO_BIG);
-		instance.handleClosedConnection(session, closeReason);
+		instance.handleClosedConnexion(session, closeReason);
 		doThrow(IOException.class).when(session).close();
-		instance.handleClosedConnection(session, closeReason);
+		instance.handleClosedConnexion(session, closeReason);
 		doThrow(IllegalStateException.class).when(session).close();
-		instance.handleClosedConnection(session, closeReason);
+		instance.handleClosedConnexion(session, closeReason);
 		when(session.isOpen()).thenReturn(false);
-		instance.handleClosedConnection(session, closeReason);
+		instance.handleClosedConnexion(session, closeReason);
 	}
 
 	/**

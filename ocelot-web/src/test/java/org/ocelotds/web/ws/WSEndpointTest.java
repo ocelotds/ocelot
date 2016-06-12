@@ -11,9 +11,7 @@ import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.core.CdiBeanResolver;
@@ -31,6 +29,7 @@ public class WSEndpointTest {
 
 	/**
 	 * Test of handleOpenConnexion method, of class WSEndpoint.
+	 * @throws java.lang.Exception
 	 */
 	@Test
 	public void testHandleOpenConnexion() throws Exception {
@@ -60,18 +59,18 @@ public class WSEndpointTest {
 	}
 
 	/**
-	 * Test of handleClosedConnection method, of class WSEndpoint.
+	 * Test of handleClosedConnexion method, of class WSEndpoint.
 	 */
 	@Test
-	public void testHandleClosedConnection() {
-		System.out.println("handleClosedConnection");
+	public void testHandleClosedConnexion() {
+		System.out.println("handleClosedConnexion");
 		Session session = mock(Session.class);
 		CloseReason closeReason = mock(CloseReason.class);
 		WSController wSController = mock(WSController.class);
 		doReturn(wSController).when(instance).getWSController();
 
-		instance.handleClosedConnection(session, closeReason);
-		verify(wSController).handleClosedConnection(eq(session), eq(closeReason));
+		instance.handleClosedConnexion(session, closeReason);
+		verify(wSController).handleClosedConnexion(eq(session), eq(closeReason));
 	}
 
 	/**

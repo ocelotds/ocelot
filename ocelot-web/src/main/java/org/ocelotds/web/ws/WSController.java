@@ -68,7 +68,7 @@ public class WSController implements IWSController {
 	}
 
 	@Override
-	public void handleClosedConnection(Session session, CloseReason closeReason) {
+	public void handleClosedConnexion(Session session, CloseReason closeReason) {
 		logger.debug("Close connexion for session '{}' : '{}'", session.getId(), closeReason);
 		if (session.isOpen()) {
 			try {

@@ -38,7 +38,7 @@ public interface IWSController {
 	 * @param session
 	 * @param closeReason
 	 */
-	void handleClosedConnection(Session session, CloseReason closeReason);
+	void handleClosedConnexion(Session session, CloseReason closeReason);
 
 	/**
 	 * A message is a call service request or subscribe/unsubscribe topic
