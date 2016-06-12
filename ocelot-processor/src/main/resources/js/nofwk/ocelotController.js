@@ -5,7 +5,7 @@ if ("WebSocket" in window) {
 		var opts = {"monitor": false, "debug": false}, MSG = "MESSAGE", CONSTRAINT = "CONSTRAINT", RES = "RESULT";
 		var FAULT = "FAULT", ALL = "ALL", EVT = "Event", ADD = "add", RM = "remove", CLEANCACHE = "ocelot-cleancache", ALERT = "ocelot-alert";
 		var STATUS = "ocelot-status", OSRV = "org.ocelotds.OcelotServices", SUB = "subscribe", UNSUB = "unsubscribe", initialized = false;
-		var uid = 0, stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], closetimer, promises = {}, path, ws = null;
+		var uid = 0, stateLabels = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'], closetimer, promises = {}, path, ws = null, pendingMfc = [];
 		var _cacheManager = (function () {
 			var LU = "ocelot-lastupdate", addHandlers = [], removeHandlers = [];
 			var lastUpdateManager = (function () {
@@ -309,6 +309,7 @@ if ("WebSocket" in window) {
 					if (ws.readyState === WebSocket.OPEN) {
 						ws.send(mfc);
 					} else {
+						pendingMfc.push(mfc);
 						if(opts.debug) 
 							console.debug("warning : Websocket is not ready, defer "+promise.dataservice+"."+promise.operation+"("+promise.args+");")
 					}
@@ -421,6 +422,8 @@ if ("WebSocket" in window) {
 			}, 10, ws);
 		}
 		function _addPromise(promise) {
+			if(opts.debug)
+				console.debug("OcelotController receive promise", promise);
 			if (isTopicSubscription(promise, STATUS)) {
 				addPromiseToId(promise, STATUS);
 				stateUpdated();
@@ -459,26 +462,31 @@ if ("WebSocket" in window) {
 				clearInterval(closetimer);
 			if (opts.debug)
 				console.debug("Websocket opened");
-			var pss;
-			// handler, apromise, idx, promise;
-			stateUpdated();
-			pss = promises; // {"md5_1" : [p1, p2], "md5_2" : [p3, p4]... }
-			Object.keys(pss).forEach(function (id) { // we redo the subscription
-				var ps = pss[id];
-				if(ps && ps.length && ps[0].id !== id) { // if ps[0].id !== id then topic. we can test the md5 of ocelotServices.subscribe(...)
-					ps.forEach(function(p) {
-			         if(opts.debug) 
-				         console.debug("Send defered ws-calls : "+p.dataservice+"."+p.operation+"("+p.args+")");
-						foreachPromiseDo(p, _addPromise);
-					});
-				}
-			});
+//			// handler, apromise, idx, promise;
+//			var pss = promises; // {"md5_1" : [p1, p2], "md5_2" : [p3, p4]... }
+//			Object.keys(pss).forEach(function (id) { // we redo the subscription
+//				var ps = pss[id];
+//				if(ps && ps.length && ps[0].id !== id) { // if ps[0].id !== id then registered topic.
+//					ps.forEach(function(p) {
+//			         if(opts.debug) 
+//				         console.debug("Send defered ws-calls : "+p.dataservice+"."+p.operation+"("+p.args+")");
+//						foreachPromiseDo(p, _addPromise);
+//					});
+//				}
+//			});
+			while(pendingMfc.length) {
+				var mfc = pendingMfc.shift();
+				if(opts.debug) 
+					console.debug("Send defered ws-calls, mfc : ", mfc);
+				ws.send(mfc);
+			}
          if(!initialized) {
             if(opts.debug) 
                console.debug("Initialisation des subscribers...");
             initSubscribers();
             initialized = true;
 			}
+			stateUpdated();
 		}
 		function initSubscribers() {
 			// Controller subscribe to ocelot-cleancache topic
