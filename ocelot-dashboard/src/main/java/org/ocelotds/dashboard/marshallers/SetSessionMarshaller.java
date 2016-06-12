@@ -25,7 +25,8 @@ public class SetSessionMarshaller implements IJsonMarshaller<Set<Session>>{
 			if(!first) {
 				result.append(",");
 			}
-			result.append("\""+obj.getId()+"\"");
+			result.append("\"").append(obj.getId()).append("\"");
+			first = false;
 		}
 		result.append("]");
 		return result.toString();
