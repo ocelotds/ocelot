@@ -52,8 +52,8 @@ public class TopicAccessManager {
 		boolean tacPresent0 = checkAccessTopicGlobalAC(ctx, topic);
 		boolean tacPresent1 = checkAccessTopicFromJsTopicControl(ctx, topic);
 		boolean tacPresent2 = checkAccessTopicFromJsTopicControls(ctx, topic);
-		if (!(tacPresent0 | tacPresent1 | tacPresent2)) {
-			logger.info("No '{}' access control found in project, add {} implementation annotated with {}({}) in your project for add subscription security.", topic, JsTopicAccessController.class, JsTopicControl.class, topic);
+		if (logger.isDebugEnabled() && !(tacPresent0 | tacPresent1 | tacPresent2)) {
+			logger.debug("No '{}' access control found in project, add {} implementation annotated with {}({}) in your project for add subscription security.", topic, JsTopicAccessController.class, JsTopicControl.class, topic);
 		}
 	}
 	
