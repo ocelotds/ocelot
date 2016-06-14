@@ -19,7 +19,7 @@ public class ClosureWriter implements ProcessorConstants, AngularConstants {
 	 * @throws IOException 
 	 */
 	public void writeOpen(Writer writer) throws IOException {
-		writer.append(OPENPARENTHESIS).append(FUNCTION).append(PARENTHESIS).append(SPACEOPTIONAL)
+		writer.append(OPENPARENTHESIS).append(FUNCTION).append(SPACEOPTIONAL).append(PARENTHESIS).append(SPACEOPTIONAL)
 				  .append(OPENBRACE).append(CR); // (function() {\n
 		writer.append(TAB).append(USESTRICT).append(SEMICOLON).append(CR); // 'use strict';
 	}
@@ -30,6 +30,6 @@ public class ClosureWriter implements ProcessorConstants, AngularConstants {
 	 * @throws IOException 
 	 */
 	public void writeClose(Writer writer) throws IOException {
-		writer.append(CLOSEBRACE).append(CLOSEPARENTHESIS).append(PARENTHESIS).append(SEMICOLON); // })();
+		writer.append(CLOSEBRACE).append(CLOSEPARENTHESIS).append(PARENTHESIS).append(SEMICOLON).append(CR); // })();
 	}
 }

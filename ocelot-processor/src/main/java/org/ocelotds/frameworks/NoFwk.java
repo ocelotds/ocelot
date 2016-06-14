@@ -5,6 +5,7 @@ package org.ocelotds.frameworks;
 
 import java.io.IOException;
 import java.io.Writer;
+import org.ocelotds.frameworks.angularjs.ClosureWriter;
 import org.ocelotds.processors.ProcessorConstants;
 
 /**
@@ -13,17 +14,25 @@ import org.ocelotds.processors.ProcessorConstants;
  */
 public class NoFwk implements FwkWriter, ProcessorConstants {
 
+	ClosureWriter closureWriter = null;
+
 	@Override
 	public void writeHeaderService(Writer writer, String instanceName) throws IOException {
-		writer.append("var").append(SPACE).append(instanceName).append(SPACEOPTIONAL).append(EQUALS).append(SPACEOPTIONAL)
-				  .append(OPENPARENTHESIS).append(FUNCTION).append(SPACEOPTIONAL).append(PARENTHESIS).append(SPACEOPTIONAL)
-				  .append(OPENBRACE).append(CR); //var instanceName = (function () {\n
-		writer.append(TAB).append(USESTRICT).append(SEMICOLON).append(CR); //\t'use strict';\n
+		getClosureWriter().writeOpen(writer);
+		writer.append("window.").append(instanceName).append(SPACEOPTIONAL).append(EQUALS).append(SPACEOPTIONAL);
+		getClosureWriter().writeOpen(writer);
 	}
 
 	@Override
 	public void writeFooterService(Writer writer) throws IOException {
-		writer.append(CLOSEBRACE).append(CLOSEPARENTHESIS).append(PARENTHESIS).append(SEMICOLON); //})();
+		getClosureWriter().writeClose(writer);
+		getClosureWriter().writeClose(writer);
 	}
 	
+	public ClosureWriter getClosureWriter() {
+		if(closureWriter==null) {
+			closureWriter = new ClosureWriter();
+		}
+		return closureWriter;
+	}
 }
