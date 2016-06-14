@@ -1,7 +1,18 @@
 <div class="row">       
 	<div class="col-sm-4 col-md-3 sidebar">
 		<ul class="nav nav-sidebar">
-			<li ng-repeat="session in ctrl.sessions" class="{{session.new?'animated flipInX infinite':''}} {{session.open?'':'disabled'}}" 
+			<li>
+				<a>
+					<span>Show inactives</span>
+					<span class="pull-right">
+						<btn-switch onswitch="ctrl.switchShowDisabled()" 
+										title="Show inactives" options="{'size':'xs'}"
+										value="ctrl.showDisabled">
+						</btn-switch>
+					</span>
+				</a>
+			</li>
+			<li ng-repeat="session in ctrl.sessions | filtersession:ctrl.showDisabled" class="{{session.new?'animated flipInX infinite':''}} {{session.open?'':'disabled'}}" 
 				 ng-click="session.new = false" title="{{session.id}}">
 				<a>
 					<b>{{session| sessioninfo}}</b>
