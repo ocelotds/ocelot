@@ -13,12 +13,12 @@
 <dependency>
   <groupId>org.ocelotds</groupId>
   <artifactId>ocelot-core</artifactId>
-  <version>2.11.0</version>
+  <version>2.11.1</version>
 </dependency>
 <dependency>
   <groupId>org.ocelotds</groupId>
   <artifactId>ocelot-web</artifactId>
-  <version>2.11.0</version>
+  <version>2.11.1</version>
 </dependency>
 ```
 ## EAR Package 
@@ -27,7 +27,7 @@
 <dependency>
   <groupId>org.ocelotds</groupId>
   <artifactId>ocelot-web</artifactId>
-  <version>2.11.0</version>
+  <version>2.11.1</version>
 </dependency>
 ```
 ### Dependencies EJB Module
@@ -35,7 +35,7 @@
 <dependency>
   <groupId>org.ocelotds</groupId>
   <artifactId>ocelot-core</artifactId>
-  <version>2.11.0</version>
+  <version>2.11.1</version>
 </dependency>
 ```
 
