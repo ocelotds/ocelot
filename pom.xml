@@ -4,7 +4,7 @@
 	<groupId>org.ocelotds</groupId>
 	<artifactId>ocelot</artifactId>
 	<name>ocelot</name>
-	<version>2.11.1-SNAPSHOT</version>
+	<version>2.11.1</version>
 	<packaging>pom</packaging>
 	<description>Framework for communication way between java and javascript</description>	
 	<url>http://ocelotds.org</url>
@@ -33,7 +33,7 @@
 		<connection>scm:git:https://github.com/ocelotds/ocelot.git</connection>
 		<developerConnection>scm:git:https://github.com/ocelotds/ocelot.git</developerConnection>
 		<url>https://github.com/ocelotds/ocelot.git</url>
-		<tag>HEAD</tag>
+		<tag>ocelot-2.11.1</tag>
 	</scm>	
 	
 	<distributionManagement>
