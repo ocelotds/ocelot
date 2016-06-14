@@ -6,8 +6,9 @@
 		angular.module("ocelot.ds", []);
 	}
 	angular.module("ocelot.ds").provider('promiseFactory', provider);
+	provider.$inject = ['ocelotControllerProvider'];
 	/* @ngInject */
-	function provider() {
+	function provider(ocelotControllerProvider) {
 		this.$get = function () {
 			return {
 				create: function (ds, id, op, ws, argNames, args) {
@@ -126,20 +127,7 @@
 								return {"id": key, "ds": ds, "op": op, "argNames": argNames, "args": args};
 							}
 						};
-						var e = document.createEvent("Event");
-						e.initEvent("call", true, false);
-						e.promise = promise;
-						// if this event is dispatch too early, we try in 200 ms
-						if(document["promiseEventListener"] === undefined) {
-							retry = setTimeout(function(evt) {
-								console.debug("Retry to dispatch event");
-								document.dispatchEvent(evt);
-							}, 200, e);
-						} else {
-							setTimeout(function (evt) {
-								document.dispatchEvent(evt);
-							}, 1, e);
-						}
+						setTimeout(ocelotControllerProvider.$get().addPromise, 0, promise);
 						return promise;
 					})(ds, id, op, ws, argNames, args);
 				}
