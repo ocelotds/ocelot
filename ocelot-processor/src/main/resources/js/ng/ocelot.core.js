@@ -81,12 +81,6 @@
 			});
 		}
 		function init() {
-			/**
-			 * Add ocelotController events to document
-			 * @param {Event} event
-			 */
-			document.addEventListener("call", addPromiseEvent);
-			document["promiseEventListener"] = true;
 			window.addEventListener("beforeunload", function (e) {
 				_close("ONUNLOAD");
 			});
@@ -100,18 +94,21 @@
 		}
 		init();
 	}
-	angular.module("ocelot.ds").factory('ocelotController', factory);
+	angular.module("ocelot.ds").provider('ocelotController', provider);
 	/* @ngInject */
-	function factory() {
-		return {
-			get options() {
-				return opts;
-			},
-			get status() {
-				return _status();
-			},
-			close: _close,
-			cacheManager: _cacheManager
+	function provider() {
+		this.$get = function () {
+			return {
+				get options() {
+					return opts;
+				},
+				get status() {
+					return _status();
+				},
+				close: _close,
+				cacheManager: _cacheManager,
+				addPromise:_addPromise
+			};
 		};
 	}
 	var opts = {"monitor": false, "debug": false}, MSG = "MESSAGE", CONSTRAINT = "CONSTRAINT", RES = "RESULT";
@@ -349,11 +346,8 @@
 		foreachPromiseDo(getPromises(id), func);
 	}
 	function foreachPromiseDo(aPromises, func) {
-		var i;
 		if (aPromises) {
-			for (i = 0; i < aPromises.length; i++) {
-				func(aPromises[i]);
-			}
+			aPromises.forEach(func);
 		}
 	}
 	function addPromiseToId(promise, id) { // add promise to promise list and return if some promises exists already for id
@@ -420,12 +414,12 @@
 		if (!addPromiseToId(promise, promise.id)) {
 			mfc = JSON.stringify(promise.json);
 			if (promise.ws) {
-				if (ws.readyState === WebSocket.OPEN) {
+				if (ws.readyState === window.WebSocket.OPEN) {
 					ws.send(mfc);
 				} else {
 					pendingMfc.push(mfc);
 					if (opts.debug)
-						console.debug("warning : Websocket is not ready, defer " + promise.dataservice + "." + promise.operation + "(" + promise.args + ");")
+						console.debug("warning : Websocket is not ready, defer " + promise.dataservice + "." + promise.operation + "(" + promise.args + ");");
 				}
 			} else {
 				xhttp = new XMLHttpRequest();
@@ -457,34 +451,37 @@
 			// if msgToClient has dead line so we stock in cache
 			_cacheManager.putResultInCache(msgToClient);
 		}
-		foreachPromiseInPromisesDo(msgToClient.id, function (promise) {
-			if (opts.debug)
-				console.debug(promise.dataservice + "." + promise.operation + " : ", msgToClient);
-			switch (msgToClient.type) {
-				case FAULT:
-					promise.response = createFaultEventFromPromise(promise, msgToClient);
-					break;
-				case RES:
-					// if msg is response of subscribe request
-					if (isTopicSubscription(promise)) {
-						promise.uid = getUid(); // useful for found promise
-						addPromiseToId(promise, promise.args[0]);
-					} else if (isTopicUnsubscription(promise)) {
-						removePromiseForTopic(promise, promise.args[0]);
-					}
-					promise.response = createResultEventFromPromise(promise, msgToClient);
-					break;
-				case CONSTRAINT:
-					promise.response = createConstraintEventFromPromise(promise, msgToClient);
-					break;
-				case MSG:
-					promise.response = createMessageEventFromPromise(promise, msgToClient);
-					break;
-			}
-		});
-		// when receive result or fault, remove handlers, except for topic
+		var promises = getPromises(msgToClient.id);
 		if (msgToClient.type !== MSG) {
 			clearPromisesForId(msgToClient.id);
+		}
+		promises.forEach(function(promise) {
+			processPromise(promise, msgToClient);
+		});
+	}
+	function processPromise(promise, msgToClient) {
+		if (opts.debug)
+			console.debug(promise.dataservice + "." + promise.operation + " : ", msgToClient);
+		switch (msgToClient.type) {
+			case FAULT:
+				promise.response = createFaultEventFromPromise(promise, msgToClient);
+				break;
+			case RES:
+				// if msg is response of subscribe request
+				if (isTopicSubscription(promise)) {
+					promise.uid = getUid(); // useful for found promise
+					addPromiseToId(promise, promise.args[0]);
+				} else if (isTopicUnsubscription(promise)) {
+					removePromiseForTopic(promise, promise.args[0]);
+				}
+				promise.response = createResultEventFromPromise(promise, msgToClient);
+				break;
+			case CONSTRAINT:
+				promise.response = createConstraintEventFromPromise(promise, msgToClient);
+				break;
+			case MSG:
+				promise.response = createMessageEventFromPromise(promise, msgToClient);
+				break;
 		}
 	}
 	function onwsmessage(evt) {
@@ -504,9 +501,6 @@
 				connect();
 			}, 1000);
 		}
-	}
-	function addPromiseEvent(event) {
-		_addPromise(event.promise);
 	}
 	function _addPromise(promise) {
 		if(opts.debug)
