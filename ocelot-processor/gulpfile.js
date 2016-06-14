@@ -21,19 +21,19 @@
 	});
 	gulp.task('createAngular', ['clean'], function () {
 			return gulp.src([ 
+				'./src/main/resources/js/ng/ocelot.core.js',
 				'./src/main/resources/js/ng/promiseFactory.js',
 				'./src/main/resources/js/ng/ocelotServices.js',
 				'./src/main/resources/js/ng/hash.js', 
-				'./src/main/resources/js/ng/ocelot.core.js',
 				'./src/main/resources/js/ng/subscriberFactory.js'
 			]).pipe(concat('core.ng.js')).pipe(gulp.dest('./target/classes/js'));
 	});
 	gulp.task('createCore', ['clean'], function () {
 			return gulp.src([
+				'./src/main/resources/js/nofwk/hash.js',
 				'./src/main/resources/js/nofwk/subscriberFactory.js',
 				'./src/main/resources/js/nofwk/ocelotServices.js', 
 				'./src/main/resources/js/nofwk/promiseFactory.js', 
-				'./src/main/resources/js/nofwk/hash.js', 
 				'./src/main/resources/js/nofwk/ocelotController.js'
 			]).pipe(concat('core.js')).pipe(gulp.dest('./target/classes/js'));
 	});
