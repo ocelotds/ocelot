@@ -34,21 +34,44 @@ public class RsJsServicesTest {
 
 	@Mock
 	UriInfo context;
+
 	/**
 	 * Test of getStreams method, of class RsJsServices.
 	 */
 	@Test
-	public void testGetStreams() {
+	public void testGetStreamsNoFwk() {
 		System.out.println("getStreams");
 		((FakeCDI) dataservices).add("service1");
 		((FakeCDI) dataservices).add("service2");
 		((FakeCDI) dataservices).add(new OcelotServices());
 		((FakeCDI) dataservices).add("service4");
 		when(context.getPath()).thenReturn("");
-		doReturn("").when(instance).getClassnameFromProxy(anyObject());
+		doReturn("srv1").when(instance).getClassnameFromProxy(eq("service1"));
+		doReturn("srv2").when(instance).getClassnameFromProxy(eq("service2"));
+		doReturn("srv4").when(instance).getClassnameFromProxy(eq("service4"));
 		doReturn("").when(instance).getJsFilename(anyString(), anyString());
 		List<InputStream> result = instance.getStreams();
 		verify(instance, times(3)).addStream(any(List.class), anyString());
+		verify(instance).getJsFilename(eq("srv1"), eq((String) null));
+		verify(instance).getJsFilename(eq("srv2"), eq((String) null));
+		verify(instance).getJsFilename(eq("srv4"), eq((String) null));
+
+		assertThat(result).isNotNull();
+	}
+
+	/**
+	 * Test of getStreams method, of class RsJsServices.
+	 */
+	@Test
+	public void testGetStreamsNgFwk() {
+		System.out.println("getStreams");
+		((FakeCDI) dataservices).add("service");
+		when(context.getPath()).thenReturn("services.ng.js");
+		doReturn("srv").when(instance).getClassnameFromProxy(eq("service"));
+		doReturn("").when(instance).getJsFilename(anyString(), anyString());
+		List<InputStream> result = instance.getStreams();
+		verify(instance).addStream(any(List.class), anyString());
+		verify(instance).getJsFilename(eq("srv"), eq("ng"));
 		assertThat(result).isNotNull();
 	}
 
