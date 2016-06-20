@@ -23,7 +23,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ocelotds.core.CacheManager;
+import org.ocelotds.cache.CacheManager;
 import org.ocelotds.core.services.ArgumentServices;
 import org.ocelotds.core.services.ClassAsDataService;
 import org.ocelotds.core.services.ConstraintServices;
