@@ -4,6 +4,7 @@
 package org.ocelotds.web.rest;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
@@ -18,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.Constants;
 import org.slf4j.Logger;
 
 /**
@@ -59,12 +61,24 @@ public class AbstractRsJsTest {
 	 * Test of getJsFilename method, of class AbstractRsJs.
 	 */
 	@Test
-	public void testGetJsFilename() {
+	public void testGetJsFilenameFwk() {
 		System.out.println("getJsFilename");
-		String classname = "";
-		String expResult = "";
-		String result = instance.getJsFilename(classname, "ng");
-		assertThat(result);
+		String classname = "p1.p2.p3.Cls1";
+		String expResult = "/p1/p2/p3/Cls1.fwk.js";
+		String result = instance.getJsFilename(classname, "fwk");
+		assertThat(result).isEqualTo(expResult);
+	}
+
+	/**
+	 * Test of getJsFilename method, of class AbstractRsJs.
+	 */
+	@Test
+	public void testGetJsFilenameNoFwk() {
+		System.out.println("getJsFilename");
+		String classname = "p1.p2.p3.Cls1";
+		String expResult = "/p1/p2/p3/Cls1.js";
+		String result = instance.getJsFilename(classname, null);
+		assertThat(result).isEqualTo(expResult);
 	}
 
 	/**
