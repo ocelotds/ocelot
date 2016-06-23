@@ -95,12 +95,13 @@ public class JsCacheAnnotationServices {
 		logger.debug("Process JsCacheRemove annotation : {}", jcr);
 		MessageToClient messageToClient = new MessageToClient();
 		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
+		String argpart = cacheArgumentServices.computeArgPart(jcr.keys(), jsonArgs, paramNames);
+		String cachekey = computeCacheKey(jcr.cls(), jcr.methodName(), argpart);
 		if(logger.isDebugEnabled()) {
 			logger.debug("JsonArgs from Call : {}", Arrays.toString(jsonArgs.toArray(new String[jsonArgs.size()])));
 			logger.debug("ParamName from considerated method : {}", Arrays.toString(paramNames.toArray(new String[paramNames.size()])));
+			logger.debug("Computed key : {}", cachekey);
 		}
-		String argpart = cacheArgumentServices.computeArgPart(jcr.keys(), jsonArgs, paramNames);
-		String cachekey = computeCacheKey(jcr.cls(), jcr.methodName(), argpart);
 		messageToClient.setResponse(cachekey);
 		wsEvent.fire(messageToClient);
 		cacheEvent.fire(cachekey);
