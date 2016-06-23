@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
  */
-package org.ocelotds.processors;
+package org.ocelotds.processors.visitors;
 
 import org.ocelotds.annotations.JsCacheResult;
 import java.io.IOException;
@@ -21,6 +21,7 @@ import org.ocelotds.processors.stringDecorators.NothingDecorator;
 import org.ocelotds.processors.stringDecorators.QuoteDecorator;
 import org.ocelotds.processors.stringDecorators.StringDecorator;
 import org.ocelotds.frameworks.FwkWriter;
+import org.ocelotds.processors.MethodComparator;
 
 /**
  * Visitor of class annoted org.ocelotds.annotations.DataService<br>
@@ -188,8 +189,8 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 		boolean ws = isWebsocketDataService(methodElement);
 		String args = stringJoinAndDecorate(arguments, COMMA, new NothingDecorator());
 		String paramNames = stringJoinAndDecorate(arguments, COMMA, new QuoteDecorator());
-//		String keys = computeKeys(methodElement, arguments);
-		createReturnOcelotPromiseFactory(classname, methodName, ws, paramNames, args, writer);
+		String keys = computeKeys(methodElement, arguments);
+		createReturnOcelotPromiseFactory(classname, methodName, ws, paramNames, args, keys, writer);
 	}
 	
 	/**
@@ -237,10 +238,11 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 * @param writer
 	 * @throws IOException 
 	 */
-	void createReturnOcelotPromiseFactory(String classname, String methodName, boolean ws, String paramNames, String args, Writer writer) throws IOException {
+	void createReturnOcelotPromiseFactory(String classname, String methodName, boolean ws, String paramNames, String args, String keys, Writer writer) throws IOException {
 		String md5 = keyMaker.getMd5(classname + DOT + methodName);
 		writer.append(TAB3).append("return promiseFactory.create").append(OPENPARENTHESIS).append("_ds").append(COMMA).append(SPACEOPTIONAL)
-				  .append(QUOTE).append(md5).append(QUOTE).append(COMMA).append(SPACEOPTIONAL)
+				  .append(QUOTE).append(md5).append(UNDERSCORE).append(QUOTE)
+				  .append(" + JSON.stringify([").append(keys).append("]).md5()").append(COMMA).append(SPACEOPTIONAL)
 				  .append(QUOTE).append(methodName).append(QUOTE).append(COMMA).append(SPACEOPTIONAL).append(""+ws).append(COMMA)
 				  .append(SPACEOPTIONAL).append(OPENBRACKET).append(paramNames).append(CLOSEBRACKET).append(COMMA)
 				  .append(SPACEOPTIONAL).append(OPENBRACKET).append(args).append(CLOSEBRACKET).append(CLOSEPARENTHESIS)

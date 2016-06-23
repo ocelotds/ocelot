@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
  */
-package org.ocelotds.processors;
+package org.ocelotds.processors.visitors;
 
 import java.io.IOException;
 import org.ocelotds.annotations.TransientDataService;
@@ -30,6 +30,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import org.ocelotds.annotations.DataService;
+import org.ocelotds.processors.ProcessorConstants;
 
 /**
  * Visitor of class annoted org.ocelotds.annotations.DataService<br>

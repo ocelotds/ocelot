@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.processors;
+package org.ocelotds.processors.visitors;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -32,6 +32,8 @@ import org.ocelotds.KeyMaker;
 import org.ocelotds.annotations.JsCacheResult;
 import org.ocelotds.frameworks.NoFwk;
 import org.ocelotds.frameworks.WriterTest;
+import org.ocelotds.processors.JsCacheResultLiteral;
+import org.ocelotds.processors.ProcessorConstants;
 import org.ocelotds.processors.stringDecorators.NothingDecorator;
 import org.ocelotds.processors.stringDecorators.QuoteDecorator;
 import org.ocelotds.processors.stringDecorators.StringDecorator;
@@ -268,10 +270,10 @@ public class DataServiceVisitorJsBuilderTest implements ProcessorConstants{
 		doReturn("ARGS").when(instance).stringJoinAndDecorate(eq(arguments), eq(","), any(NothingDecorator.class));
 		doReturn("PARAMNAMES").when(instance).stringJoinAndDecorate(eq(arguments), eq(","), any(QuoteDecorator.class));
 		doReturn("KEYS").when(instance).computeKeys(eq(executableElement), eq(arguments));
-		doNothing().when(instance).createReturnOcelotPromiseFactory(any(String.class), any(String.class), any(Boolean.class), any(String.class), any(String.class), any(Writer.class));
+		doNothing().when(instance).createReturnOcelotPromiseFactory(any(String.class), any(String.class), any(Boolean.class), any(String.class), any(String.class), any(String.class), any(Writer.class));
 		
 		instance.createMethodBody(classname, executableElement, arguments, writer);
-		verify(instance).createReturnOcelotPromiseFactory(any(String.class), any(String.class), any(Boolean.class), any(String.class), any(String.class), any(Writer.class));
+		verify(instance).createReturnOcelotPromiseFactory(any(String.class), any(String.class), any(Boolean.class), any(String.class), any(String.class), any(String.class), any(Writer.class));
 	}
 	
 	/**
@@ -369,7 +371,7 @@ public class DataServiceVisitorJsBuilderTest implements ProcessorConstants{
 		System.out.println("createReturnOcelotPromiseFactory");
 		String expresult = ProcessorConstants.TAB3+"return promiseFactory.create(_ds,"+ProcessorConstants.SPACEOPTIONAL+"\"c4746bbdace1d5712da7b6fabe58fb9c\","+ProcessorConstants.SPACEOPTIONAL+"\"METHODNAME\","+ProcessorConstants.SPACEOPTIONAL+"true,"+ProcessorConstants.SPACEOPTIONAL+"[PARAMNAMES],"+ProcessorConstants.SPACEOPTIONAL+"[ARGS]);"+ProcessorConstants.CR;
 		StringWriter writer = new StringWriter();
-		instance.createReturnOcelotPromiseFactory("CLSNAME", "METHODNAME", true, "PARAMNAMES", "ARGS", writer);
+		instance.createReturnOcelotPromiseFactory("CLSNAME", "METHODNAME", true, "PARAMNAMES", "ARGS", "KEYS", writer);
 		String result = writer.toString();
 		System.out.println(result);
 		assertThat(result).isEqualTo(expresult);

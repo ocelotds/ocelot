@@ -4,6 +4,7 @@
  */
 package org.ocelotds.processors;
 
+import org.ocelotds.processors.visitors.DataServiceVisitorJsBuilder;
 import java.io.File;
 import org.ocelotds.annotations.DataService;
 import java.io.IOException;
@@ -25,15 +26,18 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import org.ocelotds.Constants;
 import org.ocelotds.FileWriterServices;
+import org.ocelotds.annotations.JsCacheRemove;
+import org.ocelotds.annotations.JsCacheRemoves;
 import org.ocelotds.frameworks.NoFwk;
 import org.ocelotds.frameworks.angularjs.AngularFwk;
+import org.ocelotds.processors.visitors.JsCacheRemoveVisitor;
 
 /**
  * Processor of annotation org.ocelotds.annotations.DataService
  *
  * @author hhfrancois
  */
-@SupportedAnnotationTypes(value = {ProcessorConstants.DATASERVICE_AT})
+@SupportedAnnotationTypes(value = {ProcessorConstants.DATASERVICE_AT, ProcessorConstants.JSCACHERMS_AT, ProcessorConstants.JSCACHERM_AT})
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 @SupportedOptions({ProcessorConstants.DIRECTORY, ProcessorConstants.FRAMEWORK})
 public class OcelotProcessor extends AbstractProcessor {
@@ -140,6 +144,17 @@ public class OcelotProcessor extends AbstractProcessor {
 		writeCoreInDirectory(jsdir, jsfwk); // one core.js in same time
 		for (Element element : roundEnv.getElementsAnnotatedWith(DataService.class)) {
 			processElement(element);
+		}
+		ElementVisitor visitor = new JsCacheRemoveVisitor(processingEnv);
+		try(Writer writer = fws.getFileObjectWriterInClassOutput("", "jsCacheRemoveParams.properties")) {
+			for (Element element : roundEnv.getElementsAnnotatedWith(JsCacheRemove.class)) {
+				element.accept(visitor, writer);
+			}
+			for (Element element : roundEnv.getElementsAnnotatedWith(JsCacheRemoves.class)) {
+				element.accept(visitor, writer);
+			}
+		} catch(IOException ioe) {
+			
 		}
 		OcelotProcessor.setDone(true);
 		return true;

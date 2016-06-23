@@ -4,7 +4,7 @@
 		return {
 			create: function (ds, id, op, ws, argNames, args) {
 				return (function (ds, id, op, ws, argNames, args) {
-					var fault, evt = null, _cacheIgnored = false, start = new Date().getTime(), _timeout = 10000, key = id + "_" + JSON.stringify(args).md5();
+					var fault, evt = null, _cacheIgnored = false, start = new Date().getTime(), _timeout = 10000, key = id;
 					var thenHandlers = [], catchHandlers = [], constraintHandlers = [], eventHandlers = [], messageHandlers = [];
 					function process() {
 						if (!evt) {
