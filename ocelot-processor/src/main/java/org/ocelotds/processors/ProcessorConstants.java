@@ -37,6 +37,8 @@ public interface ProcessorConstants {
 	String USESTRICT = "'use strict'";
 	
 	String DATASERVICE_AT = "org.ocelotds.annotations.DataService";
+	String JSCACHERM_AT = "org.ocelotds.annotations.JsCacheRemove";
+	String JSCACHERMS_AT = "org.ocelotds.annotations.JsCacheRemoves";
 	String DIRECTORY = "jsdir";
 	String FRAMEWORK = "jsfwk";
 	String JSPROMISECREATORSCRIPT = "/js/promisefactory.js";
