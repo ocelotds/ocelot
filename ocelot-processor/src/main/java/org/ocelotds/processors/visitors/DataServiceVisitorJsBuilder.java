@@ -18,7 +18,6 @@ import org.ocelotds.KeyMaker;
 import org.ocelotds.annotations.WsDataService;
 import org.ocelotds.processors.stringDecorators.KeyForArgDecorator;
 import org.ocelotds.processors.stringDecorators.NothingDecorator;
-import org.ocelotds.processors.stringDecorators.QuoteDecorator;
 import org.ocelotds.processors.stringDecorators.StringDecorator;
 import org.ocelotds.frameworks.FwkWriter;
 import org.ocelotds.processors.MethodComparator;
@@ -188,9 +187,8 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 		String methodName = getMethodName(methodElement);
 		boolean ws = isWebsocketDataService(methodElement);
 		String args = stringJoinAndDecorate(arguments, COMMA, new NothingDecorator());
-		String paramNames = stringJoinAndDecorate(arguments, COMMA, new QuoteDecorator());
 		String keys = computeKeys(methodElement, arguments);
-		createReturnOcelotPromiseFactory(classname, methodName, ws, paramNames, args, keys, writer);
+		createReturnOcelotPromiseFactory(classname, methodName, ws, args, keys, writer);
 	}
 	
 	/**
@@ -233,18 +231,17 @@ public class DataServiceVisitorJsBuilder extends AbstractDataServiceVisitor {
 	 * Return body js line that return the OcelotPromise
 	 * @param classname
 	 * @param methodName
-	 * @param paramNames
 	 * @param args
+	 * @param keys
 	 * @param writer
 	 * @throws IOException 
 	 */
-	void createReturnOcelotPromiseFactory(String classname, String methodName, boolean ws, String paramNames, String args, String keys, Writer writer) throws IOException {
+	void createReturnOcelotPromiseFactory(String classname, String methodName, boolean ws, String args, String keys, Writer writer) throws IOException {
 		String md5 = keyMaker.getMd5(classname + DOT + methodName);
 		writer.append(TAB3).append("return promiseFactory.create").append(OPENPARENTHESIS).append("_ds").append(COMMA).append(SPACEOPTIONAL)
 				  .append(QUOTE).append(md5).append(UNDERSCORE).append(QUOTE)
 				  .append(" + JSON.stringify([").append(keys).append("]).md5()").append(COMMA).append(SPACEOPTIONAL)
 				  .append(QUOTE).append(methodName).append(QUOTE).append(COMMA).append(SPACEOPTIONAL).append(""+ws).append(COMMA)
-				  .append(SPACEOPTIONAL).append(OPENBRACKET).append(paramNames).append(CLOSEBRACKET).append(COMMA)
 				  .append(SPACEOPTIONAL).append(OPENBRACKET).append(args).append(CLOSEBRACKET).append(CLOSEPARENTHESIS)
 				  .append(SEMICOLON).append(CR);
 	}

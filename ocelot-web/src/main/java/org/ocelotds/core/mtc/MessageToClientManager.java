@@ -146,7 +146,7 @@ public abstract class MessageToClientManager<T> {
 			}
 			try {
 				Method nonProxiedMethod = methodServices.getNonProxiedMethod(cls, method.getName(), method.getParameterTypes());
-				messageToClient.setDeadline(cacheManager.processCacheAnnotations(nonProxiedMethod, message.getParameterNames(), message.getParameters()));
+				messageToClient.setDeadline(cacheManager.processCacheAnnotations(nonProxiedMethod, message.getParameters()));
 			} catch (NoSuchMethodException ex) {
 				logger.error("Fail to process extra annotations (JsCacheResult, JsCacheRemove) for method : " + method.getName(), ex);
 			}
@@ -154,7 +154,7 @@ public abstract class MessageToClientManager<T> {
 		} catch (InvocationTargetException ex) {
 			Throwable cause = ex.getCause();
 			if (ConstraintViolationException.class.isInstance(cause)) {
-				messageToClient.setConstraints(constraintServices.extractViolations((ConstraintViolationException) cause, message.getParameterNames()));
+				messageToClient.setConstraints(constraintServices.extractViolations((ConstraintViolationException) cause));
 			} else {
 				messageToClient.setFault(faultServices.buildFault(cause));
 			}

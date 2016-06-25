@@ -3,12 +3,16 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.cache;
 
+import java.io.IOException;
+import java.io.InputStream;
 import org.ocelotds.annotations.JsCacheRemove;
 import org.ocelotds.annotations.JsCacheRemoveAll;
 import org.ocelotds.annotations.JsCacheRemoves;
 import org.ocelotds.annotations.JsCacheResult;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import javax.inject.Inject;
 import org.ocelotds.annotations.OcelotLogger;
 import org.slf4j.Logger;
@@ -26,16 +30,18 @@ public class CacheManager {
 
 	@Inject
 	private JsCacheAnnotationServices jsCacheAnnotationServices;
+	
+	@Inject
+	private CacheParamNameServices cacheParamNameServices;
 
 	/**
 	 * Process annotations JsCacheResult, JsCacheRemove and JsCacheRemoves
 	 * @param nonProxiedMethod
-	 * @param parameterNames
 	 * @param parameters
 	 * @return 
 	 */
-	public long processCacheAnnotations(Method nonProxiedMethod, List<String> parameterNames, List<String> parameters) {
-		processCleanCacheAnnotations(nonProxiedMethod, parameterNames, parameters);
+	public long processCacheAnnotations(Method nonProxiedMethod, List<String> parameters) {
+		processCleanCacheAnnotations(nonProxiedMethod, parameters);
 		if (isJsCached(nonProxiedMethod)) {
 			return jsCacheAnnotationServices.getJsCacheResultDeadline(nonProxiedMethod.getAnnotation(JsCacheResult.class));
 		}
@@ -58,28 +64,31 @@ public class CacheManager {
 	 * Process annotations JsCacheRemove and JsCacheRemoves
 	 *
 	 * @param nonProxiedMethod
-	 * @param paramNames
 	 * @param jsonArgs
 	 */
-	void processCleanCacheAnnotations(Method nonProxiedMethod, List<String> paramNames, List<String> jsonArgs) {
+	void processCleanCacheAnnotations(Method nonProxiedMethod, List<String> jsonArgs) {
 		boolean cleanAllCache = nonProxiedMethod.isAnnotationPresent(JsCacheRemoveAll.class);
 		if (cleanAllCache) {
 			jsCacheAnnotationServices.processJsCacheRemoveAll();
+			logger.debug("Method {} removed all cache{} entries on all clients.");
 		}
 		boolean simpleCleancache = nonProxiedMethod.isAnnotationPresent(JsCacheRemove.class);
-		if (simpleCleancache) {
-			JsCacheRemove jcr = nonProxiedMethod.getAnnotation(JsCacheRemove.class);
-			jsCacheAnnotationServices.processJsCacheRemove(jcr, paramNames, jsonArgs);
-		}
 		boolean multiCleancache = nonProxiedMethod.isAnnotationPresent(JsCacheRemoves.class);
-		if (multiCleancache) {
-			JsCacheRemoves jcrs = nonProxiedMethod.getAnnotation(JsCacheRemoves.class);
-			for (JsCacheRemove jcr : jcrs.value()) {
+		if (simpleCleancache || multiCleancache) {
+			List<String> paramNames = cacheParamNameServices.getMethodParamNames(nonProxiedMethod.getDeclaringClass(), nonProxiedMethod.getName());
+			if (simpleCleancache) {
+				JsCacheRemove jcr = nonProxiedMethod.getAnnotation(JsCacheRemove.class);
 				jsCacheAnnotationServices.processJsCacheRemove(jcr, paramNames, jsonArgs);
 			}
-		}
-		if (logger.isDebugEnabled() && (simpleCleancache || multiCleancache)) {
-			logger.debug("The method {} will remove cache{} entr{} on clients side.", nonProxiedMethod.getName(), multiCleancache ? "s" : "", multiCleancache ? "ies" : "y");
+			if (multiCleancache) {
+				JsCacheRemoves jcrs = nonProxiedMethod.getAnnotation(JsCacheRemoves.class);
+				for (JsCacheRemove jcr : jcrs.value()) {
+					jsCacheAnnotationServices.processJsCacheRemove(jcr, paramNames, jsonArgs);
+				}
+			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("Method {} removed related cache{} entr{} on all clients.", nonProxiedMethod.getName(), multiCleancache ? "s" : "", multiCleancache ? "ies" : "y");
+			}
 		}
 	}
 }

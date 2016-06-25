@@ -407,10 +407,9 @@
 			ws.onopen = onwsopen;
 			ws.onerror = onwserror;
 			ws.onclose = onwsclose;
+		}, function(fault) {
+			console.error(fault);
 		});
-	}
-	function addPromiseEvent(event) {
-		_addPromise(event.promise);
 	}
 	function _close(reason) {
 		setTimeout(function (w) {

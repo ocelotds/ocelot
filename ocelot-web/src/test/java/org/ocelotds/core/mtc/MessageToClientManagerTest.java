@@ -187,7 +187,6 @@ public class MessageToClientManagerTest {
 		MessageFromClient message = new MessageFromClient();
 		message.setDataService(cls.getName());
 		message.setOperation(methodname);
-		message.setParameterNames(Arrays.asList("a"));
 		message.setParameters(Arrays.asList("\"v\""));
 		message.setId(UUID.randomUUID().toString());
 		Session session = mock(Session.class);
@@ -219,7 +218,6 @@ public class MessageToClientManagerTest {
 		MessageFromClient message = new MessageFromClient();
 		message.setDataService(cls.getName());
 		message.setOperation(methodname);
-		message.setParameterNames(Arrays.asList("a"));
 		message.setParameters(Arrays.asList("\"v\""));
 		message.setId(UUID.randomUUID().toString());
 		Session session = mock(Session.class);
@@ -255,7 +253,6 @@ public class MessageToClientManagerTest {
 		MessageFromClient message = new MessageFromClient();
 		message.setDataService(cls.getName());
 		message.setOperation(methodname);
-		message.setParameterNames(Arrays.asList("a"));
 		message.setParameters(Arrays.asList("\"v\""));
 		message.setId(UUID.randomUUID().toString());
 		Session session = mock(Session.class);
@@ -290,7 +287,6 @@ public class MessageToClientManagerTest {
 		MessageFromClient message = new MessageFromClient();
 		message.setDataService(cls.getName());
 		message.setOperation(methodname);
-		message.setParameterNames(Arrays.asList("a"));
 		message.setParameters(Arrays.asList("\"v\""));
 		message.setId(UUID.randomUUID().toString());
 
@@ -344,7 +340,6 @@ public class MessageToClientManagerTest {
 		MessageFromClient message = new MessageFromClient();
 		message.setDataService(cls.getName());
 		message.setOperation(methodname);
-		message.setParameterNames(Arrays.asList("a"));
 		message.setParameters(Arrays.asList("\"v\""));
 		message.setId(UUID.randomUUID().toString());
 
@@ -359,10 +354,10 @@ public class MessageToClientManagerTest {
 		when(methodServices.getMethodFromDataService(any(Class.class), any(MessageFromClient.class), anyList())).thenReturn(method);
 		doNothing().when(instance).injectSession(any(Class[].class), anyList(), anyObject());
 		when(faultServices.buildFault(any(Throwable.class))).thenReturn(fault);
-		when(constraintServices.extractViolations(any(ConstraintViolationException.class), any(List.class))).thenReturn(null);
+		when(constraintServices.extractViolations(any(ConstraintViolationException.class))).thenReturn(null);
 		
 		MessageToClient result = instance.createMessageToClient(message, session);
-		verify(constraintServices).extractViolations(any(ConstraintViolationException.class), any(List.class));
+		verify(constraintServices).extractViolations(any(ConstraintViolationException.class));
 	}
 	
 	/**

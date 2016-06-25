@@ -33,10 +33,6 @@ public class MessageFromClient {
 	 * parameters json format
 	 */
 	protected List<String> parameters = new ArrayList<>();
-	/**
-	 * parameter names
-	 */
-	protected List<String> parameterNames = new ArrayList<>();
 
 	public String getId() {
 		return id;
@@ -70,14 +66,6 @@ public class MessageFromClient {
 		this.parameters = parameters;
 	}
 
-	public List<String> getParameterNames() {
-		return parameterNames;
-	}
-
-	public void setParameterNames(List<String> parameterNames) {
-		this.parameterNames = parameterNames;
-	}
-
 	@Override
 	public int hashCode() {
 		int hash = 5;
@@ -106,7 +94,6 @@ public class MessageFromClient {
 			message.setOperation(root.getString(Constants.Message.OPERATION));
 			logger.debug("Get arguments from message '{}'", json);
 			message.setParameters(getArgumentsFromMessage(root.getJsonArray(Constants.Message.ARGUMENTS)));
-			message.setParameterNames(getArgumentNamesFromMessage(root.getJsonArray(Constants.Message.ARGUMENTNAMES)));
 		}
 		return message;
 	}
@@ -119,33 +106,6 @@ public class MessageFromClient {
 			}
 			params.add(arg.toString());
 		}
-//		int idx = 0;
-//		if (!argArray.isEmpty()) {
-//			while (idx < argArray.size()) {
-//				JsonValue arg = argArray.get(idx++);
-//				if (logger.isDebugEnabled()) {
-//					logger.debug("Get argument Type : '{}'. Value : '{}'", arg.getValueType().name(), arg);
-//				}
-//				params.add(arg.toString());
-//			}
-//		}
-		return params;
-	}
-
-	static List<String> getArgumentNamesFromMessage(JsonArray argArray) {
-		List<String> params = new ArrayList<>();
-		for (JsonValue arg : argArray) {
-			logger.debug("Get argumentName : '{}'.", arg);
-			params.add(((JsonString) arg).getString());
-		}
-//		int idx = 0;
-//		if (!argArray.isEmpty()) {
-//			while (idx < argArray.size()) {
-//				JsonString arg = argArray.getJsonString(idx++);
-//				logger.debug("Get argumentName : '{}'.", arg);
-//				params.add(arg.getString());
-//			}
-//		}
 		return params;
 	}
 }

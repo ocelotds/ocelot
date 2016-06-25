@@ -4,7 +4,6 @@
 package org.ocelotds.core.services;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -44,14 +43,13 @@ public class ConstraintServicesTest {
 	@Test
 	public void testExtractViolations() {
 		System.out.println("extractViolations");
-		List<String> paramNames = Arrays.asList("arg0", "arg1");
 		ConstraintViolationException cve = mock(ConstraintViolationException.class);
 		Set<javax.validation.ConstraintViolation<?>> constraintViolations = new HashSet<>();
 		constraintViolations.add(mock(javax.validation.ConstraintViolation.class));
 		constraintViolations.add(mock(javax.validation.ConstraintViolation.class));
 		when(cve.getConstraintViolations()).thenReturn(constraintViolations);
-		doReturn(mock(ConstraintViolation.class)).when(instance).extractViolation(any(javax.validation.ConstraintViolation.class), any(List.class));
-		ConstraintViolation[] result = instance.extractViolations(cve, paramNames);
+		doReturn(mock(ConstraintViolation.class)).when(instance).extractViolation(any(javax.validation.ConstraintViolation.class));
+		ConstraintViolation[] result = instance.extractViolations(cve);
 		assertThat(result).hasSize(2);
 	}
 
@@ -61,14 +59,13 @@ public class ConstraintServicesTest {
 	@Test
 	public void testExtractViolation() {
 		System.out.println("extractViolation");
-		List<String> paramNames = Collections.EMPTY_LIST;
 		doNothing().when(instance).extractViolationInfoFromNodes(any(Iterator.class), any(ConstraintViolation.class));
-		doReturn("NAME").when(instance).getArgumentName(any(ConstraintViolation.class), any(List.class));
+		doReturn("NAME").when(instance).getArgumentName(any(ConstraintViolation.class));
 		javax.validation.ConstraintViolation cv = mock(javax.validation.ConstraintViolation.class);
 		Path path = mock(Path.class);
 		when(cv.getPropertyPath()).thenReturn(path);
 		when(path.iterator()).thenReturn(mock(Iterator.class));
-		ConstraintViolation result = instance.extractViolation(cv, paramNames);
+		ConstraintViolation result = instance.extractViolation(cv);
 		assertThat(result.getName()).isEqualTo("NAME");
 	}
 
@@ -81,8 +78,7 @@ public class ConstraintServicesTest {
 		ConstraintViolation cv = new ConstraintViolation();
 		cv.setIndex(1);
 		String expResult = "arg1";
-		List<String> paramNames = Arrays.asList("arg0", expResult, "arg2");
-		String result = instance.getArgumentName(cv, paramNames);
+		String result = instance.getArgumentName(cv);
 		assertThat(result).isEqualTo(expResult);
 	}
 

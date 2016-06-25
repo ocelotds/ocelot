@@ -15,11 +15,13 @@ public class LiteralJsCacheRemove  extends AnnotationLiteral<JsCacheRemove> impl
 	final Class cls;
 	final String methodName;
 	final String[] keys;
+	final boolean userScope;
 
-	public LiteralJsCacheRemove(Class cls, String methodName, String[] keys) {
+	public LiteralJsCacheRemove(Class cls, String methodName, String[] keys, boolean userScope) {
 		this.cls = cls;
 		this.methodName = methodName;
 		this.keys = keys;
+		this.userScope = userScope;
 	}
 	
 	
@@ -38,4 +40,8 @@ public class LiteralJsCacheRemove  extends AnnotationLiteral<JsCacheRemove> impl
 		return keys;
 	}
 
+	@Override
+	public boolean userScope() {
+		return userScope;
+	}
 }

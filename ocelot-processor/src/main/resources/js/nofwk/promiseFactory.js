@@ -2,8 +2,8 @@
 	window.promiseFactory = (function () {
 		'use strict';
 		return {
-			create: function (ds, id, op, ws, argNames, args) {
-				return (function (ds, id, op, ws, argNames, args) {
+			create: function (ds, id, op, ws, args) {
+				return (function (ds, id, op, ws, args) {
 					var fault, evt = null, _cacheIgnored = false, start = new Date().getTime(), _timeout = 10000, key = id;
 					var thenHandlers = [], catchHandlers = [], constraintHandlers = [], eventHandlers = [], messageHandlers = [];
 					function process() {
@@ -115,12 +115,12 @@
 							return this;
 						},
 						get json() {
-							return {"id": key, "ds": ds, "op": op, "argNames": argNames, "args": args};
+							return {"id": key, "ds": ds, "op": op, "args": args};
 						}
 					};
 					setTimeout(ocelotController.addPromise, 0, promise);
 					return promise;
-				})(ds, id, op, ws, argNames, args);
+				})(ds, id, op, ws, args);
 			}
 		};
 	})();

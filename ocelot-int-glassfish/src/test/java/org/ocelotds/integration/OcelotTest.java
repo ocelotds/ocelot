@@ -622,23 +622,22 @@ public class OcelotTest extends AbstractOcelotTest {
 		// public void methodWithValidationArguments(@NotNull String str0, @NotNull String str1, @NotNull String str2) {}
 		System.out.println("methodWithValidationArguments");
 		MessageFromClient mfc = getMessageFromClient(ValidationCdiDataService.class, "methodWithValidationArguments", getJson(null), getJson(""), getJson(null));
-		mfc.setParameterNames(Arrays.asList("str0", "str1", "str2"));
 		MessageToClient mtc = testRSCallWithoutResult(getClient(), mfc, MessageType.CONSTRAINT);
 		ConstraintViolation[] cvs = (ConstraintViolation[]) mtc.getResponse();
 		assertThat(cvs).hasSize(2);
 		ConstraintViolation cv = cvs[0];
 		if (cv.getIndex() == 0) {
 			assertThat(cv.getIndex()).isEqualTo(0);
-			assertThat(cv.getName()).isEqualTo("str0");
+			assertThat(cv.getName()).isEqualTo("arg0");
 			cv = cvs[1];
 			assertThat(cv.getIndex()).isEqualTo(2);
-			assertThat(cv.getName()).isEqualTo("str2");
+			assertThat(cv.getName()).isEqualTo("arg2");
 		} else {
 			assertThat(cv.getIndex()).isEqualTo(2);
-			assertThat(cv.getName()).isEqualTo("str2");
+			assertThat(cv.getName()).isEqualTo("arg2");
 			cv = cvs[1];
 			assertThat(cv.getIndex()).isEqualTo(0);
-			assertThat(cv.getName()).isEqualTo("str0");
+			assertThat(cv.getName()).isEqualTo("arg0");
 		}
 	}
 
@@ -749,14 +748,13 @@ public class OcelotTest extends AbstractOcelotTest {
 		wc.setName("foo");
 		testRSCallWithoutResult(ValidationCdiDataService.class, "methodWithArgumentConstraint", getJson(wc));
 		MessageFromClient mfc = getMessageFromClient(ValidationCdiDataService.class, "methodWithArgumentConstraint", getJson(new WithConstraint()));
-		mfc.setParameterNames(Arrays.asList("str0"));
 		MessageToClient mtc = testRSCallWithoutResult(getClient(), mfc, MessageType.CONSTRAINT);
 		ConstraintViolation[] cvs = (ConstraintViolation[]) mtc.getResponse();
 		assertThat(cvs).isNotNull();
 		assertThat(cvs).hasSize(1);
 		ConstraintViolation cv = cvs[0];
 		assertThat(cv.getIndex()).isEqualTo(0);
-		assertThat(cv.getName()).isEqualTo("str0");
+		assertThat(cv.getName()).isEqualTo("arg0");
 		assertThat(cv.getProp()).isEqualTo("name");
 	}
 
@@ -904,7 +902,6 @@ public class OcelotTest extends AbstractOcelotTest {
 		System.out.println("sendRemoveCacheMessage");
 		final String topic = Constants.Cache.CLEANCACHE_TOPIC;
 		MessageFromClient mfc = getMessageFromClient(CacheDataService.class, "generateCleanCacheMessage", getJson(""), getJson(new Result(5)));
-		mfc.setParameterNames(Arrays.asList("a", "r"));
 		testReceiveXMessageToTopicWithMfc(1, topic, mfc, "generateCleanCacheMessage", "user", "user");
 	}
 

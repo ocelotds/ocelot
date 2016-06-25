@@ -4,15 +4,12 @@
 package org.ocelotds.web.ws;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
-import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
@@ -31,13 +28,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
 import org.ocelotds.configuration.LocaleExtractor;
 import org.ocelotds.context.ThreadLocalContextHolder;
-import org.ocelotds.core.CdiBeanResolver;
 import org.ocelotds.core.ws.CallServiceManager;
 import org.ocelotds.exceptions.LocaleNotFoundException;
 import org.ocelotds.topic.UserContextFactory;
 import org.ocelotds.topic.TopicManager;
 import org.ocelotds.messaging.MessageFromClient;
-import org.ocelotds.topic.TopicManagerImpl;
 import org.slf4j.Logger;
 
 /**
@@ -130,13 +125,11 @@ public class WSControllerTest {
 	public void testReceiveCommandMessage() {
 		System.out.println("receiveCommandMessage");
 		Session client = mock(Session.class);
-		String[] parameterNames = new String[]{"\"a\"", "\"b\"", "\"c\""};
 		String[] parameters = new String[]{"\"toto\"", "5", "true"};
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s}",
 				  Constants.Message.ID, "111",
 				  Constants.Message.DATASERVICE, "ClassName",
 				  Constants.Message.OPERATION, "methodName",
-				  Constants.Message.ARGUMENTNAMES, Arrays.toString(parameterNames),
 				  Constants.Message.ARGUMENTS, Arrays.toString(parameters));
 		instance.receiveCommandMessage(client, json);
 
@@ -148,7 +141,6 @@ public class WSControllerTest {
 		assertThat(result.getId()).isEqualTo("111");
 		assertThat(result.getDataService()).isEqualTo("ClassName");
 		assertThat(result.getOperation()).isEqualTo("methodName");
-		assertThat(result.getParameterNames()).containsExactly("a", "b", "c");
 		assertThat(result.getParameters()).containsExactly("\"toto\"", "5", "true");
 	}
 	

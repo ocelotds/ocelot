@@ -56,11 +56,10 @@ public class RSEndpointTest {
 		HttpSession session = mock(HttpSession.class);
 		when(request.getSession()).thenReturn(session);
 		doNothing().when(instance).setContext(any(HttpSession.class));
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s}",
 				  Constants.Message.ID, UUID.randomUUID().toString(),
 				  Constants.Message.DATASERVICE, "DataServiceClassName",
 				  Constants.Message.OPERATION, "methodName",
-				  Constants.Message.ARGUMENTNAMES, "[\"argName\"]",
 				  Constants.Message.ARGUMENTS, "[\"arg\"]");
 		
 		when(messageToClientService.createMessageToClient(any(MessageFromClient.class), any(HttpSession.class))).thenReturn(mtc);

@@ -57,7 +57,6 @@ public interface Constants {
 		String TIME = "t";
 		String OPERATION = "op";
 		String ARGUMENTS = "args";
-		String ARGUMENTNAMES = "argNames";
 		String DEADLINE = "deadline";
 		String RESPONSE = "response";
 		String LANGUAGE = "language";
@@ -84,6 +83,8 @@ public interface Constants {
 		String CLEANCACHE_TOPIC = "ocelot-cleancache";
 		String ALL = "ALL";
 		String USE_ALL_ARGUMENTS = "*";
+		String METHODPARAMNAMES_BUNDLE = "methodParamNames.properties";
+		String PARAMNAME_SEPARATOR = ",";
 	}
 	
 	interface BeanManager {

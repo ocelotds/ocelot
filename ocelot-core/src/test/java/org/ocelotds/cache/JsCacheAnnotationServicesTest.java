@@ -146,7 +146,7 @@ public class JsCacheAnnotationServicesTest {
 	@Test
 	public void testProcessJsCacheRemove() {
 		System.out.println("processJsCacheRemove");
-		JsCacheRemove jcr = new LiteralJsCacheRemove(this.getClass(), "testProcessJsCacheRemove", new String[] {});
+		JsCacheRemove jcr = new LiteralJsCacheRemove(this.getClass(), "testProcessJsCacheRemove", new String[] {}, false);
 		List<String> paramNames = Arrays.asList("a", "b", "c");
 		List<String> jsonArgs = Arrays.asList("1", "2", "3");
 		doReturn("MD5").when(instance).computeCacheKey(any(Class.class), anyString(), anyString());
@@ -166,14 +166,14 @@ public class JsCacheAnnotationServicesTest {
 	@Test
 	public void testProcessJsCacheRemoveLog() {
 		System.out.println("processJsCacheRemove");
-		JsCacheRemove jcr = new LiteralJsCacheRemove(this.getClass(), "testProcessJsCacheRemove", new String[] {});
+		JsCacheRemove jcr = new LiteralJsCacheRemove(this.getClass(), "testProcessJsCacheRemove", new String[] {}, false);
 		List<String> paramNames = Arrays.asList("a", "b", "c");
 		List<String> jsonArgs = Arrays.asList("1", "2", "3");
 		when(logger.isDebugEnabled()).thenReturn(true);
 		doReturn("MD5").when(instance).computeCacheKey(any(Class.class), anyString(), anyString());
 		instance.processJsCacheRemove(jcr, paramNames, jsonArgs);
 
-		verify(logger, times(3)).debug(anyString(), anyString());
+		verify(logger, times(4)).debug(anyString(), anyString());
 	}
 	
 	/**

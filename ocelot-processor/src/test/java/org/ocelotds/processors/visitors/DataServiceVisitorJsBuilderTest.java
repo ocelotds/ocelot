@@ -270,10 +270,10 @@ public class DataServiceVisitorJsBuilderTest implements ProcessorConstants{
 		doReturn("ARGS").when(instance).stringJoinAndDecorate(eq(arguments), eq(","), any(NothingDecorator.class));
 		doReturn("PARAMNAMES").when(instance).stringJoinAndDecorate(eq(arguments), eq(","), any(QuoteDecorator.class));
 		doReturn("KEYS").when(instance).computeKeys(eq(executableElement), eq(arguments));
-		doNothing().when(instance).createReturnOcelotPromiseFactory(any(String.class), any(String.class), any(Boolean.class), any(String.class), any(String.class), any(String.class), any(Writer.class));
+		doNothing().when(instance).createReturnOcelotPromiseFactory(any(String.class), any(String.class), any(Boolean.class), any(String.class), any(String.class), any(Writer.class));
 		
 		instance.createMethodBody(classname, executableElement, arguments, writer);
-		verify(instance).createReturnOcelotPromiseFactory(any(String.class), any(String.class), any(Boolean.class), any(String.class), any(String.class), any(String.class), any(Writer.class));
+		verify(instance).createReturnOcelotPromiseFactory(any(String.class), any(String.class), any(Boolean.class), any(String.class), any(String.class), any(Writer.class));
 	}
 	
 	/**
@@ -369,9 +369,9 @@ public class DataServiceVisitorJsBuilderTest implements ProcessorConstants{
 	@Test
 	public void testCreateReturnOcelotPromiseFactory() throws IOException {
 		System.out.println("createReturnOcelotPromiseFactory");
-		String expresult = ProcessorConstants.TAB3+"return promiseFactory.create(_ds,"+ProcessorConstants.SPACEOPTIONAL+"\"c4746bbdace1d5712da7b6fabe58fb9c\","+ProcessorConstants.SPACEOPTIONAL+"\"METHODNAME\","+ProcessorConstants.SPACEOPTIONAL+"true,"+ProcessorConstants.SPACEOPTIONAL+"[PARAMNAMES],"+ProcessorConstants.SPACEOPTIONAL+"[ARGS]);"+ProcessorConstants.CR;
+		String expresult = ProcessorConstants.TAB3+"return promiseFactory.create(_ds,"+ProcessorConstants.SPACEOPTIONAL+"\"c4746bbdace1d5712da7b6fabe58fb9c_\" + JSON.stringify([KEYS]).md5(),"+ProcessorConstants.SPACEOPTIONAL+"\"METHODNAME\","+ProcessorConstants.SPACEOPTIONAL+"true,"+ProcessorConstants.SPACEOPTIONAL+"[ARGS]);"+ProcessorConstants.CR;
 		StringWriter writer = new StringWriter();
-		instance.createReturnOcelotPromiseFactory("CLSNAME", "METHODNAME", true, "PARAMNAMES", "ARGS", "KEYS", writer);
+		instance.createReturnOcelotPromiseFactory("CLSNAME", "METHODNAME", true, "ARGS", "KEYS", writer);
 		String result = writer.toString();
 		System.out.println(result);
 		assertThat(result).isEqualTo(expresult);

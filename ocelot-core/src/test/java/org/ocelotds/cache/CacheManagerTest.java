@@ -30,6 +30,9 @@ public class CacheManagerTest {
 	
 	@Mock
 	private JsCacheAnnotationServices jsCacheAnnotationServices;
+	
+	@Mock
+	private CacheParamNameServices cacheParamNameServices;
 
 	@Spy
 	@InjectMocks
@@ -43,12 +46,12 @@ public class CacheManagerTest {
 	public void testProcessCacheAnnotations() throws NoSuchMethodException {
 		System.out.println("processCacheAnnotations");
 		Method method = this.getClass().getMethod("jsCacheResultAnnotatedMethod");
-		doNothing().when(instance).processCleanCacheAnnotations(any(Method.class), anyListOf(String.class), anyListOf(String.class));
+		doNothing().when(instance).processCleanCacheAnnotations(any(Method.class), anyListOf(String.class));
 		doReturn(false).doReturn(true).when(instance).isJsCached(any(Method.class));
 		when(jsCacheAnnotationServices.getJsCacheResultDeadline(any(JsCacheResult.class))).thenReturn(6L);
-		long result = instance.processCacheAnnotations(method, null, null);
+		long result = instance.processCacheAnnotations(method, null);
 		assertThat(result).isEqualTo(0L);
-		result = instance.processCacheAnnotations(method, null, null);
+		result = instance.processCacheAnnotations(method, null);
 		assertThat(result).isEqualTo(6L);
 	}
 
@@ -75,7 +78,7 @@ public class CacheManagerTest {
 	public void testProcessCleanCacheAnnotations_JsCacheRemoveAll() throws NoSuchMethodException {
 		System.out.println("processCleanCacheAnnotations");
 		Method method = this.getClass().getMethod("jsCacheRemoveAllAnnotatedMethod");
-		instance.processCleanCacheAnnotations(method, null, null);
+		instance.processCleanCacheAnnotations(method, null);
 		verify(jsCacheAnnotationServices).processJsCacheRemoveAll();
 	}
 	
@@ -87,7 +90,7 @@ public class CacheManagerTest {
 	public void testProcessCleanCacheAnnotations_JsCacheRemove() throws NoSuchMethodException {
 		System.out.println("processCleanCacheAnnotations");
 		Method method = this.getClass().getMethod("jsCacheRemoveAnnotatedMethodWithAllArgs", Integer.TYPE, String.class);
-		instance.processCleanCacheAnnotations(method, null, null);
+		instance.processCleanCacheAnnotations(method, null);
 		verify(jsCacheAnnotationServices).processJsCacheRemove(any(JsCacheRemove.class), anyListOf(String.class), anyListOf(String.class));
 	}
 
@@ -100,7 +103,7 @@ public class CacheManagerTest {
 		System.out.println("processCleanCacheAnnotations");
 		Method method = this.getClass().getMethod("jsCacheRemoveAnnotatedMethodWithAllArgs", Integer.TYPE, String.class);
 		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
-		instance.processCleanCacheAnnotations(method, null, null);
+		instance.processCleanCacheAnnotations(method, null);
 		verify(logger).debug(anyString(), anyString(), eq(""), eq("y"));
 	}
 
@@ -112,7 +115,7 @@ public class CacheManagerTest {
 	public void testProcessCleanCacheAnnotations_JsCacheRemoves() throws NoSuchMethodException {
 		System.out.println("processCleanCacheAnnotations");
 		Method method = this.getClass().getMethod("jsCacheRemovesAnnotatedMethod", Integer.TYPE, Result.class);
-		instance.processCleanCacheAnnotations(method, null, null);
+		instance.processCleanCacheAnnotations(method, null);
 		verify(jsCacheAnnotationServices, times(2)).processJsCacheRemove(any(JsCacheRemove.class), anyListOf(String.class), anyListOf(String.class));
 	}
 
@@ -125,7 +128,7 @@ public class CacheManagerTest {
 		System.out.println("processCleanCacheAnnotations");
 		Method method = this.getClass().getMethod("jsCacheRemovesAnnotatedMethod", Integer.TYPE, Result.class);
 		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
-		instance.processCleanCacheAnnotations(method, null, null);
+		instance.processCleanCacheAnnotations(method, null);
 		verify(logger).debug(anyString(), anyString(), eq("s"), eq("ies"));
 	}
 
@@ -138,7 +141,7 @@ public class CacheManagerTest {
 		System.out.println("processCleanCacheAnnotations");
 		Method method = this.getClass().getMethod("jsCacheRemoveAndjsCacheRemovesAnnotatedMethod", Integer.TYPE, Result.class);
 		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
-		instance.processCleanCacheAnnotations(method, null, null);
+		instance.processCleanCacheAnnotations(method, null);
 		verify(logger).debug(anyString(), anyString(), eq("s"), eq("ies"));
 	}
 
@@ -151,7 +154,7 @@ public class CacheManagerTest {
 		System.out.println("processCleanCacheAnnotations");
 		Method method = this.getClass().getMethod("jsCacheRemoveAndjsCacheRemovesAnnotatedMethod", Integer.TYPE, Result.class);
 		when(logger.isDebugEnabled()).thenReturn(Boolean.FALSE);
-		instance.processCleanCacheAnnotations(method, null, null);
+		instance.processCleanCacheAnnotations(method, null);
 		verify(logger).isDebugEnabled();
 		verifyNoMoreInteractions(logger);
 	}

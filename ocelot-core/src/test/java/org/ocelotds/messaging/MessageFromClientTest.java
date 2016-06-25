@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.UUID;
 import javax.json.Json;
 import javax.json.JsonArray;
-import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.json.JsonString;
+import javax.json.JsonValue;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.BeforeClass;
 import org.ocelotds.Constants;
-import static org.ocelotds.messaging.MessageFromClient.getArgumentsFromMessage;
 
 /**
  *
@@ -31,20 +31,16 @@ public class MessageFromClientTest {
 	public static void setUpClass() {
 		List<String> args = new ArrayList<>();
 		args.add("\"arg\"");
-		List<String> argNames = new ArrayList<>();
-		argNames.add("argName");
 		msgWithArg = new MessageFromClient();
 		msgWithArg.setDataService("DataServiceClassName");
 		msgWithArg.setId(UUID.randomUUID().toString());
 		msgWithArg.setOperation("methodName");
-		msgWithArg.setParameterNames(argNames);
 		msgWithArg.setParameters(args);
 
 		msgWithoutArg = new MessageFromClient();
 		msgWithoutArg.setDataService("DataServiceClassName");
 		msgWithoutArg.setId(UUID.randomUUID().toString());
 		msgWithoutArg.setOperation("methodName");
-		msgWithoutArg.setParameterNames(new ArrayList<String>());
 		msgWithoutArg.setParameters(new ArrayList<String>());
 	}
 
@@ -98,21 +94,6 @@ public class MessageFromClientTest {
 		expResult.add("arg");
 		instance.setParameters(expResult);
 		List<String> result = instance.getParameters();
-		assertThat(result).isNotNull();
-		assertThat(result).isNotEmpty();
-	}
-
-	/**
-	 * Test of getParameterNames method, of class MessageFromClient.
-	 */
-	@Test
-	public void testGetSetParameterNames() {
-		System.out.println("testGetSetParameterNames");
-		MessageFromClient instance = new MessageFromClient();
-		List<String> expResult = new ArrayList<>();
-		expResult.add("argName");
-		instance.setParameterNames(expResult);
-		List<String> result = instance.getParameterNames();
 		assertThat(result).isNotNull();
 		assertThat(result).isNotEmpty();
 	}
@@ -185,7 +166,7 @@ public class MessageFromClientTest {
 		System.out.println("getArgumentNamesFromMessage");
 		try (JsonReader reader = Json.createReader(new StringReader("[]"))) {
 			JsonArray array = reader.readArray();
-			List<String> result = MessageFromClient.getArgumentNamesFromMessage(array);
+			List<String> result = MessageFromClientTest.getArgumentNamesFromMessage(array);
 			assertThat(result).isEmpty();
 		}
 		try (JsonReader reader = Json.createReader(new StringReader("[\"arg1\"]"))) {
@@ -203,21 +184,10 @@ public class MessageFromClientTest {
 	}
 
 	private String mfcToJson(MessageFromClient mfc) {
-		StringBuilder jsonParamNames = new StringBuilder("[");
-		boolean first = true;
-		for (String parameterName : mfc.getParameterNames()) {
-			if(!first) {
-				jsonParamNames.append(",");
-			}
-			jsonParamNames.append(Constants.QUOTE).append(parameterName).append(Constants.QUOTE);
-			first = false;
-		}
-		jsonParamNames.append("]");
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s}",
 				  Constants.Message.ID, mfc.getId(),
 				  Constants.Message.DATASERVICE, mfc.getDataService(),
 				  Constants.Message.OPERATION, mfc.getOperation(),
-				  Constants.Message.ARGUMENTNAMES, jsonParamNames.toString(),
 				  Constants.Message.ARGUMENTS, Arrays.toString(mfc.getParameters().toArray(new String[mfc.getParameters().size()])));
 		return json;
 	}
@@ -227,8 +197,15 @@ public class MessageFromClientTest {
 		result.setDataService(UUID.randomUUID().toString());
 		result.setId(UUID.randomUUID().toString());
 		result.setOperation(UUID.randomUUID().toString());
-		result.setParameterNames(new ArrayList<String>());
 		result.setParameters(new ArrayList<String>());
 		return result;
+	}
+
+	static List<String> getArgumentNamesFromMessage(JsonArray argArray) {
+		List<String> params = new ArrayList<>();
+		for (JsonValue arg : argArray) {
+			params.add(((JsonString) arg).getString());
+		}
+		return params;
 	}
 }

@@ -27,6 +27,8 @@
 				ws.onopen = onwsopen;
 				ws.onerror = onwserror;
 				ws.onclose = onwsclose;
+			}, function(fault) {
+				console.error(fault);
 			});
 		}
 		function onwsopen(evt) {

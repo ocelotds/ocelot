@@ -28,27 +28,26 @@ public class ConstraintServices {
 	/**
 	 *
 	 * @param cve
-	 * @param paramNames
 	 * @return
 	 */
-	public ConstraintViolation[] extractViolations(ConstraintViolationException cve, List<String> paramNames) {
+	public ConstraintViolation[] extractViolations(ConstraintViolationException cve) {
 		Set<javax.validation.ConstraintViolation<?>> constraintViolations = cve.getConstraintViolations();
 		List<ConstraintViolation> resultList = new ArrayList<>();
 		for (javax.validation.ConstraintViolation<?> constraintViolation : constraintViolations) {
-			resultList.add(extractViolation(constraintViolation, paramNames));
+			resultList.add(extractViolation(constraintViolation));
 		}
 		return resultList.toArray(new ConstraintViolation[]{});
 	}
 	
-	ConstraintViolation extractViolation(javax.validation.ConstraintViolation<?> constraintViolation, List<String> paramNames) {
+	ConstraintViolation extractViolation(javax.validation.ConstraintViolation<?> constraintViolation) {
 		ConstraintViolation cv = new ConstraintViolation(constraintViolation.getMessage());
 		extractViolationInfoFromNodes(constraintViolation.getPropertyPath().iterator(), cv);
-		cv.setName(getArgumentName(cv, paramNames));
+		cv.setName(getArgumentName(cv));
 		return cv;
 	}
 
-	String getArgumentName(ConstraintViolation cv, List<String> paramNames) {
-		return paramNames.get(cv.getIndex());
+	String getArgumentName(ConstraintViolation cv) {
+		return "arg"+cv.getIndex();
 	}
 	
 	void extractViolationInfoFromNodes(Iterator<Path.Node> nodeIterator, ConstraintViolation cv) {

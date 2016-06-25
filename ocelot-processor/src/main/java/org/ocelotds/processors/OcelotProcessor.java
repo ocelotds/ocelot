@@ -146,7 +146,7 @@ public class OcelotProcessor extends AbstractProcessor {
 			processElement(element);
 		}
 		ElementVisitor visitor = new JsCacheRemoveVisitor(processingEnv);
-		try(Writer writer = fws.getFileObjectWriterInClassOutput("", "jsCacheRemoveParams.properties")) {
+		try(Writer writer = fws.getFileObjectWriterInClassOutput("", Constants.Cache.METHODPARAMNAMES_BUNDLE)) {
 			for (Element element : roundEnv.getElementsAnnotatedWith(JsCacheRemove.class)) {
 				element.accept(visitor, writer);
 			}

@@ -294,21 +294,10 @@ public abstract class AbstractOcelotTest {
 	}
 
 	protected static String mfcToJson(MessageFromClient mfc) {
-		StringBuilder jsonParamNames = new StringBuilder("[");
-		boolean first = true;
-		for (String parameterName : mfc.getParameterNames()) {
-			if (!first) {
-				jsonParamNames.append(",");
-			}
-			jsonParamNames.append(Constants.QUOTE).append(parameterName).append(Constants.QUOTE);
-			first = false;
-		}
-		jsonParamNames.append("]");
-		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s,\"%s\":%s}",
+		String json = String.format("{\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":%s}",
 				  Constants.Message.ID, mfc.getId(),
 				  Constants.Message.DATASERVICE, mfc.getDataService(),
 				  Constants.Message.OPERATION, mfc.getOperation(),
-				  Constants.Message.ARGUMENTNAMES, jsonParamNames.toString(),
 				  Constants.Message.ARGUMENTS, Arrays.toString(mfc.getParameters().toArray(new String[mfc.getParameters().size()])));
 		// Arrays.toString(mfc.getParameterNames().toArray(new String[mfc.getParameterNames().size()]))
 		return json;
@@ -344,14 +333,13 @@ public abstract class AbstractOcelotTest {
 		testRSCallWithoutResult(cls, methodname, jsonok);
 		// test with constraint
 		MessageFromClient mfc = getMessageFromClient(cls, methodname, jsonfail);
-		mfc.setParameterNames(Arrays.asList("str0"));
 		MessageToClient mtc = testRSCallWithoutResult(getClient(), mfc, MessageType.CONSTRAINT);
 		ConstraintViolation[] cvs = (ConstraintViolation[]) mtc.getResponse();
 		assertThat(cvs).isNotNull();
 		assertThat(cvs).hasSize(1);
 		ConstraintViolation cv = cvs[0];
 		assertThat(cv.getIndex()).isEqualTo(0);
-		assertThat(cv.getName()).isEqualTo("str0");
+		assertThat(cv.getName()).isEqualTo("arg0");
 	}
 
 	/**
@@ -905,6 +893,13 @@ public abstract class AbstractOcelotTest {
 
 	/**
 	 * Test receive X messages to mytopic
+	 * @param nbMsg
+	 * @param topic
+	 * @param cls
+	 * @param methodname
+	 * @param user
+	 * @param pwd
+	 * @param params 
 	 */
 	protected void testReceiveXMessageToTopicWithParams(final int nbMsg, final String topic, final Class cls, final String methodname, String user, String pwd, final String... params) {
 		testReceiveXMessagesToTopicWithRunable(nbMsg, topic, methodname, user, pwd, new Runnable() {
@@ -917,6 +912,12 @@ public abstract class AbstractOcelotTest {
 
 	/**
 	 * Test receive X messages to mytopic
+	 * @param nbMsg
+	 * @param topic
+	 * @param mfc
+	 * @param methodname
+	 * @param user
+	 * @param pwd 
 	 */
 	protected void testReceiveXMessageToTopicWithMfc(final int nbMsg, final String topic, final MessageFromClient mfc, final String methodname, final String user, final String pwd) {
 		testReceiveXMessagesToTopicWithRunable(nbMsg, topic, methodname, user, pwd, new Runnable() {
@@ -929,6 +930,12 @@ public abstract class AbstractOcelotTest {
 
 	/**
 	 * Test receive X messages to mytopic
+	 * @param nbMsg
+	 * @param topic
+	 * @param methodname
+	 * @param user
+	 * @param pwd
+	 * @param runnable 
 	 */
 	protected void testReceiveXMessagesToTopicWithRunable(final int nbMsg, final String topic, final String methodname, String user, String pwd, Runnable runnable) {
 		Client client = getClient(user, pwd);
