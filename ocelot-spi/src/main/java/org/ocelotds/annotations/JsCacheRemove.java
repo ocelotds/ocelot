@@ -29,4 +29,9 @@ public @interface JsCacheRemove {
 	 * @return set of used keys ordered
 	 */
 	String[] keys() default {"*"};
+	/**
+	 * The remove event is for all user (false) or current user (true)
+	 * @return 
+	 */
+	boolean userScope() default false;
 }
