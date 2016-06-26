@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
 import org.ocelotds.annotations.OcelotLogger;
-import org.ocelotds.marshalling.JsonMarshallerException;
+import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.ocelotds.messaging.MessageFromClient;
 import org.slf4j.Logger;

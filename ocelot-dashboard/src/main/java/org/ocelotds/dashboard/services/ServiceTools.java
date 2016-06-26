@@ -17,7 +17,7 @@ import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.annotations.TransientDataService;
 import org.ocelotds.annotations.WsDataService;
-import org.ocelotds.marshalling.JsonMarshallerException;
+import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import org.ocelotds.marshalling.JsonMarshallerServices;
 import org.ocelotds.marshallers.TemplateMarshaller;
 import org.ocelotds.marshalling.IJsonMarshaller;
@@ -78,7 +78,7 @@ public class ServiceTools {
 	 *
 	 * @param annotations
 	 * @return
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	public IJsonMarshaller getJsonMarshaller(Annotation[] annotations) throws JsonMarshallerException {
 		if (annotations != null) {
@@ -96,7 +96,7 @@ public class ServiceTools {
 	 *
 	 * @param jua
 	 * @return
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	public IJsonMarshaller getJsonMarshallerFromAnnotation(JsonUnmarshaller jua) throws JsonMarshallerException {
 		if (jua != null) {
@@ -111,7 +111,7 @@ public class ServiceTools {
 	 * @param type
 	 * @param jsonMarshaller
 	 * @return
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	public String getTemplateOfType(Type type, IJsonMarshaller jsonMarshaller) throws JsonMarshallerException {
 		if (jsonMarshaller == null) {

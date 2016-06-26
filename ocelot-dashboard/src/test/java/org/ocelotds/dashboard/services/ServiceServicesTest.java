@@ -20,7 +20,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.Constants;
 import org.ocelotds.core.UnProxyClassServices;
 import org.ocelotds.dashboard.objects.FakeCDI;
-import org.ocelotds.marshalling.JsonMarshallerException;
+import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.dashboard.objects.OcelotMethod;
 import org.ocelotds.dashboard.objects.OcelotService;

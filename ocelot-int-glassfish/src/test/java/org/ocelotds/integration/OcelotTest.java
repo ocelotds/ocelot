@@ -65,7 +65,7 @@ import static org.assertj.core.api.Assertions.fail;
 import org.junit.Before;
 import org.ocelotds.integration.dataservices.topic.TopicAccessController;
 import org.ocelotds.integration.marshallers.ClassMarshaller;
-import org.ocelotds.marshalling.JsonMarshallerException;
+import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import org.ocelotds.marshalling.JsonMarshallerServices;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshallers.TemplateMarshaller;

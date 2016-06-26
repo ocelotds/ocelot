@@ -25,7 +25,7 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.TransientDataService;
-import org.ocelotds.marshalling.JsonMarshallerException;
+import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import org.ocelotds.marshalling.JsonMarshallerServices;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshallers.TemplateMarshaller;
@@ -110,7 +110,7 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getJsonMarshallerFromAnnotations method, of class ServiceTools.
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	@Test
 	public void testGetJsonMarshallerFromAnnotationsNullArgument() throws JsonMarshallerException {
@@ -121,7 +121,7 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getJsonMarshallerFromAnnotations method, of class ServiceTools.
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	@Test
 	public void testGetJsonMarshallerFromAnnotationsNoAnnotation() throws JsonMarshallerException {
@@ -133,7 +133,7 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getJsonMarshallerFromAnnotations method, of class ServiceTools.
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	@Test
 	public void testGetJsonMarshallerFromAnnotationsNoUnmarshaller() throws JsonMarshallerException {
@@ -149,7 +149,7 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getJsonMarshallerFromAnnotations method, of class ServiceTools.
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	@Test
 	public void testGetJsonMarshallerFromAnnotations() throws JsonMarshallerException {
@@ -169,7 +169,7 @@ public class ServiceToolsTest {
 	 * Test of getJsonMarshallerFromAnnotation method, of class ServiceTools.
 	 * @throws java.lang.InstantiationException
 	 * @throws java.lang.IllegalAccessException
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	@Test
 	public void testGetJsonMarshallerAnnotationPresent() throws InstantiationException, IllegalAccessException, JsonMarshallerException {
@@ -186,7 +186,7 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getJsonMarshallerFromAnnotation method, of class ServiceTools.
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 //	@Test
 	public void testGetBadJsonMarshaller() throws JsonMarshallerException {
@@ -218,7 +218,7 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getJsonMarshallerFromAnnotation method, of class ServiceTools.
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	@Test
 	public void testGetJsonMarshallerAnnotationNotPresent() throws JsonMarshallerException {
@@ -229,7 +229,7 @@ public class ServiceToolsTest {
 
 	/**
 	 * Test of getTemplateOfType method, of class ServiceTools.
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	@Test
 	public void testGetTemplateOfType() throws JsonMarshallerException {

@@ -18,7 +18,7 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.JsTopicEvent;
 import org.ocelotds.marshalling.ArgumentServices;
-import org.ocelotds.marshalling.JsonMarshallerException;
+import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.slf4j.Logger;
@@ -158,7 +158,7 @@ public class TopicsMessagesObserversTest {
 	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
 	 *
 	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	@Test
 	public void testSendObjectToTopicWithMarshaller() throws JsonMarshallingException, JsonMarshallerException {
@@ -191,7 +191,7 @@ public class TopicsMessagesObserversTest {
 	 * Test of sendObjectToTopic method, of class TopicsMessagesBroadcaster.
 	 *
 	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	@Test
 	public void testSendObjectToTopicWithMarshallerFail() throws JsonMarshallingException, JsonMarshallerException {

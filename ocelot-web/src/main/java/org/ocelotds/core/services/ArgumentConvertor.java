@@ -19,7 +19,7 @@ import java.util.Map;
 import javax.inject.Inject;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
-import org.ocelotds.marshalling.JsonMarshallerException;
+import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import org.ocelotds.marshalling.JsonMarshallerServices;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshallerType;
@@ -54,7 +54,7 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	 * @param parameterAnnotations
 	 * @return
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	@Override
 	public Object convertJsonToJava(String jsonArg, Type paramType, Annotation[] parameterAnnotations) throws JsonUnmarshallingException, JsonMarshallerException {

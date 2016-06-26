@@ -5,7 +5,7 @@ package org.ocelotds.core.services;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import org.ocelotds.marshalling.JsonMarshallerException;
+import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 
 /**

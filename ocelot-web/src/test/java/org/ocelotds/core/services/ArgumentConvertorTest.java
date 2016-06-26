@@ -35,7 +35,7 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.TransientDataService;
 import org.ocelotds.literals.JsonUnmarshallerLiteral;
-import org.ocelotds.marshalling.JsonMarshallerException;
+import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import org.ocelotds.marshalling.JsonMarshallerServices;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshallers.TemplateMarshaller;
@@ -80,7 +80,7 @@ public class ArgumentConvertorTest {
 	 * Test of convertJsonToJava method, of class ArgumentConvertor.
 	 *
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	@Test
 	public void testConvertNullJsonToJava() throws JsonUnmarshallingException, JsonMarshallerException {
@@ -94,7 +94,7 @@ public class ArgumentConvertorTest {
 	 * Test of convertJsonToJava method, of class ArgumentConvertor.
 	 *
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	@Test
 	public void testConvertJsonToJava() throws JsonUnmarshallingException, JsonMarshallerException {
@@ -109,7 +109,7 @@ public class ArgumentConvertorTest {
 	 * Test of convertJsonToJava method, of class ArgumentConvertor.
 	 *
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	@Test
 	public void testConvertJsonToJavaWithUnmarshaller() throws JsonUnmarshallingException, JsonMarshallerException {
