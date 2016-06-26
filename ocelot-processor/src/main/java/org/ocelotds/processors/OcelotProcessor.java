@@ -9,6 +9,7 @@ import java.io.File;
 import org.ocelotds.annotations.DataService;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -22,6 +23,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementVisitor;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import org.ocelotds.Constants;
@@ -146,18 +148,37 @@ public class OcelotProcessor extends AbstractProcessor {
 			processElement(element);
 		}
 		ElementVisitor visitor = new JsCacheRemoveVisitor(processingEnv);
-		try(Writer writer = fws.getFileObjectWriterInClassOutput("", Constants.Cache.METHODPARAMNAMES_BUNDLE)) {
-			for (Element element : roundEnv.getElementsAnnotatedWith(JsCacheRemove.class)) {
-				element.accept(visitor, writer);
-			}
-			for (Element element : roundEnv.getElementsAnnotatedWith(JsCacheRemoves.class)) {
-				element.accept(visitor, writer);
-			}
-		} catch(IOException ioe) {
-			
+		Set<TypeElement> elements = getTypeElementContainsJsRemoveAnno(roundEnv);
+		for (TypeElement te : elements) {
+			createPropertiesFile(te, visitor);
 		}
 		OcelotProcessor.setDone(true);
 		return true;
+	}
+	
+	void createPropertiesFile(TypeElement te, ElementVisitor visitor) {
+		try (Writer w = fws.getFileObjectWriterInClassOutput(getPackagePath(te), te.getSimpleName().toString()+".properties")) {
+			te.accept(visitor, w);
+		} catch(IOException ioe) {
+			messager.printMessage(Diagnostic.Kind.ERROR, " properties generation class : " + te);
+		}
+	}
+	
+	Set<TypeElement> getTypeElementContainsJsRemoveAnno(RoundEnvironment roundEnv) {
+		Set<TypeElement> elements = new HashSet<>();
+		for (Element element : roundEnv.getElementsAnnotatedWith(JsCacheRemove.class)) {
+			if(ExecutableElement.class.isInstance(element)) {
+				TypeElement te = (TypeElement) ((ExecutableElement) element).getEnclosingElement();
+				elements.add(te);
+			}
+		}
+		for (Element element : roundEnv.getElementsAnnotatedWith(JsCacheRemoves.class)) {
+			if(ExecutableElement.class.isInstance(element)) {
+				TypeElement te = (TypeElement) ((ExecutableElement) element).getEnclosingElement();
+				elements.add(te);
+			}
+		}
+		return elements;
 	}
 
 	/**

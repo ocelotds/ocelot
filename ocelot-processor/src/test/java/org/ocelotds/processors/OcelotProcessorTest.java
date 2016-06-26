@@ -5,6 +5,7 @@ package org.ocelotds.processors;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -15,6 +16,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementVisitor;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import org.junit.Test;
@@ -28,6 +30,8 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.FileWriterServices;
 import org.ocelotds.annotations.DataService;
+import org.ocelotds.annotations.JsCacheRemove;
+import org.ocelotds.annotations.JsCacheRemoves;
 import org.slf4j.Logger;
 
 /**
@@ -176,7 +180,7 @@ public class OcelotProcessorTest {
 	 * @throws java.io.IOException
 	 */
 	@Test
-	public void processTest() throws IOException {
+	public void processDataServiceTest() throws IOException {
 		System.out.println("process");
 		OcelotProcessor.setDone(Boolean.FALSE);
 		RoundEnvironment roundEnv = mock(RoundEnvironment.class);
@@ -188,11 +192,89 @@ public class OcelotProcessorTest {
 		when(roundEnv.processingOver()).thenReturn(Boolean.FALSE);
 		doNothing().when(instance).writeCoreInClassesOutput();
 		doNothing().when(instance).writeCoreInDirectory(anyString(), anyString());
+		doNothing().when(instance).processElement(any(Element.class));
+		doReturn(Collections.EMPTY_SET).when(instance).getTypeElementContainsJsRemoveAnno(any(RoundEnvironment.class));
 		when(roundEnv.getElementsAnnotatedWith(eq(DataService.class))).thenReturn(elements);
 		
 		boolean result = instance.process(annotations, roundEnv);
 		assertThat(result).isTrue();
 		verify(instance, times(2)).processElement(any(Element.class));
+	}
+	
+	/**
+	 * Test of process method, of class OcelotProcessor.
+	 *
+	 * @throws java.io.IOException
+	 */
+	@Test
+	public void processJsCacheRemoveTest() throws IOException {
+		System.out.println("process");
+		OcelotProcessor.setDone(Boolean.FALSE);
+		RoundEnvironment roundEnv = mock(RoundEnvironment.class);
+		Set<? extends TypeElement> annotations = mock(Set.class);
+		Set elements = new HashSet<>();
+		elements.add(mock(TypeElement.class));
+		elements.add(mock(TypeElement.class));
+
+		when(roundEnv.processingOver()).thenReturn(Boolean.FALSE);
+		doNothing().when(instance).writeCoreInClassesOutput();
+		doNothing().when(instance).writeCoreInDirectory(anyString(), anyString());
+		doNothing().when(instance).createPropertiesFile(any(TypeElement.class), any(ElementVisitor.class));
+		doReturn(elements).when(instance).getTypeElementContainsJsRemoveAnno(any(RoundEnvironment.class));
+		when(roundEnv.getElementsAnnotatedWith(eq(DataService.class))).thenReturn(Collections.EMPTY_SET);
+		
+		boolean result = instance.process(annotations, roundEnv);
+		assertThat(result).isTrue();
+		verify(instance, times(2)).createPropertiesFile(any(TypeElement.class), any(ElementVisitor.class));
+	}
+	
+	/**
+	 * Test of createPropertiesFile method, of class.
+	 */
+	@Test
+	public void createPropertiesFileTest() throws IOException {
+		System.out.println("createPropertiesFile");
+		TypeElement te = mock(TypeElement.class);
+		Name name = mock(Name.class);
+		ElementVisitor visitor = mock(ElementVisitor.class);
+		Writer writer = mock(Writer.class);
+		when(te.getSimpleName()).thenReturn(name);
+		when(name.toString()).thenReturn("ClassName");
+		when(fws.getFileObjectWriterInClassOutput(eq("package"), eq("ClassName.properties"))).thenReturn(writer).thenThrow(IOException.class);
+		doReturn("package").when(instance).getPackagePath(eq(te));
+		instance.createPropertiesFile(te, visitor);
+		instance.createPropertiesFile(te, visitor);
+		verify(te).accept(eq(visitor), eq(writer));
+	}
+
+	/**
+	 * Test of getTypeElementContainsJsRemoveAnno method, of class.
+	 */
+	@Test
+	public void getTypeElementContainsJsRemoveAnnoTest() {
+		System.out.println("getTypeElementContainsJsRemoveAnno");
+		RoundEnvironment roundEnv = mock(RoundEnvironment.class);
+		ExecutableElement ee0 = mock(ExecutableElement.class);
+		ExecutableElement ee1 = mock(ExecutableElement.class);
+		ExecutableElement ee2 = mock(ExecutableElement.class);
+		ExecutableElement ee3 = mock(ExecutableElement.class);
+		TypeElement te1 = mock(TypeElement.class);
+		TypeElement te2 = mock(TypeElement.class);
+		TypeElement te3 = mock(TypeElement.class);
+		Set elements = new HashSet<>();
+		elements.add(ee0);
+		elements.add(ee1);
+		elements.add(ee2);
+		elements.add(ee3);
+		
+		when(ee0.getEnclosingElement()).thenReturn(te1);
+		when(ee1.getEnclosingElement()).thenReturn(te1);
+		when(ee2.getEnclosingElement()).thenReturn(te2);
+		when(ee3.getEnclosingElement()).thenReturn(te3);
+		when(roundEnv.getElementsAnnotatedWith(eq(JsCacheRemove.class))).thenReturn(elements);
+		when(roundEnv.getElementsAnnotatedWith(eq(JsCacheRemoves.class))).thenReturn(elements);
+		Set<TypeElement> result = instance.getTypeElementContainsJsRemoveAnno(roundEnv);
+		assertThat(result).hasSize(3);
 	}
 
 	/**

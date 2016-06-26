@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.core.services;
+package org.ocelotds.marshalling;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -20,10 +20,7 @@ import org.mockito.Mock;
 import static org.mockito.Mockito.mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ocelotds.marshallers.JsonMarshallerException;
-import org.ocelotds.marshallers.JsonMarshallerServices;
 import org.ocelotds.marshallers.LocaleMarshaller;
-import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshallerType;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
@@ -74,7 +71,7 @@ public class ArgumentServicesTest {
 	/**
 	 * Test of getJsonResultFromSpecificMarshaller method, of class ArgumentServices.
 	 *
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.JsonMarshallerException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
 	 */
 	@Test(expected = JsonMarshallerException.class)

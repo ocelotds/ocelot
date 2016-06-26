@@ -11,7 +11,7 @@ import javax.decorator.Delegate;
 import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 import org.ocelotds.core.Cleaner;
-import org.ocelotds.marshallers.JsonMarshallerException;
+import org.ocelotds.marshalling.JsonMarshallerException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 
 /**

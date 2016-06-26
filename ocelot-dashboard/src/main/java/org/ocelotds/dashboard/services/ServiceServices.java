@@ -19,7 +19,7 @@ import org.ocelotds.core.UnProxyClassServices;
 import org.ocelotds.dashboard.objects.OcelotMethod;
 import org.ocelotds.dashboard.objects.OcelotService;
 import org.ocelotds.dashboard.security.DashboardSecureProvider;
-import org.ocelotds.marshallers.JsonMarshallerException;
+import org.ocelotds.marshalling.JsonMarshallerException;
 import org.ocelotds.objects.Options;
 import org.ocelotds.security.OcelotSecured;
 

@@ -33,6 +33,12 @@ public class LocaleMarshaller implements IJsonMarshaller<Locale> {
 		return "null";
 	}
 
+	/**
+	 * 
+	 * @param json
+	 * @return
+	 * @throws JsonUnmarshallingException 
+	 */
 	@Override
 	public Locale toJava(String json) throws JsonUnmarshallingException {
 		Locale locale = null;

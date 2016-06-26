@@ -3,8 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.cache;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,14 +31,15 @@ public class CacheParamNameServices {
 	public List<String> getMethodParamNames(Class cls, String methodName) {
 		String key = cls.getName()+"."+methodName;
 		if(!map.containsKey(key)) {
+			String fn = cls.getSimpleName()+".properties";
 			List<String> result = new ArrayList();
-			try (InputStream in = cls.getResourceAsStream(File.separator+Constants.Cache.METHODPARAMNAMES_BUNDLE);) {
+			try (InputStream in = cls.getResourceAsStream(fn);) {
 				Properties properties = new Properties();
 				properties.load(in);
 				String property = properties.getProperty(key);
 				result = Arrays.asList(property.split(Constants.Cache.PARAMNAME_SEPARATOR));
 			} catch (Throwable ex) {
-				logger.error("Error, loading "+key+"/"+Constants.Cache.METHODPARAMNAMES_BUNDLE, ex);
+				logger.error("Error, loading "+key+"/"+fn, ex);
 			}
 			map.put(key, result);
 		}

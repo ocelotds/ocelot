@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.core.services;
 
+import org.ocelotds.marshalling.ArgumentServices;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.ArrayType;
@@ -18,8 +19,8 @@ import java.util.Map;
 import javax.inject.Inject;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
-import org.ocelotds.marshallers.JsonMarshallerException;
-import org.ocelotds.marshallers.JsonMarshallerServices;
+import org.ocelotds.marshalling.JsonMarshallerException;
+import org.ocelotds.marshalling.JsonMarshallerServices;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshallerType;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
@@ -53,7 +54,7 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	 * @param parameterAnnotations
 	 * @return
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.JsonMarshallerException
 	 */
 	@Override
 	public Object convertJsonToJava(String jsonArg, Type paramType, Annotation[] parameterAnnotations) throws JsonUnmarshallingException, JsonMarshallerException {

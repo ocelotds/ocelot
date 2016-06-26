@@ -5,6 +5,7 @@ package org.ocelotds.processors.visitors;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -14,6 +15,7 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.util.ElementFilter;
 
 /**
  *
@@ -46,6 +48,10 @@ public class JsCacheRemoveVisitor implements ElementVisitor<Void, Writer> {
 
 	@Override
 	public Void visitType(TypeElement e, Writer p) {
+		List<ExecutableElement> methodsIn = ElementFilter.methodsIn(e.getEnclosedElements());
+		for (ExecutableElement executableElement : methodsIn) {
+			visitExecutable(executableElement, p);
+		}
 		return null;
 	}
 
@@ -58,18 +64,22 @@ public class JsCacheRemoveVisitor implements ElementVisitor<Void, Writer> {
 	public Void visitExecutable(ExecutableElement e, Writer p) {
 		try {
 			p.append(e.getEnclosingElement().toString()).append(".").append(e.getSimpleName()).append("=");
-			boolean first = true;
-			for (VariableElement variableElement : e.getParameters()) {
-				if (!first) {
-					p.append(",");
-				}
-				p.append(variableElement.toString());
-				first = false;
-			}
+			appendParameters(e.getParameters(), p);
 			p.append("\n");
 		} catch (IOException ex) {
 		}
 		return null;
+	}
+	
+	void appendParameters(List<? extends VariableElement> elements, Writer p) throws IOException {
+		boolean first = true;
+		for (VariableElement variableElement : elements) {
+			if (!first) {
+				p.append(",");
+			}
+			p.append(variableElement.toString());
+			first = false;
+		}
 	}
 
 	@Override
@@ -81,5 +91,4 @@ public class JsCacheRemoveVisitor implements ElementVisitor<Void, Writer> {
 	public Void visitUnknown(Element e, Writer p) {
 		return null;
 	}
-
 }

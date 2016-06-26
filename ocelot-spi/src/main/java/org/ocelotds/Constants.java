@@ -83,7 +83,6 @@ public interface Constants {
 		String CLEANCACHE_TOPIC = "ocelot-cleancache";
 		String ALL = "ALL";
 		String USE_ALL_ARGUMENTS = "*";
-		String METHODPARAMNAMES_BUNDLE = "methodParamNames.properties";
 		String PARAMNAME_SEPARATOR = ",";
 	}
 	

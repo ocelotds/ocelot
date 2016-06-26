@@ -6,6 +6,7 @@ package org.ocelotds.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
+import org.ocelotds.core.ObjectMapperProducer;
 import static org.assertj.core.api.Assertions.*;
 
 /**

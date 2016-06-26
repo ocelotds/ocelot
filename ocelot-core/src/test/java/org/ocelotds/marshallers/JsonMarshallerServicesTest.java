@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.marshallers;
 
+import org.ocelotds.marshalling.JsonMarshallerException;
+import org.ocelotds.marshalling.JsonMarshallerServices;
 import javax.enterprise.inject.Instance;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
@@ -10,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.objects.FakeCDI;
 

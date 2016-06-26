@@ -17,7 +17,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ocelotds.marshallers.JsonMarshallerException;
+import org.ocelotds.marshalling.JsonMarshallerException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.ocelotds.messaging.MessageFromClient;
 import org.ocelotds.objects.Result;
@@ -44,7 +44,7 @@ public class MethodServicesTest {
 	 *
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.JsonMarshallerException
 	 */
 	@Test
 	public void testGetMethodFromDataService() throws NoSuchMethodException, JsonUnmarshallingException, JsonMarshallerException {
@@ -68,7 +68,7 @@ public class MethodServicesTest {
 	 *
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.JsonMarshallerException
 	 */
 	@Test(expected = NoSuchMethodException.class)
 	public void testGetMethodFromDataServiceNotFound() throws NoSuchMethodException, JsonUnmarshallingException, JsonMarshallerException {
@@ -89,7 +89,7 @@ public class MethodServicesTest {
 	 *
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.JsonMarshallerException
 	 */
 	@Test
 	public void testGetMethodFromDataServiceWithWithUnmarshaller() throws NoSuchMethodException, JsonUnmarshallingException, JsonMarshallerException {
@@ -163,7 +163,7 @@ public class MethodServicesTest {
 	 *
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.JsonMarshallerException
 	 */
 	@Test
 	public void testCheckMethod() throws NoSuchMethodException, JsonUnmarshallingException, JsonMarshallerException {
@@ -185,7 +185,7 @@ public class MethodServicesTest {
 	 *
 	 * @throws java.lang.NoSuchMethodException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.JsonMarshallerException
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void testCheckMethodFail() throws NoSuchMethodException, JsonUnmarshallingException, JsonMarshallerException {

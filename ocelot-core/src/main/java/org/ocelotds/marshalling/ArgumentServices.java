@@ -1,8 +1,10 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.core.services;
+package org.ocelotds.marshalling;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.StringReader;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -17,9 +19,6 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
-import org.ocelotds.marshallers.JsonMarshallerException;
-import org.ocelotds.marshallers.JsonMarshallerServices;
-import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
@@ -33,13 +32,28 @@ public class ArgumentServices {
 	@Inject
 	JsonMarshallerServices jsonMarshallerServices;
 	
+	@Inject
+	ObjectMapper objectMapper;
+
+	public List<String> getJsonParameters(Object[] parameters) throws JsonMarshallingException, JsonMarshallerException, JsonProcessingException {
+		List<String> jsonArgs = new ArrayList<>();
+		for (Object arg : parameters) {
+			if(arg.getClass().isAnnotationPresent(JsonMarshaller.class)) {
+				jsonArgs.add(getJsonResultFromSpecificMarshaller(arg.getClass().getAnnotation(JsonMarshaller.class), arg));
+			} else {
+				jsonArgs.add(objectMapper.writeValueAsString(arg));
+			}
+		}
+		return jsonArgs;
+	}
+	
 	/**
 	 *
 	 * @param jm
 	 * @param result
 	 * @return
 	 * @throws JsonMarshallingException
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.JsonMarshallerException
 	 */
 	public String getJsonResultFromSpecificMarshaller(JsonMarshaller jm, Object result) throws JsonMarshallingException, JsonMarshallerException {
 		IJsonMarshaller marshaller = jsonMarshallerServices.getIJsonMarshallerInstance(jm.value());
@@ -57,7 +71,7 @@ public class ArgumentServices {
 		return res;
 	}
 
-	String getJsonResultFromSpecificMarshallerIterable(Iterable list, IJsonMarshaller marshaller) throws JsonMarshallingException {
+	public String getJsonResultFromSpecificMarshallerIterable(Iterable list, IJsonMarshaller marshaller) throws JsonMarshallingException {
 		StringBuilder json = new StringBuilder();
 		json.append("[");
 		boolean first = true;
@@ -88,7 +102,7 @@ public class ArgumentServices {
 		return json.toString();
 	}
 	
-	List getJavaResultFromSpecificUnmarshallerIterable(String json, IJsonMarshaller marshaller) throws JsonUnmarshallingException {
+	public List getJavaResultFromSpecificUnmarshallerIterable(String json, IJsonMarshaller marshaller) throws JsonUnmarshallingException {
 		try {
 			List result = new ArrayList<>();
 			JsonReader createReader = Json.createReader(new StringReader(json));
@@ -102,7 +116,7 @@ public class ArgumentServices {
 		}
 	}
 
-	Map getJavaResultFromSpecificUnmarshallerMap(String json, IJsonMarshaller marshaller) throws JsonUnmarshallingException {
+	public Map getJavaResultFromSpecificUnmarshallerMap(String json, IJsonMarshaller marshaller) throws JsonUnmarshallingException {
 		try {
 			Map<String, Object> result = new HashMap();
 			JsonReader createReader = Json.createReader(new StringReader(json));

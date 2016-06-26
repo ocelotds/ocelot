@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.marshallers;
 
+import org.ocelotds.marshalling.JsonMarshallerException;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;

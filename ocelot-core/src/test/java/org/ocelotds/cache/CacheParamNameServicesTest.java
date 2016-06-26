@@ -7,10 +7,8 @@ package org.ocelotds.cache;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
-import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -38,7 +36,7 @@ public class CacheParamNameServicesTest {
 	public void testGetMethodParamNames() {
 		System.out.println("getMethodParamNames");
 		instance.map.clear();
-		List<String> result = instance.getMethodParamNames(CacheManagerTest.class, "jsCacheRemovesAnnotatedMethod");
+		List<String> result = instance.getMethodParamNames(CacheAnnotedClass.class, "jsCacheRemovesAnnotatedMethod");
 		assertThat(result).hasSize(2);
 	}
 
@@ -48,8 +46,8 @@ public class CacheParamNameServicesTest {
 	@Test
 	public void testGetMethodParamNamesInCache() {
 		System.out.println("getMethodParamNames");
-		instance.map.put(CacheManagerTest.class.getName()+".jsCacheRemovesAnnotatedMethod", Arrays.asList("a"));
-		List<String> result = instance.getMethodParamNames(CacheManagerTest.class, "jsCacheRemovesAnnotatedMethod");
+		instance.map.put(CacheAnnotedClass.class.getName()+".jsCacheRemovesAnnotatedMethod", Arrays.asList("a"));
+		List<String> result = instance.getMethodParamNames(CacheAnnotedClass.class, "jsCacheRemovesAnnotatedMethod");
 		assertThat(result).hasSize(1);
 	}
 
@@ -59,7 +57,7 @@ public class CacheParamNameServicesTest {
 	@Test
 	public void testGetMethodParamNamesFail() {
 		System.out.println("getMethodParamNames");
-		List<String> result = instance.getMethodParamNames(CacheManagerTest.class, "unknown");
+		List<String> result = instance.getMethodParamNames(CacheAnnotedClass.class, "unknown");
 		assertThat(result).hasSize(0);
 	}
 }

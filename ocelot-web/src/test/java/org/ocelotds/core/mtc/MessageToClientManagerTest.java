@@ -24,7 +24,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.cache.CacheManager;
-import org.ocelotds.core.services.ArgumentServices;
+import org.ocelotds.marshalling.ArgumentServices;
 import org.ocelotds.core.services.ClassAsDataService;
 import org.ocelotds.core.services.ConstraintServices;
 import org.ocelotds.core.services.FaultServices;

@@ -3,20 +3,26 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.annotations;
 
-import java.lang.annotation.ElementType;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import javax.enterprise.util.Nonbinding;
+import javax.interceptor.InterceptorBinding;
 
 /**
  * Annotation for specify that the method annotated remove entry cache
  * @author hhfrancois
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
+@Inherited
+@InterceptorBinding
+@Retention(RUNTIME)
+@Target({METHOD, TYPE})
 public @interface JsCacheRemove {
-	Class cls();
-	String methodName();
+	@Nonbinding Class cls();
+	@Nonbinding String methodName();
 	/**
 	 * Rules for parameters about key for cache, separate by coma<br>
 	 * The order is important<br>
@@ -28,10 +34,10 @@ public @interface JsCacheRemove {
 	 * If the cacheResultKey includes arguments and cacheRemoveKey not, that means that you want to remove all results of this method without considering arguments.
 	 * @return set of used keys ordered
 	 */
-	String[] keys() default {"*"};
+	@Nonbinding String[] keys() default {"*"};
 	/**
 	 * The remove event is for all user (false) or current user (true)
 	 * @return 
 	 */
-	boolean userScope() default false;
+	@Nonbinding boolean userScope() default false;
 }

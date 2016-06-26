@@ -8,6 +8,9 @@ import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterTypeDiscovery;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.Extension;
+import org.ocelotds.cache.JsCacheRemoveAllInterceptor;
+import org.ocelotds.cache.JsCacheRemoveInterceptor;
+import org.ocelotds.cache.JsCacheRemovesInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +26,9 @@ public class CDIExtension implements Extension {
 		List<Class<?>> interceptors = afd.getInterceptors();
 		interceptors.add(JsTopicInterceptor.class);
 		interceptors.add(SecureInterceptor.class);
+		interceptors.add(JsCacheRemoveInterceptor.class);
+		interceptors.add(JsCacheRemovesInterceptor.class);
+		interceptors.add(JsCacheRemoveAllInterceptor.class);
 		logger.debug("CDI : Add Interceptor {}, {}", JsTopicInterceptor.class, SecureInterceptor.class);
 	}
 

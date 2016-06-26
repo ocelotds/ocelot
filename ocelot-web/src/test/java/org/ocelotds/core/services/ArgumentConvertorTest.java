@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.core.services;
 
+import org.ocelotds.marshalling.ArgumentServices;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -34,8 +35,8 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.TransientDataService;
 import org.ocelotds.literals.JsonUnmarshallerLiteral;
-import org.ocelotds.marshallers.JsonMarshallerException;
-import org.ocelotds.marshallers.JsonMarshallerServices;
+import org.ocelotds.marshalling.JsonMarshallerException;
+import org.ocelotds.marshalling.JsonMarshallerServices;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshallers.TemplateMarshaller;
 import org.ocelotds.marshalling.IJsonMarshaller;
@@ -79,7 +80,7 @@ public class ArgumentConvertorTest {
 	 * Test of convertJsonToJava method, of class ArgumentConvertor.
 	 *
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.JsonMarshallerException
 	 */
 	@Test
 	public void testConvertNullJsonToJava() throws JsonUnmarshallingException, JsonMarshallerException {
@@ -93,7 +94,7 @@ public class ArgumentConvertorTest {
 	 * Test of convertJsonToJava method, of class ArgumentConvertor.
 	 *
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.JsonMarshallerException
 	 */
 	@Test
 	public void testConvertJsonToJava() throws JsonUnmarshallingException, JsonMarshallerException {
@@ -108,7 +109,7 @@ public class ArgumentConvertorTest {
 	 * Test of convertJsonToJava method, of class ArgumentConvertor.
 	 *
 	 * @throws org.ocelotds.marshalling.exceptions.JsonUnmarshallingException
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.JsonMarshallerException
 	 */
 	@Test
 	public void testConvertJsonToJavaWithUnmarshaller() throws JsonUnmarshallingException, JsonMarshallerException {
