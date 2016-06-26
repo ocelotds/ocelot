@@ -80,7 +80,7 @@ public class TopicsMessagesObservers {
 	}
 	
 	Object getPayload(MessageToClient msg) {
-		Object payload = null;
+		Object payload;
 		if(null != msg.getJson()) {
 			payload = msg.getJson();
 		} else {
