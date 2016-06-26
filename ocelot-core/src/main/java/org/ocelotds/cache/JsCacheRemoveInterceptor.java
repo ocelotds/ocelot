@@ -3,10 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.cache;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
@@ -15,7 +13,6 @@ import javax.interceptor.InvocationContext;
 import org.ocelotds.annotations.JsCacheRemove;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.marshalling.ArgumentServices;
-import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.slf4j.Logger;
 
 /**
