@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.marshalling;
 
+import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.StringReader;
@@ -53,7 +54,7 @@ public class ArgumentServices {
 	 * @param result
 	 * @return
 	 * @throws JsonMarshallingException
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	public String getJsonResultFromSpecificMarshaller(JsonMarshaller jm, Object result) throws JsonMarshallingException, JsonMarshallerException {
 		IJsonMarshaller marshaller = jsonMarshallerServices.getIJsonMarshallerInstance(jm.value());

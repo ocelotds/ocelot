@@ -20,7 +20,7 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.JsCacheRemove;
 import org.ocelotds.marshalling.ArgumentServices;
-import org.ocelotds.marshalling.JsonMarshallerException;
+import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 
 /**

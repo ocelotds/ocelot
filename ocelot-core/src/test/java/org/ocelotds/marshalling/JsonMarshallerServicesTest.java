@@ -1,10 +1,9 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.marshallers;
+package org.ocelotds.marshalling;
 
-import org.ocelotds.marshalling.JsonMarshallerException;
-import org.ocelotds.marshalling.JsonMarshallerServices;
+import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import javax.enterprise.inject.Instance;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
@@ -13,7 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.marshallers.LocaleMarshaller;
-import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.objects.FakeCDI;
 
 /**
@@ -32,7 +30,7 @@ public class JsonMarshallerServicesTest {
 
 	/**
 	 * Test of getIJsonMarshallerInstance method, of class JsonMarshallerServices.
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	@Test
 	public void testGetIJsonMarshallerInstance() throws JsonMarshallerException {
@@ -44,12 +42,24 @@ public class JsonMarshallerServicesTest {
 
 	/**
 	 * Test of getIJsonMarshallerInstance method, of class JsonMarshallerServices.
-	 * @throws org.ocelotds.marshallers.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
-	@Test(expected = JsonMarshallerException.class)
-	public void testGetIJsonMarshallerInstanceFail() throws JsonMarshallerException {
+	@Test
+	public void testGetIJsonMarshallerInstanceFromNewInstance() throws JsonMarshallerException {
 		System.out.println("getIJsonMarshallerInstance");
 		FakeCDI.class.cast(iJsonMarshallers).clear();
-		instance.getIJsonMarshallerInstance(LocaleMarshaller.class);
+		IJsonMarshaller result = instance.getIJsonMarshallerInstance(LocaleMarshaller.class);
+		assertThat(result).isInstanceOf(LocaleMarshaller.class);
 	}
+
+//	/**
+//	 * Test of getIJsonMarshallerInstance method, of class JsonMarshallerServices.
+//	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
+//	 */
+//	@Test(expected = JsonMarshallerException.class)
+//	public void testGetIJsonMarshallerInstanceFail() throws JsonMarshallerException {
+//		System.out.println("getIJsonMarshallerInstance");
+//		FakeCDI.class.cast(iJsonMarshallers).clear();
+//		instance.getIJsonMarshallerInstance(LocaleMarshaller.class);
+//	}
 }

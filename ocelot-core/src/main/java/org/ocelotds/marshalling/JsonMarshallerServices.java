@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.marshalling;
 
+import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -18,7 +19,11 @@ public class JsonMarshallerServices {
 
 	public IJsonMarshaller getIJsonMarshallerInstance(Class<? extends IJsonMarshaller> cls) throws JsonMarshallerException {
 		if(iJsonMarshallers.select(cls).isUnsatisfied()) {
-			throw new JsonMarshallerException(cls.getSimpleName()+" is Unsatisfied");
+			try {
+				return cls.newInstance();
+			} catch (InstantiationException | IllegalAccessException ex) {
+				throw new JsonMarshallerException(cls.getSimpleName()+" is Unsatisfied");
+			}
 		}
 		return iJsonMarshallers.select(cls).get();
 	}
