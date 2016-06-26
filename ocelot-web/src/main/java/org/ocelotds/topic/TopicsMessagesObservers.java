@@ -14,7 +14,6 @@ import javax.inject.Inject;
 import org.ocelotds.annotations.JsTopicEvent;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.marshalling.ArgumentServices;
-import org.ocelotds.marshalling.JsonMarshallerException;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.slf4j.Logger;
