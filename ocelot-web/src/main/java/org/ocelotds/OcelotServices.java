@@ -61,7 +61,7 @@ public class OcelotServices {
 	 * 
 	 * @param locale
 	 */
-	@JsCacheRemove(cls = OcelotServices.class, methodName = "getLocale", keys = {})
+	@JsCacheRemove(cls = OcelotServices.class, methodName = "getLocale", keys = {}, userScope = true)
 	public void setLocale(@JsonUnmarshaller(LocaleMarshaller.class) Locale locale) {
 		logger.debug("Receive setLocale call from client. {}", locale);
 		ocelotContext.setLocale(locale);

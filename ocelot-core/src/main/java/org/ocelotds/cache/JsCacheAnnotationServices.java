@@ -33,6 +33,10 @@ public class JsCacheAnnotationServices {
 	Event<MessageToClient> wsEvent;
 
 	@Inject
+	@MessageEvent(userScope = true)
+	Event<MessageToClient> wsUserEvent;
+
+	@Inject
 	@CacheEvent
 	Event<String> cacheEvent;
 	
@@ -103,8 +107,12 @@ public class JsCacheAnnotationServices {
 			logger.debug("Computed key : {}", cachekey);
 		}
 		messageToClient.setResponse(cachekey);
-		wsEvent.fire(messageToClient);
-		cacheEvent.fire(cachekey);
+		if(jcr.userScope()) {
+			wsUserEvent.fire(messageToClient);
+		} else {
+			wsEvent.fire(messageToClient);
+			cacheEvent.fire(cachekey);
+		}
 	}
 
 	/**

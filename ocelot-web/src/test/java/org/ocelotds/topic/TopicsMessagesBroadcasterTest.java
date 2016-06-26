@@ -39,7 +39,7 @@ public class TopicsMessagesBroadcasterTest {
 	private Logger logger;
 
 	@Mock
-	private TopicManager sessionManager;
+	private TopicManager topicManager;
 
 	@Mock
 	private UserContextFactory userContextFactory;
@@ -61,7 +61,7 @@ public class TopicsMessagesBroadcasterTest {
 		System.out.println("testSendMessageToTopicNoSessions");
 		Collection<Session> sessions = new ArrayList<>();
 
-		when(sessionManager.getSessionsForTopic(anyString())).thenReturn(null).thenReturn(sessions); // session is closed
+		when(topicManager.getSessionsForTopic(anyString())).thenReturn(null).thenReturn(sessions); // session is closed
 
 		int result = instance.sendMessageToTopic(new MessageToClient(), PAYLOAD);
 		assertThat(result).isEqualTo(0);
@@ -84,13 +84,13 @@ public class TopicsMessagesBroadcasterTest {
 
 		when(messageControllerManager.getJsTopicMessageController(anyString())).thenReturn(jtmc);
 		doReturn(1).doThrow(SessionException.class).doReturn(1).when(instance).checkAndSendMtcToSession(any(Session.class), eq(jtmc), any(MessageToClient.class), anyObject());
-		when(sessionManager.getSessionsForTopic(anyString())).thenReturn(sessions);
+		when(topicManager.getSessionsForTopic(anyString())).thenReturn(sessions);
 
 		int result = instance.sendMessageToTopic(new MessageToClient(), PAYLOAD);
 		assertThat(result).isEqualTo(2);
 
 		ArgumentCaptor<Collection> captureClosed = ArgumentCaptor.forClass(Collection.class);
-		verify(sessionManager).removeSessionsToTopic(captureClosed.capture());
+		verify(topicManager).removeSessionsToTopic(captureClosed.capture());
 		assertThat(captureClosed.getValue()).hasSize(1);
 	}
 	

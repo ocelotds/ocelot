@@ -4,6 +4,7 @@
  */
 package org.ocelotds.topic;
 
+import java.util.Collection;
 import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
 import javax.enterprise.event.Observes;
@@ -11,11 +12,15 @@ import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.EventMetadata;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
+import javax.servlet.http.HttpSession;
+import javax.websocket.Session;
 import org.ocelotds.annotations.JsTopicEvent;
 import org.ocelotds.annotations.OcelotLogger;
+import org.ocelotds.context.OcelotContext;
 import org.ocelotds.marshalling.ArgumentServices;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
+import org.ocelotds.web.SessionManager;
 import org.slf4j.Logger;
 
 /**
@@ -34,6 +39,12 @@ public class TopicsMessagesObservers {
 	
 	@Inject
 	private TopicsMessagesBroadcaster topicsMessagesBroadcaster;
+
+	@Inject
+	private OcelotContext ocelotContext;
+	
+	@Inject
+	private SessionManager sessionManager;
 
 	/**
 	 * Send message to topic
@@ -79,6 +90,16 @@ public class TopicsMessagesObservers {
 		return topicsMessagesBroadcaster.sendMessageToTopic(msg, getPayload(msg));
 	}
 	
+	public int sendMessageToUserTopic(@Observes @MessageEvent(userScope = true) MessageToClient msg) {
+		HttpSession httpSession = ocelotContext.getHttpSession();
+		if(httpSession!=null) {
+			String httpid = httpSession.getId();
+			Collection<Session> userSessions = sessionManager.getUserSessions(httpid);
+			return topicsMessagesBroadcaster.sendMessageToTopic(userSessions, msg, getPayload(msg));
+		}
+		return 0;
+	}
+
 	Object getPayload(MessageToClient msg) {
 		Object payload;
 		if(null != msg.getJson()) {

@@ -25,7 +25,7 @@ public class OcelotContext {
 	@Inject
 	private Principal principal;
 
-	HttpSession getHttpSession() {
+	public HttpSession getHttpSession() {
 		return (HttpSession) ThreadLocalContextHolder.get(Constants.HTTPSESSION);
 	}
 
