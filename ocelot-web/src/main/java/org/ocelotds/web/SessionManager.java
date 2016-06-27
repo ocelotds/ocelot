@@ -22,7 +22,6 @@ public class SessionManager {
 	
 	public void linkWsToHttp(Session ws, String httpid) {
 		if(ws != null && httpid != null) {
-			System.out.println("LINK SESSION : "+ws.getId()+" / "+httpid);
 			Collection<Session> wss = getOpenSessions(httpid);
 			wss.add(ws);
 			wsid_httpid.put(ws.getId(), httpid);
