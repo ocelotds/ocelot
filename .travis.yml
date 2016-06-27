@@ -9,7 +9,6 @@ before_install:
    - cp travis-ci_rsa.pub ~/.ssh/travis-ci_rsa.pub
    - chmod 400 ~/.ssh/travis-ci_rsa
    - chmod 400 ~/.ssh/travis-ci_rsa.pub
-   - pip install --user codecov
    - cp deployOrPerform.sh /tmp/deployOrPerform.sh
    - chmod ugo+x /tmp/deployOrPerform.sh
 install: mvn clean install -DskipTests=true -Dgpg.skip=true
@@ -19,7 +18,7 @@ cache:
 script:
    - /tmp/deployOrPerform.sh
 after_success: 
-   - codecov
+   - bash <(curl -s https://codecov.io/bash)
 branches:
   only:
    - master
