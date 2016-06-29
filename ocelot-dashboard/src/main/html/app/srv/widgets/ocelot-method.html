@@ -10,7 +10,7 @@
 						<span class="blue">{{omc.method.name}}</span>
 						<b class="orange">(</b>
 						<span ng-repeat-start="argtype in omc.method.argtypes track by $index" class="pink">{{argtype}} </span>
-						<span class="black">{{omc.method.argnames[$index]}}</span>
+						<span class="black">arg{{$index}}</span>
 						<span ng-if="(omc.method.argtypes.length - 1) > $index" class="black" ng-repeat-end="true">, </span>
 						<b class="orange">)</b>
 					</h4>
@@ -27,18 +27,18 @@
 	<div id="collapse-{{omc.srvname}}-{{omc.method.name}}" class="panel-collapse collapse" role="tabpanel"
 		  aria-labelledby="heading-{{omc.srvname}}-{{omc.method.name}}">
 		<div class="panel-body">
-			<div class="input-group" ng-repeat="argtype in omc.method.argtypes track by $index">
-				<span class="input-group-addon">{{argtype}}</span>
-				<input placeholder="{{omc.method.argtemplates[$index]}}" class="form-control" type="text" 
-						 ng-model="omc.args[$index]"/>
-			</div>
 			<div class="row">
-				<div class="col-lg-6" hljs source="omc.result"></div>
 				<div class="col-lg-6">
+					<div class="input-group" ng-repeat="argtype in omc.method.argtypes track by $index">
+						<span class="input-group-addon">{{argtype}}</span>
+						<input placeholder="{{omc.method.argtemplates[$index]}}" class="form-control" type="text" 
+								 ng-model="omc.args[$index]"/>
+					</div>
 					<canvas class="chart chart-line" chart-data="omc.chart.data"
 							  chart-labels="omc.chart.labels" chart-legend="true" chart-series="omc.chart.series">
 					</canvas>
 				</div>
+				<div class="col-lg-6" hljs source="omc.result"></div>
 			</div>
 		</div>
 	</div>

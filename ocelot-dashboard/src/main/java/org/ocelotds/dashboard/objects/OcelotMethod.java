@@ -14,7 +14,6 @@ public class OcelotMethod {
 	final String name;
 	final String returntype;
 	final List<String> argtypes = new ArrayList<>();
-	final List<String> argnames = new ArrayList<>();
 	final List<String> argtemplates = new ArrayList<>();
 
 	public OcelotMethod(String name, String returntype) {
@@ -32,10 +31,6 @@ public class OcelotMethod {
 
 	public List<String> getArgtypes() {
 		return argtypes;
-	}
-
-	public List<String> getArgnames() {
-		return argnames;
 	}
 
 	public List<String> getArgtemplates() {

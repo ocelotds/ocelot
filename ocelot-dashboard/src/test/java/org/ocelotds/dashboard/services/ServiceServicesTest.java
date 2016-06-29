@@ -87,7 +87,6 @@ public class ServiceServicesTest {
 		assertThat(result.getName()).isEqualTo("methodWith0Arg");
 		assertThat(result.getReturntype()).isEqualTo("returntype");
 		assertThat(result.getArgtypes()).isEmpty();
-		assertThat(result.getArgnames()).isEmpty();
 		assertThat(result.getArgtemplates()).isEmpty();
 	}
 	
@@ -102,7 +101,6 @@ public class ServiceServicesTest {
 		assertThat(result.getName()).isEqualTo("methodWith2Args");
 		assertThat(result.getReturntype()).isEqualTo("returntype");
 		assertThat(result.getArgtypes()).hasSize(2);
-		assertThat(result.getArgnames()).hasSize(2);
 		assertThat(result.getArgtemplates()).hasSize(2);
 	}
 
@@ -117,7 +115,6 @@ public class ServiceServicesTest {
 		assertThat(result.getName()).isEqualTo("methodWith2Args");
 		assertThat(result.getReturntype()).isEqualTo("returntype");
 		assertThat(result.getArgtypes()).hasSize(2);
-		assertThat(result.getArgnames()).hasSize(2);
 		assertThat(result.getArgtemplates()).hasSize(2);
 		assertThat(result.getArgtemplates().get(1)).isEqualTo("java.lang.String");
 	}

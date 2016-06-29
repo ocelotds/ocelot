@@ -83,7 +83,6 @@ public class ServiceServices {
 		int index = 0;
 		for (Type type : types) {
 			ocelotMethod.getArgtypes().add(serviceTools.getShortName(serviceTools.getLiteralType(type)));
-			ocelotMethod.getArgnames().add("arg"+index); 
 			try {
 				ocelotMethod.getArgtemplates().add(serviceTools.getTemplateOfType(type, serviceTools.getJsonMarshaller(annotations[index])));
 			} catch (JsonMarshallerException ex) {

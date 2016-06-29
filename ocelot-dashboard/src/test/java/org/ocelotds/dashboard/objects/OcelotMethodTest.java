@@ -50,17 +50,6 @@ public class OcelotMethodTest {
 	}
 
 	/**
-	 * Test of getArgnames method, of class OcelotMethod.
-	 */
-	@Test
-	public void testGetArgnames() {
-		System.out.println("getArgnames");
-		List<String> result = instance.getArgnames();
-		assertThat(result).isNotNull();
-		assertThat(result).isEmpty();
-	}
-
-	/**
 	 * Test of getArgtemplates method, of class OcelotMethod.
 	 */
 	@Test
