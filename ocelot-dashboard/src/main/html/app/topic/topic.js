@@ -29,7 +29,7 @@
 		ctrl.subscriber = null; // subscriber to ctrl.subscription
 		ctrl.session = null; // session selected
 		ctrl.messages = ""; // messages zone
-		ctrl.payload = "// Enter message to send";
+		ctrl.payload = "";
 		ctrl.selectTopic = selectTopic;
 		ctrl.selectSession = selectSession;
 		ctrl.subscribe = subscribe;

@@ -46,7 +46,7 @@
 			});
 			help += ")";
 			help += "\n\t.event(function(evt:OcelotEvent) {\n\t\tif(evt.type===\"RESULT\") {\n\t\t\t// OK\n\t\t} else {\n\t\t\t// FAIL\n\t\t}\n\t})";
-			help += "\n\t.then(function(result:Object) {\n\t\t// OK\n\t})";
+			help += "\n\t.then(function(result:"+vm.method.returntype+") {\n\t\t// OK\n\t})";
 			help += "\n\t.catch(function(fault:Fault) {\n\t\t// FAIL\n\t});";
 			return help;
 		}

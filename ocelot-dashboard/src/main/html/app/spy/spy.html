@@ -2,9 +2,10 @@
 	<div class="col-sm-4 col-md-3 sidebar">
 		<ul class="nav nav-sidebar">
 			<li>
-				<a>
-					<span>Show inactives</span>
+				<a style="cursor: default">
+					<span>Sessions <span class="badge">{{ctrl.sessions.length}}</span></span>
 					<span class="pull-right">
+						Show inactives
 						<btn-switch onswitch="ctrl.switchShowDisabled()" 
 										title="Show inactives" options="{'size':'xs'}"
 										value="ctrl.showDisabled">
@@ -54,9 +55,9 @@
 					</button>
 				</div>
 			</div>
-			<ui-codemirror class="col-md-6 CodeMirror" ng-model="ctrl.request"
-								ui-codemirror-opts="{lines: 70, theme: 'monokai', lineWrapping: false, readOnly: 'nocursor', mode: 'javascript'}">
-			</ui-codemirror>
+			<div class="col-md-6 list-spyed-container">
+				<div hljs source="ctrl.request"></div>
+			</div>
 		</div>
 	</div>
 </div>

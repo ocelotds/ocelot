@@ -41,9 +41,9 @@
 				<div class="panel panel-default">
 					<div class="panel-heading">Messages intercepted to {{ctrl.subscription}}<br></div>
 					<div class="panel-body" style='padding:0px;'>
-						<ui-codemirror class="CodeMirror" ng-model="ctrl.messages"
-											ui-codemirror-opts="{lines: 70, theme: 'monokai', lineWrapping: false, readOnly: 'nocursor', mode: 'javascript'}">
-						</ui-codemirror>
+						<div class="list-spyed-container">
+							<div hljs source="ctrl.messages"></div>
+						</div>
 					</div>
 				</div>
 			</div>				
@@ -55,13 +55,14 @@
 								<span>To send :</span>
 								<b>{{ctrl.topic}}</b>
 								<b>{{ctrl.session| sessioninfo}}</b><br>
-								<span>Enter payload, json format</span>
 							</div>
 							<div class="col-md-2">
 								<button type="button" class="btn btn-xs btn-primary" ng-disabled="!ctrl.topic" ng-click="ctrl.sendPayload(ctrl.payload, ctrl.topic, ctrl.session)">Send</button>
 							</div>
 						</div>
 					</div>
+					<p>Enter payload in json format to send to topic or specific client.</p>
+					<p>Becareful, a string have to be surrounded with double quote '"'</p>
 					<div class="panel-body" style='padding:0px;'>
 						<ui-codemirror class="CodeMirror" ng-model="ctrl.payload"
 											ui-codemirror-opts="{lines: 70, theme: 'monokai', lineWrapping: false, mode: 'javascript'}">

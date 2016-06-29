@@ -1,6 +1,7 @@
 (function () {
 	'use strict';
 	angular.module('app.dashboard', [
+		'hljs',
 		'ui.codemirror',
 		'chart.js',
 		'ui.router',
@@ -12,7 +13,10 @@
 	]).config(config);
 
 	/* @ngInject */
-	function config($stateProvider, $urlRouterProvider) {
+	function config($stateProvider, $urlRouterProvider, hljsServiceProvider) {
+		hljsServiceProvider.setOptions({
+		  tabReplace: '  '
+		});
       $urlRouterProvider.otherwise('/srv');
 		$stateProvider.state('template', {
 			abstract: true,

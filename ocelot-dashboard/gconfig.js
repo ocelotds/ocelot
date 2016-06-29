@@ -32,7 +32,7 @@ module.exports.vendorsCssFiles = [
    'animate.css/animate.css',
    'codemirror/lib/codemirror.css',
    'codemirror/theme/monokai.css',
-   'codemirror/theme/eclipse.css',
+	'highlightjs/styles/androidstudio.css',
 	'angular-chart.js/dist/angular-chart.css'
 ];
 /**
@@ -46,7 +46,9 @@ module.exports.vendorsJsFiles = [
    'codemirror/lib/codemirror.js',
 	'angular-ui-router/release/angular-ui-router.js',
    'angular-ui-codemirror/ui-codemirror.js',
-   'codemirror/mode/javascript/javascript.js',
+	'codemirror/mode/javascript/javascript.js',
+	'highlightjs/highlight.pack.js',
+	'angular-highlightjs/angular-highlightjs.js',
 	'Chart.js/Chart.js',
    'angular-chart.js/dist/angular-chart.js'
 ];

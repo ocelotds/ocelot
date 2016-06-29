@@ -33,12 +33,7 @@
 						 ng-model="omc.args[$index]"/>
 			</div>
 			<div class="row">
-				<div class="col-lg-6">
-					<b>Click on view if not visible</b>
-					<ui-codemirror id="codemirror-{{omc.srvname}}-{{omc.method.name}}" class="CodeMirror" ng-model="omc.result"
-										ui-codemirror-opts="{lines: 70, theme: 'monokai', lineWrapping: false, readOnly: 'nocursor', mode: 'javascript'}">
-					</ui-codemirror>
-				</div>
+				<div class="col-lg-6" hljs source="omc.result"></div>
 				<div class="col-lg-6">
 					<canvas class="chart chart-line" chart-data="omc.chart.data"
 							  chart-labels="omc.chart.labels" chart-legend="true" chart-series="omc.chart.series">
