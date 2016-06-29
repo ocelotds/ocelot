@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.dashboard.marshallers;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import javax.websocket.Session;
