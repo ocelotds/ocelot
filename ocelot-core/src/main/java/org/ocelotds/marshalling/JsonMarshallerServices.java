@@ -4,27 +4,15 @@
 package org.ocelotds.marshalling;
 
 import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
+import javax.enterprise.inject.spi.CDI;
 
 /**
  *
  * @author hhfrancois
  */
 public class JsonMarshallerServices {
-	@Inject 
-	@Any
-	Instance<IJsonMarshaller> iJsonMarshallers;
-
+	
 	public IJsonMarshaller getIJsonMarshallerInstance(Class<? extends IJsonMarshaller> cls) throws JsonMarshallerException {
-		if(iJsonMarshallers.select(cls).isUnsatisfied()) {
-			try {
-				return cls.newInstance();
-			} catch (InstantiationException | IllegalAccessException ex) {
-				throw new JsonMarshallerException(cls.getSimpleName()+" is Unsatisfied");
-			}
-		}
-		return iJsonMarshallers.select(cls).get();
+		return CDI.current().select(cls).get();
 	}
 }
