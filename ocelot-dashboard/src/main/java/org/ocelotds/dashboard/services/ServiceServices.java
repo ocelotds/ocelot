@@ -51,6 +51,10 @@ public class ServiceServices {
 	public List<OcelotService> getServices(HttpSession httpSession) {
 		List<OcelotService> result = new ArrayList<>();
 		Options options = (Options) httpSession.getAttribute(Constants.Options.OPTIONS);
+		if(options == null) {
+			options = new Options();
+			httpSession.setAttribute(Constants.Options.OPTIONS, options);
+		}
 		options.setMonitor(true);
 		for (Object dataservice : dataservices) {
 			Class<?> cls = unProxyClassServices.getRealClass(dataservice.getClass());
