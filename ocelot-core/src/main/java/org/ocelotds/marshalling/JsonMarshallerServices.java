@@ -3,8 +3,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.marshalling;
 
-import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import javax.enterprise.inject.spi.CDI;
+import javax.inject.Inject;
+import org.ocelotds.annotations.OcelotLogger;
+import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
+import org.slf4j.Logger;
 
 /**
  *
@@ -12,7 +15,22 @@ import javax.enterprise.inject.spi.CDI;
  */
 public class JsonMarshallerServices {
 	
+	@Inject
+	@OcelotLogger
+	Logger logger;
+	
 	public IJsonMarshaller getIJsonMarshallerInstance(Class<? extends IJsonMarshaller> cls) throws JsonMarshallerException {
+		if(CDI.current().select(cls).isUnsatisfied()) {
+			if(logger.isDebugEnabled()) {
+				logger.debug("Try to get {} by CDI.select Unsatisfied: {}", cls.getName(), CDI.current().select(cls).isUnsatisfied());
+			}
+			try {
+				IJsonMarshaller result = cls.newInstance();
+				return result;
+ 			} catch (InstantiationException | IllegalAccessException ex) {
+				throw new JsonMarshallerException(cls.getName()+" is Unsatisfied");
+			}
+		}
 		return CDI.current().select(cls).get();
 	}
 }
