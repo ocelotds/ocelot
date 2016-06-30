@@ -17,7 +17,6 @@ import java.util.Map;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
-import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -51,19 +50,10 @@ public class ServiceToolsTest {
 	private ServiceTools instance;
 
 	@Mock
-	ObjectMapper objectMapper;
-
-	@Mock
 	TemplateMarshaller templateMarshaller = new TemplateMarshaller();
 	
 	@Mock
 	JsonMarshallerServices jsonMarshallerServices;
-
-	@Before
-	public void init() throws JsonProcessingException {
-		ObjectMapper om = new ObjectMapper();
-		doReturn(om).when(instance).getObjectMapper();
-	}
 
 	/**
 	 * Test of getShortName method, of class ServiceTools.
@@ -567,16 +557,5 @@ public class ServiceToolsTest {
 		String expResult = "string";
 		String result = instance.getInstanceName(clsName);
 		assertThat(result).isEqualTo(expResult);
-	}
-
-	/**
-	 * Test of getObjectMapper method, of class ServiceTools.
-	 */
-	@Test
-	public void getObjectMapper() {
-		System.out.println("getObjectMapper");
-		doCallRealMethod().when(instance).getObjectMapper();
-		ObjectMapper o = instance.getObjectMapper();
-		assertThat(o).isNotNull();
 	}
 }

@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.dashboard.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -34,9 +33,6 @@ public class ServiceTools {
 	@Inject
 	@OcelotLogger
 	private Logger logger;
-
-	@Inject
-	private ObjectMapper objectMapper;
 
 	@Inject 
 	JsonMarshallerServices jsonMarshallerServices;
@@ -306,14 +302,5 @@ public class ServiceTools {
 	 */
 	String getInstanceName(String clsName) {
 		return clsName.substring(0, 1).toLowerCase(Locale.ENGLISH) + clsName.substring(1);
-	}
-
-	/**
-	 * Expose objectMapper
-	 *
-	 * @return
-	 */
-	ObjectMapper getObjectMapper() {
-		return objectMapper;
 	}
 }
