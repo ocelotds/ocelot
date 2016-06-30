@@ -72,9 +72,8 @@
 			});
 			methodcall += ")";
 			var processtime = ".event(function(evt) {vm.chart.data[0].shift();vm.chart.data[0].push(evt.totaltime);vm.chart.data[1].shift();vm.chart.data[1].push(evt.javatime);$scope.$apply();})";
-			var processresult = ".then(function(result) {vm.result = JSON.stringify(result, null, 3);$scope.$apply();})";
-			var processerror = ".catch(function(fault) {vm.result = JSON.stringify(fault, null, 3);$scope.$apply();})";
-			eval(methodcall + processtime + processresult + processerror + ";");
+			var processresult = ".event(function(evt) {vm.result = JSON.stringify(evt.response, null, 3);$scope.$apply();})";
+			eval(methodcall + processtime + processresult + ";");
 		}
 	}
 })();
