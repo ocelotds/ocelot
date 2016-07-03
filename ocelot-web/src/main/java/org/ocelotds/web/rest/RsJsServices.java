@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
+import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
@@ -18,6 +19,7 @@ import javax.ws.rs.core.UriInfo;
 import org.ocelotds.OcelotServices;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.OcelotResource;
+import org.ocelotds.core.UnProxyClassServices;
 
 /**
  *
@@ -30,6 +32,9 @@ public class RsJsServices extends AbstractRsJs {
 
 	@Context
 	private UriInfo context;
+	
+	@Inject
+	private UnProxyClassServices unProxyClassServices;
 
 	@Any
 	@Inject
@@ -45,7 +50,7 @@ public class RsJsServices extends AbstractRsJs {
 		List<InputStream> streams = new ArrayList<>();
 		for (Object dataservice : dataservices) {
 			if (!OcelotServices.class.isInstance(dataservice)) {
-				addStream(streams, getJsFilename(getClassnameFromProxy(dataservice), fwk));
+				addStream(streams, getJsFilename(unProxyClassServices.getRealClass(dataservice.getClass()).getName(), fwk));
 			}
 		}
 		return streams;
@@ -58,7 +63,7 @@ public class RsJsServices extends AbstractRsJs {
 	 * @return
 	 */
 	String getClassnameFromProxy(Object dataservice) {
-		String ds = dataservice.toString();
+		 String ds = dataservice.toString();
 		return getClassnameFromProxyname(ds);
 	}
 

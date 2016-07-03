@@ -6,7 +6,6 @@ package org.ocelotds.topic;
 import javax.inject.Inject;
 import org.ocelotds.annotations.JsTopicControls;
 import org.ocelotds.core.UnProxyClassServices;
-import org.ocelotds.security.JsTopicMessageController;
 
 /**
  *

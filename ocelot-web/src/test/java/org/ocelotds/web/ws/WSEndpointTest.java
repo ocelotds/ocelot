@@ -88,28 +88,28 @@ public class WSEndpointTest {
 		
 	}
 
-	/**
-	 * Test of getWSController method, of class WSEndpoint.
-	 */
-	@Test
-	public void testGetWSController() {
-		System.out.println("getWSController");
-		CdiBeanResolver cdiBeanResolver = mock(CdiBeanResolver.class);
-		WSController wSController = mock(WSController.class);
-		doReturn(cdiBeanResolver).when(instance).getCdiBeanResolver();
-		when(cdiBeanResolver.getBean(eq(WSController.class))).thenReturn(wSController);
-		WSController result = instance.getWSController();
-		assertThat(result).isEqualTo(wSController);
-	}
-
-	/**
-	 * Test of getCdiBeanResolver method, of class WSEndpoint.
-	 */
-	@Test
-	public void testGetCdiBeanResolver() {
-		System.out.println("getCdiBeanResolver");
-		CdiBeanResolver result = instance.getCdiBeanResolver();
-		assertThat(result).isInstanceOf(CdiBeanResolver.class);
-	}
+//	/**
+//	 * Test of getWSController method, of class WSEndpoint.
+//	 */
+//	@Test
+//	public void testGetWSController() {
+//		System.out.println("getWSController");
+//		CdiBeanResolver cdiBeanResolver = mock(CdiBeanResolver.class);
+//		WSController wSController = mock(WSController.class);
+//		doReturn(cdiBeanResolver).when(instance).getCdiBeanResolver();
+//		when(cdiBeanResolver.getBean(eq(WSController.class))).thenReturn(wSController);
+//		WSController result = instance.getWSController();
+//		assertThat(result).isEqualTo(wSController);
+//	}
+//
+//	/**
+//	 * Test of getCdiBeanResolver method, of class WSEndpoint.
+//	 */
+//	@Test
+//	public void testGetCdiBeanResolver() {
+//		System.out.println("getCdiBeanResolver");
+//		CdiBeanResolver result = instance.getCdiBeanResolver();
+//		assertThat(result).isInstanceOf(CdiBeanResolver.class);
+//	}
 
 }

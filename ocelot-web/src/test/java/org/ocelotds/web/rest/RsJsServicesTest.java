@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.OcelotServices;
+import org.ocelotds.core.UnProxyClassServices;
 import org.ocelotds.objects.FakeCDI;
 
 /**
@@ -35,6 +36,9 @@ public class RsJsServicesTest {
 	@Mock
 	UriInfo context;
 
+	@Mock
+	UnProxyClassServices unProxyClassServices;
+
 	/**
 	 * Test of getStreams method, of class RsJsServices.
 	 */
@@ -46,15 +50,11 @@ public class RsJsServicesTest {
 		((FakeCDI) dataservices).add(new OcelotServices());
 		((FakeCDI) dataservices).add("service4");
 		when(context.getPath()).thenReturn("");
-		doReturn("srv1").when(instance).getClassnameFromProxy(eq("service1"));
-		doReturn("srv2").when(instance).getClassnameFromProxy(eq("service2"));
-		doReturn("srv4").when(instance).getClassnameFromProxy(eq("service4"));
+		when(unProxyClassServices.getRealClass(eq(String.class))).thenReturn((Class) String.class);
 		doReturn("").when(instance).getJsFilename(anyString(), anyString());
 		List<InputStream> result = instance.getStreams();
 		verify(instance, times(3)).addStream(any(List.class), anyString());
-		verify(instance).getJsFilename(eq("srv1"), eq((String) null));
-		verify(instance).getJsFilename(eq("srv2"), eq((String) null));
-		verify(instance).getJsFilename(eq("srv4"), eq((String) null));
+		verify(instance, times(3)).getJsFilename(eq("java.lang.String"), eq((String) null));
 
 		assertThat(result).isNotNull();
 	}
@@ -67,11 +67,11 @@ public class RsJsServicesTest {
 		System.out.println("getStreams");
 		((FakeCDI) dataservices).add("service");
 		when(context.getPath()).thenReturn("services.ng.js");
-		doReturn("srv").when(instance).getClassnameFromProxy(eq("service"));
+		when(unProxyClassServices.getRealClass(eq(String.class))).thenReturn((Class) String.class);
 		doReturn("").when(instance).getJsFilename(anyString(), anyString());
 		List<InputStream> result = instance.getStreams();
 		verify(instance).addStream(any(List.class), anyString());
-		verify(instance).getJsFilename(eq("srv"), eq("ng"));
+		verify(instance).getJsFilename(eq("java.lang.String"), eq("ng"));
 		assertThat(result).isNotNull();
 	}
 

@@ -7,6 +7,7 @@ package org.ocelotds.web.ws;
 import org.ocelotds.configuration.OcelotRequestConfigurator;
 import org.ocelotds.encoders.MessageToClientEncoder;
 import java.io.IOException;
+import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
@@ -56,7 +57,8 @@ public class WSEndpoint {
 	 */
 	WSController getWSController() {
 		if (null == controller) {
-			controller = getCdiBeanResolver().getBean(WSController.class);
+			controller = CDI.current().select(WSController.class).get();
+//			controller = getCdiBeanResolver().getBean(WSController.class);
 		}
 		return controller;
 	}
