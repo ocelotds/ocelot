@@ -33,7 +33,7 @@ public class CDIExtensionTest {
 		when(afd.getInterceptors()).thenReturn(new ArrayList<Class<?>>());
 		BeanManager beanManager = null;
 		instance.afterTypeDiscovery(afd, beanManager);
-		assertThat(afd.getInterceptors()).hasSize(5);
+		assertThat(afd.getInterceptors()).hasSize(2);
 	}
 	
 }
