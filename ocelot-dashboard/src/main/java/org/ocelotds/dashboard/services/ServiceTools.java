@@ -17,8 +17,8 @@ import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.annotations.TransientDataService;
 import org.ocelotds.annotations.WsDataService;
 import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
-import org.ocelotds.marshalling.JsonMarshallerServices;
 import org.ocelotds.marshallers.TemplateMarshaller;
+import org.ocelotds.marshalling.ArgumentServices;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
@@ -35,7 +35,7 @@ public class ServiceTools {
 	private Logger logger;
 
 	@Inject 
-	JsonMarshallerServices jsonMarshallerServices;
+	ArgumentServices argumentServices;
 	
 	/**
 	 * Return classname but in short formal java.lang.Collection&lt;java.lang.String&gt; to Collection&lt;String&gt;
@@ -96,7 +96,7 @@ public class ServiceTools {
 	 */
 	public IJsonMarshaller getJsonMarshallerFromAnnotation(JsonUnmarshaller jua) throws JsonMarshallerException {
 		if (jua != null) {
-			return jsonMarshallerServices.getIJsonMarshallerInstance(jua.value());
+			return argumentServices.getIJsonMarshallerInstance(jua.value());
 		}
 		return null;
 	}
@@ -111,7 +111,7 @@ public class ServiceTools {
 	 */
 	public String getTemplateOfType(Type type, IJsonMarshaller jsonMarshaller) throws JsonMarshallerException {
 		if (jsonMarshaller == null) {
-			jsonMarshaller = jsonMarshallerServices.getIJsonMarshallerInstance(TemplateMarshaller.class);
+			jsonMarshaller = argumentServices.getIJsonMarshallerInstance(TemplateMarshaller.class);
 		}
 		return _getTemplateOfType(type, jsonMarshaller);
 	}
