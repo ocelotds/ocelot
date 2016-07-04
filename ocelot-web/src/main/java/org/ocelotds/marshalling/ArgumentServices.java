@@ -7,6 +7,7 @@ import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.StringReader;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -14,40 +15,70 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
+import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
+import org.slf4j.Logger;
 
 /**
  *
  * @author hhfrancois
  */
 public class ArgumentServices {
-	
+
 	@Inject
-	JsonMarshallerServices jsonMarshallerServices;
-	
+	@OcelotLogger
+	Logger logger;
+
 	@Inject
 	ObjectMapper objectMapper;
 
-	public List<String> getJsonParameters(Object[] parameters) throws JsonMarshallingException, JsonMarshallerException, JsonProcessingException {
+	public List<String> getJsonParameters(Object[] parameters, Annotation[][] annotationss) throws JsonMarshallingException, JsonMarshallerException, JsonProcessingException {
 		List<String> jsonArgs = new ArrayList<>();
+		int idx = 0;
 		for (Object arg : parameters) {
-			if(arg.getClass().isAnnotationPresent(JsonMarshaller.class)) {
-				jsonArgs.add(getJsonResultFromSpecificMarshaller(arg.getClass().getAnnotation(JsonMarshaller.class), arg));
+			JsonMarshaller marshaller = getJsonMarshaller(annotationss[idx++]);
+			if (marshaller != null) {
+				jsonArgs.add(getJsonResultFromSpecificMarshaller(marshaller, arg));
 			} else {
 				jsonArgs.add(objectMapper.writeValueAsString(arg));
 			}
 		}
 		return jsonArgs;
 	}
+
+	JsonMarshaller getJsonMarshaller(Annotation[] annotations) {
+		for (Annotation annotation : annotations) {
+			if (annotation.annotationType().equals(JsonMarshaller.class)) {
+				return (JsonMarshaller) annotation;
+			}
+		}
+		return null;
+	}
 	
+	/**
+	 * Get Instance of IJsonMarshaller from CDI
+	 * @param cls
+	 * @return
+	 * @throws JsonMarshallerException 
+	 */
+	public IJsonMarshaller getIJsonMarshallerInstance(Class<? extends IJsonMarshaller> cls) throws JsonMarshallerException {
+		if(logger.isDebugEnabled()) {
+			logger.debug("Try to get {} by CDI.select Unsatisfied: {}", cls.getName(), CDI.current().select(cls).isUnsatisfied());
+		}
+		if(CDI.current().select(cls).isUnsatisfied()) {
+			throw new JsonMarshallerException(cls.getName()+" is Unsatisfied");
+		}
+		return CDI.current().select(cls).get();
+	}
 	/**
 	 *
 	 * @param jm
@@ -57,7 +88,7 @@ public class ArgumentServices {
 	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 */
 	public String getJsonResultFromSpecificMarshaller(JsonMarshaller jm, Object result) throws JsonMarshallingException, JsonMarshallerException {
-		IJsonMarshaller marshaller = jsonMarshallerServices.getIJsonMarshallerInstance(jm.value());
+		IJsonMarshaller marshaller = getIJsonMarshallerInstance(jm.value());
 		String res;
 		switch (jm.type()) {
 			case LIST:
@@ -102,7 +133,7 @@ public class ArgumentServices {
 		json.append("}");
 		return json.toString();
 	}
-	
+
 	public List getJavaResultFromSpecificUnmarshallerIterable(String json, IJsonMarshaller marshaller) throws JsonUnmarshallingException {
 		try {
 			List result = new ArrayList<>();
@@ -112,7 +143,7 @@ public class ArgumentServices {
 				result.add(marshaller.toJava(jsonValue.toString()));
 			}
 			return result;
-		} catch(Throwable t) {
+		} catch (Throwable t) {
 			throw new JsonUnmarshallingException(t.getMessage());
 		}
 	}
@@ -128,7 +159,7 @@ public class ArgumentServices {
 				result.put(key, marshaller.toJava(jsonValue.toString()));
 			}
 			return result;
-		} catch(Throwable t) {
+		} catch (Throwable t) {
 			throw new JsonUnmarshallingException(t.getMessage());
 		}
 	}
