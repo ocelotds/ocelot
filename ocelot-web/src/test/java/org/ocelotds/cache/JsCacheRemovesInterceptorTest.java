@@ -5,22 +5,19 @@
 package org.ocelotds.cache;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import javax.inject.Inject;
 import javax.interceptor.InvocationContext;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.*;
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.JsCacheRemove;
-import org.ocelotds.annotations.JsCacheRemoves;
 import org.ocelotds.marshalling.ArgumentServices;
 import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
@@ -47,7 +44,7 @@ public class JsCacheRemovesInterceptorTest {
 	
 	@Before
 	public void init() throws JsonMarshallingException, JsonMarshallerException, JsonProcessingException {
-		when(argumentServices.getJsonParameters(any(Object[].class))).thenReturn(Arrays.asList("5"));
+		when(argumentServices.getJsonParameters(any(Object[].class), any(Annotation[][].class))).thenReturn(Arrays.asList("5"));
 		when(cacheParamNameServices.getMethodParamNames(any(Class.class), anyString())).thenReturn(Arrays.asList("arg"));
 	}
 	

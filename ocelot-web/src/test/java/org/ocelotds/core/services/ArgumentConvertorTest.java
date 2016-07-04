@@ -36,9 +36,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.TransientDataService;
 import org.ocelotds.literals.JsonUnmarshallerLiteral;
 import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
-import org.ocelotds.marshalling.JsonMarshallerServices;
 import org.ocelotds.marshallers.LocaleMarshaller;
-import org.ocelotds.marshallers.TemplateMarshaller;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshallerType;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
@@ -60,9 +58,6 @@ public class ArgumentConvertorTest {
 	@Mock
 	ArgumentServices argumentServices;
 	
-	@Mock
-	JsonMarshallerServices jsonMarshallerServices;
-
 	@InjectMocks
 	@Spy
 	private ArgumentConvertor instance;
@@ -300,7 +295,7 @@ public class ArgumentConvertorTest {
 		System.out.println("convertJsonToJavaBadUnmarshaller");
 
 		Method method = ClassAsDataService.class.getMethod("methodWithBadUnmarshaller", String.class);
-		when(jsonMarshallerServices.getIJsonMarshallerInstance(any(Class.class))).thenThrow(JsonUnmarshallingException.class);
+		when(argumentServices.getIJsonMarshallerInstance(any(Class.class))).thenThrow(JsonUnmarshallingException.class);
 		Annotation[] annotations = method.getParameterAnnotations()[0];
 		instance.convertJsonToJava("", null, annotations);
 	}

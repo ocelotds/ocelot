@@ -5,15 +5,14 @@
 package org.ocelotds.cache;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import javax.interceptor.InvocationContext;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
-import static org.assertj.core.api.Assertions.*;
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -45,7 +44,7 @@ public class JsCacheRemoveInterceptorTest {
 	
 	@Before
 	public void init() throws JsonMarshallingException, JsonMarshallerException, JsonProcessingException {
-		when(argumentServices.getJsonParameters(any(Object[].class))).thenReturn(Arrays.asList("5"));
+		when(argumentServices.getJsonParameters(any(Object[].class), any(Annotation[][].class))).thenReturn(Arrays.asList("5"));
 		when(cacheParamNameServices.getMethodParamNames(any(Class.class), anyString())).thenReturn(Arrays.asList("arg"));
 	}
 

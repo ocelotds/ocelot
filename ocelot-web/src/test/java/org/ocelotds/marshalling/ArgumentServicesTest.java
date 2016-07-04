@@ -3,6 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.marshalling;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
 import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -37,12 +41,77 @@ import org.ocelotds.objects.Result;
 @RunWith(MockitoJUnitRunner.class)
 public class ArgumentServicesTest {
 
-	@Mock
-	JsonMarshallerServices jsonMarshallerServices;
-
 	@InjectMocks
 	@Spy
 	private ArgumentServices instance;
+	
+	@Mock
+	ObjectMapper objectMapper;
+
+	
+	/**
+	 * Test of getJsonParameters method, of class.
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
+	 * @throws com.fasterxml.jackson.core.JsonProcessingException
+	 */
+	@Test
+	public void getJsonParametersWithMarshallerTest() throws JsonMarshallingException, JsonMarshallerException, JsonProcessingException {
+		System.out.println("getJsonParameters");
+		Serializable s1 = mock(Serializable.class);
+		Annotation[] annotations = new Annotation[] {};
+		Annotation[][] annotationss = new Annotation[][] {annotations, annotations};
+		JsonMarshaller marshaller = mock(JsonMarshaller.class);
+		doReturn(marshaller).when(instance).getJsonMarshaller(any(Annotation[].class));
+		doReturn("FOO").when(instance).getJsonResultFromSpecificMarshaller(any(JsonMarshaller.class), anyObject());
+		when(objectMapper.writeValueAsString(anyObject())).thenReturn("FOO");
+
+		List<String> result = instance.getJsonParameters(new Object[] {s1, s1}, annotationss);
+
+		assertThat(result).hasSize(2);
+		verify(instance, times(2)).getJsonResultFromSpecificMarshaller(any(JsonMarshaller.class), anyObject());
+		verify(objectMapper, never()).writeValueAsString(anyObject());
+	}
+	
+	/**
+	 * Test of getJsonParameters method, of class.
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
+	 * @throws com.fasterxml.jackson.core.JsonProcessingException
+	 */
+	@Test
+	public void getJsonParametersWithoutMarshallerTest() throws JsonMarshallingException, JsonMarshallerException, JsonProcessingException {
+		System.out.println("getJsonParameters");
+		Serializable s1 = mock(Serializable.class);
+		Annotation[] annotations = new Annotation[] {};
+		Annotation[][] annotationss = new Annotation[][] {annotations, annotations};
+		doReturn(null).when(instance).getJsonMarshaller(any(Annotation[].class));
+		doReturn("FOO").when(instance).getJsonResultFromSpecificMarshaller(any(JsonMarshaller.class), anyObject());
+		when(objectMapper.writeValueAsString(anyObject())).thenReturn("FOO");
+
+		List<String> result = instance.getJsonParameters(new Object[] {s1, s1}, annotationss);
+
+		assertThat(result).hasSize(2);
+		verify(instance, never()).getJsonResultFromSpecificMarshaller(any(JsonMarshaller.class), anyObject());
+		verify(objectMapper, times(2)).writeValueAsString(anyObject());
+	}
+	
+	/**
+	 * Test of getJsonMarshaller method, of class.
+	 */
+	@Test
+	public void getJsonMarshallerTest() {
+		System.out.println("getJsonMarshaller");
+		JsonMarshaller a1 = mock(JsonMarshaller.class);
+		when(a1.annotationType()).thenReturn((Class) JsonMarshaller.class);
+		Annotation a2 = mock(Annotation.class);
+		when(a2.annotationType()).thenReturn((Class) String.class);
+		Annotation[] annotations = new Annotation[] {a2, a1};
+		JsonMarshaller result = instance.getJsonMarshaller(new Annotation[] {});
+		assertThat(result).isNull();
+		result = instance.getJsonMarshaller(annotations);
+		assertThat(result).isNotNull();
+	}
 
 	/**
 	 * Test of getJsonResultFromSpecificMarshaller method, of class ArgumentServices.
@@ -61,7 +130,7 @@ public class ArgumentServicesTest {
 		doReturn("[LG1,LG2]").when(instance).getJsonResultFromSpecificMarshallerIterable(any(Iterable.class), any(IJsonMarshaller.class));
 		doReturn("{\"FR\":LG1,\"US\":LG2}").when(instance).getJsonResultFromSpecificMarshallerMap(any(Map.class), any(IJsonMarshaller.class));
 		
-		when(jsonMarshallerServices.getIJsonMarshallerInstance(any(Class.class))).thenReturn(ijm);
+		doReturn(ijm).when(instance).getIJsonMarshallerInstance(any(Class.class));
 		String result = instance.getJsonResultFromSpecificMarshaller(jm, Locale.FRANCE);
 		assertThat(result).isEqualTo("LG1");
 		result = instance.getJsonResultFromSpecificMarshaller(jm, Arrays.asList(Locale.FRANCE, Locale.US));
@@ -73,13 +142,13 @@ public class ArgumentServicesTest {
 	/**
 	 * Test of getJsonResultFromSpecificMarshaller method, of class ArgumentServices.
 	 *
-	 * @throws org.ocelotds.marshalling.JsonMarshallerException
+	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallerException
 	 * @throws org.ocelotds.marshalling.exceptions.JsonMarshallingException
 	 */
 	@Test(expected = JsonMarshallerException.class)
 	public void testGetJsonResultFromSpecificMarshallerFail() throws JsonMarshallerException, JsonMarshallingException {
 		System.out.println("getJsonResultFromSpecificMarshaller");
-		when(jsonMarshallerServices.getIJsonMarshallerInstance(any(Class.class))).thenThrow(JsonMarshallerException.class);
+		doThrow(JsonMarshallerException.class).when(instance).getIJsonMarshallerInstance(any(Class.class));
 		JsonMarshaller jm = mock(JsonMarshaller.class);
 		when(jm.value()).thenReturn((Class) BadMarshaller1.class);
 		instance.getJsonResultFromSpecificMarshaller(jm, Locale.FRANCE);

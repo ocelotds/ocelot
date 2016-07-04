@@ -57,16 +57,29 @@ public class TopicsMessagesBroadcasterTest {
 	 * @throws javax.websocket.SessionException
 	 */
 	@Test
+	public void testSendMessageToTopic() throws SessionException {
+		System.out.println("testSendMessageToTopic");
+		doReturn(5).when(instance).sendMessageToTopic(anyList(), any(MessageToClient.class), eq(PAYLOAD));
+		int result = instance.sendMessageToTopic(new MessageToClient(), PAYLOAD);
+		assertThat(result).isEqualTo(5);
+	}
+
+	/**
+	 * Test of sendMessageToTopic method, of class TopicsMessagesBroadcaster.
+	 *
+	 * @throws javax.websocket.SessionException
+	 */
+	@Test
 	public void testSendMessageToTopicNoSessions() throws SessionException {
 		System.out.println("testSendMessageToTopicNoSessions");
 		Collection<Session> sessions = new ArrayList<>();
 
 		when(topicManager.getSessionsForTopic(anyString())).thenReturn(null).thenReturn(sessions); // session is closed
 
-		int result = instance.sendMessageToTopic(new MessageToClient(), PAYLOAD);
+		int result = instance.sendMessageToTopic(null, new MessageToClient(), PAYLOAD);
 		assertThat(result).isEqualTo(0);
 
-		result = instance.sendMessageToTopic(new MessageToClient(), PAYLOAD);
+		result = instance.sendMessageToTopic(null, new MessageToClient(), PAYLOAD);
 		assertThat(result).isEqualTo(0);
 	}
 
@@ -76,9 +89,33 @@ public class TopicsMessagesBroadcasterTest {
 	 * @throws javax.websocket.SessionException
 	 */
 	@Test
-	public void testSendMessageToTopicFor2Opened1ClosedSession() throws SessionException {
+	public void testSendMessageToTopicForRetain() throws SessionException {
 		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
 		System.out.println("testSendMessageToTopicFor2Opened1ClosedSession");
+		Session session = mock(Session.class);
+		Collection<Session> sessions = Arrays.asList(mock(Session.class), session, mock(Session.class));
+		Collection<Session> sessionTargets = Arrays.asList(session);
+
+		when(topicManager.getSessionsForTopic(anyString())).thenReturn(sessions);
+		doReturn(2).when(instance).sendMessageToTopicForSessions(anyList(), any(MessageToClient.class), anyString());
+
+		int result = instance.sendMessageToTopic(sessionTargets, new MessageToClient(), PAYLOAD);
+		assertThat(result).isEqualTo(2);
+
+		ArgumentCaptor<Collection> captureClosed = ArgumentCaptor.forClass(Collection.class);
+		verify(instance).sendMessageToTopicForSessions(captureClosed.capture(), any(MessageToClient.class), eq(PAYLOAD));
+		assertThat(captureClosed.getValue()).hasSize(1);
+	}
+
+	/**
+	 * Test of sendMessageToTopic method, of class TopicsMessagesBroadcaster.
+	 *
+	 * @throws javax.websocket.SessionException
+	 */
+	@Test
+	public void testSendMessageToTopicForSessionsFor2Opened1ClosedSession() throws SessionException {
+		when(logger.isDebugEnabled()).thenReturn(Boolean.TRUE);
+		System.out.println("testSendMessageToTopicForSessions");
 		Collection<Session> sessions = Arrays.asList(mock(Session.class), mock(Session.class), mock(Session.class));
 		JsTopicMessageController jtmc = mock(JsTopicMessageController.class);
 
@@ -86,7 +123,7 @@ public class TopicsMessagesBroadcasterTest {
 		doReturn(1).doThrow(SessionException.class).doReturn(1).when(instance).checkAndSendMtcToSession(any(Session.class), eq(jtmc), any(MessageToClient.class), anyObject());
 		when(topicManager.getSessionsForTopic(anyString())).thenReturn(sessions);
 
-		int result = instance.sendMessageToTopic(new MessageToClient(), PAYLOAD);
+		int result = instance.sendMessageToTopicForSessions(sessions, new MessageToClient(), PAYLOAD);
 		assertThat(result).isEqualTo(2);
 
 		ArgumentCaptor<Collection> captureClosed = ArgumentCaptor.forClass(Collection.class);

@@ -35,6 +35,10 @@ public class JsCacheAnnotationServicesTest {
 
 	@Mock
 	Event<MessageToClient> wsEvent;
+	
+	@Mock
+	Event<MessageToClient> wsUserEvent;
+
 
 	@Mock
 	Event<String> cacheEvent;
@@ -147,17 +151,39 @@ public class JsCacheAnnotationServicesTest {
 	public void testProcessJsCacheRemove() {
 		System.out.println("processJsCacheRemove");
 		JsCacheRemove jcr = new LiteralJsCacheRemove(this.getClass(), "testProcessJsCacheRemove", new String[] {}, false);
-		List<String> paramNames = Arrays.asList("a", "b", "c");
-		List<String> jsonArgs = Arrays.asList("1", "2", "3");
-		doReturn("MD5").when(instance).computeCacheKey(any(Class.class), anyString(), anyString());
-		
-		instance.processJsCacheRemove(jcr, paramNames, jsonArgs);
+
+		testProcessJsCacheRemove(jcr);
+
 		ArgumentCaptor<MessageToClient> captureMTC = ArgumentCaptor.forClass(MessageToClient.class);
 		verify(wsEvent).fire(captureMTC.capture());
 		assertThat(captureMTC.getValue().getId()).isEqualTo(Constants.Cache.CLEANCACHE_TOPIC);
+		assertThat(captureMTC.getValue().getResponse()).isEqualTo("MD5");
 		ArgumentCaptor<String> captureCacheKey = ArgumentCaptor.forClass(String.class);
 		verify(cacheEvent).fire(captureCacheKey.capture());
 		assertThat(captureCacheKey.getValue()).isEqualTo("MD5");
+	}
+
+	/**
+	 * Test of processJsCacheRemove method, of class JsCacheAnnotationServices.
+	 */
+	@Test
+	public void testProcessJsCacheRemoveUserScope() {
+		System.out.println("processJsCacheRemove");
+		JsCacheRemove jcr = new LiteralJsCacheRemove(this.getClass(), "testProcessJsCacheRemove", new String[] {}, true);
+
+		testProcessJsCacheRemove(jcr);
+
+		ArgumentCaptor<MessageToClient> captureMTC = ArgumentCaptor.forClass(MessageToClient.class);
+		verify(wsUserEvent).fire(captureMTC.capture());
+		assertThat(captureMTC.getValue().getId()).isEqualTo(Constants.Cache.CLEANCACHE_TOPIC);
+		assertThat(captureMTC.getValue().getResponse()).isEqualTo("MD5");
+	}
+	
+	void testProcessJsCacheRemove(JsCacheRemove jcr) {
+		List<String> paramNames = Arrays.asList("a", "b", "c");
+		List<String> jsonArgs = Arrays.asList("1", "2", "3");
+		doReturn("MD5").when(instance).computeCacheKey(any(Class.class), anyString(), anyString());
+		instance.processJsCacheRemove(jcr, paramNames, jsonArgs);
 	}
 
 	/**

@@ -3,9 +3,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.topic;
 
+import java.util.Collection;
 import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.EventMetadata;
 import javax.enterprise.inject.spi.InjectionPoint;
+import javax.servlet.http.HttpSession;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
@@ -17,10 +19,12 @@ import static org.mockito.Mockito.*;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.JsTopicEvent;
+import org.ocelotds.context.OcelotContext;
 import org.ocelotds.marshalling.ArgumentServices;
 import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
+import org.ocelotds.web.SessionManager;
 import org.slf4j.Logger;
 
 /**
@@ -41,6 +45,13 @@ public class TopicsMessagesObserversTest {
 
 	@Mock
 	TopicsMessagesBroadcaster topicsMessagesBroadcaster;
+	
+	@Mock
+	OcelotContext ocelotContext;
+	
+	@Mock
+	SessionManager sessionManager;
+
 
 	@InjectMocks
 	@Spy
@@ -228,6 +239,26 @@ public class TopicsMessagesObserversTest {
 		int result = instance.sendMessageToTopic(mtc);
 		assertThat(result).isEqualTo(1);
 		verify(topicsMessagesBroadcaster).sendMessageToTopic(eq(mtc), eq(PAYLOAD));
+	}
+	
+	/**
+	 * Test of sendMessageToUserTopic method, of class.
+	 */
+	@Test
+	public void sendMessageToUserTopicTest() {
+		System.out.println("sendMessageToUserTopic");
+		HttpSession httpSession = mock(HttpSession.class);
+		Collection userSessions = mock(Collection.class);
+		MessageToClient mtc = mock(MessageToClient.class);
+		when(httpSession.getId()).thenReturn("HTTPID");
+		when(ocelotContext.getHttpSession()).thenReturn(null, httpSession);
+		when(sessionManager.getUserSessions(eq("HTTPID"))).thenReturn(userSessions);
+		doReturn("PAYLOAD").when(instance).getPayload(eq(mtc));
+		when(topicsMessagesBroadcaster.sendMessageToTopic(eq(userSessions), eq(mtc), eq("PAYLOAD"))).thenReturn(5);
+		int result = instance.sendMessageToUserTopic(mtc);
+		assertThat(result).isEqualTo(0);
+		result = instance.sendMessageToUserTopic(mtc);
+		assertThat(result).isEqualTo(5);
 	}
 
 	/**

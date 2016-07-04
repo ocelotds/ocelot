@@ -25,7 +25,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.TransientDataService;
 import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
-import org.ocelotds.marshalling.JsonMarshallerServices;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshallers.TemplateMarshaller;
 import org.ocelotds.marshalling.IJsonMarshaller;
@@ -33,6 +32,7 @@ import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 import org.ocelotds.dashboard.objects.Result;
+import org.ocelotds.marshalling.ArgumentServices;
 import org.slf4j.Logger;
 
 /**
@@ -53,7 +53,7 @@ public class ServiceToolsTest {
 	TemplateMarshaller templateMarshaller = new TemplateMarshaller();
 	
 	@Mock
-	JsonMarshallerServices jsonMarshallerServices;
+	ArgumentServices argumentsServices;
 
 	/**
 	 * Test of getShortName method, of class ServiceTools.
@@ -167,7 +167,7 @@ public class ServiceToolsTest {
 		JsonUnmarshaller ju = mock(JsonUnmarshaller.class);
 		Class<? extends IJsonMarshaller> cls = LocaleMarshaller.class;
 		when(ju.value()).thenReturn((Class) cls);
-		when(jsonMarshallerServices.getIJsonMarshallerInstance(eq(cls))).thenReturn(cls.newInstance());
+		when(argumentsServices.getIJsonMarshallerInstance(eq(cls))).thenReturn(cls.newInstance());
 		org.ocelotds.marshalling.IJsonMarshaller result = instance.getJsonMarshallerFromAnnotation(ju);
 		assertThat(result).isInstanceOf(cls);
 		result = instance.getJsonMarshallerFromAnnotation(null);
@@ -228,7 +228,7 @@ public class ServiceToolsTest {
 		org.ocelotds.marshalling.IJsonMarshaller ju = mock(org.ocelotds.marshalling.IJsonMarshaller.class);
 		String expResult0 = "ok0";
 		String expResult1 = "ok1";
-		when(jsonMarshallerServices.getIJsonMarshallerInstance(any(Class.class))).thenReturn(mock(TemplateMarshaller.class));
+		when(argumentsServices.getIJsonMarshallerInstance(any(Class.class))).thenReturn(mock(TemplateMarshaller.class));
 		doReturn(expResult0).when(instance)._getTemplateOfType(eq(type), any(TemplateMarshaller.class));
 		doReturn(expResult1).when(instance)._getTemplateOfType(eq(type), eq(ju));
 		String result = instance.getTemplateOfType(type, null);
