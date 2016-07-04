@@ -9,7 +9,6 @@ import org.ocelotds.messaging.MessageToClient;
 import org.ocelotds.messaging.MessageType;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import javax.inject.Inject;
@@ -42,8 +41,8 @@ public class TopicsMessagesBroadcaster {
 	private MessageControllerManager messageControllerManager;
 
 	/**
-	 * Send message to topic, return number sended
-	 *
+	 * Send message to all sessions for topic mtc.getId()
+	 * return number sended
 	 * @param mtc
 	 * @param payload
 	 * @return
@@ -52,6 +51,14 @@ public class TopicsMessagesBroadcaster {
 		return sendMessageToTopic(null, mtc, payload);
 	}
 
+	/**
+	 * Send message to all sessions for topic mtc.getId() and intersection of sessionTargets
+	 * return number sended
+	 * @param sessionTargets
+	 * @param mtc
+	 * @param payload
+	 * @return 
+	 */
 	public int sendMessageToTopic(Collection<Session> sessionTargets, MessageToClient mtc, Object payload) {
 		int sended = 0;
 		logger.debug("Sending message to topic {}...", mtc);
@@ -68,6 +75,14 @@ public class TopicsMessagesBroadcaster {
 		return sended;
 	}
 
+	/**
+	 * send message to sessions
+	 * apply msgControl to topic
+	 * @param sessions
+	 * @param mtc
+	 * @param payload
+	 * @return 
+	 */
 	int sendMessageToTopicForSessions(Collection<Session> sessions, MessageToClient mtc, Object payload) {
 		int sended = 0;
 		JsTopicMessageController msgControl = messageControllerManager.getJsTopicMessageController(mtc.getId());
