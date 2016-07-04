@@ -17,7 +17,6 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import org.ocelotds.core.CdiBeanResolver;
 
 /**
  * WebSocket endpoint
@@ -63,8 +62,8 @@ public class WSEndpoint {
 		return controller;
 	}
 
-	CdiBeanResolver getCdiBeanResolver() {
-		return new CdiBeanResolver();
-	}
+//	CdiBeanResolver getCdiBeanResolver() {
+//		return new CdiBeanResolver();
+//	}
 
 }
