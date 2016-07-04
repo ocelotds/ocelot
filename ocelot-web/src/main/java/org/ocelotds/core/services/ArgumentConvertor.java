@@ -20,7 +20,6 @@ import javax.inject.Inject;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
 import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
-import org.ocelotds.marshalling.JsonMarshallerServices;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshallerType;
 import org.ocelotds.marshalling.annotations.JsonUnmarshaller;
@@ -43,9 +42,6 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	@Inject
 	ArgumentServices argumentServices;
 
-	@Inject
-	JsonMarshallerServices jsonMarshallerServices;
-	
 	/**
 	 * Convert json to Java
 	 *
@@ -63,7 +59,7 @@ public class ArgumentConvertor implements IArgumentConvertor {
 		}
 		JsonUnmarshaller juma = getJsonUnmarshallerAnnotation(parameterAnnotations);
 		if (null != juma) {
-			Object result = getResult(jsonArg, jsonMarshallerServices.getIJsonMarshallerInstance(juma.value()), juma.type());
+			Object result = getResult(jsonArg, argumentServices.getIJsonMarshallerInstance(juma.value()), juma.type());
 			argumentServices.checkType(result, paramType);
 			return result;
 		} else {
