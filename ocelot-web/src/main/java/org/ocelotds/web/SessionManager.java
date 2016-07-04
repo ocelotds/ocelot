@@ -8,8 +8,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 import javax.enterprise.context.ApplicationScoped;
 import javax.websocket.Session;
+import org.ocelotds.web.ws.predicates.IsOpenAndDifferentPredicate;
+import org.ocelotds.web.ws.predicates.IsOpenPredicate;
 
 /**
  *
@@ -20,9 +23,11 @@ public class SessionManager {
 	Map<String, Collection<Session>> httpid_wss = new HashMap<>();
 	Map<String, String> wsid_httpid = new HashMap<>();
 	
+	Predicate<Session> ISOPEN = new IsOpenPredicate();
+
 	public void linkWsToHttp(Session ws, String httpid) {
 		if(ws != null && httpid != null) {
-			Collection<Session> wss = getOpenSessions(httpid);
+			Collection<Session> wss = getValidSessionsElseRemove(httpid, ISOPEN);
 			wss.add(ws);
 			wsid_httpid.put(ws.getId(), httpid);
 			httpid_wss.put(httpid, wss);
@@ -31,33 +36,41 @@ public class SessionManager {
 
 	public void unlinkWs(String wsid) {
 		if(wsid != null && wsid_httpid.containsKey(wsid)) {
-			String httpid = wsid_httpid.get(wsid);
-			Collection<Session> wss = getOpenSessions(httpid);
-			if(!wss.isEmpty()) {
-				httpid_wss.put(httpid, wss);
-			} else {
-				httpid_wss.remove(httpid);
-			}
+			String httpid = wsid_httpid.remove(wsid);
+			getValidSessionsElseRemove(httpid, new IsOpenAndDifferentPredicate(wsid));
 		}
 	}
 	
-	Collection<Session> getOpenSessions(String httpid) {
+	/**
+	 * Return all sessions for httpid and for the predicate
+	 * if some session negate the predicate, its are removed
+	 * @param httpid
+	 * @param predicat
+	 * @return 
+	 */
+	Collection<Session> getValidSessionsElseRemove(String httpid, Predicate<Session> predicat) {
 		Collection<Session> wss = new ArrayList();
 		if(httpid_wss.containsKey(httpid)) {
 			Collection<Session> befores = httpid_wss.get(httpid);
 			for (Session before : befores) {
-				if(before.isOpen()) {
+				if(predicat.test(before)) {
 					wss.add(before);
+					wsid_httpid.put(before.getId(), httpid);
 				} else {
 					wsid_httpid.remove(before.getId());
 				}
+			}
+			if(wss.isEmpty()) {
+				httpid_wss.remove(httpid);
+			} else {
+				httpid_wss.put(httpid, wss);
 			}
 		}
 		return wss;
 	}
 	
 	public Collection<Session> getUserSessions(String httpid) {
-		return Collections.unmodifiableCollection(getOpenSessions(httpid));
+		return Collections.unmodifiableCollection(getValidSessionsElseRemove(httpid, ISOPEN));
 	}
 	
 	
