@@ -50,7 +50,7 @@ public class JsCacheRemovesInterceptor  implements Serializable {
 	@AroundInvoke
 	public Object processJsCacheRemoves(InvocationContext ctx) throws Exception {
 		Method method = ctx.getMethod();
-		List<String> jsonArgs = argumentServices.getJsonParameters(ctx.getParameters());
+		List<String> jsonArgs = argumentServices.getJsonParameters(ctx.getParameters(), method.getParameterAnnotations());
 		List<String> paramNames = cacheParamNameServices.getMethodParamNames(method.getDeclaringClass(), method.getName());
 		JsCacheRemoves jcrs = method.getAnnotation(JsCacheRemoves.class);
 		for (JsCacheRemove jcr : jcrs.value()) {
