@@ -66,9 +66,9 @@ import org.junit.Before;
 import org.ocelotds.integration.dataservices.topic.TopicAccessController;
 import org.ocelotds.integration.marshallers.ClassMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
-import org.ocelotds.marshalling.JsonMarshallerServices;
 import org.ocelotds.marshallers.LocaleMarshaller;
 import org.ocelotds.marshallers.TemplateMarshaller;
+import org.ocelotds.marshalling.ArgumentServices;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 
@@ -119,7 +119,7 @@ public class OcelotTest extends AbstractOcelotTest {
 	private Instance<IDataServiceResolver> resolvers;
 	
 	@Inject
-	JsonMarshallerServices jsonMarshallerServices;
+	ArgumentServices argumentServices;
 
 	private IDataServiceResolver getResolver(String type) {
 		return resolvers.select(new DataServiceResolverIdLitteral(type)).get();
@@ -132,11 +132,11 @@ public class OcelotTest extends AbstractOcelotTest {
 	
 	@Test
 	public void testgetIJsonMarshallerInstance() throws JsonMarshallingException, JsonMarshallerException {
-		IJsonMarshaller result = jsonMarshallerServices.getIJsonMarshallerInstance(LocaleMarshaller.class);
+		IJsonMarshaller result = argumentServices.getIJsonMarshallerInstance(LocaleMarshaller.class);
 		assertThat(result).isInstanceOf(LocaleMarshaller.class);
-		result = jsonMarshallerServices.getIJsonMarshallerInstance(ClassMarshaller.class);
+		result = argumentServices.getIJsonMarshallerInstance(ClassMarshaller.class);
 		assertThat(result).isInstanceOf(ClassMarshaller.class);
-		result = jsonMarshallerServices.getIJsonMarshallerInstance(TemplateMarshaller.class);
+		result = argumentServices.getIJsonMarshallerInstance(TemplateMarshaller.class);
 		assertThat(result).isInstanceOf(TemplateMarshaller.class);
 		String json = result.toJson("FOO");
 		assertThat(json).isEqualTo("\"FOO\"");
