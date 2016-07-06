@@ -3,6 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds;
 
+import java.io.IOException;
+import java.io.InputStream;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheRemove;
 import org.ocelotds.annotations.JsCacheResult;
@@ -11,6 +13,7 @@ import org.ocelotds.core.UpdatedCacheManager;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
@@ -132,5 +135,16 @@ public class OcelotServices {
 	 */
 	public Integer getNumberSubscribers(String topic) {
 		return topicManager.getNumberSubscribers(topic);
+	}
+	
+	public String getVersion() {
+		try {
+			InputStream in = this.getClass().getResourceAsStream("/META-INF/maven/org.ocelotds/ocelot-web/pom.properties");
+			Properties prop = new Properties();
+			prop.load(in);
+			return prop.getProperty("version");
+		} catch (Throwable ex) {
+		}
+		return "locale";
 	}
 }

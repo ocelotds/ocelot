@@ -45,6 +45,12 @@
 			return promiseFactory.create(_ds, "f84864d6fe75d993429e068b3ff5ae15_" + JSON.stringify([]).md5(), "getUsername", false, []);
 		},
 		/**
+		 * @return {java.lang.String}
+		 */
+		getVersion : function () {
+			return promiseFactory.create(_ds, "ff1161ede2db4eac97fd8dd4a57bf0f3_" + JSON.stringify([]).md5(), "getVersion", false, []);
+		},
+		/**
 		 * Init core
 		 * @param {org.ocelotds.objects.Options} options
 		 * @param {javax.servlet.http.HttpSession} httpSession

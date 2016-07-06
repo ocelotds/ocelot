@@ -29,22 +29,32 @@
 					controller: TopMenuCtrl,
 					controllerAs: "ctrl",
 					resolve: {
-						username: initUsername
+						username: initUsername,
+						version: initVersion
 					}
 				}
 			}
 		});
 	}
 	/* @ngInject */
-	function TopMenuCtrl(username) {
+	function TopMenuCtrl(username, version) {
 		var ctrl = this;
 		ctrl.username = username;
+		ctrl.version = version;
 	}
 	/* @ngInject */
 	function initUsername($q, ocelotServices) {
 		var deferred = $q.defer();
 		ocelotServices.getUsername().then(function (username) {
 			deferred.resolve(username);
+		});
+		return deferred.promise;
+	}
+	/* @ngInject */
+	function initVersion($q, ocelotServices) {
+		var deferred = $q.defer();
+		ocelotServices.getVersion().then(function (version) {
+			deferred.resolve(version);
 		});
 		return deferred.promise;
 	}
