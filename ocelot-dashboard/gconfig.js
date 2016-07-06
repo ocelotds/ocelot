@@ -24,6 +24,10 @@ module.exports.cssName = 'css/main.css';
  */
 module.exports.bowerJs = 'js/vendors.js';
 /**
+ * The context path of server, the application name.
+ */
+module.exports.applicationContext = '';
+/**
  * All vendors css files, they will be concat in cssName file
  */
 module.exports.vendorsCssFiles = [

@@ -12,6 +12,7 @@
 			  jshint = require('gulp-jshint'),
 			  clean_css = require('gulp-clean-css'),
 			  ngAnnotate = require('gulp-ng-annotate'),
+			  replace = require('gulp-replace'),
 			  gconfig = require('./gconfig.js');
 
 	gulp.task('default', ['build']);
@@ -43,7 +44,7 @@
 	});
 
 	gulp.task('relocate', function () {
-		gulp.src([gconfig.rootApp + '/**/*', "!" + gconfig.rootApp + '/**/*.css', "!" + gconfig.rootApp + '/**/*.js'], {base: gconfig.rootApp}).pipe(plumber()).pipe(gulp.dest(gconfig.dist));
+		gulp.src([gconfig.rootApp + '/**/*', "!" + gconfig.rootApp + '/**/*.css', "!" + gconfig.rootApp + '/**/*.js'], {base: gconfig.rootApp}).pipe(replace('%APP_CTX_PATH%', gconfig.applicationContext)).pipe(plumber()).pipe(gulp.dest(gconfig.dist));
 		gconfig.vendorsAssetFiles.forEach(function (assetFile, index, array) {
 			if (!assetFile.source) {
 				gulp.src(vendorsFolder + "/" + assetFile).pipe(gulp.dest(gconfig.dist));
