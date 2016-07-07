@@ -36,11 +36,6 @@ public class RoleConfigurationManager {
 	@OcelotConfiguration(Constants.Options.DASHBOARD_ROLES)
 	private Instance<Collection<String>> ocelotConfigurationRoles;
 
-	@Any
-	@Inject
-	@OcelotConfiguration(Constants.Options.DASHBOARD_ROLES)
-	private Instance<String> ocelotConfigurationRole;
-
 	/**
 	 * Read in web.xml and differents producers the optional DASHBOARD_ROLES config and set it in OcelotConfiguration
 	 *
@@ -48,7 +43,6 @@ public class RoleConfigurationManager {
 	 */
 	public void readDashboardRolesConfig(@Observes @Initialized(ApplicationScoped.class) ServletContext sc) {
 		readFromConfigurationRoles();
-		readFromConfigurationRole();
 		readFromInitParameter(sc);
 		logger.debug("'{}' value : '{}'.", Constants.Options.DASHBOARD_ROLES, roles);
 	}
@@ -58,14 +52,6 @@ public class RoleConfigurationManager {
 			Collection<String> get = ocelotConfigurationRoles.get();
 			logger.debug("Read '{}' option from Producer Collection<String> : '{}'.", Constants.Options.DASHBOARD_ROLES, get);
 			roles.addAll(get);
-		}
-	}
-
-	void readFromConfigurationRole() {
-		if (!ocelotConfigurationRole.isUnsatisfied()) {
-			String get = ocelotConfigurationRole.get();
-			logger.debug("Read '{}' option from Producer String : '{}'.", Constants.Options.DASHBOARD_ROLES, get);
-			roles.add(get);
 		}
 	}
 

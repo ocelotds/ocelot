@@ -47,7 +47,6 @@ public class RoleConfigurationManagerTest {
 		System.out.println("readDashboardRolesConfig");
 		ServletContext sc = mock(ServletContext.class);
 		doNothing().when(instance).readFromConfigurationRoles();
-		doNothing().when(instance).readFromConfigurationRole();
 		doNothing().when(instance).readFromInitParameter(sc);
 		instance.readDashboardRolesConfig(sc);
 	}
@@ -65,22 +64,6 @@ public class RoleConfigurationManagerTest {
 		assertThat(instance.getRoles()).hasSize(2);
 		instance.getRoles().clear();
 		instance.readFromConfigurationRoles();
-		assertThat(instance.getRoles()).isEmpty();
-	}
-
-	/**
-	 * Test of readFromConfigurationRole method, of class RoleConfigurationManager.
-	 */
-	@Test
-	public void testReadFromConfigurationRole() {
-		System.out.println("readFromConfigurationRole");
-		when(ocelotConfigurationRole.isUnsatisfied()).thenReturn(Boolean.FALSE).thenReturn(Boolean.TRUE);
-		when(ocelotConfigurationRole.get()).thenReturn("R1");
-		instance.getRoles().clear();
-		instance.readFromConfigurationRole();
-		assertThat(instance.getRoles()).hasSize(1);
-		instance.getRoles().clear();
-		instance.readFromConfigurationRole();
 		assertThat(instance.getRoles()).isEmpty();
 	}
 
