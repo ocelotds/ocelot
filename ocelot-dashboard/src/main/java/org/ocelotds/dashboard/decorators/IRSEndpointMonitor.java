@@ -11,7 +11,6 @@ import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 import org.ocelotds.annotations.OcelotLogger;
-import org.ocelotds.dashboard.services.HttpSessionManager;
 import org.ocelotds.dashboard.services.MonitorSessionManager;
 import org.ocelotds.messaging.MessageEvent;
 import org.ocelotds.messaging.MessageToClient;
@@ -39,9 +38,6 @@ public abstract class IRSEndpointMonitor implements IRSEndpoint {
 	MonitorSessionManager monitorSessionManager;
 	
 	@Inject
-	HttpSessionManager httpSessionManager;
-
-	@Inject
 	@MessageEvent
 	Event<MessageToClient> wsEvent;
 
@@ -54,7 +50,6 @@ public abstract class IRSEndpointMonitor implements IRSEndpoint {
 	@Override
 	public String getMessageToClient(String mfc) {
 		HttpSession httpSession = iRSEndpoint.getHttpSession();
-		httpSessionManager.addHttpSession(httpSession);
 		String httpid = httpSession.getId();
 		boolean monitored = monitorSessionManager.isMonitored(httpid);
 		long t0 = 0;

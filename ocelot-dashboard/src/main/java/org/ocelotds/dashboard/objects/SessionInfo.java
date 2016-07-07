@@ -11,15 +11,14 @@ public class SessionInfo {
 	
 	String id = null;
 	String username = null;
-	boolean open = false;
-	
+	int wsNumber = 0;
+
 	public SessionInfo() {
 	}
 	
-	public SessionInfo(String id, String username, boolean open) {
+	public SessionInfo(String id, String username) {
 		this.id = id;
 		this.username = username;
-		this.open = open;
 	}
 
 	public String getId() {
@@ -38,11 +37,19 @@ public class SessionInfo {
 		this.username = username;
 	}
 
-	public boolean isOpen() {
-		return open;
+	public int getWsNumber() {
+		return wsNumber;
 	}
 
-	public void setOpen(boolean open) {
-		this.open = open;
+	public void setWsNumber(int ws) {
+		this.wsNumber = ws;
 	}
+	
+	public void incWsNumber() {
+		wsNumber++;
+	}
+	public void decWsNumber() {
+		wsNumber--;
+	}
+	
 }

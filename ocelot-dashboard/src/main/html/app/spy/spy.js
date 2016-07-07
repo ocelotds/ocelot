@@ -32,10 +32,8 @@
 		ctrl.filterInput = "";
 		ctrl.request = MSG;
 		ctrl.monitored = null;
-		ctrl.showDisabled = false;
 		ctrl.showOnlyWarning = false;
 		ctrl.triggerDelay = 20;
-		ctrl.switchShowDisabled = switchShowDisabled;
 		ctrl.switchMonitor = switchMonitor;
 		ctrl.selectRequest = selectRequest;
 		activate();
@@ -83,7 +81,7 @@
 			ctrl.sessions.every(function (s, idx, arr) {
 				if (s.id === session.id) {
 					arr.splice(idx, 1, session);
-					animateSession(session, session.open, 5000);
+					animateSession(session, true, 5000);
 					$scope.$apply();
 					return false;
 				}
@@ -103,9 +101,6 @@
 		
 		function selectRequest(request) {
 			ctrl.request = "// Request\n" + JSON.stringify(request.mfc, null, 3) + "\n// Response\n" + JSON.stringify(request.mtc, null, 3);
-		}
-		function switchShowDisabled() {
-			ctrl.showDisabled = !ctrl.showDisabled;
 		}
 		function switchMonitor(id) {
 			ctrl.requests = [];

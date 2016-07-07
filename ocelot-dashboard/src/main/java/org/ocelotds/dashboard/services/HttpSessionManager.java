@@ -40,40 +40,36 @@ public class HttpSessionManager {
 	@Inject
 	PrincipalTools principalTools;
 
-	public void addHttpSession(HttpSession httpSession) {
-		if(httpSession != null && !httpidSessioninfos.containsKey(httpSession.getId())) {
-			SessionInfo sessionInfo = new SessionInfo(httpSession.getId(), Constants.ANONYMOUS, true);
-			httpidSessioninfos.put(httpSession.getId(), sessionInfo);
-			addSessionInfo.fire(sessionInfo);
-		}
-	}
-	
-	public void removeHttpSession(HttpSession httpSession) {
-		SessionInfo sessionInfo = httpidSessioninfos.remove(httpSession.getId());
-		removeSessionInfo.fire(sessionInfo);
-	}
-	
 	public Collection<SessionInfo> getSessionInfos() {
 		return httpidSessioninfos.values();
 	}
 	
 	public void addSession(Session session, String httpid) {
 		if(session != null) {
+			Event<SessionInfo> topic = updateSessionInfo;
 			SessionInfo sessionInfo = httpidSessioninfos.get(httpid);
-			sessionInfo.setOpen(true);
+			if(sessionInfo==null) {
+				sessionInfo = new SessionInfo(httpid, Constants.ANONYMOUS);
+				topic = addSessionInfo;
+			}
+			sessionInfo.incWsNumber();
 			sessionInfo.setUsername(principalTools.getPrincipal(session).getName());
-			updateSessionInfo.fire(sessionInfo);
 			wsSessionHttpid.put(session.getId(), httpid);
+			httpidSessioninfos.put(httpid, sessionInfo);
+			topic.fire(sessionInfo);
 		}
 	}
 
 	public void removeSession(Session session) {
 		if(session != null && wsSessionHttpid.containsKey(session.getId())) {
 			String httpid = wsSessionHttpid.remove(session.getId());
-			if(!wsSessionHttpid.containsValue(httpid)) {
-				SessionInfo sessionInfo = httpidSessioninfos.get(httpid);
-				sessionInfo.setOpen(false);
+			SessionInfo sessionInfo = httpidSessioninfos.get(httpid);
+			sessionInfo.decWsNumber();
+			if(sessionInfo.getWsNumber()>0) {
 				updateSessionInfo.fire(sessionInfo);
+			} else {
+				httpidSessioninfos.remove(httpid);
+				removeSessionInfo.fire(sessionInfo);
 			}
 		}
 	}

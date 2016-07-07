@@ -21,7 +21,7 @@ public class SessionInfoTest {
 	
 	@Before
 	public void init() {
-		instance = new SessionInfo("ID", "USERNAME", true);
+		instance = new SessionInfo("ID", "USERNAME");
 	}
 
 	/**
@@ -33,7 +33,6 @@ public class SessionInfoTest {
 		SessionInfo sessionInfo = new SessionInfo();
 		assertThat(sessionInfo.getId()).isNull();
 		assertThat(sessionInfo.getUsername()).isNull();
-		assertThat(sessionInfo.isOpen()).isFalse();
 	}
 	
 	/**
@@ -77,26 +76,4 @@ public class SessionInfoTest {
 		String result = instance.getUsername();
 		assertThat(result).isEqualTo("USERNAME2");
 	}
-
-	/**
-	 * Test of isOpen method, of class SessionInfo.
-	 */
-	@Test
-	public void testIsOpen() {
-		System.out.println("isOpen");
-		boolean result = instance.isOpen();
-		assertThat(result).isTrue();
-	}
-
-	/**
-	 * Test of setOpen method, of class SessionInfo.
-	 */
-	@Test
-	public void testSetOpen() {
-		System.out.println("setOpen");
-		instance.setOpen(false);
-		boolean result = instance.isOpen();
-		assertThat(result).isFalse();
-	}
-
 }

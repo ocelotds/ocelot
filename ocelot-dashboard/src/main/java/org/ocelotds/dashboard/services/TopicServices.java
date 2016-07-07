@@ -46,7 +46,9 @@ public class TopicServices {
 			result.put(entry.getKey(), sessionInfos);
 			Collection<Session> value = entry.getValue();
 			for (Session session : value) {
-				sessionInfos.add(new SessionInfo(session.getId(), principalTools.getPrincipal(session).getName(), session.isOpen()));
+				if(session.isOpen()) {
+					sessionInfos.add(new SessionInfo(session.getId(), principalTools.getPrincipal(session).getName()));
+				}	
 			}
 		}
 		return result;

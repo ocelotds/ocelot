@@ -1,26 +1,15 @@
 <div class="row">       
 	<div class="col-sm-4 col-md-3 sidebar">
 		<ul class="nav nav-sidebar">
-			<li>
-				<a style="cursor: default">
-					<span>Sessions <span class="badge">{{ctrl.sessions.length}}</span></span>
-					<span class="pull-right">
-						Show inactives
-						<btn-switch onswitch="ctrl.switchShowDisabled()" 
-										title="Show inactives" options="{'size':'xs'}"
-										value="ctrl.showDisabled">
-						</btn-switch>
-					</span>
-				</a>
-			</li>
-			<li ng-repeat="session in ctrl.sessions | filtersession:ctrl.showDisabled" class="{{session.new?'animated flipInX infinite':''}} {{session.open?'':'disabled'}}" 
+			<li ng-repeat="session in ctrl.sessions" class="{{session.new?'animated flipInX infinite':''}}" 
 				 ng-click="session.new = false" title="{{session.id}}">
 				<a>
 					<b>{{session| sessioninfo}}</b>
 					<span class="pull-right">
+						<span class="badge" title="ocelot websocket number">{{session.wsNumber}}</span>
 						<btn-switch onswitch="ctrl.switchMonitor(session.id)" 
-										title="Monitor client on/off" disabled="!session.open" options="{'size':'xs'}"
-										value="(ctrl.monitored === session.id) && session.open">
+										title="Monitor client on/off" options="{'size':'xs'}"
+										value="(ctrl.monitored === session.id)">
 						</btn-switch>
 					</span>
 				</a>
