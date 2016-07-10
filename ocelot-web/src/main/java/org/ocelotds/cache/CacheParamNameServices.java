@@ -8,8 +8,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.Properties;
+import java.util.ResourceBundle;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import org.ocelotds.Constants;
@@ -31,15 +34,12 @@ public class CacheParamNameServices {
 	public List<String> getMethodParamNames(Class cls, String methodName) {
 		String key = cls.getName()+"."+methodName;
 		if(!map.containsKey(key)) {
-			String fn = cls.getSimpleName()+".properties";
 			List<String> result = new ArrayList();
-			try (InputStream in = cls.getResourceAsStream(fn);) {
-				Properties properties = new Properties();
-				properties.load(in);
-				String property = properties.getProperty(key);
+			try {
+				ResourceBundle rb = ResourceBundle.getBundle(cls.getName(), Locale.US, cls.getClassLoader());
+				String property = rb.getString(key);
 				result = Arrays.asList(property.split(Constants.Cache.PARAMNAME_SEPARATOR));
-			} catch (Throwable ex) {
-				logger.error("Error, loading "+key+"/"+fn, ex);
+			}catch(MissingResourceException mre) {
 			}
 			map.put(key, result);
 		}
