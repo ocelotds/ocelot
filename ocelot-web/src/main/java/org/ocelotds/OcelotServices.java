@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds;
 
-import java.io.IOException;
 import java.io.InputStream;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.JsCacheRemove;

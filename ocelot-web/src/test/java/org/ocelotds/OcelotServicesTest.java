@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds;
 
+import java.net.URL;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
@@ -180,5 +181,16 @@ public class OcelotServicesTest {
 		when(topicManager.getNumberSubscribers(anyString())).thenReturn(0);
 		Integer result = instance.getNumberSubscribers("TOPIC");
 		assertThat(result).isEqualTo(0);
+	}
+	
+	/**
+	 * Test of getVersion method, of class.
+	 */
+	@Test
+	public void getVersionTest() {
+		System.out.println("getVersion");
+		String result = instance.getVersion();
+		assertThat(result).isNotNull();
+		assertThat(result).isEqualTo("TestVersion");
 	}
 }
