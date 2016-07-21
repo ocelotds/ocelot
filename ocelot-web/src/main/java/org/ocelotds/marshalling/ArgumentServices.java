@@ -23,6 +23,7 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
 import org.ocelotds.annotations.OcelotLogger;
+import org.ocelotds.annotations.OcelotObject;
 import org.ocelotds.marshalling.annotations.JsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
@@ -39,6 +40,7 @@ public class ArgumentServices {
 	Logger logger;
 
 	@Inject
+	@OcelotObject
 	ObjectMapper objectMapper;
 
 	public List<String> getJsonParameters(Object[] parameters, Annotation[][] annotationss) throws JsonMarshallingException, JsonMarshallerException, JsonProcessingException {

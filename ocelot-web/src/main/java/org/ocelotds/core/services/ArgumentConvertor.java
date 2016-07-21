@@ -19,6 +19,7 @@ import java.util.Map;
 import javax.inject.Inject;
 import org.ocelotds.Constants;
 import org.ocelotds.annotations.OcelotLogger;
+import org.ocelotds.annotations.OcelotObject;
 import org.ocelotds.marshalling.exceptions.JsonMarshallerException;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.annotations.JsonMarshallerType;
@@ -37,6 +38,7 @@ public class ArgumentConvertor implements IArgumentConvertor {
 	private Logger logger;
 
 	@Inject
+	@OcelotObject
 	ObjectMapper objectMapper;
 
 	@Inject

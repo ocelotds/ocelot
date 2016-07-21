@@ -5,12 +5,17 @@ package org.ocelotds.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.enterprise.inject.Produces;
+import org.ocelotds.annotations.OcelotObject;
 
 /**
  *
  * @author hhfrancois
  */
 public class ObjectMapperProducer {
+
 	@Produces
-	ObjectMapper objectMapper = new ObjectMapper();
+	@OcelotObject
+	public ObjectMapper getObjectMapper() {
+		return new ObjectMapper();
+	}
 }

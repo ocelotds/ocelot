@@ -6,6 +6,7 @@ package org.ocelotds.marshallers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.inject.Inject;
+import org.ocelotds.annotations.OcelotObject;
 import org.ocelotds.marshalling.IJsonMarshaller;
 import org.ocelotds.marshalling.exceptions.JsonMarshallingException;
 import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
@@ -17,6 +18,7 @@ import org.ocelotds.marshalling.exceptions.JsonUnmarshallingException;
 public class TemplateMarshaller implements IJsonMarshaller<Object> {
 	
 	@Inject
+	@OcelotObject
 	ObjectMapper objectMapper;
 
 	@Override

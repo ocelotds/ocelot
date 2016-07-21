@@ -39,10 +39,10 @@ public class JsCacheAnnotationServices {
 	@Inject
 	@CacheEvent
 	Event<String> cacheEvent;
-	
+
 	@Inject
 	KeyMaker keyMaker;
-	
+
 	@Inject
 	CacheArgumentServices cacheArgumentServices;
 
@@ -79,10 +79,11 @@ public class JsCacheAnnotationServices {
 		}
 		return deadline.getTime().getTime();
 	}
-	
+
 	/**
 	 * Return now
-	 * @return 
+	 *
+	 * @return
 	 */
 	Calendar getNowCalendar() {
 		return Calendar.getInstance();
@@ -101,13 +102,13 @@ public class JsCacheAnnotationServices {
 		messageToClient.setId(Constants.Cache.CLEANCACHE_TOPIC);
 		String argpart = cacheArgumentServices.computeArgPart(jcr.keys(), jsonArgs, paramNames);
 		String cachekey = computeCacheKey(jcr.cls(), jcr.methodName(), argpart);
-		if(logger.isDebugEnabled()) {
+		if (logger.isDebugEnabled()) {
 			logger.debug("JsonArgs from Call : {}", Arrays.toString(jsonArgs.toArray(new String[jsonArgs.size()])));
 			logger.debug("ParamName from considerated method : {}", Arrays.toString(paramNames.toArray(new String[paramNames.size()])));
 			logger.debug("Computed key : {}", cachekey);
 		}
 		messageToClient.setResponse(cachekey);
-		if(jcr.userScope()) {
+		if (jcr.userScope()) {
 			wsUserEvent.fire(messageToClient);
 		} else {
 			wsEvent.fire(messageToClient);
@@ -117,10 +118,11 @@ public class JsCacheAnnotationServices {
 
 	/**
 	 * Compute the cache key from classname, methodname, and args
+	 *
 	 * @param cls
 	 * @param methodName
 	 * @param argpart
-	 * @return 
+	 * @return
 	 */
 	String computeCacheKey(Class cls, String methodName, String argpart) {
 		String cachekey = keyMaker.getMd5(cls.getName() + "." + methodName);

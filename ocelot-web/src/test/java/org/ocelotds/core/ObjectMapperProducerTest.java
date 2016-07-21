@@ -6,7 +6,6 @@ package org.ocelotds.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
-import org.ocelotds.core.ObjectMapperProducer;
 import static org.assertj.core.api.Assertions.*;
 
 /**
@@ -18,7 +17,7 @@ public class ObjectMapperProducerTest {
 	@Test
 	public void testObjectMapperProducer() {
 		ObjectMapperProducer instance = new ObjectMapperProducer();
-		ObjectMapper result = instance.objectMapper;
+		ObjectMapper result = instance.getObjectMapper();
 		assertThat(result).isNotNull();
 	}
 
