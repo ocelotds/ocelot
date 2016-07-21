@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package org.ocelotds.extension;
+package org.ocelotds.security;
 
 import java.lang.reflect.Method;
 import javax.enterprise.inject.Instance;
@@ -11,14 +11,10 @@ import org.junit.Test;
 import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ocelotds.objects.FakeCDI;
-import org.ocelotds.security.OcelotSecured;
-import org.ocelotds.security.SecureProvider;
 
 /**
  *

@@ -1,17 +1,16 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.extension;
+package org.ocelotds.security;
 
 import java.lang.reflect.Method;
+import javax.annotation.Priority;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
-import org.ocelotds.security.OcelotSecured;
-import org.ocelotds.security.SecureProvider;
 
 /**
  * This class transform a simple method to chanel for topic
@@ -19,6 +18,7 @@ import org.ocelotds.security.SecureProvider;
  * @author hhfrancois
  */
 @Interceptor
+@Priority(0)
 @OcelotSecured
 public class SecureInterceptor {
 
