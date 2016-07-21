@@ -1,15 +1,14 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-package org.ocelotds.extension;
+package org.ocelotds.messaging;
 
 import org.ocelotds.annotations.JsTopic;
 import org.ocelotds.annotations.JsTopicName;
-import org.ocelotds.messaging.MessageEvent;
-import org.ocelotds.messaging.MessageToClient;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import javax.annotation.Priority;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.interceptor.AroundInvoke;
@@ -24,8 +23,9 @@ import org.slf4j.Logger;
  *
  * @author hhfrancois
  */
-@Interceptor
 @JsTopic
+@Priority(0)
+@Interceptor
 public class JsTopicInterceptor implements Serializable {
 
 	private static final long serialVersionUID = -849762977471230875L;
