@@ -20,6 +20,7 @@ import org.ocelotds.OcelotServices;
 import org.ocelotds.annotations.DataService;
 import org.ocelotds.annotations.OcelotResource;
 import org.ocelotds.core.UnProxyClassServices;
+import org.ocelotds.resolvers.DataserviceLiteral;
 
 /**
  *
@@ -35,7 +36,7 @@ public class RsJsServices extends AbstractRsJs {
 	
 	@Inject
 	private UnProxyClassServices unProxyClassServices;
-
+	
 	@Any
 	@Inject
 	@DataService(resolver = "")
@@ -48,12 +49,26 @@ public class RsJsServices extends AbstractRsJs {
 			fwk = "ng";
 		}
 		List<InputStream> streams = new ArrayList<>();
-		for (Object dataservice : dataservices) {
+		for (Object dataservice : getDataservices()) {
 			if (!OcelotServices.class.isInstance(dataservice)) {
-				addStream(streams, getJsFilename(unProxyClassServices.getRealClass(dataservice.getClass()).getName(), fwk));
+				addStream(streams, getJsFilename(getUnProxyClassServices().getRealClass(dataservice.getClass()).getName(), fwk));
 			}
 		}
 		return streams;
+	}
+
+	UnProxyClassServices getUnProxyClassServices() {
+		if(null == unProxyClassServices) {
+			unProxyClassServices = CDI.current().select(UnProxyClassServices.class).get();
+		}
+		return unProxyClassServices;
+	}
+
+	Instance<Object> getDataservices() {
+		if(null == dataservices) {
+			dataservices = CDI.current().select(new DataserviceLiteral());
+		}
+		return dataservices;
 	}
 
 	/**

@@ -19,6 +19,7 @@ import org.ocelotds.annotations.OcelotResource;
 import org.ocelotds.dashboard.security.DashboardSecureProvider;
 import org.ocelotds.security.OcelotSecured;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -55,7 +56,7 @@ public class RsDashboard {
 		try {
 			return Response.ok((Object) getResource("/" + path).openStream(), type).build();
 		} catch (NullPointerException e) {
-			logger.error("Request "+path+" but not present on server.");
+			getLogger().error("Request "+path+" but not present on server.");
 			return Response.noContent().build();
 		}
 	}
@@ -68,5 +69,12 @@ public class RsDashboard {
 	 */
 	URL getResource(String name) {
 		return RsDashboard.class.getResource(name);
+	}
+
+	Logger getLogger() {
+		if(null == logger) {
+			logger = LoggerFactory.getLogger(RsDashboard.class);
+		}
+		return logger;
 	}
 }
