@@ -1,6 +1,8 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
+ */
 package org.ocelotds.cache;
 
 import java.io.StringReader;
@@ -66,7 +68,7 @@ public class CacheArgumentServices {
 			logger.debug("Index of param '{}' : '{}'", paramName, idx);
 			String jsonArg = jsonArgs.get(idx);
 			logger.debug("Param '{}' : '{}'", paramName, jsonArg);
-			sb.append(processArg(path, jsonArg));
+			sb.append(processArg(Arrays.copyOfRange(path, 1, path.length), jsonArg));
 		}
 		sb.append("]");
 		return sb.toString();
@@ -82,10 +84,9 @@ public class CacheArgumentServices {
 	 */
 	String processArg(String[] path, String jsonArg) {
 		String keyArg = jsonArg;
-		if (path.length > 1) {
-			String[] subpath = Arrays.copyOfRange(path, 1, path.length);
+		if (path.length > 0) {
 			try {
-				keyArg = processSubFieldsOfArg(subpath, jsonArg);
+				keyArg = processSubFieldsOfArg(path, jsonArg);
 			} catch (Throwable ex) {
 				logger.warn("Fail to access to field for '{}'", jsonArg, ex);
 			}
@@ -97,7 +98,7 @@ public class CacheArgumentServices {
 		try (JsonReader reader = Json.createReader(new StringReader(jsonArg))) {
 			JsonValue jsonObject = reader.readObject();
 			for (String p : path) {
-				logger.debug("Access to '{}' for '{}'", p, jsonObject.toString());
+				logger.debug("Access to '{}' for '{}'", p, jsonObject);
 				jsonObject = ((JsonObject) jsonObject).get(p);
 			}
 			return jsonObject.toString();

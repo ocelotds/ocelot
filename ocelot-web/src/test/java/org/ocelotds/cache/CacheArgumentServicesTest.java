@@ -1,7 +1,8 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. 
+ */
 package org.ocelotds.cache;
 
 import java.util.Arrays;
@@ -115,11 +116,11 @@ public class CacheArgumentServicesTest {
 	@Test
 	public void testProcessArg() {
 		System.out.println("processArg");
-		String[] path = new String[] {"a"};
+		String[] path = new String[] {};
 		doReturn("jsonarg.b").when(instance).processSubFieldsOfArg(any(String[].class), anyString());
 		String result = instance.processArg(path, "jsonarg");
 		assertThat(result).isEqualTo("jsonarg");
-		path = new String[] {"a", "b"};
+		path = new String[] {"b"};
 		result = instance.processArg(path, "jsonarg");
 		assertThat(result).isEqualTo("jsonarg.b");
 	}
