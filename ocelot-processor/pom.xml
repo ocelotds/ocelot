@@ -30,7 +30,7 @@
 							<goal>exec</goal>
 						</goals>
 						<configuration>
-							<executable>npm</executable>
+							<executable>npm${ext.cmd}</executable>
 							<arguments>
 								<argument>install</argument>
 							</arguments>
@@ -43,7 +43,7 @@
 							<goal>exec</goal>
 						</goals>
 						<configuration>
-							<executable>gulp</executable>
+							<executable>gulp${ext.cmd}</executable>
 						</configuration>
 					</execution>
 				</executions>
