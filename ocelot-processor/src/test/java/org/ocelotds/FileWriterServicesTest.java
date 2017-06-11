@@ -44,8 +44,8 @@ public class FileWriterServicesTest {
 
 		doReturn(writer).doThrow(IOException.class).when(instance).getFileObjectWriterInClassOutput(eq(""), eq(filename));
 
-		instance.copyFileToClassesOutput(path, filename);
-		instance.copyFileToClassesOutput(path, filename);
+		instance.copyResourceToClassesOutput(path, filename);
+		instance.copyResourceToClassesOutput(path, filename);
 		verify(bodyWriter).write(eq(writer), any(InputStream.class));
 	}
 
@@ -67,8 +67,8 @@ public class FileWriterServicesTest {
 
 		doReturn(writer).doThrow(IOException.class).when(instance).getFileObjectWriter(eq("DIR"), eq("org.ocelotds."+filename));
 
-		instance.copyFileToDir(path, filename, "DIR");
-		instance.copyFileToDir(path, filename, "DIR");
+		instance.copyResourceToDir(path, filename, "DIR");
+		instance.copyResourceToDir(path, filename, "DIR");
 		verify(bodyWriter).write(eq(writer), any(InputStream.class));
 	}
 

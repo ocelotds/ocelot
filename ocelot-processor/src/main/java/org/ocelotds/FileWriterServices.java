@@ -37,12 +37,13 @@ public class FileWriterServices {
 	 * @param path
 	 * @param filename 
 	 */
-	public void copyFileToClassesOutput(String path, String filename) {
-		messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " javascript copy js : " + path + ProcessorConstants.SEPARATORCHAR + filename + " to : class dir");
+	public void copyResourceToClassesOutput(String path, String filename) {
+		String fullpath = path + ProcessorConstants.SEPARATORCHAR + filename;
+		messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " javascript copy js : " + fullpath + " to : class dir");
 		try (Writer writer = getFileObjectWriterInClassOutput("", filename)) {
-			bodyWriter.write(writer, OcelotProcessor.class.getResourceAsStream(path + ProcessorConstants.SEPARATORCHAR + filename));
+			bodyWriter.write(writer, OcelotProcessor.class.getResourceAsStream(fullpath));
 		} catch (IOException ex) {
-			messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " FAILED TO CREATE : " + path + ProcessorConstants.SEPARATORCHAR + filename + " : " + ex.getMessage());
+			messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " FAILED TO CREATE : " + fullpath + " : " + ex.getMessage());
 		}
 	}
 	
@@ -52,10 +53,11 @@ public class FileWriterServices {
 	 * @param filename
 	 * @param dir 
 	 */
-	public void copyFileToDir(String path, String filename, String dir) {
-		messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " javascript copy js : " + path + ProcessorConstants.SEPARATORCHAR + filename + " to : "+dir);
+	public void copyResourceToDir(String path, String filename, String dir) {
+		String fullpath = path + ProcessorConstants.SEPARATORCHAR + filename;
+		messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " javascript copy js : " + fullpath + " to : "+dir);
 		try (Writer writer = getFileObjectWriter(dir, "org.ocelotds."+filename)) {
-			bodyWriter.write(writer, OcelotProcessor.class.getResourceAsStream(path + ProcessorConstants.SEPARATORCHAR + filename));
+			bodyWriter.write(writer, OcelotProcessor.class.getResourceAsStream(fullpath));
 		} catch (IOException ex) {
 			messager.printMessage(Diagnostic.Kind.MANDATORY_WARNING, " FAILED TO CREATE : " + filename);
 		}

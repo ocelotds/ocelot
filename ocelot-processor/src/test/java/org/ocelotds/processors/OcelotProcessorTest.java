@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package org.ocelotds.processors;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
@@ -230,6 +231,7 @@ public class OcelotProcessorTest {
 	
 	/**
 	 * Test of createPropertiesFile method, of class.
+	 * @throws java.io.IOException
 	 */
 	@Test
 	public void createPropertiesFileTest() throws IOException {
@@ -351,7 +353,7 @@ public class OcelotProcessorTest {
 		TypeElement element = mock(TypeElement.class);
 		ElementVisitor visitor = mock(ElementVisitor.class);
 		Writer writer = mock(Writer.class);
-		when(fws.getFileObjectWriter(eq("dir/srvs"), eq("packagePath.fn"))).thenReturn(writer).thenThrow(IOException.class);
+		when(fws.getFileObjectWriter(eq("dir"+File.separatorChar+"srvs"), eq("packagePath.fn"))).thenReturn(writer).thenThrow(IOException.class);
 		instance.writeJsFileToJsDir(element, visitor, "packagePath", "fn", "dir");
 		instance.writeJsFileToJsDir(element, visitor, "packagePath", "fn", "dir");
 		verify(element).accept(eq(visitor), eq(writer));
@@ -403,7 +405,7 @@ public class OcelotProcessorTest {
 		System.out.println("writeCoreInDirectory");
 		instance.writeCoreInDirectory(null, "ng");
 		instance.writeCoreInDirectory(null, null);
-		verify(fws, never()).copyFileToDir(anyString(), anyString(), anyString());
+		verify(fws, never()).copyResourceToDir(anyString(), anyString(), anyString());
 	}
 
 	/**
@@ -412,8 +414,8 @@ public class OcelotProcessorTest {
 	@Test
 	public void writeCoreInDirectoryTestDoNoFwk() {
 		System.out.println("writeCoreInDirectory");
-		instance.writeCoreInDirectory("/tmp", null);
-		verify(fws).copyFileToDir(anyString(), eq("core.js"), anyString());
+		instance.writeCoreInDirectory(File.separatorChar + "tmp", null);
+		verify(fws).copyResourceToDir(anyString(), eq("core.js"), anyString());
 	}
 
 	/**
@@ -422,8 +424,8 @@ public class OcelotProcessorTest {
 	@Test
 	public void writeCoreInDirectoryTestNg() {
 		System.out.println("writeCoreInDirectory");
-		instance.writeCoreInDirectory("/tmp", "ng");
-		verify(fws).copyFileToDir(anyString(), eq("core.ng.js"), anyString());
+		instance.writeCoreInDirectory(File.separatorChar + "tmp", "ng");
+		verify(fws).copyResourceToDir(anyString(), eq("core.ng.js"), anyString());
 	}
 	
 	/**
@@ -433,9 +435,10 @@ public class OcelotProcessorTest {
 	public void writeCoreInClassesOutputTest() {
 		System.out.println("writeCoreInClassesOutput");
 		instance.writeCoreInClassesOutput();
-		verify(fws).copyFileToClassesOutput(eq("/js"), eq("core.ng.min.js"));
-		verify(fws).copyFileToClassesOutput(eq("/js"), eq("core.ng.js"));
-		verify(fws).copyFileToClassesOutput(eq("/js"), eq("core.min.js"));
-		verify(fws).copyFileToClassesOutput(eq("/js"), eq("core.js"));
+		String resPath = ProcessorConstants.SEPARATORCHAR + "js";
+		verify(fws).copyResourceToClassesOutput(eq(resPath), eq("core.ng.min.js"));
+		verify(fws).copyResourceToClassesOutput(eq(resPath), eq("core.ng.js"));
+		verify(fws).copyResourceToClassesOutput(eq(resPath), eq("core.min.js"));
+		verify(fws).copyResourceToClassesOutput(eq(resPath), eq("core.js"));
 	}
 }

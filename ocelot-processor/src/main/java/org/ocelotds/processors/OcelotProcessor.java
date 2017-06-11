@@ -274,7 +274,7 @@ public class OcelotProcessor extends AbstractProcessor {
 	 */
 	void writeCoreInDirectory(String dir, String fwk) {
 		if (dir != null) { // if developper specify a directory for get js we write them too inside jsdir 
-			fws.copyFileToDir(File.separatorChar + "js", getFilename("core", fwk), dir);
+			fws.copyResourceToDir(ProcessorConstants.SEPARATORCHAR + "js", getFilename("core", fwk), dir);
 		}
 	}
 
@@ -282,9 +282,10 @@ public class OcelotProcessor extends AbstractProcessor {
 	 * Write core in classes directory
 	 */
 	void writeCoreInClassesOutput() {
-		fws.copyFileToClassesOutput(File.separatorChar + "js", "core.ng.min.js");
-		fws.copyFileToClassesOutput(File.separatorChar + "js", "core.ng.js");
-		fws.copyFileToClassesOutput(File.separatorChar + "js", "core.min.js");
-		fws.copyFileToClassesOutput(File.separatorChar + "js", "core.js");
+		String resPath = ProcessorConstants.SEPARATORCHAR + "js";
+		fws.copyResourceToClassesOutput(resPath, "core.ng.min.js");
+		fws.copyResourceToClassesOutput(resPath, "core.ng.js");
+		fws.copyResourceToClassesOutput(resPath, "core.min.js");
+		fws.copyResourceToClassesOutput(resPath, "core.js");
 	}
 }
