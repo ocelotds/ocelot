@@ -9,6 +9,7 @@ package org.ocelotds.processors;
  */
 public interface ProcessorConstants {
 
+	String SEPARATORCHAR = "/";
 	String FUNCTION = "function";
 	String SPACEOPTIONAL = " "; //" ";
 	String SPACE = " "; //" ";
